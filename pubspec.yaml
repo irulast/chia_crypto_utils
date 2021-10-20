@@ -1,0 +1,13 @@
+name: chia_utils
+description: Utilities for the Chia blockchain.
+version: 1.0.0
+
+environment:
+    sdk: '>=2.14.3 <3.0.0'
+
+dev_dependencies:
+    lints: ^1.0.0
+dependencies:
+    bip39: ^1.0.6
+    hex: ^0.2.0
+    test: ^1.18.2
