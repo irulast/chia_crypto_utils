@@ -3,6 +3,43 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 
+class SpendBundle {}
+
+class CoinRecord {}
+
+String createMnemonic() {
+  throw UnimplementedError('Not implemented.');
+}
+
+Uint8List getSeed(String mnemonic) {
+  throw UnimplementedError('Not implemented.');
+}
+
+Uint8List getPrivateKey(Uint8List seed) {
+  throw UnimplementedError('Not implemented.');
+}
+
+Uint8List getPublicKey(Uint8List privateKey) {
+  throw UnimplementedError('Not implemented.');
+}
+
+Uint8List sign(Uint8List privateKey, Uint8List message) {
+  throw UnimplementedError('Not implemented.');
+}
+
+String toAddress(String puzzleHash) {
+  throw UnimplementedError('Not implemented.');
+}
+
+String toPuzzleHash(String address) {
+  throw UnimplementedError('Not implemented.');
+}
+
+SpendBundle createWalletSpendBundle(List<CoinRecord> records,
+    List<int> privateKey, String destination, int amount, int fee) {
+  throw UnimplementedError('Not implemented.');
+}
+
 String getArborWalletPuzzleReveal(String publicKey) {
   return 'ff02ffff01ff02ffff01ff04ffff04ff04ffff04ff05ffff04ffff02ff06ffff04ff02ffff04ff0bff80808080ff80808080ff0b80ffff04ffff01ff32ff02ffff03ffff07ff0580ffff01ff0bffff0102ffff02ff06ffff04ff02ffff04ff09ff80808080ffff02ff06ffff04ff02ffff04ff0dff8080808080ffff01ff0bffff0101ff058080ff0180ff018080ffff04ffff01b0' +
       publicKey +
