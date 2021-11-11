@@ -7,8 +7,11 @@ environment:
 
 dev_dependencies:
     lints: ^1.0.0
+    test: ^1.19.3
+
 dependencies:
     bech32m: ^0.2.2
     bip39: ^1.0.6
     hex: ^0.2.0
     quiver: ^3.0.1+1
+    convert: ^3.0.1
