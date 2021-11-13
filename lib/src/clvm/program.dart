@@ -24,6 +24,8 @@ class Program {
   Uint8List? _atom;
   Position? position;
 
+  static int cost = 11000000000;
+
   @override
   bool operator ==(Object other) =>
       other is Program &&

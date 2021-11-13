@@ -2,6 +2,7 @@
 
 import 'dart:typed_data';
 
+import 'package:chia_utils/src/bls/ec.dart';
 import 'package:chia_utils/src/bls/private_key.dart';
 import 'package:chia_utils/src/bls/schemes.dart';
 import 'package:hex/hex.dart';
@@ -15,4 +16,5 @@ void main() {
   var signature = AugSchemeMPL.sign(sk, message);
   var ok = AugSchemeMPL.verify(pk, message, signature);
   print(ok);
+  print(HexEncoder().convert(G1Infinity().toBytes()));
 }

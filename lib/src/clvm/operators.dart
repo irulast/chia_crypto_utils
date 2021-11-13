@@ -1,10 +1,11 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:chia_utils/src/clvm.dart';
+import 'package:chia_utils/src/bls/private_key.dart';
 import 'package:chia_utils/src/clvm/bytes.dart';
 import 'package:chia_utils/src/clvm/cost.dart';
 import 'package:chia_utils/src/clvm/keywords.dart';
+import 'package:chia_utils/src/clvm/program.dart';
 import 'package:crypto/crypto.dart';
 
 typedef Operator = Output Function(Program args);
@@ -144,10 +145,17 @@ Map<BigInt, Operator> operators = {
         cost));
   },
   keywords['pubkey_for_exp']!: (args) {
-    throw UnimplementedError('Unimplemented.');
+    var list = args.toAtomList(size: 1, suffix: 'in pubkey_for_exp');
+    var exponent =
+        PrivateKey.fromBytes(bigIntToBytes(list[0].toBigInt(), 32, Endian.big));
+    var cost = Cost.pubkeyBaseCost;
+    cost += list[0].atom.length * Cost.pubkeyCostPerByte;
+    return mallocCost(Output(Program.atom(exponent.getG1().toBytes()), cost));
   },
   keywords['point_add']!: (args) {
-    throw UnimplementedError('Unimplemented.');
+    //var cost = Cost.pointAddBaseCost;
+    //var p =
+    throw UnimplementedError('');
   },
   keywords['strlen']!: (args) {
     throw UnimplementedError('Unimplemented.');

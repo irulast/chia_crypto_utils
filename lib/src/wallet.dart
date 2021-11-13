@@ -1,4 +1,4 @@
-import 'package:chia_utils/chia_utils.dart';
+import 'package:chia_utils/src/chia.dart';
 
 SpendBundle createWalletSpendBundle(List<CoinRecord> records,
     List<int> privateKey, String destination, int amount, int fee) {

@@ -1,6 +1,5 @@
-import 'package:chia_utils/chia_utils.dart';
-import 'package:chia_utils/src/clvm.dart';
 import 'package:chia_utils/src/clvm/cost.dart';
+import 'package:chia_utils/src/clvm/program.dart';
 
 int msbMask(int byte) {
   byte |= byte >> 1;

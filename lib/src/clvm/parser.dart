@@ -1,6 +1,5 @@
-import 'package:chia_utils/chia_utils.dart';
-import 'package:chia_utils/src/clvm.dart';
 import 'package:chia_utils/src/clvm/keywords.dart';
+import 'package:chia_utils/src/clvm/program.dart';
 
 class Token {
   final String text;

@@ -1,10 +1,9 @@
-import 'package:chia_utils/chia_utils.dart';
-import 'package:chia_utils/src/clvm.dart';
 import 'package:chia_utils/src/clvm/bytes.dart';
 import 'package:chia_utils/src/clvm/cost.dart';
 import 'package:chia_utils/src/clvm/environment.dart';
 import 'package:chia_utils/src/clvm/keywords.dart';
 import 'package:chia_utils/src/clvm/operators.dart';
+import 'package:chia_utils/src/clvm/program.dart';
 
 int swap(List<dynamic> instructions, List<Program> stack) {
   var second = stack.removeLast();
