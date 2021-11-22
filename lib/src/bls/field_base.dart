@@ -4,7 +4,6 @@ import 'package:chia_utils/src/bls/failed_op.dart';
 import 'package:chia_utils/src/bls/field.dart';
 import 'package:chia_utils/src/clvm/bytes.dart';
 import 'package:quiver/core.dart';
-import 'package:quiver/iterables.dart';
 
 class Fq implements Field {
   @override
@@ -20,7 +19,7 @@ class Fq implements Field {
         value = BigInt.zero;
 
   @override
-  Fq myFromBytes(Uint8List bytes, BigInt Q) {
+  Fq myFromBytes(List<int> bytes, BigInt Q) {
     assert(bytes.length == 48);
     return Fq(Q, bytesToBigInt(bytes, Endian.big));
   }
@@ -140,31 +139,31 @@ class Fq implements Field {
   Fq modSqrt() {
     if (value == BigInt.zero) {
       return Fq(Q, BigInt.zero);
-    } else if (value.pow((Q.toInt() - 1) ~/ 2) % Q != BigInt.one) {
+    } else if (value.modPow((Q - BigInt.one) ~/ BigInt.two, Q) != BigInt.one) {
       throw ArgumentError('No sqrt exists.');
-    } else if (Q.toInt() % 4 == 3) {
-      return Fq(Q, value.pow((Q.toInt() + 1) ~/ 4) % Q);
-    } else if (Q.toInt() % 8 == 5) {
-      return Fq(Q, value.pow((Q.toInt() + 3) ~/ 8) % Q);
+    } else if (Q.remainder(BigInt.from(4)) == BigInt.from(3)) {
+      return Fq(Q, value.modPow((Q + BigInt.one) ~/ BigInt.from(4), Q));
+    } else if (Q.remainder(BigInt.from(8)) == BigInt.from(5)) {
+      return Fq(Q, value.modPow((Q + BigInt.from(3)) ~/ BigInt.from(8), Q));
     }
     var S = BigInt.zero;
     var q = Q - BigInt.one;
-    while (q.toInt() % 2 == 0) {
+    while (q.remainder(BigInt.two) == BigInt.zero) {
       q ~/= BigInt.two;
       S += BigInt.one;
     }
     var z = BigInt.zero;
-    for (var i in range(Q.toInt())) {
-      var euler = BigInt.from(i).pow((Q.toInt() - 1) ~/ 2) % Q;
+    for (var i = BigInt.zero; i < Q; i += BigInt.one) {
+      var euler = i.modPow((Q - BigInt.one) ~/ BigInt.two, Q);
       if (euler == BigInt.from(-1) % Q) {
-        z = BigInt.from(i);
+        z = i;
         break;
       }
     }
     var M = S;
-    var c = z.pow(q.toInt()) % Q;
-    var t = value.pow(q.toInt()) % Q;
-    var R = value.pow((q.toInt() + 1) ~/ 2) % Q;
+    var c = z.modPow(q, Q);
+    var t = value.modPow(q, Q);
+    var R = value.modPow((q + BigInt.one) ~/ BigInt.two, Q);
     while (true) {
       if (t == BigInt.zero) {
         return Fq(Q, BigInt.zero);
@@ -177,8 +176,7 @@ class Fq implements Field {
         f = f.pow(2) % Q;
         i += BigInt.one;
       }
-      var b =
-          c.pow((BigInt.two.pow((M - i - BigInt.one).toInt()) % Q).toInt()) % Q;
+      var b = c.modPow((BigInt.two.modPow((M - i - BigInt.one), Q)), Q);
       M = i;
       c = b.pow(2) % Q;
       t = (t * c) % Q;
@@ -200,6 +198,6 @@ class Fq implements Field {
   factory Fq.zero(BigInt Q) => Fq(Q, BigInt.zero);
   factory Fq.one(BigInt Q) => Fq(Q, BigInt.one);
   factory Fq.fromFq(BigInt Q, Fq fq) => fq;
-  factory Fq.fromBytes(Uint8List bytes, BigInt Q) =>
+  factory Fq.fromBytes(List<int> bytes, BigInt Q) =>
       Fq.nil().myFromBytes(bytes, Q);
 }

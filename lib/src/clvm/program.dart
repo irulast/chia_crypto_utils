@@ -13,8 +13,14 @@ import 'package:quiver/core.dart';
 
 class Output {
   final Program program;
-  final int cost;
+  final BigInt cost;
   Output(this.program, this.cost);
+}
+
+class RunOptions {
+  final BigInt? maxCost;
+  final bool strict;
+  RunOptions({this.maxCost, bool? strict}) : strict = strict ?? false;
 }
 
 typedef Validator = bool Function(Program);
@@ -45,7 +51,7 @@ class Program {
   List<Program> get cons => _cons!;
   String get positionSuffix => position == null ? '' : ' at $position';
 
-  Program.atom(this._atom);
+  Program.atom(List<int> atom) : _atom = Uint8List.fromList(atom);
   Program.bool(bool value) : _atom = Uint8List.fromList(value ? [1] : []);
   Program.nil() : _atom = Uint8List.fromList([]);
   Program.cons(Program left, Program right) : _cons = [left, right];
@@ -73,8 +79,8 @@ class Program {
     }
   }
 
-  factory Program.deserialize(Uint8List source) {
-    var iterator = Uint8List.fromList(source).iterator;
+  factory Program.deserialize(List<int> source) {
+    var iterator = source.iterator;
     if (iterator.moveNext()) {
       return deserialize(iterator);
     } else {
@@ -82,16 +88,17 @@ class Program {
     }
   }
 
-  Output run(Program args, {int? maxCost}) {
+  Output run(Program args, {RunOptions? options}) {
+    options ??= RunOptions();
     List<dynamic> instructions = [eval];
     var stack = [Program.cons(this, args)];
-    var cost = 0;
+    var cost = BigInt.zero;
     while (instructions.isNotEmpty) {
       var instruction = instructions.removeLast();
-      cost += instruction(instructions, stack) as int;
-      if (maxCost != null && cost > maxCost) {
+      cost += instruction(instructions, stack, options) as BigInt;
+      if (options.maxCost != null && cost > options.maxCost!) {
         throw StateError(
-            'Exceeded cost of $maxCost${stack[stack.length - 1].positionSuffix}');
+            'Exceeded cost of ${options.maxCost}${stack[stack.length - 1].positionSuffix}');
       }
     }
     return Output(stack[stack.length - 1], cost);
@@ -140,37 +147,32 @@ class Program {
         return Uint8List.fromList([atom[0]]);
       } else {
         var size = atom.length;
-        var sizeBytes = encodeInt(size).reversed.toList();
         List<int> result = [];
         if (size < 0x40) {
-          result.add(0x80 | sizeBytes[0]);
-          result.addAll(atom);
+          result.add(0x80 | size);
         } else if (size < 0x2000) {
-          result.add(0xC0 | sizeBytes[1]);
-          result.add(sizeBytes[0]);
-          result.addAll(atom);
+          result.add(0xC0 | (size >> 8));
+          result.add((size >> 0) & 0xFF);
         } else if (size < 0x100000) {
-          result.add(0xE0 | sizeBytes[2]);
-          result.add(sizeBytes[1]);
-          result.add(sizeBytes[0]);
-          result.addAll(atom);
+          result.add(0xE0 | (size >> 16));
+          result.add((size >> 8) & 0xFF);
+          result.add((size >> 0) & 0xFF);
         } else if (size < 0x8000000) {
-          result.add(0xF0 | sizeBytes[3]);
-          result.add(sizeBytes[2]);
-          result.add(sizeBytes[1]);
-          result.add(sizeBytes[0]);
-          result.addAll(atom);
+          result.add(0xF0 | (size >> 24));
+          result.add((size >> 16) & 0xFF);
+          result.add((size >> 8) & 0xFF);
+          result.add((size >> 0) & 0xFF);
         } else if (size < 0x400000000) {
-          result.add(0xF8 | sizeBytes[4]);
-          result.add(sizeBytes[3]);
-          result.add(sizeBytes[2]);
-          result.add(sizeBytes[1]);
-          result.add(sizeBytes[0]);
-          result.addAll(atom);
+          result.add(0xF8 | (size >> 32));
+          result.add((size >> 24) & 0xFF);
+          result.add((size >> 16) & 0xFF);
+          result.add((size >> 8) & 0xFF);
+          result.add((size >> 0) & 0xFF);
         } else {
           throw RangeError(
               'Cannot serialize ${toString()} as it is 17,179,869,184 or more bytes in size$positionSuffix');
         }
+        result.addAll(atom);
         return Uint8List.fromList(result);
       }
     } else {
@@ -308,8 +310,8 @@ class Program {
     return this;
   }
 
-  @override
-  String toString() {
+  String toSource({bool? showKeywords}) {
+    showKeywords ??= true;
     if (isAtom) {
       if (atom.isEmpty) {
         return '()';
@@ -336,20 +338,29 @@ class Program {
       }
     } else {
       var result = '(';
-      try {
-        var value = cons[0].toBigInt();
-        result += keywords.keys.firstWhere((key) => keywords[key] == value);
-      } catch (e) {
-        result += cons[0].toString();
+      if (showKeywords) {
+        try {
+          var value = cons[0].toBigInt();
+          result += keywords.keys.firstWhere((key) => keywords[key] == value);
+        } catch (e) {
+          result += cons[0].toSource(showKeywords: showKeywords);
+        }
+      } else {
+        result += cons[0].toSource(showKeywords: showKeywords);
       }
       var current = cons[1];
       while (current.isCons) {
-        result += ' ${current.cons[0].toString()}';
+        result += ' ${current.cons[0].toSource(showKeywords: showKeywords)}';
         current = current.cons[1];
       }
-      result +=
-          (current.atom.isNotEmpty ? ' . ${current.toString()}' : '') + ')';
+      result += (current.isNull
+              ? ''
+              : ' . ${current.toSource(showKeywords: showKeywords)}') +
+          ')';
       return result;
     }
   }
+
+  @override
+  String toString() => toSource();
 }

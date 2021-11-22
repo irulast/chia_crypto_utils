@@ -4,13 +4,13 @@ import 'package:crypto/crypto.dart';
 
 final blockSize = 32;
 
-Uint8List extract(Uint8List salt, Uint8List ikm) {
+Uint8List extract(List<int> salt, List<int> ikm) {
   var hmacSha256 = Hmac(sha256, salt);
   var digest = hmacSha256.convert(ikm);
   return Uint8List.fromList(digest.bytes);
 }
 
-Uint8List expand(int L, Uint8List prk, Uint8List info) {
+Uint8List expand(int L, List<int> prk, List<int> info) {
   var N = (L / blockSize).ceil();
   var bytesWritten = 0;
   List<int> okm = [];
@@ -33,6 +33,6 @@ Uint8List expand(int L, Uint8List prk, Uint8List info) {
   return Uint8List.fromList(okm);
 }
 
-Uint8List extractExpand(int L, Uint8List key, Uint8List salt, Uint8List info) {
+Uint8List extractExpand(int L, List<int> key, List<int> salt, List<int> info) {
   return expand(L, extract(salt, key), info);
 }

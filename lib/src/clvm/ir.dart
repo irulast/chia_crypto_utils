@@ -1,12 +1,10 @@
-import 'dart:typed_data';
-
 import 'package:chia_utils/src/clvm/bytes.dart';
 import 'package:chia_utils/src/clvm/program.dart';
 
 Program deserialize(Iterator<int> program) {
   List<int> sizeBytes = [];
   if (program.current <= 0x7f) {
-    return Program.atom(Uint8List.fromList([program.current]));
+    return Program.atom([program.current]);
   } else if (program.current <= 0xbf) {
     sizeBytes.add(program.current & 0x3f);
   } else if (program.current <= 0xdf) {
@@ -52,7 +50,7 @@ Program deserialize(Iterator<int> program) {
   } else {
     throw StateError('Invalid encoding');
   }
-  var size = decodeInt(Uint8List.fromList(sizeBytes));
+  var size = decodeInt(sizeBytes);
   List<int> bytes = [];
   for (var i = 0; i < size; i++) {
     if (!program.moveNext()) {
@@ -60,5 +58,5 @@ Program deserialize(Iterator<int> program) {
     }
     bytes.add(program.current);
   }
-  return Program.atom(Uint8List.fromList(bytes));
+  return Program.atom(bytes);
 }

@@ -26,7 +26,7 @@ abstract class Field {
   Field myZero(BigInt Q);
   Field myOne(BigInt Q);
   Field myFromFq(BigInt Q, Fq fq);
-  Field myFromBytes(Uint8List bytes, BigInt Q);
+  Field myFromBytes(List<int> bytes, BigInt Q);
   Field deepcopy();
   Field qiPower(int i);
 

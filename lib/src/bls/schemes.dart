@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:chia_utils/src/bls/ec.dart';
 import 'package:chia_utils/src/bls/field_ext.dart';
@@ -9,21 +8,19 @@ import 'package:chia_utils/src/bls/pairing.dart';
 import 'package:chia_utils/src/bls/private_key.dart';
 import 'package:quiver/collection.dart';
 
-final basicSchemeDst = Uint8List.fromList(
-    utf8.encode('BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_'));
-final augSchemeDst = Uint8List.fromList(
-    utf8.encode('BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_AUG_'));
-final popSchemeDst = Uint8List.fromList(
-    utf8.encode('BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_'));
-final popSchemePopDst = Uint8List.fromList(
-    utf8.encode('BLS_POP_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_'));
+final basicSchemeDst =
+    utf8.encode('BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_');
+final augSchemeDst = utf8.encode('BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_AUG_');
+final popSchemeDst = utf8.encode('BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_');
+final popSchemePopDst =
+    utf8.encode('BLS_POP_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_');
 
-JacobianPoint coreSignMpl(PrivateKey sk, Uint8List message, Uint8List dst) {
+JacobianPoint coreSignMpl(PrivateKey sk, List<int> message, List<int> dst) {
   return g2Map(message, dst) * sk.value;
 }
 
-bool coreVerifyMpl(JacobianPoint pk, Uint8List message, JacobianPoint signature,
-    Uint8List dst) {
+bool coreVerifyMpl(JacobianPoint pk, List<int> message, JacobianPoint signature,
+    List<int> dst) {
   if (!signature.isValid || !pk.isValid) {
     return false;
   }
@@ -46,37 +43,37 @@ JacobianPoint coreAggregateMpl(List<JacobianPoint> signatures) {
   return aggregate;
 }
 
-bool coreAggregateVerify(List<JacobianPoint> pks, List<Uint8List> ms,
-    JacobianPoint signature, Uint8List dst) {
+bool coreAggregateVerify(List<JacobianPoint> pks, List<List<int>> ms,
+    JacobianPoint signature, List<int> dst) {
   if (pks.length != ms.length || pks.isEmpty) {
     return false;
   }
-  try {
-    assert(signature.isValid);
-    var qs = [signature];
-    var ps = [-G1Generator()];
-    for (var i = 0; i < pks.length; i++) {
-      assert(pks[i].isValid);
-      qs.add(g2Map(ms[i], dst));
-      ps.add(pks[i]);
-    }
-    return Fq12.one(defaultEc.q) == atePairingMulti(ps, qs);
-  } on AssertionError {
+  if (!signature.isValid) {
     return false;
   }
+  var qs = [signature];
+  var ps = [-G1Generator()];
+  for (var i = 0; i < pks.length; i++) {
+    if (!pks[i].isValid) {
+      return false;
+    }
+    qs.add(g2Map(ms[i], dst));
+    ps.add(pks[i]);
+  }
+  return Fq12.one(defaultEc.q) == atePairingMulti(ps, qs);
 }
 
 class BasicSchemeMPL {
-  static PrivateKey keyGen(Uint8List seed) {
+  static PrivateKey keyGen(List<int> seed) {
     return hd_keys.keyGen(seed);
   }
 
-  static JacobianPoint sign(PrivateKey sk, Uint8List message) {
+  static JacobianPoint sign(PrivateKey sk, List<int> message) {
     return coreSignMpl(sk, message, basicSchemeDst);
   }
 
   static bool verify(
-      JacobianPoint pk, Uint8List message, JacobianPoint signature) {
+      JacobianPoint pk, List<int> message, JacobianPoint signature) {
     return coreVerifyMpl(pk, message, signature, basicSchemeDst);
   }
 
@@ -85,7 +82,7 @@ class BasicSchemeMPL {
   }
 
   static bool aggregateVerify(
-      List<JacobianPoint> pks, List<Uint8List> ms, JacobianPoint signature) {
+      List<JacobianPoint> pks, List<List<int>> ms, JacobianPoint signature) {
     if (pks.length != ms.length || pks.isEmpty) {
       return false;
     }
@@ -113,20 +110,18 @@ class BasicSchemeMPL {
 }
 
 class AugSchemeMPL {
-  static PrivateKey keyGen(Uint8List seed) {
+  static PrivateKey keyGen(List<int> seed) {
     return hd_keys.keyGen(seed);
   }
 
-  static JacobianPoint sign(PrivateKey sk, Uint8List message) {
+  static JacobianPoint sign(PrivateKey sk, List<int> message) {
     var pk = sk.getG1();
-    return coreSignMpl(
-        sk, Uint8List.fromList(pk.toBytes() + message), augSchemeDst);
+    return coreSignMpl(sk, pk.toBytes() + message, augSchemeDst);
   }
 
   static bool verify(
-      JacobianPoint pk, Uint8List message, JacobianPoint signature) {
-    return coreVerifyMpl(pk, Uint8List.fromList(pk.toBytes() + message),
-        signature, augSchemeDst);
+      JacobianPoint pk, List<int> message, JacobianPoint signature) {
+    return coreVerifyMpl(pk, pk.toBytes() + message, signature, augSchemeDst);
   }
 
   static JacobianPoint aggregate(List<JacobianPoint> signatures) {
@@ -134,20 +129,13 @@ class AugSchemeMPL {
   }
 
   static bool aggregateVerify(
-      List<JacobianPoint> pks, List<Uint8List> ms, JacobianPoint signature) {
+      List<JacobianPoint> pks, List<List<int>> ms, JacobianPoint signature) {
     if (pks.length != ms.length || pks.isEmpty) {
       return false;
     }
-    for (var msg in ms) {
-      for (var match in ms) {
-        if (msg != match && listsEqual(msg, match)) {
-          return false;
-        }
-      }
-    }
-    List<Uint8List> mPrimes = [];
+    List<List<int>> mPrimes = [];
     for (var i = 0; i < pks.length; i++) {
-      mPrimes.add(Uint8List.fromList(pks[i].toBytes() + ms[i]));
+      mPrimes.add(pks[i].toBytes() + ms[i]);
     }
     return coreAggregateVerify(pks, mPrimes, signature, augSchemeDst);
   }
@@ -166,16 +154,16 @@ class AugSchemeMPL {
 }
 
 class PopSchemeMPL {
-  static PrivateKey keyGen(Uint8List seed) {
+  static PrivateKey keyGen(List<int> seed) {
     return hd_keys.keyGen(seed);
   }
 
-  static JacobianPoint sign(PrivateKey sk, Uint8List message) {
+  static JacobianPoint sign(PrivateKey sk, List<int> message) {
     return coreSignMpl(sk, message, popSchemeDst);
   }
 
   static bool verify(
-      JacobianPoint pk, Uint8List message, JacobianPoint signature) {
+      JacobianPoint pk, List<int> message, JacobianPoint signature) {
     return coreVerifyMpl(pk, message, signature, popSchemeDst);
   }
 
@@ -184,7 +172,7 @@ class PopSchemeMPL {
   }
 
   static bool aggregateVerify(
-      List<JacobianPoint> pks, List<Uint8List> ms, JacobianPoint signature) {
+      List<JacobianPoint> pks, List<List<int>> ms, JacobianPoint signature) {
     if (pks.length != ms.length || pks.isEmpty) {
       return false;
     }
@@ -217,7 +205,7 @@ class PopSchemeMPL {
   }
 
   static bool fastAggregateVerify(
-      List<JacobianPoint> pks, Uint8List message, JacobianPoint signature) {
+      List<JacobianPoint> pks, List<int> message, JacobianPoint signature) {
     if (pks.isEmpty) {
       return false;
     }

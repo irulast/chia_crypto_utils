@@ -1,5 +1,4 @@
 // ignore_for_file: non_constant_identifier_names
-
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -111,9 +110,8 @@ class JacobianPoint {
       : AffinePoint(x / z.pow(BigInt.two), y / z.pow(BigInt.from(3)), infinity,
           ec: ec);
 
-  int getFingerprint() => bytesToInt(
-      Uint8List.fromList(sha256.convert(toBytes()).bytes.sublist(0, 4)),
-      Endian.big);
+  int getFingerprint() =>
+      bytesToInt(sha256.convert(toBytes()).bytes.sublist(0, 4), Endian.big);
 
   JacobianPoint operator +(JacobianPoint other) =>
       addPointsJacobian(this, other, ec: ec);
@@ -158,7 +156,7 @@ Uint8List pointToBytes(JacobianPoint pointJ, EC ec) {
   var point = pointJ.toAffine();
   var output = point.x.toBytes();
   if (point.infinity) {
-    return Uint8List.fromList([0x40] + List.filled(output.length - 1, 0));
+    return Uint8List.fromList([0xc0] + List.filled(output.length - 1, 0));
   }
   bool sign;
   if (pointJ.isExtension) {
@@ -174,7 +172,7 @@ Uint8List pointToBytes(JacobianPoint pointJ, EC ec) {
   return output;
 }
 
-JacobianPoint bytesToPoint(Uint8List bytes, EC ec, bool isExtension) {
+JacobianPoint bytesToPoint(List<int> bytes, EC ec, bool isExtension) {
   if (isExtension) {
     if (bytes.length != 96) {
       throw ArgumentError('Expected 96 bytes.');
@@ -194,8 +192,8 @@ JacobianPoint bytesToPoint(Uint8List bytes, EC ec, bool isExtension) {
   if (bitC == 0) {
     throw ArgumentError('First bit must be 1.');
   }
-  bytes = Uint8List.fromList([bytes[0] & 0x1F] + bytes.sublist(1));
-  if (bitI == 1) {
+  bytes = [bytes[0] & 0x1F] + bytes.sublist(1);
+  if (bitI != 0) {
     for (var byte in bytes) {
       if (byte != 0) {
         throw ArgumentError('Point at infinity set, but data not all zeroes.');
@@ -227,7 +225,7 @@ Field yForX(Field x, {EC? ec}) {
   ec ??= defaultEc;
   var u = x * x * x + ec.a * x + ec.b as dynamic;
   var y = u.modSqrt();
-  if (y == 0 || !AffinePoint(x, y, false, ec: ec).isOnCurve) {
+  if (y == BigInt.zero || !AffinePoint(x, y, false, ec: ec).isOnCurve) {
     throw ArgumentError('No y for point x.');
   }
   return y;
@@ -387,8 +385,8 @@ JacobianPoint G1Infinity({bool? isExtension, EC? ec}) {
   isExtension ??= false;
   ec ??= defaultEc;
   return JacobianPoint(
-      isExtension ? Fq2.one(ec.q) : Fq.one(ec.q),
-      isExtension ? Fq2.one(ec.q) : Fq.one(ec.q),
+      isExtension ? Fq2.zero(ec.q) : Fq.zero(ec.q),
+      isExtension ? Fq2.zero(ec.q) : Fq.zero(ec.q),
       isExtension ? Fq2.zero(ec.q) : Fq.zero(ec.q),
       true,
       ec: ec);
@@ -398,20 +396,20 @@ JacobianPoint G2Infinity({bool? isExtension, EC? ec}) {
   isExtension ??= true;
   ec ??= defaultEcTwist;
   return JacobianPoint(
-      isExtension ? Fq2.one(ec.q) : Fq.one(ec.q),
-      isExtension ? Fq2.one(ec.q) : Fq.one(ec.q),
+      isExtension ? Fq2.zero(ec.q) : Fq.zero(ec.q),
+      isExtension ? Fq2.zero(ec.q) : Fq.zero(ec.q),
       isExtension ? Fq2.zero(ec.q) : Fq.zero(ec.q),
       true,
       ec: ec);
 }
 
-JacobianPoint G1FromBytes(Uint8List bytes, {bool? isExtension, EC? ec}) {
+JacobianPoint G1FromBytes(List<int> bytes, {bool? isExtension, EC? ec}) {
   isExtension ??= false;
   ec ??= defaultEc;
   return bytesToPoint(bytes, ec, isExtension);
 }
 
-JacobianPoint G2FromBytes(Uint8List bytes, {bool? isExtension, EC? ec}) {
+JacobianPoint G2FromBytes(List<int> bytes, {bool? isExtension, EC? ec}) {
   isExtension ??= true;
   ec ??= defaultEcTwist;
   return bytesToPoint(bytes, ec, isExtension);

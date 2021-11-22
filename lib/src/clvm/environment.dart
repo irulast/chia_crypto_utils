@@ -18,7 +18,7 @@ Output traversePath(Program value, Program environment) {
   while (endByteCursor < atom.length && atom[endByteCursor] == 0) {
     endByteCursor++;
   }
-  cost += endByteCursor * Cost.pathLookupCostPerZeroByte;
+  cost += BigInt.from(endByteCursor) * Cost.pathLookupCostPerZeroByte;
   if (endByteCursor == atom.length) {
     return Output(Program.nil(), cost);
   }

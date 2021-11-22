@@ -5,22 +5,25 @@ import 'package:chia_utils/src/clvm/keywords.dart';
 import 'package:chia_utils/src/clvm/operators.dart';
 import 'package:chia_utils/src/clvm/program.dart';
 
-int swap(List<dynamic> instructions, List<Program> stack) {
+BigInt swap(
+    List<dynamic> instructions, List<Program> stack, RunOptions options) {
   var second = stack.removeLast();
   var first = stack.removeLast();
   stack.add(second);
   stack.add(first);
-  return 0;
+  return BigInt.zero;
 }
 
-int cons(List<dynamic> instructions, List<Program> stack) {
+BigInt cons(
+    List<dynamic> instructions, List<Program> stack, RunOptions options) {
   var first = stack.removeLast();
   var second = stack.removeLast();
   stack.add(Program.cons(first, second));
-  return 0;
+  return BigInt.zero;
 }
 
-int eval(List<dynamic> instructions, List<Program> stack) {
+BigInt eval(
+    List<dynamic> instructions, List<Program> stack, RunOptions options) {
   var pair = stack.removeLast();
   var program = pair.first();
   var args = pair.rest();
@@ -58,10 +61,11 @@ int eval(List<dynamic> instructions, List<Program> stack) {
     operandList = operandList.rest();
   }
   stack.add(Program.nil());
-  return 1;
+  return BigInt.one;
 }
 
-int apply(List<dynamic> instructions, List<Program> stack) {
+BigInt apply(
+    List<dynamic> instructions, List<Program> stack, RunOptions options) {
   var operandList = stack.removeLast();
   var op = stack.removeLast();
   if (op.isCons) {
@@ -73,7 +77,7 @@ int apply(List<dynamic> instructions, List<Program> stack) {
     instructions.add(eval);
     return Cost.applyCost;
   }
-  var output = runOperator(op, operandList);
+  var output = runOperator(op, operandList, options);
   stack.add(output.program);
   return output.cost;
 }

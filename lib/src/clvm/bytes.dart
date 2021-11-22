@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 String flip(String binary) {
@@ -39,7 +40,7 @@ Uint8List encodeInt(int value) {
   return bytes;
 }
 
-int bytesToInt(Uint8List bytes, Endian endian, {bool signed = false}) {
+int bytesToInt(List<int> bytes, Endian endian, {bool signed = false}) {
   if (bytes.isEmpty) {
     return 0;
   }
@@ -58,7 +59,7 @@ int bytesToInt(Uint8List bytes, Endian endian, {bool signed = false}) {
   return sign == '1' && signed ? -result : result;
 }
 
-int decodeInt(Uint8List bytes) {
+int decodeInt(List<int> bytes) {
   return bytesToInt(bytes, Endian.big, signed: true);
 }
 
@@ -97,7 +98,7 @@ Uint8List encodeBigInt(BigInt value) {
   return bytes;
 }
 
-BigInt bytesToBigInt(Uint8List bytes, Endian endian, {bool signed = false}) {
+BigInt bytesToBigInt(List<int> bytes, Endian endian, {bool signed = false}) {
   if (bytes.isEmpty) {
     return BigInt.zero;
   }
@@ -116,11 +117,11 @@ BigInt bytesToBigInt(Uint8List bytes, Endian endian, {bool signed = false}) {
   return sign == '1' && signed ? -result : result;
 }
 
-BigInt decodeBigInt(Uint8List bytes) {
+BigInt decodeBigInt(List<int> bytes) {
   return bytesToBigInt(bytes, Endian.big, signed: true);
 }
 
-bool bytesEqual(Uint8List a, Uint8List b) {
+bool bytesEqual(List<int> a, List<int> b) {
   if (a.length != b.length) {
     return false;
   }
@@ -128,4 +129,18 @@ bool bytesEqual(Uint8List a, Uint8List b) {
     if (a[i] != b[i]) return false;
   }
   return true;
+}
+
+final secureRandom = Random.secure();
+
+int randomByte() {
+  return secureRandom.nextInt(256);
+}
+
+List<int> randomBytes(int length) {
+  List<int> result = [];
+  for (var i = 0; i < length; i++) {
+    result.add(randomByte());
+  }
+  return result;
 }

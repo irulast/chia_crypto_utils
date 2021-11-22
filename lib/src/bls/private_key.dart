@@ -13,15 +13,12 @@ class PrivateKey {
 
   PrivateKey(this.value) : assert(value < defaultEc.n);
 
-  factory PrivateKey.fromBytes(Uint8List bytes) =>
+  factory PrivateKey.fromBytes(List<int> bytes) =>
       PrivateKey(bytesToBigInt(bytes, Endian.big) % defaultEc.n);
-  factory PrivateKey.fromSeed(Uint8List seed) {
+  factory PrivateKey.fromSeed(List<int> seed) {
     var L = 48;
     var okm = extractExpand(
-        L,
-        Uint8List.fromList(seed + [0]),
-        Uint8List.fromList(utf8.encode('BLS-SIG-KEYGEN-SALT-')),
-        Uint8List.fromList([0, L]));
+        L, seed + [0], utf8.encode('BLS-SIG-KEYGEN-SALT-'), [0, L]);
     return PrivateKey(bytesToBigInt(okm, Endian.big) % defaultEc.n);
   }
   factory PrivateKey.fromBigInt(BigInt n) => PrivateKey(n % defaultEc.n);

@@ -26,7 +26,7 @@ Uint8List I2OSP(BigInt val, int length) {
   return result;
 }
 
-BigInt OS2IP(Uint8List octets) {
+BigInt OS2IP(List<int> octets) {
   var result = BigInt.zero;
   for (var octet in octets) {
     result <<= 8;
@@ -36,14 +36,14 @@ BigInt OS2IP(Uint8List octets) {
   return result;
 }
 
-Uint8List bytesXor(Uint8List a, Uint8List b) {
+Uint8List bytesXor(List<int> a, List<int> b) {
   return Uint8List.fromList(
       zip([a, b]).map((element) => element[0] ^ element[1]).toList());
 }
 
 Uint8List expandMessageXmd(
-    Uint8List msg, Uint8List DST, int lenInBytes, Hash hash) {
-  var bInBytes = hash.convert(Uint8List.fromList([])).bytes.length;
+    List<int> msg, List<int> DST, int lenInBytes, Hash hash) {
+  var bInBytes = hash.convert([]).bytes.length;
   var rInBytes = hash.blockSize;
   var ell = (lenInBytes + bInBytes - 1) ~/ bInBytes;
   if (ell > 255) {
@@ -52,18 +52,17 @@ Uint8List expandMessageXmd(
   var DST_prime = DST + I2OSP(BigInt.from(DST.length), 1);
   var Z_pad = I2OSP(BigInt.zero, rInBytes);
   var l_i_b_str = I2OSP(BigInt.from(lenInBytes), 2);
-  var b_0 = Uint8List.fromList(hash
+  var b_0 = hash
       .convert(Z_pad + msg + l_i_b_str + I2OSP(BigInt.zero, 1) + DST_prime)
-      .bytes);
-  List<Uint8List> bVals = [];
-  bVals.add(Uint8List.fromList(
-      hash.convert(b_0 + I2OSP(BigInt.one, 1) + DST_prime).bytes));
+      .bytes;
+  List<List<int>> bVals = [];
+  bVals.add(hash.convert(b_0 + I2OSP(BigInt.one, 1) + DST_prime).bytes);
   for (var i = 1; i < ell; i++) {
-    bVals.add(Uint8List.fromList(hash
+    bVals.add(hash
         .convert(bytesXor(b_0, bVals[i - 1]) +
             I2OSP(BigInt.from(i + 1), 1) +
             DST_prime)
-        .bytes));
+        .bytes);
   }
   List<int> pseudoRandomBytes = [];
   for (var item in bVals) {
@@ -73,7 +72,7 @@ Uint8List expandMessageXmd(
 }
 
 Uint8List expandMessageXof(
-    Uint8List msg, Uint8List DST, int lenInBytes, Hash hash) {
+    List<int> msg, List<int> DST, int lenInBytes, Hash hash) {
   var DST_prime = DST + I2OSP(BigInt.from(DST.length), 1);
   var msg_prime = msg + I2OSP(BigInt.from(lenInBytes), 2) + DST_prime;
   return Uint8List.fromList(
@@ -81,16 +80,16 @@ Uint8List expandMessageXof(
 }
 
 List<List<BigInt>> hashToField(
-    Uint8List msg,
+    List<int> msg,
     int count,
-    Uint8List DST,
+    List<int> DST,
     BigInt modulus,
     int degree,
     int blen,
-    Uint8List Function(Uint8List, Uint8List, int, Hash) expand,
+    Uint8List Function(List<int>, List<int>, int, Hash) expand,
     Hash hash) {
   var lenInBytes = count * degree * blen;
-  Uint8List pseudoRandomBytes = expand(msg, DST, lenInBytes, hash);
+  List<int> pseudoRandomBytes = expand(msg, DST, lenInBytes, hash);
   List<List<BigInt>> uVals = [];
   for (var i = 0; i < count; i++) {
     List<BigInt> eVals = [];
@@ -104,10 +103,10 @@ List<List<BigInt>> hashToField(
   return uVals;
 }
 
-List<List<BigInt>> Hp(Uint8List msg, int count, Uint8List DST) {
+List<List<BigInt>> Hp(List<int> msg, int count, List<int> DST) {
   return hashToField(msg, count, DST, q, 1, 64, expandMessageXmd, sha256);
 }
 
-List<List<BigInt>> Hp2(Uint8List msg, int count, Uint8List DST) {
+List<List<BigInt>> Hp2(List<int> msg, int count, List<int> DST) {
   return hashToField(msg, count, DST, q, 2, 64, expandMessageXmd, sha256);
 }

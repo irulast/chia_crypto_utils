@@ -12,10 +12,10 @@ var rv1 = BigInt.parse(
     '0x6AF0E0437FF400B6831E36D6BD17FFE48395DABC2D3435E77F76E17009241C5EE67992F72EC05F4C81084FBEDE3CC09');
 
 var rootsOfUnity = [
-  Fq2(q, [BigInt.one, BigInt.zero]),
-  Fq2(q, [BigInt.zero, BigInt.one]),
-  Fq2(q, [rv1, rv1]),
-  Fq2(q, [rv1, q - rv1])
+  Fq2(q, [Fq(q, BigInt.one), Fq(q, BigInt.zero)]),
+  Fq2(q, [Fq(q, BigInt.zero), Fq(q, BigInt.one)]),
+  Fq2(q, [Fq(q, rv1), Fq(q, rv1)]),
+  Fq2(q, [Fq(q, rv1), Fq(q, q - rv1)])
 ];
 
 var frobCoeffs = {
@@ -272,36 +272,20 @@ abstract class FieldExtBase implements Field {
   @override
   BigInt Q;
 
-  FieldExtBase(this.Q, List? args) {
-    args ??= [];
-    int argExtension;
-    var newArgs = args.sublist(0);
-    try {
-      argExtension = args[0].extension;
-      args[1].extension;
-    } catch (e) {
-      if (args.length != 2) {
-        throw ArgumentError('Invalid number of arguments.');
-      }
-      argExtension = 1;
-      newArgs = args.map((arg) => Fq(Q, arg)).toList();
+  FieldExtBase(this.Q, this.elements) {
+    if (elements.length != embedding) {
+      throw ArgumentError('Expected $embedding elements.');
     }
-    if (argExtension != 1) {
-      if (args.length != embedding) {
-        throw ArgumentError('Invalid number of arguments.');
-      }
-      for (var arg in newArgs) {
-        assert(arg.extension == argExtension);
+    var childExtension = extension ~/ embedding;
+    for (var item in elements) {
+      if (item.extension != childExtension) {
+        throw ArgumentError('Expected extension of $childExtension.');
       }
     }
-    for (var arg in newArgs) {
-      assert(arg.runtimeType == newArgs[0].runtimeType);
-    }
-    elements = newArgs.cast<Field>();
     basefield = elements[0];
   }
 
-  FieldExtBase construct(BigInt Q, List args);
+  FieldExtBase construct(BigInt Q, List<Field> args);
 
   @override
   bool toBool() =>
@@ -465,12 +449,12 @@ abstract class FieldExtBase implements Field {
   }
 
   @override
-  FieldExtBase myFromBytes(Uint8List bytes, BigInt Q) {
+  FieldExtBase myFromBytes(List<int> bytes, BigInt Q) {
     if (bytes.length != extension * 48) {
       throw ArgumentError('Invalid byte length.');
     }
     var embeddedSize = 48 * (extension ~/ embedding);
-    List<Uint8List> tup = [];
+    List<List<int>> tup = [];
     for (var i in range(embedding)) {
       tup.add(bytes.sublist((i as int) * embeddedSize, (i + 1) * embeddedSize));
     }
@@ -532,14 +516,13 @@ abstract class FieldExtBase implements Field {
     if (i == 0) {
       return this;
     }
-    var result = construct(
-        Q,
-        enumerate(elements)
-            .map((element) => element.index == 0
-                ? element.value.qiPower(i)
-                : element.value.qiPower(i) *
-                    getFrobCoeff([extension, i, element.index]))
-            .toList());
+    var items = enumerate(elements)
+        .map((element) => element.index == 0
+            ? element.value.qiPower(i)
+            : element.value.qiPower(i) *
+                getFrobCoeff([extension, i, element.index]))
+        .toList();
+    var result = construct(Q, items);
     result.root = root;
     return result;
   }
@@ -553,7 +536,7 @@ class Fq2 extends FieldExtBase {
   @override
   Field root;
 
-  Fq2(BigInt Q, List args)
+  Fq2(BigInt Q, List<Field> args)
       : root = Fq(Q, -BigInt.one),
         super(Q, args);
 
@@ -592,16 +575,16 @@ class Fq2 extends FieldExtBase {
     if (gamma == Fq(Q, -BigInt.one)) {
       delta = (a0 - alpha) * ~Fq(Q, BigInt.two);
     }
-    var x0 = (delta as Fq2).modSqrt();
+    var x0 = (delta as Fq).modSqrt();
     var x1 = a1 * ~(Fq(Q, BigInt.two) * x0);
     return Fq2(Q, [x0, x1]);
   }
 
   @override
-  Fq2 construct(BigInt Q, List args) => Fq2(Q, args);
+  Fq2 construct(BigInt Q, List<Field> args) => Fq2(Q, args);
 
   factory Fq2.fromFq(BigInt Q, Fq fq) => Fq2.nil().myFromFq(Q, fq) as Fq2;
-  factory Fq2.fromBytes(Uint8List bytes, BigInt Q) =>
+  factory Fq2.fromBytes(List<int> bytes, BigInt Q) =>
       Fq2.nil().myFromBytes(bytes, Q) as Fq2;
   factory Fq2.zero(BigInt Q) => Fq2.nil().myZero(Q) as Fq2;
   factory Fq2.one(BigInt Q) => Fq2.nil().myOne(Q) as Fq2;
@@ -615,7 +598,7 @@ class Fq6 extends FieldExtBase {
   @override
   Field root;
 
-  Fq6(BigInt Q, List args)
+  Fq6(BigInt Q, List<Field> args)
       : root = Fq2(Q, [Fq.one(Q), Fq.one(Q)]),
         super(Q, args);
 
@@ -643,10 +626,10 @@ class Fq6 extends FieldExtBase {
   }
 
   @override
-  Fq6 construct(BigInt Q, List args) => Fq6(Q, args);
+  Fq6 construct(BigInt Q, List<Field> args) => Fq6(Q, args);
 
   factory Fq6.fromFq(BigInt Q, Fq fq) => Fq6.nil().myFromFq(Q, fq) as Fq6;
-  factory Fq6.fromBytes(Uint8List bytes, BigInt Q) =>
+  factory Fq6.fromBytes(List<int> bytes, BigInt Q) =>
       Fq6.nil().myFromBytes(bytes, Q) as Fq6;
   factory Fq6.zero(BigInt Q) => Fq6.nil().myZero(Q) as Fq6;
   factory Fq6.one(BigInt Q) => Fq6.nil().myOne(Q) as Fq6;
@@ -660,7 +643,7 @@ class Fq12 extends FieldExtBase {
   @override
   Field root;
 
-  Fq12(BigInt Q, List args)
+  Fq12(BigInt Q, List<Field> args)
       : root = Fq6(Q, [Fq2.zero(Q), Fq2.one(Q), Fq2.zero(Q)]),
         super(Q, args);
 
@@ -677,10 +660,10 @@ class Fq12 extends FieldExtBase {
   }
 
   @override
-  Fq12 construct(BigInt Q, List args) => Fq12(Q, args);
+  Fq12 construct(BigInt Q, List<Field> args) => Fq12(Q, args);
 
   factory Fq12.fromFq(BigInt Q, Fq fq) => Fq12.nil().myFromFq(Q, fq) as Fq12;
-  factory Fq12.fromBytes(Uint8List bytes, BigInt Q) =>
+  factory Fq12.fromBytes(List<int> bytes, BigInt Q) =>
       Fq12.nil().myFromBytes(bytes, Q) as Fq12;
   factory Fq12.zero(BigInt Q) => Fq12.nil().myZero(Q) as Fq12;
   factory Fq12.one(BigInt Q) => Fq12.nil().myOne(Q) as Fq12;
