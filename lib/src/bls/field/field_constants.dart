@@ -254,5 +254,5 @@ Field getFrobCoeff(List<int> key) {
       return item.value;
     }
   }
-  throw StateError('Unknown frob coeff');
+  throw StateError('Unknown frob coeff.');
 }

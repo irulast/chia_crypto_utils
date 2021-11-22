@@ -27,7 +27,7 @@ Output traversePath(Program value, Program environment) {
   var bitMask = 0x01;
   while (byteCursor > endByteCursor || bitMask < endBitMask) {
     if (environment.isAtom) {
-      throw StateError('Cannot traverse into $environment');
+      throw StateError('Cannot traverse into $environment.');
     }
     if (atom[byteCursor] & bitMask != 0) {
       environment = environment.rest();

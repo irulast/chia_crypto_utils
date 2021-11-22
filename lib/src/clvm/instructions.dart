@@ -38,7 +38,7 @@ BigInt eval(
     var mustBeNil = op.rest();
     if (newOperator.isCons || !mustBeNil.isNull) {
       throw StateError(
-          'Operators that are lists must contain a single atom${op.positionSuffix}');
+          'Operators that are lists must contain a single atom${op.positionSuffix}.');
     }
     var newOperandList = program.rest();
     stack.add(newOperator);
@@ -69,7 +69,7 @@ BigInt apply(
   var operandList = stack.removeLast();
   var op = stack.removeLast();
   if (op.isCons) {
-    throw StateError('An internal error occurred${op.positionSuffix}');
+    throw StateError('An internal error occurred${op.positionSuffix}.');
   }
   if (bytesEqual(op.atom, encodeBigInt(keywords['a']!))) {
     var args = operandList.toList(size: 2);

@@ -11,7 +11,7 @@ import '../clvm/bytes.dart';
 
 Uint8List I2OSP(BigInt val, int length) {
   if (val < BigInt.zero || val >= BigInt.one << 8 * length) {
-    throw ArgumentError('Bad I2OSP call: val=$val, length=$length');
+    throw ArgumentError('Bad I2OSP call: val=$val, length=$length.');
   }
   var bytes = List.filled(length, 0);
   var tempVal = val;

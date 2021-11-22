@@ -10,14 +10,14 @@ Program deserialize(Iterator<int> program) {
   } else if (program.current <= 0xdf) {
     sizeBytes.add(0x1F);
     if (!program.moveNext()) {
-      throw StateError('Expected next size byte in source');
+      throw StateError('Expected next size byte in source.');
     }
     sizeBytes.add(program.current);
   } else if (program.current <= 0xef) {
     sizeBytes.add(0x0F);
     for (var i = 0; i < 2; i++) {
       if (!program.moveNext()) {
-        throw StateError('Expected next size byte in source');
+        throw StateError('Expected next size byte in source.');
       }
       sizeBytes.add(program.current);
     }
@@ -25,7 +25,7 @@ Program deserialize(Iterator<int> program) {
     sizeBytes.add(0x07);
     for (var i = 0; i < 3; i++) {
       if (!program.moveNext()) {
-        throw StateError('Expected next size byte in source');
+        throw StateError('Expected next size byte in source.');
       }
       sizeBytes.add(program.current);
     }
@@ -33,28 +33,28 @@ Program deserialize(Iterator<int> program) {
     sizeBytes.add(0x03);
     for (var i = 0; i < 4; i++) {
       if (!program.moveNext()) {
-        throw StateError('Expected next size byte in source');
+        throw StateError('Expected next size byte in source.');
       }
       sizeBytes.add(program.current);
     }
   } else if (program.current == 0xff) {
     if (!program.moveNext()) {
-      throw StateError('Expected first atom in cons');
+      throw StateError('Expected first atom in cons.');
     }
     var first = deserialize(program);
     if (!program.moveNext()) {
-      throw StateError('Expected rest atom in cons');
+      throw StateError('Expected rest atom in cons.');
     }
     var rest = deserialize(program);
     return Program.cons(first, rest);
   } else {
-    throw StateError('Invalid encoding');
+    throw StateError('Invalid encoding.');
   }
   var size = decodeInt(sizeBytes);
   List<int> bytes = [];
   for (var i = 0; i < size; i++) {
     if (!program.moveNext()) {
-      throw StateError('Expected next byte in atom');
+      throw StateError('Expected next byte in atom.');
     }
     bytes.add(program.current);
   }

@@ -68,7 +68,7 @@ Program tokenizeCons(String source, Iterator<Token> tokens) {
   var first = tokenizeExpr(source, tokens);
   if (!tokens.moveNext()) {
     throw StateError(
-        'Unexpected end of source at ${Position(source, token.index)}');
+        'Unexpected end of source at ${Position(source, token.index)}.');
   }
   token = tokens.current;
   Program rest;
@@ -76,18 +76,18 @@ Program tokenizeCons(String source, Iterator<Token> tokens) {
     var dotStart = token.index;
     if (!tokens.moveNext()) {
       throw StateError(
-          'Unexpected end of source at ${Position(source, token.index)}');
+          'Unexpected end of source at ${Position(source, token.index)}.');
     }
     token = tokens.current;
     rest = tokenizeExpr(source, tokens);
     if (!tokens.moveNext()) {
       throw StateError(
-          'Unexpected end of source at ${Position(source, token.index)}');
+          'Unexpected end of source at ${Position(source, token.index)}.');
     }
     token = tokens.current;
     if (token.text != ')') {
       throw StateError(
-          'Illegal dot expression at ${Position(source, dotStart)}');
+          'Illegal dot expression at ${Position(source, dotStart)}.');
     }
   } else {
     rest = tokenizeCons(source, tokens);
@@ -112,7 +112,7 @@ Program? tokenizeHex(String source, Token token) {
     try {
       return Program.fromHex(hex).at(Position(source, token.index));
     } catch (e) {
-      throw StateError('Invalid hex at ${token.index}: ${token.text}');
+      throw StateError('Invalid hex at ${token.index}: ${token.text}.');
     }
   } else {
     return null;
@@ -129,7 +129,7 @@ Program? tokenizeQuotes(String source, Token token) {
   }
   if (token.text[token.text.length - 1] != quote) {
     throw StateError(
-        'Unterminated string ${token.text} at ${Position(source, token.index)}');
+        'Unterminated string ${token.text} at ${Position(source, token.index)}.');
   }
   return Program.fromString(token.text.substring(1, token.text.length - 1))
       .at(Position(source, token.index));
@@ -152,7 +152,7 @@ Program tokenizeExpr(String source, Iterator<Token> tokens) {
   if (token.text == '(') {
     if (!tokens.moveNext()) {
       throw StateError(
-          'Unexpected end of source at ${Position(source, token.index)}');
+          'Unexpected end of source at ${Position(source, token.index)}.');
     }
     return tokenizeCons(source, tokens);
   }
@@ -189,7 +189,7 @@ Iterable<Token> tokenStream(String source) sync* {
         continue;
       } else {
         throw StateError(
-            'Unterminated string ${source.substring(start)} at ${Position(source, index)}');
+            'Unterminated string ${source.substring(start)} at ${Position(source, index)}.');
       }
     }
     var token = consumeUntilWhitespace(source, index);

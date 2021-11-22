@@ -32,7 +32,7 @@ Map<BigInt, Operator> operators = {
     return Output(Program.fromBool(list[0].isCons), Cost.listpCost);
   },
   keywords['x']!: (args) {
-    throw StateError('$args${args.positionSuffix}');
+    throw StateError('$args${args.positionSuffix}.');
   },
   keywords['=']!: (args) {
     var list = args.toAtomList(size: 2, suffix: 'in =');

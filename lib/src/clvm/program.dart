@@ -76,7 +76,7 @@ class Program {
     if (iterator.moveNext()) {
       return tokenizeExpr(source, iterator);
     } else {
-      throw StateError('Unexpected end of source');
+      throw StateError('Unexpected end of source.');
     }
   }
 
@@ -85,7 +85,7 @@ class Program {
     if (iterator.moveNext()) {
       return deserialize(iterator);
     } else {
-      throw StateError('Unexpected end of source');
+      throw StateError('Unexpected end of source.');
     }
   }
 
@@ -102,7 +102,7 @@ class Program {
       cost += instruction(instructions, stack, options) as BigInt;
       if (options.maxCost != null && cost > options.maxCost!) {
         throw StateError(
-            'Exceeded cost of ${options.maxCost}${stack[stack.length - 1].positionSuffix}');
+            'Exceeded cost of ${options.maxCost}${stack[stack.length - 1].positionSuffix}.');
       }
     }
     return Output(stack[stack.length - 1], cost);
@@ -122,14 +122,14 @@ class Program {
 
   Program first() {
     if (isAtom) {
-      throw StateError('Cannot access first of ${toString()}$positionSuffix');
+      throw StateError('Cannot access first of ${toString()}$positionSuffix.');
     }
     return cons[0];
   }
 
   Program rest() {
     if (isAtom) {
-      throw StateError('Cannot access rest of ${toString()}$positionSuffix');
+      throw StateError('Cannot access rest of ${toString()}$positionSuffix.');
     }
     return cons[1];
   }
@@ -177,7 +177,7 @@ class Program {
           result.add((size >> 0) & 0xFF);
         } else {
           throw RangeError(
-              'Cannot serialize ${toString()} as it is 17,179,869,184 or more bytes in size$positionSuffix');
+              'Cannot serialize ${toString()} as it is 17,179,869,184 or more bytes in size$positionSuffix.');
         }
         result.addAll(atom);
         return Uint8List.fromList(result);
@@ -203,20 +203,20 @@ class Program {
       var item = current.first();
       if (validator != null && !validator(item)) {
         throw ArgumentError(
-            'Expected type $type for argument ${result.length + 1}${suffix != null ? ' $suffix' : ''}${item.positionSuffix}');
+            'Expected type $type for argument ${result.length + 1}${suffix != null ? ' $suffix' : ''}${item.positionSuffix}.');
       }
       result.add(item);
       current = current.rest();
     }
     if (size != null && result.length != size) {
       throw ArgumentError(
-          'Expected $size arguments${suffix != null ? ' $suffix' : ''}$positionSuffix');
+          'Expected $size arguments${suffix != null ? ' $suffix' : ''}$positionSuffix.');
     } else if (min != null && result.length < min) {
       throw ArgumentError(
-          'Expected at least $min arguments${suffix != null ? ' $suffix' : ''}$positionSuffix');
+          'Expected at least $min arguments${suffix != null ? ' $suffix' : ''}$positionSuffix.');
     } else if (max != null && result.length > max) {
       throw ArgumentError(
-          'Expected at most $max arguments${suffix != null ? ' $suffix' : ''}$positionSuffix');
+          'Expected at most $max arguments${suffix != null ? ' $suffix' : ''}$positionSuffix.');
     }
     return result;
   }
@@ -280,7 +280,7 @@ class Program {
   String toHex() {
     if (isCons) {
       throw StateError(
-          'Cannot convert ${toString()} to hex format$positionSuffix');
+          'Cannot convert ${toString()} to hex format$positionSuffix.');
     } else {
       return HexEncoder().convert(atom);
     }
@@ -289,7 +289,7 @@ class Program {
   bool toBool() {
     if (isCons) {
       throw StateError(
-          'Cannot convert ${toString()} to boolean format$positionSuffix');
+          'Cannot convert ${toString()} to boolean format$positionSuffix.');
     } else {
       return !isNull;
     }
@@ -298,7 +298,7 @@ class Program {
   int toInt() {
     if (isCons) {
       throw StateError(
-          'Cannot convert ${toString()} to int format$positionSuffix');
+          'Cannot convert ${toString()} to int format$positionSuffix.');
     } else {
       return decodeInt(atom);
     }
@@ -306,7 +306,7 @@ class Program {
 
   BigInt toBigInt() {
     if (isCons) {
-      throw StateError('Cannot convert ${toString()} to bigint format');
+      throw StateError('Cannot convert ${toString()} to bigint format.');
     } else {
       return decodeBigInt(atom);
     }
