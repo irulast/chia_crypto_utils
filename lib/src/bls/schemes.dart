@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-import 'package:chia_utils/src/bls/ec.dart';
+import 'package:chia_utils/src/bls/ec/ec.dart';
+import 'package:chia_utils/src/bls/ec/jacobian_point.dart';
 import 'package:chia_utils/src/bls/field_ext.dart';
 import 'package:chia_utils/src/bls/hd_keys.dart' as hd_keys;
 import 'package:chia_utils/src/bls/op_swu_g2.dart';
@@ -26,7 +27,8 @@ bool coreVerifyMpl(JacobianPoint pk, List<int> message, JacobianPoint signature,
   }
   var q = g2Map(message, dst);
   var one = Fq12.one(defaultEc.q);
-  var pairingResult = atePairingMulti([pk, -G1Generator()], [q, signature]);
+  var pairingResult =
+      atePairingMulti([pk, -JacobianPoint.generateG1()], [q, signature]);
   return pairingResult == one;
 }
 
@@ -52,7 +54,7 @@ bool coreAggregateVerify(List<JacobianPoint> pks, List<List<int>> ms,
     return false;
   }
   var qs = [signature];
-  var ps = [-G1Generator()];
+  var ps = [-JacobianPoint.generateG1()];
   for (var i = 0; i < pks.length; i++) {
     if (!pks[i].isValid) {
       return false;
@@ -197,7 +199,8 @@ class PopSchemeMPL {
       assert(pk.isValid);
       var q = g2Map(pk.toBytes(), popSchemePopDst);
       var one = Fq12.one(defaultEc.q);
-      var pairingResult = atePairingMulti([pk, -G1Generator()], [q, proof]);
+      var pairingResult =
+          atePairingMulti([pk, -JacobianPoint.generateG1()], [q, proof]);
       return pairingResult == one;
     } on AssertionError {
       return false;

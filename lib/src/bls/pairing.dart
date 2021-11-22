@@ -1,6 +1,8 @@
 // ignore_for_file: non_constant_identifier_names
 
-import 'package:chia_utils/src/bls/ec.dart';
+import 'package:chia_utils/src/bls/ec/affine_point.dart';
+import 'package:chia_utils/src/bls/ec/ec.dart';
+import 'package:chia_utils/src/bls/ec/jacobian_point.dart';
 import 'package:chia_utils/src/bls/field.dart';
 import 'package:chia_utils/src/bls/field_base.dart';
 import 'package:chia_utils/src/bls/field_ext.dart';
@@ -19,7 +21,7 @@ List<int> intToBits(BigInt i) {
 
 Field doubleLineEval(AffinePoint R, AffinePoint P, {EC? ec}) {
   ec ??= defaultEc;
-  var R12 = untwist(R);
+  var R12 = R.untwist();
   var slope = (Fq(ec.q, BigInt.from(3)) *
       (R12.x.pow(BigInt.two) + ec.a) /
       (R12.y * Fq(ec.q, BigInt.two)));
@@ -29,8 +31,8 @@ Field doubleLineEval(AffinePoint R, AffinePoint P, {EC? ec}) {
 
 Field addLineEval(AffinePoint R, AffinePoint Q, AffinePoint P, {EC? ec}) {
   ec ??= defaultEc;
-  var R12 = untwist(R);
-  var Q12 = untwist(Q);
+  var R12 = R.untwist();
+  var Q12 = Q.untwist();
   if (R12 == -Q12) {
     return P.x - R12.x as Fq;
   }

@@ -1,7 +1,8 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:chia_utils/src/bls/bls12381.dart';
-import 'package:chia_utils/src/bls/ec.dart';
+import 'package:chia_utils/src/bls/ec/ec.dart';
+import 'package:chia_utils/src/bls/ec/jacobian_point.dart';
 import 'package:chia_utils/src/bls/field_base.dart';
 import 'package:chia_utils/src/bls/field_ext.dart';
 import 'package:chia_utils/src/bls/hash_to_field.dart';

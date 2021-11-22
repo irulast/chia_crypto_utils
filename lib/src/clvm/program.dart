@@ -31,6 +31,7 @@ class Program {
   Position? position;
 
   static int cost = 11000000000;
+  static Program nil = Program.fromBytes([]);
 
   @override
   bool operator ==(Object other) =>
@@ -51,18 +52,18 @@ class Program {
   List<Program> get cons => _cons!;
   String get positionSuffix => position == null ? '' : ' at $position';
 
-  Program.atom(List<int> atom) : _atom = Uint8List.fromList(atom);
-  Program.bool(bool value) : _atom = Uint8List.fromList(value ? [1] : []);
-  Program.nil() : _atom = Uint8List.fromList([]);
   Program.cons(Program left, Program right) : _cons = [left, right];
-  Program.hex(String hex)
+  Program.fromBytes(List<int> atom) : _atom = Uint8List.fromList(atom);
+  Program.fromHex(String hex)
       : _atom = Uint8List.fromList(HexDecoder().convert(hex));
-  Program.int(int number) : _atom = encodeInt(number);
-  Program.bigint(BigInt number) : _atom = encodeBigInt(number);
-  Program.string(String text) : _atom = Uint8List.fromList(utf8.encode(text));
+  Program.fromBool(bool value) : _atom = Uint8List.fromList(value ? [1] : []);
+  Program.fromInt(int number) : _atom = encodeInt(number);
+  Program.fromBigInt(BigInt number) : _atom = encodeBigInt(number);
+  Program.fromString(String text)
+      : _atom = Uint8List.fromList(utf8.encode(text));
 
   factory Program.list(List<Program> items) {
-    var result = Program.nil();
+    var result = Program.nil;
     for (var i = items.length - 1; i >= 0; i--) {
       result = Program.cons(items[i], result);
     }
@@ -88,6 +89,9 @@ class Program {
     }
   }
 
+  factory Program.deserializeHex(String source) =>
+      Program.deserialize(HexDecoder().convert(source));
+
   Output run(Program args, {RunOptions? options}) {
     options ??= RunOptions();
     List<dynamic> instructions = [eval];
@@ -105,12 +109,13 @@ class Program {
   }
 
   Program curry(List<Program> args) {
-    var current = Program.bigint(keywords['q']!);
+    var current = Program.fromBigInt(keywords['q']!);
     for (var argument in args.reversed) {
       current = Program.cons(
-          Program.bigint(keywords['c']!),
-          Program.cons(Program.cons(Program.bigint(keywords['q']!), argument),
-              Program.cons(current, Program.nil())));
+          Program.fromBigInt(keywords['c']!),
+          Program.cons(
+              Program.cons(Program.fromBigInt(keywords['q']!), argument),
+              Program.cons(current, Program.nil)));
     }
     return Program.parse('(a (q . ${toString()}) ${current.toString()})');
   }
@@ -138,6 +143,8 @@ class Program {
           .bytes);
     }
   }
+
+  String serializeHex() => HexEncoder().convert(serialize());
 
   Uint8List serialize() {
     if (isAtom) {
@@ -320,21 +327,21 @@ class Program {
           var string = utf8.decode(atom);
           for (var i = 0; i < string.length; i++) {
             if (!printable.contains(string[i])) {
-              return '0x' + HexEncoder().convert(atom);
+              return '0x' + toHex();
             }
           }
           if (string.contains('"') && string.contains("'")) {
-            return '0x' + HexEncoder().convert(atom);
+            return '0x' + toHex();
           }
           var quote = string.contains('"') ? "'" : '"';
           return quote + string + quote;
         } catch (e) {
-          return '0x' + HexEncoder().convert(atom);
+          return '0x' + toHex();
         }
       } else if (bytesEqual(encodeInt(decodeInt(atom)), atom)) {
         return decodeInt(atom).toString();
       } else {
-        return '0x' + HexEncoder().convert(atom);
+        return '0x' + toHex();
       }
     } else {
       var result = '(';

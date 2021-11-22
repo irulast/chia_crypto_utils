@@ -60,7 +60,7 @@ BigInt eval(
     instructions.add(swap);
     operandList = operandList.rest();
   }
-  stack.add(Program.nil());
+  stack.add(Program.nil);
   return BigInt.one;
 }
 

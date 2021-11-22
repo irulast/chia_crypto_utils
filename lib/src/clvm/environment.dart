@@ -11,7 +11,7 @@ int msbMask(int byte) {
 Output traversePath(Program value, Program environment) {
   var cost = Cost.pathLookupBaseCost + Cost.pathLookupCostPerLeg;
   if (value.isNull) {
-    return Output(Program.nil(), cost);
+    return Output(Program.nil, cost);
   }
   var endByteCursor = 0;
   var atom = value.atom;
@@ -20,7 +20,7 @@ Output traversePath(Program value, Program environment) {
   }
   cost += BigInt.from(endByteCursor) * Cost.pathLookupCostPerZeroByte;
   if (endByteCursor == atom.length) {
-    return Output(Program.nil(), cost);
+    return Output(Program.nil, cost);
   }
   var endBitMask = msbMask(atom[endByteCursor]);
   var byteCursor = atom.length - 1;

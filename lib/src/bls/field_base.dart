@@ -3,11 +3,13 @@ import 'dart:typed_data';
 import 'package:chia_utils/src/bls/failed_op.dart';
 import 'package:chia_utils/src/bls/field.dart';
 import 'package:chia_utils/src/clvm/bytes.dart';
+import 'package:hex/hex.dart';
 import 'package:quiver/core.dart';
 
 class Fq implements Field {
   @override
   BigInt Q;
+
   @override
   int extension = 1;
 
@@ -23,6 +25,21 @@ class Fq implements Field {
     assert(bytes.length == 48);
     return Fq(Q, bytesToBigInt(bytes, Endian.big));
   }
+
+  @override
+  Fq myFromHex(String hex, BigInt Q) =>
+      myFromBytes(HexDecoder().convert(hex), Q);
+
+  factory Fq.zero(BigInt Q) => Fq(Q, BigInt.zero);
+
+  factory Fq.one(BigInt Q) => Fq(Q, BigInt.one);
+
+  factory Fq.fromFq(BigInt Q, Fq fq) => fq;
+
+  factory Fq.fromBytes(List<int> bytes, BigInt Q) =>
+      Fq.nil().myFromBytes(bytes, Q);
+
+  factory Fq.fromHex(String hex, BigInt Q) => Fq.nil().myFromHex(hex, Q);
 
   @override
   Field operator +(other) {
@@ -92,6 +109,10 @@ class Fq implements Field {
 
   @override
   Uint8List toBytes() => bigIntToBytes(value, 48, Endian.big);
+
+  @override
+  String toHex() => HexEncoder().convert(toBytes());
+
   @override
   Fq pow(BigInt other) => other == BigInt.zero
       ? Fq(Q, BigInt.one)
@@ -185,19 +206,17 @@ class Fq implements Field {
   }
 
   @override
-  Fq deepcopy() => Fq(Q, value);
+  Fq clone() => Fq(Q, value);
+
   @override
   Fq myZero(BigInt Q) => Fq(Q, BigInt.zero);
+
   @override
   Fq myOne(BigInt Q) => Fq(Q, BigInt.one);
+
   @override
   Fq myFromFq(BigInt Q, Fq fq) => fq;
+
   @override
   bool toBool() => true;
-
-  factory Fq.zero(BigInt Q) => Fq(Q, BigInt.zero);
-  factory Fq.one(BigInt Q) => Fq(Q, BigInt.one);
-  factory Fq.fromFq(BigInt Q, Fq fq) => fq;
-  factory Fq.fromBytes(List<int> bytes, BigInt Q) =>
-      Fq.nil().myFromBytes(bytes, Q);
 }

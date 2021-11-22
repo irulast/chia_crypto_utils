@@ -3,7 +3,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:chia_utils/src/bls/ec.dart';
+import 'package:chia_utils/src/bls/ec/ec.dart';
+import 'package:chia_utils/src/bls/ec/jacobian_point.dart';
 import 'package:chia_utils/src/bls/field_base.dart';
 import 'package:chia_utils/src/bls/field_ext.dart';
 import 'package:chia_utils/src/bls/hash_to_field.dart';
@@ -213,14 +214,14 @@ void main() {
     var five = BigInt.from(5);
     var three = BigInt.from(3);
     var q = defaultEc.q;
-    var g = G1Generator();
+    var g = JacobianPoint.generateG1();
     test('G1 Multiplication', () {
       expect(g.isOnCurve, isTrue);
       expect(g * BigInt.two == g + g, isTrue);
       expect((g * three).isOnCurve, isTrue);
       expect(g * three == g + g + g, isTrue);
     });
-    var g2 = G2Generator();
+    var g2 = JacobianPoint.generateG2();
     test('Commutative', () {
       expect(
           g2.x * (Fq(q, BigInt.two) * g2.y) ==
@@ -230,11 +231,11 @@ void main() {
     });
     var s = g2 + g2;
     test('Twist', () {
-      expect(untwist(twist(s.toAffine())) == s.toAffine(), isTrue);
+      expect(s.toAffine().twist().untwist() == s.toAffine(), isTrue);
+      expect((s.toAffine().twist() * five).untwist() == (s * five).toAffine(),
+          isTrue);
       expect(
-          untwist(twist(s.toAffine()) * five) == (s * five).toAffine(), isTrue);
-      expect(
-          twist(s.toAffine()) * five == twist((s * five).toAffine()), isTrue);
+          s.toAffine().twist() * five == (s * five).toAffine().twist(), isTrue);
     });
     test('G2 Multiplication', () {
       expect(s.isOnCurve, isTrue);
@@ -246,9 +247,9 @@ void main() {
     test('Y For X', () {
       expect(y == g2.y || -y == g2.y, isTrue);
     });
-    var g_j = G1Generator();
-    var g2_j = G2Generator();
-    var g2_j2 = G2Generator() * BigInt.two;
+    var g_j = JacobianPoint.generateG1();
+    var g2_j = JacobianPoint.generateG2();
+    var g2_j2 = JacobianPoint.generateG2() * BigInt.two;
     test('Conversions', () {
       expect(g.toAffine().toJacobian() == g, isTrue);
       expect(
@@ -316,10 +317,10 @@ void main() {
     var i2 = bytesToBigInt([3, 1, 4, 1, 5, 9], Endian.big);
     var b1 = i1;
     var b2 = i2;
-    var g1 = G1Generator();
-    var g2 = G2Generator();
-    var u1 = G1Infinity();
-    var u2 = G2Infinity();
+    var g1 = JacobianPoint.generateG1();
+    var g2 = JacobianPoint.generateG2();
+    var u1 = JacobianPoint.infinityG1();
+    var u2 = JacobianPoint.infinityG2();
     var x1 = g1 * b1;
     var x2 = g1 * b2;
     var y1 = g2 * b1;
@@ -335,9 +336,9 @@ void main() {
       expect(left == right, isTrue);
       expect(x1 + x2 == x2 + x1, isTrue);
       expect(x1 + -x1 == u1, isTrue);
-      expect(x1 == G1FromBytes(x1.toBytes()), isTrue);
+      expect(x1 == JacobianPoint.fromBytesG1(x1.toBytes()), isTrue);
     });
-    var copy = x1.deepcopy();
+    var copy = x1.clone();
     test('G1 Copy', () {
       expect(x1 == copy, isTrue);
       x1 += x2;
@@ -352,9 +353,9 @@ void main() {
       expect(y1 + u2 == y1, isTrue);
       expect(y1 + y2 == y2 + y1, isTrue);
       expect(y1 + -y1 == u2, isTrue);
-      expect(y1 == G2FromBytes(y1.toBytes()), isTrue);
+      expect(y1 == JacobianPoint.fromBytesG2(y1.toBytes()), isTrue);
     });
-    var copy2 = y1.deepcopy();
+    var copy2 = y1.clone();
     test('G2 Copy', () {
       expect(y1 == copy2, isTrue);
       y1 += y2;
@@ -364,7 +365,7 @@ void main() {
     test('Ate Pairing', () {
       expect(pair == atePairing(x1, y2), isFalse);
       expect(pair == atePairing(x2, y1), isFalse);
-      var copy3 = pair.deepcopy();
+      var copy3 = pair.clone();
       expect(pair == copy3, isTrue);
       var sk = BigInt.parse('728934712938472938472398074');
       var pk = g1 * sk;
@@ -384,11 +385,11 @@ void main() {
     var sk2 = BasicSchemeMPL.keyGen(seed2);
     test('Private and Public Key', () {
       expect(
-          HexEncoder().convert(sk1.toBytes()) ==
+          sk1.toHex() ==
               '4a353be3dac091a0a7e640620372f5e1e2e4401717c1e79cac6ffba8f6905604',
           isTrue);
       expect(
-          HexEncoder().convert(sk1.getG1().toBytes()) ==
+          sk1.getG1().toHex() ==
               '85695fcbc06cc4c4c9451f4dce21cbf8de3e5a13bf48f44cdbb18e2038ba7b8bb1632d7911ef1e2e08749bddbf165352',
           isTrue);
     });
@@ -396,18 +397,18 @@ void main() {
     var sig2 = BasicSchemeMPL.sign(sk2, msg2);
     test('Signatures', () {
       expect(
-          HexEncoder().convert(sig1.toBytes()) ==
+          sig1.toHex() ==
               'b8faa6d6a3881c9fdbad803b170d70ca5cbf1e6ba5a586262df368c75acd1d1ffa3ab6ee21c71f844494659878f5eb230c958dd576b08b8564aad2ee0992e85a1e565f299cd53a285de729937f70dc176a1f01432129bb2b94d3d5031f8065a1',
           isTrue);
       expect(
-          HexEncoder().convert(sig2.toBytes()) ==
+          sig2.toHex() ==
               'a9c4d3e689b82c7ec7e838dac2380cb014f9a08f6cd6ba044c263746e39a8f7a60ffee4afb78f146c2e421360784d58f0029491e3bd8ab84f0011d258471ba4e87059de295d9aba845c044ee83f6cf2411efd379ef38bf4cf41d5f3c0ae1205d',
           isTrue);
     });
     var aggSig1 = BasicSchemeMPL.aggregate([sig1, sig2]);
     test('Aggregated Signature 1', () {
       expect(
-          HexEncoder().convert(aggSig1.toBytes()) ==
+          aggSig1.toHex() ==
               'aee003c8cdaf3531b6b0ca354031b0819f7586b5846796615aee8108fec75ef838d181f9d244a94d195d7b0231d4afcf06f27f0cc4d3c72162545c240de7d5034a7ef3a2a03c0159de982fbc2e7790aeb455e27beae91d64e077c70b5506dea3',
           isTrue);
       expect(
@@ -424,7 +425,7 @@ void main() {
     var aggSig2 = BasicSchemeMPL.aggregate([sig3, sig4, sig5]);
     test('Aggregated Signature 2', () {
       expect(
-          HexEncoder().convert(aggSig2.toBytes()) ==
+          aggSig2.toHex() ==
               'a0b1378d518bea4d1100adbc7bdbc4ff64f2c219ed6395cd36fe5d2aa44a4b8e710b607afd965e505a5ac3283291b75413d09478ab4b5cfbafbeea366de2d0c0bcf61deddaa521f6020460fd547ab37659ae207968b545727beba0a3c5572b9c',
           isTrue);
       expect(
@@ -441,7 +442,7 @@ void main() {
     var sk1 = PopSchemeMPL.keyGen(seed1);
     var proof = PopSchemeMPL.popProve(sk1);
     expect(
-        HexEncoder().convert(proof.toBytes()) ==
+        proof.toHex() ==
             "84f709159435f0dc73b3e8bf6c78d85282d19231555a8ee3b6e2573aaf66872d9203fefa1ef"
                 "700e34e7c3f3fb28210100558c6871c53f1ef6055b9f06b0d1abe22ad584ad3b957f3018a8f5"
                 "8227c6c716b1e15791459850f2289168fa0cf9115",
@@ -530,7 +531,7 @@ void main() {
       test('G1 $s', () {
         var bytes = HexDecoder().convert(s);
         expect(() {
-          assert(G1FromBytes(bytes).isValid);
+          assert(JacobianPoint.fromBytesG1(bytes).isValid);
         }, throwsA(isA<dynamic>()));
       });
     }
@@ -538,7 +539,7 @@ void main() {
       test('G2 $s', () {
         var bytes = HexDecoder().convert(s);
         expect(() {
-          assert(G2FromBytes(bytes).isValid);
+          assert(JacobianPoint.fromBytesG2(bytes).isValid);
         }, throwsA(isA<dynamic>()));
       });
     }
@@ -589,8 +590,8 @@ void main() {
     var pk_bytes = pk.toBytes();
     var signature_bytes = signature.toBytes();
     var skFromBytes = PrivateKey.fromBytes(sk_bytes);
-    var pkFromBytes = G1FromBytes(pk_bytes);
-    var signatureFromBytes = G2FromBytes(signature_bytes);
+    var pkFromBytes = JacobianPoint.fromBytesG1(pk_bytes);
+    var signatureFromBytes = JacobianPoint.fromBytesG2(signature_bytes);
     test('From Bytes', () {
       expect(sk == skFromBytes, isTrue);
       expect(pk == pkFromBytes, isTrue);

@@ -4,7 +4,7 @@ import 'package:chia_utils/src/clvm/program.dart';
 Program deserialize(Iterator<int> program) {
   List<int> sizeBytes = [];
   if (program.current <= 0x7f) {
-    return Program.atom([program.current]);
+    return Program.fromBytes([program.current]);
   } else if (program.current <= 0xbf) {
     sizeBytes.add(program.current & 0x3f);
   } else if (program.current <= 0xdf) {
@@ -58,5 +58,5 @@ Program deserialize(Iterator<int> program) {
     }
     bytes.add(program.current);
   }
-  return Program.atom(bytes);
+  return Program.fromBytes(bytes);
 }

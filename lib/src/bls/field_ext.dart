@@ -4,6 +4,7 @@ import 'package:chia_utils/src/bls/bls12381.dart';
 import 'package:chia_utils/src/bls/failed_op.dart';
 import 'package:chia_utils/src/bls/field.dart';
 import 'package:chia_utils/src/bls/field_base.dart';
+import 'package:hex/hex.dart';
 import 'package:quiver/collection.dart';
 import 'package:quiver/core.dart';
 import 'package:quiver/iterables.dart';
@@ -449,6 +450,9 @@ abstract class FieldExtBase implements Field {
   }
 
   @override
+  String toHex() => HexEncoder().convert(toBytes());
+
+  @override
   FieldExtBase myFromBytes(List<int> bytes, BigInt Q) {
     if (bytes.length != extension * 48) {
       throw ArgumentError('Invalid byte length.');
@@ -461,6 +465,10 @@ abstract class FieldExtBase implements Field {
     return construct(Q,
         tup.reversed.map((bytes) => basefield.myFromBytes(bytes, Q)).toList());
   }
+
+  @override
+  FieldExtBase myFromHex(String hex, BigInt Q) =>
+      myFromBytes(HexDecoder().convert(hex), Q);
 
   @override
   FieldExtBase pow(BigInt exponent) {
@@ -500,9 +508,9 @@ abstract class FieldExtBase implements Field {
   }
 
   @override
-  FieldExtBase deepcopy() {
+  FieldExtBase clone() {
     var result =
-        construct(Q, elements.map((element) => element.deepcopy()).toList());
+        construct(Q, elements.map((element) => element.clone()).toList());
     result.root = root;
     return result;
   }
@@ -586,6 +594,8 @@ class Fq2 extends FieldExtBase {
   factory Fq2.fromFq(BigInt Q, Fq fq) => Fq2.nil().myFromFq(Q, fq) as Fq2;
   factory Fq2.fromBytes(List<int> bytes, BigInt Q) =>
       Fq2.nil().myFromBytes(bytes, Q) as Fq2;
+  factory Fq2.fromHex(String hex, BigInt Q) =>
+      Fq2.nil().myFromHex(hex, Q) as Fq2;
   factory Fq2.zero(BigInt Q) => Fq2.nil().myZero(Q) as Fq2;
   factory Fq2.one(BigInt Q) => Fq2.nil().myOne(Q) as Fq2;
 }
@@ -631,6 +641,8 @@ class Fq6 extends FieldExtBase {
   factory Fq6.fromFq(BigInt Q, Fq fq) => Fq6.nil().myFromFq(Q, fq) as Fq6;
   factory Fq6.fromBytes(List<int> bytes, BigInt Q) =>
       Fq6.nil().myFromBytes(bytes, Q) as Fq6;
+  factory Fq6.fromHex(String hex, BigInt Q) =>
+      Fq6.nil().myFromHex(hex, Q) as Fq6;
   factory Fq6.zero(BigInt Q) => Fq6.nil().myZero(Q) as Fq6;
   factory Fq6.one(BigInt Q) => Fq6.nil().myOne(Q) as Fq6;
 }
@@ -665,6 +677,8 @@ class Fq12 extends FieldExtBase {
   factory Fq12.fromFq(BigInt Q, Fq fq) => Fq12.nil().myFromFq(Q, fq) as Fq12;
   factory Fq12.fromBytes(List<int> bytes, BigInt Q) =>
       Fq12.nil().myFromBytes(bytes, Q) as Fq12;
+  factory Fq12.fromHex(String hex, BigInt Q) =>
+      Fq12.nil().myFromHex(hex, Q) as Fq12;
   factory Fq12.zero(BigInt Q) => Fq12.nil().myZero(Q) as Fq12;
   factory Fq12.one(BigInt Q) => Fq12.nil().myOne(Q) as Fq12;
 }

@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:chia_utils/src/bls/ec.dart';
+import 'package:chia_utils/src/bls/ec/ec.dart';
+import 'package:chia_utils/src/bls/ec/jacobian_point.dart';
 import 'package:chia_utils/src/bls/hkdf.dart';
 import 'package:chia_utils/src/bls/private_key.dart';
 import 'package:chia_utils/src/bls/util.dart';
@@ -46,10 +47,10 @@ PrivateKey deriveChildSkUnhardened(PrivateKey parentSk, int index) {
 
 JacobianPoint deriveChildG1Unhardened(JacobianPoint parentPk, int index) {
   var h = hash256(parentPk.toBytes() + intToBytes(index, 4, Endian.big));
-  return parentPk + G1Generator() * PrivateKey.fromBytes(h).value;
+  return parentPk + JacobianPoint.generateG1() * PrivateKey.fromBytes(h).value;
 }
 
 JacobianPoint deriveChildG2Unhardened(JacobianPoint parentPk, int index) {
   var h = hash256(parentPk.toBytes() + intToBytes(index, 4, Endian.big));
-  return parentPk + G2Generator() * PrivateKey.fromBytes(h).value;
+  return parentPk + JacobianPoint.generateG2() * PrivateKey.fromBytes(h).value;
 }

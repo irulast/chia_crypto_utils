@@ -2014,9 +2014,8 @@ void main() {
           }, throwsA(isA<dynamic>()));
         } else {
           var puzzleProgram = Program.parse(puzzle);
-          var result = puzzleProgram.serialize();
           var expected = item.value!;
-          expect(HexEncoder().convert(result), equals(expected.output),
+          expect(puzzleProgram.serializeHex(), equals(expected.output),
               reason: 'Wrong output');
         }
       });
