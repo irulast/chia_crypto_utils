@@ -4,9 +4,9 @@ import 'dart:math' as math;
 import 'package:chia_utils/src/bls/bls12381.dart';
 import 'package:chia_utils/src/bls/ec/affine_point.dart';
 import 'package:chia_utils/src/bls/ec/jacobian_point.dart';
-import 'package:chia_utils/src/bls/field.dart';
-import 'package:chia_utils/src/bls/field_base.dart';
-import 'package:chia_utils/src/bls/field_ext.dart';
+import 'package:chia_utils/src/bls/field/extensions/fq2.dart';
+import 'package:chia_utils/src/bls/field/field.dart';
+import 'package:chia_utils/src/bls/field/field_base.dart';
 import 'package:quiver/iterables.dart';
 
 class EC {

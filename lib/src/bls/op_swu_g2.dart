@@ -3,8 +3,9 @@
 import 'package:chia_utils/src/bls/bls12381.dart';
 import 'package:chia_utils/src/bls/ec/ec.dart';
 import 'package:chia_utils/src/bls/ec/jacobian_point.dart';
-import 'package:chia_utils/src/bls/field_base.dart';
-import 'package:chia_utils/src/bls/field_ext.dart';
+import 'package:chia_utils/src/bls/field/extensions/fq2.dart';
+import 'package:chia_utils/src/bls/field/field_base.dart';
+import 'package:chia_utils/src/bls/field/field_constants.dart';
 import 'package:chia_utils/src/bls/hash_to_field.dart';
 
 var xnum = [

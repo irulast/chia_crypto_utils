@@ -3,9 +3,9 @@
 import 'package:chia_utils/src/bls/ec/affine_point.dart';
 import 'package:chia_utils/src/bls/ec/ec.dart';
 import 'package:chia_utils/src/bls/ec/jacobian_point.dart';
-import 'package:chia_utils/src/bls/field.dart';
-import 'package:chia_utils/src/bls/field_base.dart';
-import 'package:chia_utils/src/bls/field_ext.dart';
+import 'package:chia_utils/src/bls/field/extensions/fq12.dart';
+import 'package:chia_utils/src/bls/field/field.dart';
+import 'package:chia_utils/src/bls/field/field_base.dart';
 
 List<int> intToBits(BigInt i) {
   if (i < BigInt.one) {

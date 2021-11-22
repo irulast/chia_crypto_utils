@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:chia_utils/src/bls/ec/ec.dart';
 import 'package:chia_utils/src/bls/ec/jacobian_point.dart';
-import 'package:chia_utils/src/bls/field_ext.dart';
+import 'package:chia_utils/src/bls/field/extensions/fq12.dart';
 import 'package:chia_utils/src/bls/hd_keys.dart' as hd_keys;
 import 'package:chia_utils/src/bls/op_swu_g2.dart';
 import 'package:chia_utils/src/bls/pairing.dart';

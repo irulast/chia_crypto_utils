@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:chia_utils/src/bls/field_base.dart';
+import 'package:chia_utils/src/bls/field/field_base.dart';
 
 abstract class Field {
   abstract BigInt Q;

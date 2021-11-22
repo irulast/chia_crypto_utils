@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:chia_utils/src/bls/failed_op.dart';
-import 'package:chia_utils/src/bls/field.dart';
+import 'package:chia_utils/src/bls/field/field.dart';
 import 'package:chia_utils/src/clvm/bytes.dart';
 import 'package:hex/hex.dart';
 import 'package:quiver/core.dart';
