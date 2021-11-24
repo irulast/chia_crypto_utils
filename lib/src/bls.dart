@@ -1,3 +1,5 @@
+library bls;
+
 export './bls/ec/affine_point.dart';
 export './bls/ec/ec.dart' show EC, defaultEc, defaultEcTwist;
 export './bls/ec/jacobian_point.dart';
