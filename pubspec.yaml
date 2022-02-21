@@ -1,4 +1,4 @@
-name: chia_crypto_utils
+name: chia_utils
 description: Utilities for the Chia blockchain.
 version: 1.0.0
 
