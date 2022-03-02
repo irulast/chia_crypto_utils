@@ -113,7 +113,7 @@ Map<BigInt, Operator> operators = {
     var numerator = list[0].toBigInt();
     var denominator = list[1].toBigInt();
     if (denominator == BigInt.zero) {
-      throw IntegerDivisionByZeroException();
+      throw UnsupportedError('Dividing by zero');
     }
     cost +=
         (BigInt.from(list[0].atom.length) + BigInt.from(list[1].atom.length)) *
@@ -140,7 +140,7 @@ Map<BigInt, Operator> operators = {
     var numerator = list[0].toBigInt();
     var denominator = list[1].toBigInt();
     if (denominator == BigInt.zero) {
-      throw IntegerDivisionByZeroException();
+      throw UnsupportedError('Dividing by zero');
     }
     cost +=
         (BigInt.from(list[0].atom.length) + BigInt.from(list[1].atom.length)) *

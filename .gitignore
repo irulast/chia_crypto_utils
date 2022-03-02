@@ -21,3 +21,7 @@ doc/api/
 *.js.map
 
 *.DS_Store
+
+# Ignore IDE generated folders
+.vscode
+.idea
