@@ -1,5 +1,5 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/utils/puzzlehash.dart';
+import 'package:chia_utils/src/models/puzzlehash.dart';
 
 class WalletSet {
   WalletVector hardened;

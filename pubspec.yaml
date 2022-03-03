@@ -11,6 +11,7 @@ dev_dependencies:
     test: ^1.19.3
     very_good_analysis: ^2.4.0
     flutter_lints: ^1.0.4
+    http: ^0.13.4
 
 dependencies:
     bech32m: ^0.2.2

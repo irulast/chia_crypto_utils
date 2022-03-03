@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:chia_utils/src/models/master_key_pair.dart';
+import 'package:chia_utils/src/models/wallet_set.dart';
 import 'package:chia_utils/src/utils/index.dart';
-import 'package:chia_utils/src/utils/master_key_pair.dart';
-import 'package:chia_utils/src/utils/wallet_set.dart';
 import 'package:hex/hex.dart';
 import 'package:test/test.dart';
 import 'package:csv/csv.dart';
