@@ -53,12 +53,12 @@ void main() async {
       final set = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i, testnet: true);
 
       if(i == 0) {
-        firstAddress = set.hardened.address;
+        firstAddress = set.hardened.address.address;
       }
 
-      expect(chiaSet.hardened.puzzleHashHex, set.hardened.puzzleHash.hex);
+      expect(chiaSet.hardened.puzzlehashHex, set.hardened.puzzlehash.hex);
       expect(chiaSet.hardened.childPublicKeyHex, hexEncoder.convert(set.hardened.childPublicKey.toBytes()));
-      expect(chiaSet.unhardened.puzzleHashHex, set.unhardened.puzzleHash.hex);
+      expect(chiaSet.unhardened.puzzlehashHex, set.unhardened.puzzlehash.hex);
       expect(chiaSet.unhardened.childPublicKeyHex, hexEncoder.convert(set.unhardened.childPublicKey.toBytes()));
       expect(firstAddress, chiaFirstAddress);
     }

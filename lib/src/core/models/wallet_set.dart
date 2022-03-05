@@ -1,5 +1,5 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/models/puzzlehash.dart';
+import 'package:chia_utils/src/core/models/puzzlehash.dart';
 
 class WalletSet {
   WalletVector hardened;
@@ -17,28 +17,24 @@ class WalletSet {
     final childPublicKeyHardened = childPrivateKeyHardened.getG1();
 
     final puzzleHardened = getPuzzleFromPk(childPublicKeyHardened);
-    final puzzleHashHardened = puzzleHardened.hash();
-    final addressHardened = getAddressFromPuzzle(puzzleHardened, testnet: testnet);
+    final puzzlehashHardened = Puzzlehash(puzzleHardened.hash());
 
     final hardened = WalletVector(
       childPrivateKey: childPrivateKeyHardened,
       childPublicKey: childPublicKeyHardened,
-      address: addressHardened, 
-      puzzleHash: Puzzlehash(puzzleHashHardened)
+      puzzlehash: puzzlehashHardened
     );
     
     final childPrivateKeyUnhardened = masterSkToWalletSkUnhardened(masterPrivateKey, derivationIndex);
     final childPublicKeyUnhardened = childPrivateKeyUnhardened.getG1();
 
     final puzzleUnhardened = getPuzzleFromPk(childPublicKeyUnhardened);
-    final puzzleHashUnhardened = puzzleUnhardened.hash();
-    final addressUnhardened = getAddressFromPuzzle(puzzleUnhardened, testnet: testnet);
+    final puzzlehashUnhardened = Puzzlehash(puzzleUnhardened.hash());
 
     final unhardened = WalletVector(
       childPrivateKey: childPrivateKeyUnhardened,
       childPublicKey: childPublicKeyUnhardened,
-      address: addressUnhardened,
-      puzzleHash: Puzzlehash(puzzleHashUnhardened)
+      puzzlehash: puzzlehashUnhardened
     );
 
     return WalletSet(hardened: hardened, unhardened: unhardened, derivationIndex: derivationIndex);
@@ -48,13 +44,11 @@ class WalletSet {
 class WalletVector {
   PrivateKey childPrivateKey;
   JacobianPoint childPublicKey;
-  String address;
-  Puzzlehash puzzleHash;
+  Puzzlehash puzzlehash;
 
   WalletVector({
     required this.childPrivateKey,
     required this.childPublicKey,
-    required this.address,
-    required this.puzzleHash
+    required this.puzzlehash
   });
 }

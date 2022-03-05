@@ -1,0 +1,22 @@
+import 'package:chia_utils/src/api/full_node.dart';
+
+class BlockchainNetwork {
+  String name;
+  String? unit;
+  // TODO: logo https://pub.dev/packages/image
+  String? ticker;
+  String addressPrefix;
+  String aggSigMeExtraData;
+  int? precision;
+  int? fee;
+
+  BlockchainNetwork({
+    required this.name,
+    this.unit,
+    this.ticker,
+    required this.addressPrefix,
+    required this.aggSigMeExtraData,
+    this.precision,
+    this.fee,
+  });
+}

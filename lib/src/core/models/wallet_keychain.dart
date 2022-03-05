@@ -5,14 +5,14 @@ class WalletKeychain {
   Map<String, WalletVector> hardenedMap = <String, WalletVector>{};
   Map<String, WalletVector> unhardenedMap = <String, WalletVector>{};
 
-  WalletVector? getWalletVector(Puzzlehash puzzleHash) {
-    WalletVector? walletVector = unhardenedMap[puzzleHash.hex];
+  WalletVector? getWalletVector(Puzzlehash puzzlehash) {
+    WalletVector? walletVector = unhardenedMap[puzzlehash.hex];
 
     if(walletVector != null) {
       return walletVector;
     }
 
-    return hardenedMap[puzzleHash.hex];
+    return hardenedMap[puzzlehash.hex];
   }
 
   WalletKeychain(List<WalletSet> walletSets) {
@@ -20,8 +20,8 @@ class WalletKeychain {
     final newUnhardenedMap = <String, WalletVector>{};
 
     for(var walletSet in walletSets) {
-      newHardenedMap[walletSet.hardened.puzzleHash.hex] = walletSet.hardened;
-      newUnhardenedMap[walletSet.unhardened.puzzleHash.hex] = walletSet.unhardened;
+      newHardenedMap[walletSet.hardened.puzzlehash.hex] = walletSet.hardened;
+      newUnhardenedMap[walletSet.unhardened.puzzlehash.hex] = walletSet.unhardened;
     }
     hardenedMap = newHardenedMap;
     unhardenedMap = newUnhardenedMap;

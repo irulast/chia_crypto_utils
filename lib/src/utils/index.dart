@@ -77,11 +77,11 @@ PrivateKey masterSkToPoolingAuthenticationSk(PrivateKey masterSk, int poolWallet
 }
 
 String getAddressFromPuzzle(Program puzzle, {bool testnet = false}) {
-  final puzzleHash = puzzle.hash();
+  final puzzlehash = puzzle.hash();
 
   final ticker = (testnet ? 'txch' : 'xch');
   
-  final address = segwit.encode(Segwit(ticker, puzzleHash));
+  final address = segwit.encode(Segwit(ticker, puzzlehash));
   return address;
 }
 
