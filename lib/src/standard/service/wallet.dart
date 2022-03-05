@@ -1,30 +1,34 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/full_node.dart';
-import 'package:chia_utils/src/api/models/result.dart';
 import 'package:chia_utils/src/clvm/keywords.dart';
-import 'package:chia_utils/src/constants.dart';
+import 'package:chia_utils/src/context/context.dart';
+import 'package:chia_utils/src/core/models/address.dart';
 import 'package:chia_utils/src/core/models/blockchain_network.dart';
+import 'package:chia_utils/src/core/models/coin.dart';
+import 'package:chia_utils/src/core/models/coin_prototype.dart';
+import 'package:chia_utils/src/core/models/coin_spend.dart';
+import 'package:chia_utils/src/core/models/conditions/assert_coin_announcement_condition.dart';
+import 'package:chia_utils/src/core/models/conditions/condition.dart';
+import 'package:chia_utils/src/core/models/conditions/create_coin_announcement_condition.dart';
+import 'package:chia_utils/src/core/models/conditions/create_coin_condition.dart';
+import 'package:chia_utils/src/core/models/conditions/reserve_fee_condition.dart';
+import 'package:chia_utils/src/core/models/puzzlehash.dart';
 import 'package:chia_utils/src/core/models/spend_bundle.dart';
-import 'package:chia_utils/src/models/address.dart';
-import 'package:chia_utils/src/models/coin.dart';
-import 'package:chia_utils/src/models/coin_record.dart';
-import 'package:chia_utils/src/models/coin_spend.dart';
-import 'package:chia_utils/src/models/conditions/assert_coin_announcement_condition.dart';
-import 'package:chia_utils/src/models/conditions/condition.dart';
-import 'package:chia_utils/src/models/conditions/create_coin_announcement_condition.dart';
-import 'package:chia_utils/src/models/conditions/create_coin_condition.dart';
-import 'package:chia_utils/src/models/conditions/reserve_fee_condition.dart';
-import 'package:chia_utils/src/models/spend_bundle.dart';
+import 'package:chia_utils/src/core/models/wallet_keychain.dart';
 
 class WalletService {
   FullNode fullNode;
-  BlockchainNetwork blockchainNetwork;
 
-  bool testnet;
+  Context context;
+  
 
-  WalletService(this.fullNode, this.blockchainNetwork);
+  WalletService(this.fullNode, this.context);
 
-  Future<Result> createSpendBundle(List<Coin> coins, int amount, Address destinationAddress, Puzzlehash changePuzzlehash, WalletKeychain keychain, {int fee = 0, Puzzlehash? originId}) async {
+  BlockchainNetwork get blockchainNetwork {
+    return context.get<BlockchainNetwork>();
+  }
+
+  Future<SpendBundle> createSpendBundle(List<Coin> coins, int amount, Address destinationAddress, Puzzlehash changePuzzlehash, WalletKeychain keychain, {int fee = 0, Puzzlehash? originId}) async {
     final totalCoinValue = coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
     final change = totalCoinValue - amount - fee;
     print(change);
@@ -48,16 +52,16 @@ class WalletService {
         outputCreated = true;
 
         List<Condition> conditions = [];
-        List<Coin> createdCoins = [];
+        List<CoinPrototype> createdCoins = [];
 
         // generate conditions
         final sendCreateCoinCondition = CreateCoinCondition(amount, destinationHash);
         conditions.add(sendCreateCoinCondition);
-        createdCoins.add(Coin(parentCoinInfo: coin.id, puzzlehash: destinationHash, amount: amount));
+        createdCoins.add(CoinPrototype(parentCoinInfo: coin.id, puzzlehash: destinationHash, amount: amount));
 
         if(change > 0) {
           conditions.add(CreateCoinCondition(change, changePuzzlehash));
-          createdCoins.add(Coin(parentCoinInfo: coin.id, puzzlehash: changePuzzlehash, amount: change));
+          createdCoins.add(CoinPrototype(parentCoinInfo: coin.id, puzzlehash: changePuzzlehash, amount: change));
         }
 
         if(fee > 0) {
@@ -102,8 +106,7 @@ class WalletService {
   }
 
   Puzzlehash getAddSigMeMessageFromResult(Program result, Coin coin) {
-    final aggSiggMeExtraData = testnet ? aggSigMeExtraDataTestnet10 : aggSigMeExtraDataMainnet;
-    return Puzzlehash(result.toList()[0].toList()[2].atom) + coin.id + aggSiggMeExtraData;
+    return Puzzlehash(result.toList()[0].toList()[2].atom) + coin.id + Puzzlehash.fromHex(blockchainNetwork.aggSigMeExtraData);
   }
 
   // 51: create_coin condition number
@@ -120,44 +123,32 @@ class WalletService {
     ]);
   }
 
-  Future<Result<List<CoinRecord>>> getCoinRecordsByPuzzleHashes(List<Puzzlehash> puzzlehashes, {int? startHeight, int? endHeight, bool includeSpentCoins = false}) async {
-    final result = Result<List<CoinRecord>>();
-    try {
-      final coinRecords = await fullNode.getCoinRecordsByPuzzleHashes(puzzlehashes.map((ph) => ph.hex).toList(), startHeight: startHeight, endHeight: endHeight, includeSpentCoins: includeSpentCoins);
-      result.payload = coinRecords;
-      return result;
-    } catch (e) {
-      result.error = e.toString();
-      return result;
-    }
-  }
-
-  static List<Coin> selectCoinsToSpend(List<CoinRecord> coinRecords, int amount) {
+  static List<Coin> selectCoinsToSpend(List<Coin> coins, int amount) {
       
-    coinRecords = coinRecords.where((element) => element.spentBlockIndex == 0).toList();
-    coinRecords.sort((a, b) => b.coin.amount - a.coin.amount);
+    coins = coins.where((element) => element.spentBlockIndex == 0).toList();
+    coins.sort((a, b) => b.amount - a.amount);
 
-    List<CoinRecord> spendRecords = [];
+    List<Coin> spendCoins = [];
     var spendAmount = 0;
     
     calculator:
-    while (coinRecords.isNotEmpty && spendAmount < amount) {
-      for (var i = 0; i < coinRecords.length; i++) {
-        if (spendAmount + coinRecords[i].coin.amount <= amount) {
-          var record = coinRecords.removeAt(i--);
-          spendRecords.add(record);
-          spendAmount += record.coin.amount;
+    while (coins.isNotEmpty && spendAmount < amount) {
+      for (var i = 0; i < coins.length; i++) {
+        if (spendAmount + coins[i].amount <= amount) {
+          var record = coins.removeAt(i--);
+          spendCoins.add(record);
+          spendAmount += record.amount;
           continue calculator;
         }
       }
-      var record = coinRecords.removeAt(0);
-      spendRecords.add(record);
-      spendAmount += record.coin.amount;
+      var record = coins.removeAt(0);
+      spendCoins.add(record);
+      spendAmount += record.amount;
     }
     if (spendAmount < amount) {
       throw Exception('Insufficient funds.');
     }
 
-    return spendRecords.map((record) => record.coin).toList();
+    return spendCoins;
   }
 }

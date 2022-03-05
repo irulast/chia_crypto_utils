@@ -1,5 +1,7 @@
-import 'package:chia_utils/src/models/puzzlehash.dart';
-import 'package:chia_utils/src/models/wallet_set.dart';
+
+
+import 'package:chia_utils/src/core/models/puzzlehash.dart';
+import 'package:chia_utils/src/core/models/wallet_set.dart';
 
 class WalletKeychain {
   Map<String, WalletVector> hardenedMap = <String, WalletVector>{};

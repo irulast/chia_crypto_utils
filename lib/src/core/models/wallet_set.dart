@@ -12,7 +12,7 @@ class WalletSet {
     required this.derivationIndex
   });
 
-  factory WalletSet.fromPrivateKey(PrivateKey masterPrivateKey, int derivationIndex, {bool testnet = false}) {
+  factory WalletSet.fromPrivateKey(PrivateKey masterPrivateKey, int derivationIndex) {
     final childPrivateKeyHardened = masterSkToWalletSk(masterPrivateKey, derivationIndex);
     final childPublicKeyHardened = childPrivateKeyHardened.getG1();
 

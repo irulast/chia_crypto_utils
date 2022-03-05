@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:chia_utils/src/models/master_key_pair.dart';
-import 'package:chia_utils/src/models/wallet_set.dart';
+import 'package:chia_utils/src/core/models/master_key_pair.dart';
+import 'package:chia_utils/src/core/models/wallet_set.dart';
 import 'package:chia_utils/src/utils/index.dart';
 import 'package:hex/hex.dart';
 import 'package:test/test.dart';
@@ -50,10 +50,10 @@ void main() async {
     String? firstAddress;
     for(var i = 0; i < 20; i++) {
       final chiaSet = ChiaWalletSet.fromRow(chiaWalletSetRows[i]);
-      final set = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i, testnet: true);
+      final set = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
 
       if(i == 0) {
-        firstAddress = set.hardened.address.address;
+        firstAddress = ''; // TODO
       }
 
       expect(chiaSet.hardened.puzzlehashHex, set.hardened.puzzlehash.hex);

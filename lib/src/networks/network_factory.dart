@@ -4,12 +4,24 @@ import 'package:chia_utils/src/core/models/blockchain_network.dart';
 import 'package:injector/injector.dart';
 
 class NetworkFactory implements ConfigurableFactory<BlockchainNetwork> {
-
-  Factory<BlockchainNetwork> build<BlockchainNetwork>() {
-    configurationProvider.getConfig("BlockchainNetwork");
-    return BlockchainNetwork()
+  static final configId = "blockchainNetwork";
+  @override
+  late ConfigurationProvider configurationProvider;
+  
+  BlockchainNetwork _getBlockchainNetwork() {
+    final config = configurationProvider.getConfig(configId);
+    return BlockchainNetwork(
+      name: config['name']!,
+      addressPrefix: config['address_prefix']!,
+      aggSigMeExtraData: config['agg_sig_me_extra_data']!
+    );
   }
 
-  ConfigurationProvider configurationProvider;
+  @override
+  Builder<BlockchainNetwork> get builder => (
+    () => _getBlockchainNetwork()
+  );
 
+  @override
+  get instance => _getBlockchainNetwork();
 }

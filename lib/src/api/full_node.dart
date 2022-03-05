@@ -1,7 +1,8 @@
 import 'dart:convert';
 
 import 'package:chia_utils/src/api/client.dart';
-import 'package:chia_utils/src/core/models/coin_record.dart';
+import 'package:chia_utils/src/core/models/coin.dart';
+import 'package:chia_utils/src/core/models/puzzlehash.dart';
 import 'package:chia_utils/src/core/models/spend_bundle.dart';
 
 
@@ -13,9 +14,9 @@ class FullNode {
     client = Client(baseURL);
   }
 
-  Future<List<CoinRecord>> getCoinRecordsByPuzzleHashes(List<String>  puzzlehashes, {int? startHeight, int? endHeight, bool includeSpentCoins = false}) async {
+  Future<List<Coin>> getCoinRecordsByPuzzleHashes(List<Puzzlehash>  puzzlehashes, {int? startHeight, int? endHeight, bool includeSpentCoins = false}) async {
     Map<String, dynamic> body={
-      'puzzle_hashes': puzzlehashes,
+      'puzzle_hashes': puzzlehashes.map((ph) => ph.hex).toList(),
     };
     if (startHeight != null) {
       body['start_height'] = startHeight;
@@ -32,18 +33,18 @@ class FullNode {
     if (responseData.statusCode != 200) {
       throw Exception('Failed to fetch coin records: ${responseData.body}');
     }
-    final coinRecords = (jsonDecode(responseData.body)['coin_records'] as List)
-            .map((value) => CoinRecord.fromJson(value))
+    final coins = (jsonDecode(responseData.body)['coin_records'] as List)
+            .map((value) => Coin.fromChiaCoinRecordJson(value))
             .toList();
 
-
-    return coinRecords;
+    return coins;
   }
 
   Future<void> pushTransaction(SpendBundle spendBundle) async {
     final responseData = await client.sendRequest(Uri.parse('push_tx'), {
       'spend_bundle': spendBundle.toJson()
     });
+    print(responseData.body);
 
     if (responseData.statusCode != 200) {
       throw Exception('Failed to push transaction: ${responseData.body}');

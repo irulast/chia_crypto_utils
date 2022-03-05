@@ -1,38 +1,45 @@
-import 'dart:typed_data';
+import 'package:chia_utils/src/core/models/coin_prototype.dart';
+import 'package:chia_utils/src/core/models/coin_spend.dart';
+import 'package:chia_utils/src/core/models/puzzlehash.dart';
 
-import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/models/coin_record.dart';
-import 'package:chia_utils/src/models/coin_spend.dart';
-import 'package:crypto/crypto.dart';
 
-class Coin {
-  Puzzlehash parentCoinInfo;
-  Puzzlehash puzzlehash;
-  int amount;
+class Coin extends CoinPrototype {
+
+  int confirmedBlockIndex;
+  int spentBlockIndex;
+  bool coinbase;
+  int timestamp;
   
   CoinSpend? parentCoinSpend;
-  CoinRecord? coinRecord;
 
   Coin({
     this.parentCoinSpend,
-    required this.parentCoinInfo,
-    required this.puzzlehash,
-    required this.amount
-  });
+    required this.confirmedBlockIndex,
+    required this.spentBlockIndex,
+    required this.coinbase,
+    required this.timestamp,
+    required Puzzlehash parentCoinInfo,
+    required Puzzlehash puzzlehash,
+    required int amount,
+  }) : super(
+    puzzlehash: puzzlehash,
+    amount: amount,
+    parentCoinInfo: parentCoinInfo
+  );
 
-  Puzzlehash get id {
-    return Puzzlehash(sha256.convert(parentCoinInfo.bytes + puzzlehash.bytes + intToBytesStandard(amount, Endian.big)).bytes);
+
+
+  factory Coin.fromChiaCoinRecordJson(Map<String, dynamic> json) {
+
+    final coinPrototype = CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>);
+    return Coin(
+      confirmedBlockIndex: json['confirmed_block_index'] as int,
+      spentBlockIndex: json['spent_block_index'] as int,
+      coinbase: json['coinbase'] as bool,
+      timestamp: json['timestamp'] as int,
+      parentCoinInfo: coinPrototype.parentCoinInfo,
+      puzzlehash: coinPrototype.puzzlehash,
+      amount: coinPrototype.amount,
+    );
   }
-
-  Coin.fromJson(Map<String, dynamic> json)
-    : parentCoinInfo = Puzzlehash.fromHex(json['parent_coin_info']),
-      puzzlehash = Puzzlehash.fromHex(json['puzzle_hash']),
-      amount = json['amount'];
-
-  Map<String, dynamic> toJson() => {
-    'parent_coin_info': parentCoinInfo.hex,
-    'puzzle_hash': puzzlehash.hex,
-    'amount': amount
-  };
-
 }

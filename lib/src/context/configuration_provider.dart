@@ -1,26 +1,19 @@
 class ConfigurationProvider {
-  Map<String, Object> configs = {
-    'testnet10' : {
-      ''
-    },
-    'mainnet': {
-      ''
-    }
-  };
+  Map<String, Map<String, String>> configs = {};
 
-  void setConfigs(Map<String, Object> configMap) {
+  void setConfigs(Map<String, Map<String, String>> configMap) {
     configs = configMap;
   }
 
-  Map<String, Object> getConfigs() {
+  Map<String, Map<String, String>> getConfigs() {
     return configs;
   }
 
-  Object getConfig(String configKey) {
+  Map<String, String> getConfig(String configKey) {
     return configs[configKey]!;
   }
 
-  void setConfig(String configKey, Object config) {
+  void setConfig(String configKey, Map<String, String> config) {
     configs[configKey] = config;
   }
 }
