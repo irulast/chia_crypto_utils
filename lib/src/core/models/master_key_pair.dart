@@ -12,7 +12,6 @@ class MasterKeyPair {
   });
 
   factory MasterKeyPair.fromMnemonic(List<String> mnemonic) {
-    var x = mnemonic.join(' ');
     final seed = mnemonicToSeed(mnemonic.join(' '));
     final privateKey = PrivateKey.fromSeed(seed);
 

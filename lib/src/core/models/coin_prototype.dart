@@ -22,9 +22,10 @@ class CoinPrototype {
 
   Puzzlehash get id {
     return Puzzlehash(sha256
-        .convert(parentCoinInfo.bytes +
-            puzzlehash.bytes +
-            intToBytesStandard(amount, Endian.big))
+        .convert(
+          parentCoinInfo.bytes +
+          puzzlehash.bytes +
+          intToBytesStandard(amount, Endian.big))
         .bytes);
   }
 

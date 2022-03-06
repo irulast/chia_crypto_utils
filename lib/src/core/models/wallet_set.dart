@@ -6,15 +6,13 @@ class WalletSet {
   WalletVector unhardened;
   int derivationIndex;
 
-  WalletSet(
-      {required this.hardened,
-      required this.unhardened,
-      required this.derivationIndex});
+  WalletSet({
+    required this.hardened,
+    required this.unhardened,
+    required this.derivationIndex});
 
-  factory WalletSet.fromPrivateKey(
-      PrivateKey masterPrivateKey, int derivationIndex) {
-    final childPrivateKeyHardened =
-        masterSkToWalletSk(masterPrivateKey, derivationIndex);
+  factory WalletSet.fromPrivateKey(PrivateKey masterPrivateKey, int derivationIndex) {
+    final childPrivateKeyHardened = masterSkToWalletSk(masterPrivateKey, derivationIndex);
     final childPublicKeyHardened = childPrivateKeyHardened.getG1();
 
     final puzzleHardened = getPuzzleFromPk(childPublicKeyHardened);
@@ -25,8 +23,7 @@ class WalletSet {
         childPublicKey: childPublicKeyHardened,
         puzzlehash: puzzlehashHardened);
 
-    final childPrivateKeyUnhardened =
-        masterSkToWalletSkUnhardened(masterPrivateKey, derivationIndex);
+    final childPrivateKeyUnhardened = masterSkToWalletSkUnhardened(masterPrivateKey, derivationIndex);
     final childPublicKeyUnhardened = childPrivateKeyUnhardened.getG1();
 
     final puzzleUnhardened = getPuzzleFromPk(childPublicKeyUnhardened);

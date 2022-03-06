@@ -74,9 +74,9 @@ class WalletService {
         if (change > 0) {
           conditions.add(CreateCoinCondition(change, changePuzzlehash));
           createdCoins.add(CoinPrototype(
-              parentCoinInfo: coin.id,
-              puzzlehash: changePuzzlehash,
-              amount: change));
+            parentCoinInfo: coin.id,
+            puzzlehash: changePuzzlehash,
+            amount: change));
         }
 
         if (fee > 0) {
@@ -86,16 +86,12 @@ class WalletService {
         // generate message for coin announcements by appending coin_ids
         // see: chia/wallet/wallet.py: 380
         //   message: bytes32 = std_hash(b"".join(message_list))
-        final existingCoinsMessage = coins.fold(Puzzlehash.empty,
-            (Puzzlehash previousValue, coin) => previousValue + coin.id);
-        final createdCoinsMessage = createdCoins.fold(Puzzlehash.empty,
-            (Puzzlehash previousValue, coin) => previousValue + coin.id);
-        final message =
-            (existingCoinsMessage + createdCoinsMessage).sha256Hash();
+        final existingCoinsMessage = coins.fold(Puzzlehash.empty, (Puzzlehash previousValue, coin) => previousValue + coin.id);
+        final createdCoinsMessage = createdCoins.fold(Puzzlehash.empty, (Puzzlehash previousValue, coin) => previousValue + coin.id);
+        final message = (existingCoinsMessage + createdCoinsMessage).sha256Hash();
         conditions.add(CreateCoinAnnouncementCondition(message));
 
-        primaryAssertCoinAnnouncement =
-            AssertCoinAnnouncementCondition(coin.id, message);
+        primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition(coin.id, message);
 
         solution = makeSolutionFromConditions(conditions);
       } else {

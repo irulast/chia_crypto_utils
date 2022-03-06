@@ -13,6 +13,6 @@ class ReserveFeeCondition implements Condition {
     return Program.list([
       Program.fromInt(conditionCode), 
       Program.fromInt(feeAmount)
-      ]);
+    ]);
   }
 }
