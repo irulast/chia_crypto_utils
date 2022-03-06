@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:chia_utils/src/core/models/address.dart';
 import 'package:chia_utils/src/core/models/master_key_pair.dart';
 import 'package:chia_utils/src/core/models/wallet_set.dart';
 import 'package:chia_utils/src/utils/index.dart';
@@ -53,7 +54,7 @@ void main() async {
       final set = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
 
       if(i == 0) {
-        firstAddress = ''; // TODO
+        firstAddress = Address.fromPuzzlehash(set.hardened.puzzlehash, 'txch').address;
       }
 
       expect(chiaSet.hardened.puzzlehashHex, set.hardened.puzzlehash.hex);
