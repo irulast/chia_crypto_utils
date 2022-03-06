@@ -5,7 +5,7 @@ import 'package:chia_utils/chia_crypto_utils.dart';
 class MasterKeyPair {
   PrivateKey masterPrivateKey;
   JacobianPoint masterPublicKey;
- 
+
   MasterKeyPair({
     required this.masterPrivateKey,
     required this.masterPublicKey,
@@ -17,8 +17,6 @@ class MasterKeyPair {
     final privateKey = PrivateKey.fromSeed(seed);
 
     return MasterKeyPair(
-      masterPrivateKey: privateKey,
-      masterPublicKey: privateKey.getG1()
-    );
+        masterPrivateKey: privateKey, masterPublicKey: privateKey.getG1());
   }
 }

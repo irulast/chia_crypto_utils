@@ -133,7 +133,7 @@ full_node:
   database_path: db/blockchain_v1_CHALLENGE.sqlite
   db_sync: auto
   dns_servers:
-  - dns-introducer-testnet10.chia.net
+    - dns-introducer-testnet10.chia.net
   enable_profiler: false
   enable_upnp: true
   exempt_peer_networks: []
@@ -250,11 +250,11 @@ timelord:
     public_key: config/ssl/timelord/public_timelord.key
   vdf_clients:
     ip:
-    - localhost
-    - localhost
-    - 127.0.0.1
+      - localhost
+      - localhost
+      - 127.0.0.1
     ips_estimate:
-    - 150000
+      - 150000
   vdf_server:
     host: localhost
     port: 8000
@@ -280,7 +280,7 @@ wallet:
   database_path: wallet/db/blockchain_wallet_v1_CHALLENGE_KEY.sqlite
   db_sync: auto
   dns_servers:
-  - dns-introducer-testnet10.chia.net
+    - dns-introducer-testnet10.chia.net
   enable_profiler: false
   full_node_peer:
     host: localhost

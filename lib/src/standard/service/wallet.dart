@@ -20,7 +20,6 @@ class WalletService {
   FullNode fullNode;
 
   Context context;
-  
 
   WalletService(this.fullNode, this.context);
 
@@ -28,8 +27,16 @@ class WalletService {
     return context.get<BlockchainNetwork>();
   }
 
-  Future<SpendBundle> createSpendBundle(List<Coin> coins, int amount, Address destinationAddress, Puzzlehash changePuzzlehash, WalletKeychain keychain, {int fee = 0, Puzzlehash? originId}) async {
-    final totalCoinValue = coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
+  Future<SpendBundle> createSpendBundle(
+      List<Coin> coins,
+      int amount,
+      Address destinationAddress,
+      Puzzlehash changePuzzlehash,
+      WalletKeychain keychain,
+      {int fee = 0,
+      Puzzlehash? originId}) async {
+    final totalCoinValue =
+        coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
     final change = totalCoinValue - amount - fee;
     print(change);
 
@@ -48,48 +55,59 @@ class WalletService {
       Program? solution;
 
       // Only one coin creates outputs
-      if((originId == null && i == 0) || (originId != null && originId.hex == coin.id.hex)) {
+      if ((originId == null && i == 0) ||
+          (originId != null && originId.hex == coin.id.hex)) {
         outputCreated = true;
 
         List<Condition> conditions = [];
         List<CoinPrototype> createdCoins = [];
 
         // generate conditions
-        final sendCreateCoinCondition = CreateCoinCondition(amount, destinationHash);
+        final sendCreateCoinCondition =
+            CreateCoinCondition(amount, destinationHash);
         conditions.add(sendCreateCoinCondition);
-        createdCoins.add(CoinPrototype(parentCoinInfo: coin.id, puzzlehash: destinationHash, amount: amount));
+        createdCoins.add(CoinPrototype(
+            parentCoinInfo: coin.id,
+            puzzlehash: destinationHash,
+            amount: amount));
 
-        if(change > 0) {
+        if (change > 0) {
           conditions.add(CreateCoinCondition(change, changePuzzlehash));
-          createdCoins.add(CoinPrototype(parentCoinInfo: coin.id, puzzlehash: changePuzzlehash, amount: change));
+          createdCoins.add(CoinPrototype(
+              parentCoinInfo: coin.id,
+              puzzlehash: changePuzzlehash,
+              amount: change));
         }
 
-        if(fee > 0) {
+        if (fee > 0) {
           conditions.add(ReserveFeeCondition(fee));
         }
 
         // generate message for coin announcements by appending coin_ids
         // see: chia/wallet/wallet.py: 380
         //   message: bytes32 = std_hash(b"".join(message_list))
-        final existingCoinsMessage = coins.fold(Puzzlehash.empty, (Puzzlehash previousValue, coin) => previousValue + coin.id);
-        final createdCoinsMessage = createdCoins.fold(Puzzlehash.empty, (Puzzlehash previousValue, coin) => previousValue + coin.id);
-        final message = (existingCoinsMessage + createdCoinsMessage).sha256Hash();
+        final existingCoinsMessage = coins.fold(Puzzlehash.empty,
+            (Puzzlehash previousValue, coin) => previousValue + coin.id);
+        final createdCoinsMessage = createdCoins.fold(Puzzlehash.empty,
+            (Puzzlehash previousValue, coin) => previousValue + coin.id);
+        final message =
+            (existingCoinsMessage + createdCoinsMessage).sha256Hash();
         conditions.add(CreateCoinAnnouncementCondition(message));
 
-        primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition(coin.id, message);
+        primaryAssertCoinAnnouncement =
+            AssertCoinAnnouncementCondition(coin.id, message);
 
         solution = makeSolutionFromConditions(conditions);
       } else {
         solution = makeSolutionFromConditions([primaryAssertCoinAnnouncement!]);
       }
 
-      if(!outputCreated) {
+      if (!outputCreated) {
         throw Exception('Origin id not in coins');
       }
 
       final puzzle = getPuzzleFromPk(publicKey);
       var result = puzzle.run(solution);
-
 
       var addsigmessage = getAddSigMeMessageFromResult(result.program, coin);
 
@@ -97,7 +115,8 @@ class WalletService {
       final signature = AugSchemeMPL.sign(synthSecretKey, addsigmessage.bytes);
       signatures.add(signature);
 
-      spends.add(CoinSpend(coin: coin, puzzleReveal: puzzle, solution: solution));
+      spends
+          .add(CoinSpend(coin: coin, puzzleReveal: puzzle, solution: solution));
     }
 
     var aggregate = AugSchemeMPL.aggregate(signatures);
@@ -106,7 +125,9 @@ class WalletService {
   }
 
   Puzzlehash getAddSigMeMessageFromResult(Program result, Coin coin) {
-    return Puzzlehash(result.toList()[0].toList()[2].atom) + coin.id + Puzzlehash.fromHex(blockchainNetwork.aggSigMeExtraData);
+    return Puzzlehash(result.toList()[0].toList()[2].atom) +
+        coin.id +
+        Puzzlehash.fromHex(blockchainNetwork.aggSigMeExtraData);
   }
 
   // 51: create_coin condition number
@@ -124,13 +145,12 @@ class WalletService {
   }
 
   static List<Coin> selectCoinsToSpend(List<Coin> coins, int amount) {
-      
     coins = coins.where((element) => element.spentBlockIndex == 0).toList();
     coins.sort((a, b) => b.amount - a.amount);
 
     List<Coin> spendCoins = [];
     var spendAmount = 0;
-    
+
     calculator:
     while (coins.isNotEmpty && spendAmount < amount) {
       for (var i = 0; i < coins.length; i++) {

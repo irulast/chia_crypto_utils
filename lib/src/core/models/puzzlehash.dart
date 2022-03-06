@@ -7,18 +7,17 @@ class Puzzlehash {
   static String bytesPrefix = '0x';
   List<int> byteList;
 
-  
-
   Puzzlehash(this.byteList);
 
   // empty byte array
   static Puzzlehash get empty {
     return Puzzlehash([]);
   }
-  
+
   factory Puzzlehash.fromHex(String phHex) {
     if (phHex.startsWith(bytesPrefix)) {
-      return Puzzlehash(const HexDecoder().convert(phHex.replaceFirst(bytesPrefix, '')));
+      return Puzzlehash(
+          const HexDecoder().convert(phHex.replaceFirst(bytesPrefix, '')));
     }
     return Puzzlehash(const HexDecoder().convert(phHex));
   }
@@ -41,6 +40,6 @@ class Puzzlehash {
   }
 
   Puzzlehash sha256Hash() {
-    return(Puzzlehash(sha256.convert(bytes).bytes));
+    return (Puzzlehash(sha256.convert(bytes).bytes));
   }
 }

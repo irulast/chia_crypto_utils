@@ -6,11 +6,14 @@ class Client {
 
   Client(this.baseURL);
 
-  Future<Response> sendRequest(Uri url, Object request, ) async {
+  Future<Response> sendRequest(
+    Uri url,
+    Object request,
+  ) async {
     return await post(Uri.parse('$baseURL/$url'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(request));
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(request));
   }
 }

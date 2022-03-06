@@ -1,5 +1,3 @@
-
-
 import 'package:chia_utils/src/core/models/puzzlehash.dart';
 
 final aggSigMeExtraDataTestnet10 = Puzzlehash.fromHex('ae83525ba8d1dd3f09b277de18ca3e43fc0af20d20c4b3e92ef2a48bd291ccb2');

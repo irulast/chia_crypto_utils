@@ -1,5 +1,3 @@
-
-
 import 'package:chia_utils/src/core/models/puzzlehash.dart';
 import 'package:chia_utils/src/core/models/wallet_set.dart';
 
@@ -10,7 +8,7 @@ class WalletKeychain {
   WalletVector? getWalletVector(Puzzlehash puzzlehash) {
     WalletVector? walletVector = unhardenedMap[puzzlehash.hex];
 
-    if(walletVector != null) {
+    if (walletVector != null) {
       return walletVector;
     }
 
@@ -21,9 +19,10 @@ class WalletKeychain {
     final newHardenedMap = <String, WalletVector>{};
     final newUnhardenedMap = <String, WalletVector>{};
 
-    for(var walletSet in walletSets) {
+    for (var walletSet in walletSets) {
       newHardenedMap[walletSet.hardened.puzzlehash.hex] = walletSet.hardened;
-      newUnhardenedMap[walletSet.unhardened.puzzlehash.hex] = walletSet.unhardened;
+      newUnhardenedMap[walletSet.unhardened.puzzlehash.hex] =
+          walletSet.unhardened;
     }
     hardenedMap = newHardenedMap;
     unhardenedMap = newUnhardenedMap;

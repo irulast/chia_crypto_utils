@@ -13,9 +13,9 @@ void main() async {
   final fullNode = FullNode('http://localhost:4000');
   final configurationProvider = ConfigurationProvider();
   configurationProvider.setConfig(NetworkFactory.configId, {
-      'name': 'TestNet10',
-      'address_prefix': 'txch',
-      'agg_sig_me_extra_data': 'ae83525ba8d1dd3f09b277de18ca3e43fc0af20d20c4b3e92ef2a48bd291ccb2'
+    'name': 'TestNet10',
+    'address_prefix': 'txch',
+    'agg_sig_me_extra_data': 'ae83525ba8d1dd3f09b277de18ca3e43fc0af20d20c4b3e92ef2a48bd291ccb2'
   });
   final context = Context(configurationProvider);
   context.registerFactory(NetworkFactory());
@@ -33,18 +33,16 @@ void main() async {
   final masterKeyPair = MasterKeyPair.fromMnemonic(testMnemonic);
 
   List<WalletSet> walletsSetList = [];
-  for(var i = 0; i < 20; i++) {
-      final set1 = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
-      walletsSetList.add(set1);
+  for (var i = 0; i < 20; i++) {
+    final set1 = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
+    walletsSetList.add(set1);
   }
-  
 
   final walletKeychain = WalletKeychain(walletsSetList);
 
   final unhardenedPuzzlehashes = walletKeychain.unhardenedMap.values.map((vec) => vec.puzzlehash).toList();
 
   final coins = await fullNode.getCoinRecordsByPuzzleHashes(unhardenedPuzzlehashes);
-
 
   test('Should push transaction with fee', () async {
     final coinsForThisTest = coins.sublist(0, coins.length ~/ 2);
@@ -54,9 +52,14 @@ void main() async {
 
     final coinsToSpend = WalletService.selectCoinsToSpend(coinsForThisTest, totalAmount);
 
-    final spendBundle = await walletService.createSpendBundle(coinsToSpend, amountToSend, destinationAddress, walletKeychain.unhardenedMap.values.toList()[0].puzzlehash, walletKeychain, fee: fee);
-    
-    
+    final spendBundle = await walletService.createSpendBundle(
+        coinsToSpend,
+        amountToSend,
+        destinationAddress,
+        walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
+        walletKeychain,
+        fee: fee);
+
     await fullNode.pushTransaction(spendBundle);
   });
 
@@ -64,10 +67,16 @@ void main() async {
     final coinsForThisTest = coins.sublist(coins.length ~/ 2);
     final amountToSend = 10000;
 
-    final coinsToSpend = WalletService.selectCoinsToSpend(coinsForThisTest, amountToSend);
+    final coinsToSpend =
+        WalletService.selectCoinsToSpend(coinsForThisTest, amountToSend);
 
-    final spendBundle = await walletService.createSpendBundle(coinsToSpend, amountToSend, destinationAddress, walletKeychain.unhardenedMap.values.toList()[0].puzzlehash, walletKeychain);
-    
+    final spendBundle = await walletService.createSpendBundle(
+        coinsToSpend,
+        amountToSend,
+        destinationAddress,
+        walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
+        walletKeychain);
+
     await fullNode.pushTransaction(spendBundle);
   });
 }

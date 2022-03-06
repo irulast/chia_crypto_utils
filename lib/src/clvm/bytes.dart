@@ -28,8 +28,7 @@ Uint8List intToBytes(int value, int size, Endian endian,
   return Uint8List.fromList(bytes);
 }
 
-Uint8List intToBytesStandard(int value, Endian endian,
-{bool signed = false}) {
+Uint8List intToBytesStandard(int value, Endian endian, {bool signed = false}) {
   return intToBytes(value, (value.bitLength + 8) >> 3, endian, signed: signed);
 }
 

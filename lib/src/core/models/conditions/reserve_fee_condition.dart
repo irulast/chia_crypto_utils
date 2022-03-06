@@ -11,8 +11,8 @@ class ReserveFeeCondition implements Condition {
   @override
   Program get program {
     return Program.list([
-      Program.fromInt(conditionCode),
+      Program.fromInt(conditionCode), 
       Program.fromInt(feeAmount)
-    ]);
+      ]);
   }
 }
