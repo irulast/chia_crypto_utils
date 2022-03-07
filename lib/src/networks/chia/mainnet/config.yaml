@@ -119,7 +119,7 @@ full_node:
   database_path: db/blockchain_v1_CHALLENGE.sqlite
   db_sync: auto
   dns_servers:
-  - dns-introducer.chia.net
+    - dns-introducer.chia.net
   enable_profiler: false
   enable_upnp: true
   exempt_peer_networks: []
@@ -221,7 +221,7 @@ private_ssl_ca:
   key: config/ssl/ca/private_ca.key
 seeder:
   bootstrap_peers:
-  - node.chia.net
+    - node.chia.net
   crawler_db_path: ''
   domain_name: seeder.example.com.
   logging: *id001
@@ -262,11 +262,11 @@ timelord:
     public_key: config/ssl/timelord/public_timelord.key
   vdf_clients:
     ip:
-    - localhost
-    - localhost
-    - 127.0.0.1
+      - localhost
+      - localhost
+      - 127.0.0.1
     ips_estimate:
-    - 150000
+      - 150000
   vdf_server:
     host: localhost
     port: 8000

@@ -78,36 +78,34 @@ String getAddressFromPuzzle(Program puzzle, {bool testnet = false}) {
   final puzzlehash = puzzle.hash();
 
   final ticker = (testnet ? 'txch' : 'xch');
-  
+
   final address = segwit.encode(Segwit(ticker, puzzlehash));
   return address;
 }
 
 // cribbed from chia/wallet/puzzles/p2_delegated_puzzle_or_hidden_puzzle.py
 Program getPuzzleFromPk(JacobianPoint publicKey) {
-  final syntheticPubKey = calculateSyntheticKeyProgram
-    .run(Program.list([Program.fromBytes(publicKey.toBytes()), Program.fromBytes(defaultHiddenPuzzle.hash())]));
+  final syntheticPubKey = calculateSyntheticKeyProgram.run(
+    Program.list([Program.fromBytes(publicKey.toBytes()), Program.fromBytes(defaultHiddenPuzzle.hash())
+  ]));
 
   final curried = standardTransactionPuzzle.curry([syntheticPubKey.program]);
 
-
   return curried;
 }
-
 
 final groupOrder = BigInt.parse('0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001');
 
 BigInt calculateSyntheticOffset(JacobianPoint publicKey) {
   final blob = sha256.convert(publicKey.toBytes() + defaultHiddenPuzzle.hash()).bytes;
   // print(blob);
-  final offset = bytesToBigInt(blob,  Endian.big, signed: true);
+  final offset = bytesToBigInt(blob, Endian.big, signed: true);
   // print(offset.toString());
   final newOffset = offset % groupOrder;
   return newOffset;
 }
 
 PrivateKey calculateSyntheticPrivateKey(PrivateKey privateKey) {
-  
   final secretExponent = bytesToBigInt(privateKey.toBytes(), Endian.big);
 
   final publicKey = privateKey.getG1();

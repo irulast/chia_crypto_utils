@@ -1,3 +1,4 @@
+@Skip("Integration test")
 import 'package:chia_utils/src/api/full_node.dart';
 import 'package:chia_utils/src/context/configuration_provider.dart';
 import 'package:chia_utils/src/context/context.dart';
@@ -33,12 +34,11 @@ void main() async {
 
   final masterKeyPair = MasterKeyPair.fromMnemonic(testMnemonic);
 
-  List<WalletSet> walletsSetList = [];
-  for(var i = 0; i < 20; i++) {
-      final set1 = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
-      walletsSetList.add(set1);
+  final walletsSetList = <WalletSet>[];
+  for (var i = 0; i < 20; i++) {
+    final set1 = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
+    walletsSetList.add(set1);
   }
-  
 
   final walletKeychain = WalletKeychain(walletsSetList);
 
@@ -47,52 +47,62 @@ void main() async {
   final coins = await fullNode.getCoinRecordsByPuzzleHashes(unhardenedPuzzlehashes);
   
 
-
   test('Should push transaction with fee', () async {
     final coinsForThisTest = coins.sublist(0, coins.length ~/ 2);
-    final amountToSend = 10000;
+    const amountToSend = 10000;
     final fee = 5000;
     final totalAmount = amountToSend + fee;
 
     final coinsToSpend = selectCoinsToSpend(coinsForThisTest, totalAmount);
 
-    final spendBundle = await walletService.createSpendBundle(coinsToSpend, amountToSend, destinationAddress, walletKeychain.unhardenedMap.values.toList()[0].puzzlehash, walletKeychain, fee: fee);
-    
-    
+    final spendBundle = await walletService.createSpendBundle(
+        coinsToSpend,
+        amountToSend,
+        destinationAddress,
+        walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
+        walletKeychain,
+        fee: fee);
+
     await fullNode.pushTransaction(spendBundle);
   });
 
   test('Should push transaction without fee', () async {
     final coinsForThisTest = coins.sublist(coins.length ~/ 2);
-    final amountToSend = 10000;
+    const amountToSend = 10000;
 
-    final coinsToSpend = selectCoinsToSpend(coinsForThisTest, amountToSend);
+    final coinsToSpend =
+        selectCoinsToSpend(coinsForThisTest, amountToSend);
 
-    final spendBundle = await walletService.createSpendBundle(coinsToSpend, amountToSend, destinationAddress, walletKeychain.unhardenedMap.values.toList()[0].puzzlehash, walletKeychain);
-    
+    final spendBundle = await walletService.createSpendBundle(
+        coinsToSpend,
+        amountToSend,
+        destinationAddress,
+        walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
+        walletKeychain);
+
     await fullNode.pushTransaction(spendBundle);
   });
 }
 
-List<Coin> selectCoinsToSpend(List<Coin> coins, int amount) {
+List<Coin> selectCoinsToSpend(List<Coin> allCoins, int amount) {
       
-    coins = coins.where((element) => element.spentBlockIndex == 0).toList();
+    final coins = allCoins.where((element) => element.spentBlockIndex == 0).toList();
     coins.sort((a, b) => b.amount - a.amount);
 
-    List<Coin> spendCoins = [];
+    final spendCoins = <Coin>[];
     var spendAmount = 0;
     
     calculator:
     while (coins.isNotEmpty && spendAmount < amount) {
       for (var i = 0; i < coins.length; i++) {
         if (spendAmount + coins[i].amount <= amount) {
-          var record = coins.removeAt(i--);
+          final record = coins.removeAt(i--);
           spendCoins.add(record);
           spendAmount += record.amount;
           continue calculator;
         }
       }
-      var record = coins.removeAt(0);
+      final record = coins.removeAt(0);
       spendCoins.add(record);
       spendAmount += record.amount;
     }

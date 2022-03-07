@@ -13,7 +13,7 @@ class SpendBundle {
   });
 
   Map<String, dynamic> toJson() => {
-    'coin_spends': coinSpends.map((e) => e.toJson()).toList(),
-    'aggregated_signature': aggregatedSignature.toHex(),
-  };
+        'coin_spends': coinSpends.map((e) => e.toJson()).toList(),
+        'aggregated_signature': aggregatedSignature.toHex(),
+      };
 }

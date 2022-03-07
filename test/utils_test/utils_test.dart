@@ -31,7 +31,10 @@ void main() async {
   String filePath = path.join(path.current, 'test/utils_test/resources/chia_wallet_sets.csv');
   filePath = path.normalize(filePath);
   final input = File(filePath).openRead();
-  final chiaWalletSetRows = await input.transform(utf8.decoder).transform(CsvToListConverter(eol: '\n')).toList();
+  final chiaWalletSetRows = await input
+      .transform(utf8.decoder)
+      .transform(CsvToListConverter(eol: '\n'))
+      .toList();
 
   test('should generate correct puzzle hashes from mnemonic', () {
     const hexEncoder = HexEncoder();
@@ -49,11 +52,11 @@ void main() async {
     expect(poolPublicKeyHex, chiaPoolPublicKeyHex);
 
     String? firstAddress;
-    for(var i = 0; i < 20; i++) {
+    for (var i = 0; i < 20; i++) {
       final chiaSet = ChiaWalletSet.fromRow(chiaWalletSetRows[i]);
       final set = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
 
-      if(i == 0) {
+      if (i == 0) {
         firstAddress = Address.fromPuzzlehash(set.hardened.puzzlehash, 'txch').address;
       }
 
