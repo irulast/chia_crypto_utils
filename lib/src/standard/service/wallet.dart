@@ -31,7 +31,6 @@ class WalletService {
   Future<SpendBundle> createSpendBundle(List<Coin> coins, int amount, Address destinationAddress, Puzzlehash changePuzzlehash, WalletKeychain keychain, {int fee = 0, Puzzlehash? originId}) async {
     final totalCoinValue = coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
     final change = totalCoinValue - amount - fee;
-    print(change);
 
     final destinationHash = destinationAddress.toPuzzlehash();
 
@@ -121,34 +120,5 @@ class WalletService {
       ]),
       Program.nil
     ]);
-  }
-
-  static List<Coin> selectCoinsToSpend(List<Coin> coins, int amount) {
-      
-    coins = coins.where((element) => element.spentBlockIndex == 0).toList();
-    coins.sort((a, b) => b.amount - a.amount);
-
-    List<Coin> spendCoins = [];
-    var spendAmount = 0;
-    
-    calculator:
-    while (coins.isNotEmpty && spendAmount < amount) {
-      for (var i = 0; i < coins.length; i++) {
-        if (spendAmount + coins[i].amount <= amount) {
-          var record = coins.removeAt(i--);
-          spendCoins.add(record);
-          spendAmount += record.amount;
-          continue calculator;
-        }
-      }
-      var record = coins.removeAt(0);
-      spendCoins.add(record);
-      spendAmount += record.amount;
-    }
-    if (spendAmount < amount) {
-      throw Exception('Insufficient funds.');
-    }
-
-    return spendCoins;
   }
 }

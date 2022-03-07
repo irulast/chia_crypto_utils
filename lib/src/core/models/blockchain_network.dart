@@ -9,6 +9,7 @@ class BlockchainNetwork {
   String aggSigMeExtraData;
   int? precision;
   int? fee;
+  dynamic networkConfig;
 
   BlockchainNetwork({
     required this.name,
@@ -18,5 +19,6 @@ class BlockchainNetwork {
     required this.aggSigMeExtraData,
     this.precision,
     this.fee,
+    this.networkConfig,
   });
 }

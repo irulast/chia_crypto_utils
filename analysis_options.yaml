@@ -1,1 +1,19 @@
-include: package:lints/recommended.yaml
+# include: package:lints/recommended.yaml
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+  exclude:
+    - lib/src/bls
+    - lib/src/clvm
+    - test/bls_test.dart
+    - test/clvm_test.dart
+
+
+linter:
+  rules:
+    avoid_print: false
+    no_default_cases: false
+    library_private_types_in_public_api: false
+    one_member_abstracts: false
+    public_member_api_docs: false
+    use_decorated_box: true

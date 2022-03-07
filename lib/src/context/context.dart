@@ -9,10 +9,7 @@ class Context {
 
   Context(this.configurationProvider);
 
-  T get<T>() // calls injector built by builders
-  // returns proxy object: // has referance to BlockchainNetwork object
-  //              -delegate :instance of BlockchainNetwork
-  {
+  T get<T>() {
     return abstractSingletonFactory.get<T>();
   }
 

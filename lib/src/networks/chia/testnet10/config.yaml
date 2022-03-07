@@ -113,11 +113,11 @@ farmer:
         MEMPOOL_BLOCK_BUFFER: 10
         MIN_PLOT_SIZE: 18
         NETWORK_TYPE: 1
-  pool_public_keys: !!set
-    929cfc7e2ac1b596c67e3b230a3d5ccf0e66ecca5f1cbfffd345ff6fd1eecad4b478294880c369bca5bcaefb24697bd4: null
-    94bb6173df460f2b799dad47bcb2267df00726ab8ee093116a9c9dcad0eb4ac07aa97b5565405ad19a6e7b6b1dc5b5cb: null
-    9623c35e42ffc91c263303f7721ddae77f2756435f99fe9548c446415e0a0dcfc027c1fd647f04f72688467c01a26ce0: null
-    a0a1fc47f45cff3211e62aacfa423d36cf359d5da9468c733231090cd35e811563eb305eb1586f340e4b2fb2a529d858: null
+  # pool_public_keys: !!set
+  #   929cfc7e2ac1b596c67e3b230a3d5ccf0e66ecca5f1cbfffd345ff6fd1eecad4b478294880c369bca5bcaefb24697bd4: null
+  #   94bb6173df460f2b799dad47bcb2267df00726ab8ee093116a9c9dcad0eb4ac07aa97b5565405ad19a6e7b6b1dc5b5cb: null
+  #   9623c35e42ffc91c263303f7721ddae77f2756435f99fe9548c446415e0a0dcfc027c1fd647f04f72688467c01a26ce0: null
+  #   a0a1fc47f45cff3211e62aacfa423d36cf359d5da9468c733231090cd35e811563eb305eb1586f340e4b2fb2a529d858: null
   pool_share_threshold: 1000
   port: 8447
   rpc_port: 8559

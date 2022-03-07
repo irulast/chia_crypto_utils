@@ -4,16 +4,14 @@ import 'package:bech32m/bech32m.dart';
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:crypto/crypto.dart';
 
-// compiled from chia/wallet/puzzles/p2_delegated_puzzle_or_hidden_puzzle.clvm
-final standardTransactionPuzzle = Program.parse(
-  '(a (q 2 (i 11 (q 2 (i (= 5 (point_add 11 (pubkey_for_exp (sha256 11 (a 6 (c 2 (c 23 ()))))))) (q 2 23 47) (q 8)) 1) (q 4 (c 4 (c 5 (c (a 6 (c 2 (c 23 ()))) ()))) (a 23 47))) 1) (c (q 50 2 (i (l 5) (q 11 (q . 2) (a 6 (c 2 (c 9 ()))) (a 6 (c 2 (c 13 ())))) (q 11 (q . 1) 5)) 1) 1))',
-);
+// from chia/wallet/puzzles/p2_delegated_puzzle_or_hidden_puzzle.clvm
+final standardTransactionPuzzle = Program.deserializeHexFile('lib/src/standard/puzzles/p2_delegated_puzzle_or_hidden_puzzle.clvm.hex');
 
 // from chia/wallet/puzzles/p2_delegated_puzzle_or_hidden_puzzle.py
 final defaultHiddenPuzzle = Program.parse('(=)');
 
-// compiled from chia/wallet/puzzles/calculate_synthetic_public_key.clvm
-final calculateSyntheticKeyProgram = Program.parse('(point_add 2 (pubkey_for_exp (sha256 2 5)))');
+// from chia/wallet/puzzles/calculate_synthetic_public_key.clvm
+final calculateSyntheticKeyProgram = Program.deserializeHexFile('lib/src/core/puzzles/calculate_synthetic_public_key/calculate_synthetic_public_key.clvm.hex');
 
 // cribbed from chia/wallet/derive_keys.py
 // EIP 2334 bls key derivation
@@ -111,12 +109,10 @@ BigInt calculateSyntheticOffset(JacobianPoint publicKey) {
 PrivateKey calculateSyntheticPrivateKey(PrivateKey privateKey) {
   
   final secretExponent = bytesToBigInt(privateKey.toBytes(), Endian.big);
-  // print(secretExponent.toString());
 
   final publicKey = privateKey.getG1();
-  // print(publicKey.toBytes());
+
   final syntheticOffset = calculateSyntheticOffset(publicKey);
-  // print(syntheticOffset.toString());
 
   final syntheticSecretExponent = (secretExponent + syntheticOffset) % groupOrder;
 

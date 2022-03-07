@@ -2,9 +2,11 @@ import 'package:chia_utils/src/api/full_node.dart';
 import 'package:chia_utils/src/context/configuration_provider.dart';
 import 'package:chia_utils/src/context/context.dart';
 import 'package:chia_utils/src/core/models/address.dart';
+import 'package:chia_utils/src/core/models/coin.dart';
 import 'package:chia_utils/src/core/models/master_key_pair.dart';
 import 'package:chia_utils/src/core/models/wallet_keychain.dart';
 import 'package:chia_utils/src/core/models/wallet_set.dart';
+import 'package:chia_utils/src/networks/chia/chia_blockckahin_network_loader.dart';
 import 'package:chia_utils/src/networks/network_factory.dart';
 import 'package:chia_utils/src/standard/service/wallet.dart';
 import 'package:test/scaffolding.dart';
@@ -13,12 +15,11 @@ void main() async {
   final fullNode = FullNode('http://localhost:4000');
   final configurationProvider = ConfigurationProvider();
   configurationProvider.setConfig(NetworkFactory.configId, {
-      'name': 'TestNet10',
-      'address_prefix': 'txch',
-      'agg_sig_me_extra_data': 'ae83525ba8d1dd3f09b277de18ca3e43fc0af20d20c4b3e92ef2a48bd291ccb2'
+        'yaml_file_path': 'lib/src/networks/chia/testnet10/config.yaml'
   });
   final context = Context(configurationProvider);
-  context.registerFactory(NetworkFactory());
+  final blockcahinNetworkLoader = ChiaBlockchainNetworkLoader();
+  context.registerFactory(NetworkFactory(blockcahinNetworkLoader.loadfromLocalFileSystem));
   final walletService = WalletService(fullNode, context);
 
   final destinationAddress = Address('txch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jksxp6hy3');
@@ -44,15 +45,16 @@ void main() async {
   final unhardenedPuzzlehashes = walletKeychain.unhardenedMap.values.map((vec) => vec.puzzlehash).toList();
 
   final coins = await fullNode.getCoinRecordsByPuzzleHashes(unhardenedPuzzlehashes);
+  
 
 
   test('Should push transaction with fee', () async {
     final coinsForThisTest = coins.sublist(0, coins.length ~/ 2);
     final amountToSend = 10000;
-    final fee = 100;
+    final fee = 5000;
     final totalAmount = amountToSend + fee;
 
-    final coinsToSpend = WalletService.selectCoinsToSpend(coinsForThisTest, totalAmount);
+    final coinsToSpend = selectCoinsToSpend(coinsForThisTest, totalAmount);
 
     final spendBundle = await walletService.createSpendBundle(coinsToSpend, amountToSend, destinationAddress, walletKeychain.unhardenedMap.values.toList()[0].puzzlehash, walletKeychain, fee: fee);
     
@@ -64,10 +66,39 @@ void main() async {
     final coinsForThisTest = coins.sublist(coins.length ~/ 2);
     final amountToSend = 10000;
 
-    final coinsToSpend = WalletService.selectCoinsToSpend(coinsForThisTest, amountToSend);
+    final coinsToSpend = selectCoinsToSpend(coinsForThisTest, amountToSend);
 
     final spendBundle = await walletService.createSpendBundle(coinsToSpend, amountToSend, destinationAddress, walletKeychain.unhardenedMap.values.toList()[0].puzzlehash, walletKeychain);
     
     await fullNode.pushTransaction(spendBundle);
   });
 }
+
+List<Coin> selectCoinsToSpend(List<Coin> coins, int amount) {
+      
+    coins = coins.where((element) => element.spentBlockIndex == 0).toList();
+    coins.sort((a, b) => b.amount - a.amount);
+
+    List<Coin> spendCoins = [];
+    var spendAmount = 0;
+    
+    calculator:
+    while (coins.isNotEmpty && spendAmount < amount) {
+      for (var i = 0; i < coins.length; i++) {
+        if (spendAmount + coins[i].amount <= amount) {
+          var record = coins.removeAt(i--);
+          spendCoins.add(record);
+          spendAmount += record.amount;
+          continue calculator;
+        }
+      }
+      var record = coins.removeAt(0);
+      spendCoins.add(record);
+      spendAmount += record.amount;
+    }
+    if (spendAmount < amount) {
+      throw Exception('Insufficient funds.');
+    }
+
+    return spendCoins;
+  }

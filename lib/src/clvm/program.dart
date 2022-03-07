@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:chia_utils/src/clvm/bytes.dart';
@@ -10,6 +11,7 @@ import 'package:chia_utils/src/clvm/printable.dart';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 import 'package:quiver/core.dart';
+import 'package:path/path.dart' as path;
 
 class Output {
   final Program program;
@@ -78,6 +80,20 @@ class Program {
     } else {
       throw StateError('Unexpected end of source.');
     }
+  }
+
+  static Program deserializeHexFile(String pathToFile) {
+    String filePath = path.join(path.current, pathToFile);
+    filePath = path.normalize(filePath);
+    final lines = File(filePath).readAsLinesSync();
+
+    final nonEmptyLines = lines.where((line) => line.isNotEmpty).toList();
+    
+    if (nonEmptyLines.length != 1) {
+      throw Exception('Invalid file input: Should include one line of hex');
+    }
+
+    return Program.deserializeHex(nonEmptyLines[0]);
   }
 
   factory Program.deserialize(List<int> source) {

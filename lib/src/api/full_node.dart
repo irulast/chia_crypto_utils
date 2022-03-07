@@ -44,7 +44,6 @@ class FullNode {
     final responseData = await client.sendRequest(Uri.parse('push_tx'), {
       'spend_bundle': spendBundle.toJson()
     });
-    print(responseData.body);
 
     if (responseData.statusCode != 200) {
       throw Exception('Failed to push transaction: ${responseData.body}');
