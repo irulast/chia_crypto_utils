@@ -5,13 +5,13 @@ import 'package:chia_utils/src/utils/yaml_loading.dart';
 class ChiaBlockchainNetworkLoader implements BlockchainNetworkLoader {
   @override
   BlockchainNetwork loadfromLocalFileSystem(String filePath) {
-    final yaml = loadYamlFromLocalFileSystem(filePath);
+    final dynamic yaml = loadYamlFromLocalFileSystem(filePath);
 
-    final selectedNetwork = yaml['full_node']['selected_network']!;
+    final dynamic selectedNetwork = yaml['full_node']['selected_network']!;
     return BlockchainNetwork(
-      name: selectedNetwork,
-      addressPrefix: yaml['farmer']['network_overrides']['config'][selectedNetwork]['address_prefix']!,
-      aggSigMeExtraData: yaml['farmer']['network_overrides']['constants'][selectedNetwork]['GENESIS_CHALLENGE']!,
+      name: selectedNetwork as String,
+      addressPrefix: yaml['farmer']['network_overrides']['config'][selectedNetwork]['address_prefix']! as String,
+      aggSigMeExtraData: yaml['farmer']['network_overrides']['constants'][selectedNetwork]['GENESIS_CHALLENGE']! as String,
       networkConfig: yaml
     );
   }

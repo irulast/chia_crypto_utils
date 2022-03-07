@@ -13,7 +13,7 @@ class CoinSpend {
     required this.solution,
   });
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => <String, dynamic>{
         'coin': coin.toJson(),
         'puzzle_reveal': const HexEncoder().convert(puzzleReveal.serialize()),
         'solution': const HexEncoder().convert(solution.serialize())

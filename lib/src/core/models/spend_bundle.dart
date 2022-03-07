@@ -12,7 +12,7 @@ class SpendBundle {
     required this.aggregatedSignature,
   });
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => <String, dynamic>{
         'coin_spends': coinSpends.map((e) => e.toJson()).toList(),
         'aggregated_signature': aggregatedSignature.toHex(),
       };

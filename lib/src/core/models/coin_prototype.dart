@@ -16,9 +16,9 @@ class CoinPrototype {
   });
 
   CoinPrototype.fromJson(Map<String, dynamic> json)
-      : parentCoinInfo = Puzzlehash.fromHex(json['parent_coin_info']),
-        puzzlehash = Puzzlehash.fromHex(json['puzzle_hash']),
-        amount = json['amount'];
+      : parentCoinInfo = Puzzlehash.fromHex(json['parent_coin_info'] as String),
+        puzzlehash = Puzzlehash.fromHex(json['puzzle_hash'] as String),
+        amount = json['amount'] as int;
 
   Puzzlehash get id {
     return Puzzlehash(sha256
@@ -29,7 +29,7 @@ class CoinPrototype {
         .bytes);
   }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => <String, dynamic>{
         'parent_coin_info': parentCoinInfo.hex,
         'puzzle_hash': puzzlehash.hex,
         'amount': amount
