@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_void_async
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -5,10 +7,10 @@ import 'package:chia_utils/src/core/models/address.dart';
 import 'package:chia_utils/src/core/models/master_key_pair.dart';
 import 'package:chia_utils/src/core/models/wallet_set.dart';
 import 'package:chia_utils/src/utils/index.dart';
-import 'package:hex/hex.dart';
-import 'package:test/test.dart';
 import 'package:csv/csv.dart';
+import 'package:hex/hex.dart';
 import 'package:path/path.dart' as path;
+import 'package:test/test.dart';
 
 import 'resources/index.dart';
 
@@ -28,12 +30,12 @@ const chiaFirstAddress = 'txch1v8vergyvwugwv0tmxwnmeecuxh3tat5jaskkunnn79zjz0mud
 
 void main() async {
   // get chia wallet sets generated from testMnemonic
-  String filePath = path.join(path.current, 'test/utils_test/resources/chia_wallet_sets.csv');
+  var filePath = path.join(path.current, 'test/utils_test/resources/chia_wallet_sets.csv');
   filePath = path.normalize(filePath);
   final input = File(filePath).openRead();
   final chiaWalletSetRows = await input
       .transform(utf8.decoder)
-      .transform(CsvToListConverter(eol: '\n'))
+      .transform(const CsvToListConverter(eol: '\n'))
       .toList();
 
   test('should generate correct puzzle hashes from mnemonic', () {

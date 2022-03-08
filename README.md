@@ -38,3 +38,27 @@ final masterKeyPair = MasterKeyPair.fromMnemonic(mnemonic);
 // generate keys, addresses, puzzlehashes at desired derivation index (both hardened and unhardened)
 final walletKeyAddressSet = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, 0);
 ```
+
+## Using Context to configure BlockchainNetwork
+
+```dart
+// initialize and set config for configuration provider
+final configurationProvider = ConfigurationProvider()
+  ..setConfig(NetworkFactory.configId, {
+    'yaml_file_path': 'path/from/root/to/config.yaml'
+  }
+);
+// initialize IoC context
+final context = Context(configurationProvider);
+
+// initialize ChiaBlockchainNetworkLoader, which has utility to load a BlockchainNetwork object from a chia config.yaml file
+final blockchainLoader = ChiaBlockchainNetworkLoader();
+
+// pass specific loading function to be used to our NetworkFactory, which interfaces with out context to construct configured BlockchainNetwork objects
+final networkFactory = NetworkFactory(blockchainLoader.loadfromLocalFileSystem)
+
+// register factory with context
+context.registerFactory(networkFactory);
+
+var blockchainNetwork = context.get<BlockchainNetwork>();
+```

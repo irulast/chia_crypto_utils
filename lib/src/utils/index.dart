@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:bech32m/bech32m.dart';
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:crypto/crypto.dart';
 
@@ -69,18 +68,9 @@ PrivateKey masterSkToSingletonOwnerSk(PrivateKey masterSk, int poolWalletIndex) 
 
 // This key is used for the farmer to authenticate to the pool when sending partials
 PrivateKey masterSkToPoolingAuthenticationSk(PrivateKey masterSk, int poolWalletIndex, int index) {
-  assert(index < 10000);
-  assert(poolWalletIndex < 10000);
+  assert(index < 10000, 'Index must be less tah 10000');
+  assert(poolWalletIndex < 10000, 'Pool wallet index must be less tah 10000');
   return derivePath(masterSk, [blsSpecNumber, chiaBlockchanNumber, poolingAuthenticationPathNumber, poolWalletIndex * 10000 + index]);
-}
-
-String getAddressFromPuzzle(Program puzzle, {bool testnet = false}) {
-  final puzzlehash = puzzle.hash();
-
-  final ticker = (testnet ? 'txch' : 'xch');
-
-  final address = segwit.encode(Segwit(ticker, puzzlehash));
-  return address;
 }
 
 // cribbed from chia/wallet/puzzles/p2_delegated_puzzle_or_hidden_puzzle.py

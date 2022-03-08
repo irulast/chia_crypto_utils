@@ -1,5 +1,4 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/core/models/puzzlehash.dart';
 
 class WalletSet {
   WalletVector hardened;
@@ -9,7 +8,8 @@ class WalletSet {
   WalletSet({
     required this.hardened,
     required this.unhardened,
-    required this.derivationIndex});
+    required this.derivationIndex,
+  });
 
   factory WalletSet.fromPrivateKey(PrivateKey masterPrivateKey, int derivationIndex) {
     final childPrivateKeyHardened = masterSkToWalletSk(masterPrivateKey, derivationIndex);
@@ -19,9 +19,10 @@ class WalletSet {
     final puzzlehashHardened = Puzzlehash(puzzleHardened.hash());
 
     final hardened = WalletVector(
-        childPrivateKey: childPrivateKeyHardened,
-        childPublicKey: childPublicKeyHardened,
-        puzzlehash: puzzlehashHardened);
+      childPrivateKey: childPrivateKeyHardened,
+      childPublicKey: childPublicKeyHardened,
+      puzzlehash: puzzlehashHardened,
+    );
 
     final childPrivateKeyUnhardened = masterSkToWalletSkUnhardened(masterPrivateKey, derivationIndex);
     final childPublicKeyUnhardened = childPrivateKeyUnhardened.getG1();
@@ -30,14 +31,16 @@ class WalletSet {
     final puzzlehashUnhardened = Puzzlehash(puzzleUnhardened.hash());
 
     final unhardened = WalletVector(
-        childPrivateKey: childPrivateKeyUnhardened,
-        childPublicKey: childPublicKeyUnhardened,
-        puzzlehash: puzzlehashUnhardened);
+      childPrivateKey: childPrivateKeyUnhardened,
+      childPublicKey: childPublicKeyUnhardened,
+      puzzlehash: puzzlehashUnhardened,
+    );
 
     return WalletSet(
-        hardened: hardened,
-        unhardened: unhardened,
-        derivationIndex: derivationIndex);
+      hardened: hardened,
+      unhardened: unhardened,
+      derivationIndex: derivationIndex,
+    );
   }
 }
 
@@ -49,6 +52,6 @@ class WalletVector {
   WalletVector({
     required this.childPrivateKey,
     required this.childPublicKey,
-    required this.puzzlehash
-    });
+    required this.puzzlehash,
+  });
 }

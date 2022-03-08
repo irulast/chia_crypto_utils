@@ -1,5 +1,4 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/core/models/coin.dart';
 import 'package:hex/hex.dart';
 
 class CoinSpend {
@@ -14,8 +13,8 @@ class CoinSpend {
   });
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'coin': coin.toJson(),
-        'puzzle_reveal': const HexEncoder().convert(puzzleReveal.serialize()),
-        'solution': const HexEncoder().convert(solution.serialize())
-      };
+      'coin': coin.toJson(),
+      'puzzle_reveal': const HexEncoder().convert(puzzleReveal.serialize()),
+      'solution': const HexEncoder().convert(solution.serialize())
+    };
 }

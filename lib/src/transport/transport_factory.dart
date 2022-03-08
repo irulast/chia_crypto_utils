@@ -1,25 +1,19 @@
-// import 'dart:html';
+import 'package:chia_utils/src/context/configuration_provider.dart';
+import 'package:chia_utils/src/context/factory_builder.dart';
+import 'package:chia_utils/src/transport/transport.dart';
+import 'package:injector/injector.dart';
 
-// import 'package:chia_utils/src/context/configuration_provider.dart';
-// import 'package:chia_utils/src/context/factory_builder.dart';
-// import 'package:chia_utils/src/transport/transport.dart';
-// import 'package:injector/src/factory/factory.dart';
+class TransportFactory implements ConfigurableFactory<Transport> {
+  @override
+  ConfigurationProvider configurationProvider;
 
-// class TransportFactory implements ConfigurableFactoryBuilder<Transport> {
+  TransportFactory(this.configurationProvider);
 
-//   @override
-//   Factory<Transport> build<Transport>(ConfigurationProvider configurationProvider) {
-//     // TODO: implement build
-//     configurationProvider.getConfig('transport');
-//     throw UnimplementedError();
-//   }
+  @override
+  // TODO: implement builder
+  Builder<Transport> get builder => throw UnimplementedError();
 
-
-
-// }
-
-
-// class _LocalTransport implements Transport {
-  
-// }
-
+  @override
+  // TODO: implement instance
+  Transport get instance => throw UnimplementedError();
+}

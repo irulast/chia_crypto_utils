@@ -5,7 +5,7 @@ import 'package:injector/injector.dart';
 
 typedef LoadFunction = BlockchainNetwork Function(String path);
 class NetworkFactory implements ConfigurableFactory<BlockchainNetwork> {
-  static final configId = "blockchainNetwork";
+  static const configId = 'blockchainNetwork';
   
   @override
   late ConfigurationProvider configurationProvider;
@@ -15,14 +15,14 @@ class NetworkFactory implements ConfigurableFactory<BlockchainNetwork> {
   
   BlockchainNetwork _getBlockchainNetwork() {
     final config = configurationProvider.getConfig(configId);
-    var yamlFilePath = config['yaml_file_path']!;
+    final yamlFilePath = config['yaml_file_path']!;
 
     return load(yamlFilePath);
   }
 
   @override
-  Builder<BlockchainNetwork> get builder => (() => _getBlockchainNetwork());
+  Builder<BlockchainNetwork> get builder => _getBlockchainNetwork;
 
   @override
-  get instance => _getBlockchainNetwork();
+  BlockchainNetwork get instance => _getBlockchainNetwork();
 }

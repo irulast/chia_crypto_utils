@@ -1,9 +1,11 @@
 import 'package:chia_utils/src/context/configuration_provider.dart';
 import 'package:chia_utils/src/context/factory_builder.dart';
 import 'package:injector/injector.dart';
+export 'configuration_provider.dart';
+export 'context.dart';
+export 'factory_builder.dart';
 
 class Context {
-  // for each object type
   Injector abstractSingletonFactory = Injector();
   ConfigurationProvider configurationProvider;
 

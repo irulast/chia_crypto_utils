@@ -1,6 +1,5 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/core/models/conditions/condition.dart';
-import 'package:chia_utils/src/core/models/puzzlehash.dart';
 
 class CreateCoinCondition implements Condition {
   static int conditionCode = 51;

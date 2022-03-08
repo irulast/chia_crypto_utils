@@ -1,12 +1,16 @@
+// ignore_for_file: avoid_equals_and_hash_code_on_mutable_classes
+
 import 'package:chia_utils/src/core/models/coin_prototype.dart';
 import 'package:chia_utils/src/core/models/coin_spend.dart';
 import 'package:chia_utils/src/core/models/puzzlehash.dart';
 
+
+// ignore: must_be_immutable
 class Coin extends CoinPrototype {
-  int confirmedBlockIndex;
-  int spentBlockIndex;
-  bool coinbase;
-  int timestamp;
+  final int confirmedBlockIndex;
+  final int spentBlockIndex;
+  final bool coinbase;
+  final int timestamp;
 
   CoinSpend? parentCoinSpend;
 

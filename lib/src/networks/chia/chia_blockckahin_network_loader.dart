@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_dynamic_calls
+
 import 'package:chia_utils/src/core/models/blockchain_network.dart';
 import 'package:chia_utils/src/core/models/blockchain_network_loader.dart';
 import 'package:chia_utils/src/utils/yaml_loading.dart';
@@ -12,7 +14,7 @@ class ChiaBlockchainNetworkLoader implements BlockchainNetworkLoader {
       name: selectedNetwork as String,
       addressPrefix: yaml['farmer']['network_overrides']['config'][selectedNetwork]['address_prefix']! as String,
       aggSigMeExtraData: yaml['farmer']['network_overrides']['constants'][selectedNetwork]['GENESIS_CHALLENGE']! as String,
-      networkConfig: yaml
+      networkConfig: yaml,
     );
   }
 
@@ -20,5 +22,4 @@ class ChiaBlockchainNetworkLoader implements BlockchainNetworkLoader {
   BlockchainNetwork loadfromApplicationLib(String path) {
     throw UnimplementedError();
   }
-
 }

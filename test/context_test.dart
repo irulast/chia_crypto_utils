@@ -8,16 +8,17 @@ import 'package:test/scaffolding.dart';
 
 void main() {
   test('should save context correctly', () {
-    final configurationProvider = ConfigurationProvider();
-    configurationProvider.setConfig(NetworkFactory.configId, {
+    final configurationProvider = ConfigurationProvider()
+      ..setConfig(NetworkFactory.configId, {
         'yaml_file_path': 'lib/src/networks/chia/mainnet/config.yaml'
-    });
+      }
+    );
 
     final context = Context(configurationProvider);
     final blockchainLoader = ChiaBlockchainNetworkLoader();
     context.registerFactory(NetworkFactory(blockchainLoader.loadfromLocalFileSystem));
 
-    BlockchainNetwork blockchainNetwork = context.get<BlockchainNetwork>();
+    var blockchainNetwork = context.get<BlockchainNetwork>();
 
     expect(blockchainNetwork.name, 'mainnet');
     expect(blockchainNetwork.addressPrefix, 'xch');

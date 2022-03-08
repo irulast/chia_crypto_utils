@@ -1,5 +1,3 @@
-import 'package:chia_utils/src/api/full_node.dart';
-
 class BlockchainNetwork {
   String name;
   String? unit;

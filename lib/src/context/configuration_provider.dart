@@ -1,10 +1,6 @@
 class ConfigurationProvider {
   Map<String, Map<String, String>> configs = {};
 
-  void setConfigs(Map<String, Map<String, String>> configMap) {
-    configs = configMap;
-  }
-
   Map<String, Map<String, String>> getConfigs() {
     return configs;
   }

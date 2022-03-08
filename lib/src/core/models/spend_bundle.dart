@@ -1,7 +1,4 @@
-import 'dart:convert';
-
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/core/models/coin_spend.dart';
 
 class SpendBundle {
   List<CoinSpend> coinSpends;
@@ -12,8 +9,8 @@ class SpendBundle {
     required this.aggregatedSignature,
   });
 
-  Map<String, dynamic> toJson() => <String, dynamic>{
-        'coin_spends': coinSpends.map((e) => e.toJson()).toList(),
-        'aggregated_signature': aggregatedSignature.toHex(),
-      };
+  Map<String, dynamic> toJson() => <String, dynamic> {
+      'coin_spends': coinSpends.map((e) => e.toJson()).toList(),
+      'aggregated_signature': aggregatedSignature.toHex(),
+    };
 }

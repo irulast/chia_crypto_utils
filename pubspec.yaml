@@ -18,4 +18,5 @@ dependencies:
   bip39: ^1.0.6
   hex: ^0.2.0
   injector: ^2.0.0
+  meta: ^1.7.0
   quiver: ^3.0.1+1

@@ -82,8 +82,9 @@ class Program {
     }
   }
 
-  static Program deserializeHexFile(String pathToFile) {
-    String filePath = path.join(path.current, pathToFile);
+  // TODO: dont want to keep reloading this every time
+  factory Program.deserializeHexFile(String pathToFile) {
+    var filePath = path.join(path.current, pathToFile);
     filePath = path.normalize(filePath);
     final lines = File(filePath).readAsLinesSync();
 
@@ -110,11 +111,11 @@ class Program {
 
   Output run(Program args, {RunOptions? options}) {
     options ??= RunOptions();
-    List<dynamic> instructions = [eval];
+    var instructions = <dynamic>[eval];
     var stack = [Program.cons(this, args)];
     var cost = BigInt.zero;
     while (instructions.isNotEmpty) {
-      var instruction = instructions.removeLast();
+      dynamic  instruction = instructions.removeLast();
       cost += instruction(instructions, stack, options) as BigInt;
       if (options.maxCost != null && cost > options.maxCost!) {
         throw StateError(

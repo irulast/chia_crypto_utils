@@ -35,6 +35,7 @@ class FullNode {
     if (responseData.statusCode != 200) {
       throw Exception('Failed to fetch coin records: ${responseData.body}');
     }
+    // ignore: avoid_dynamic_calls
     final coins = (jsonDecode(responseData.body)['coin_records'] as List)
         .map((dynamic value) => Coin.fromChiaCoinRecordJson(value as Map<String, dynamic>))
         .toList();
@@ -46,6 +47,8 @@ class FullNode {
     final responseData = await client.sendRequest(Uri.parse('push_tx'), {
       'spend_bundle': spendBundle.toJson()
     });
+
+    print(responseData.body);
 
     if (responseData.statusCode != 200) {
       throw Exception('Failed to push transaction: ${responseData.body}');

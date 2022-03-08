@@ -10,10 +10,11 @@ class Client {
     Uri url,
     Object request,
   ) async {
-    return await post(Uri.parse('$baseURL/$url'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(request));
+    return post(Uri.parse('$baseURL/$url'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(request),
+    );
   }
 }
