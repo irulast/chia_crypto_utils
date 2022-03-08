@@ -1,16 +1,16 @@
-import 'package:bech32m/bech32m.dart';
-import 'package:chia_utils/chia_crypto_utils.dart';
+import 'dart:typed_data';
 
-// compiled from chia/wallet/puzzles/p2_delegated_puzzle_or_hidden_puzzle.clvm
-final standardTransactionPuzzle = Program.parse(
-  '(a (q 2 (i 11 (q 2 (i (= 5 (point_add 11 (pubkey_for_exp (sha256 11 (a 6 (c 2 (c 23 ()))))))) (q 2 23 47) (q 8)) 1) (q 4 (c 4 (c 5 (c (a 6 (c 2 (c 23 ()))) ()))) (a 23 47))) 1) (c (q 50 2 (i (l 5) (q 11 (q . 2) (a 6 (c 2 (c 9 ()))) (a 6 (c 2 (c 13 ())))) (q 11 (q . 1) 5)) 1) 1))',
-);
+import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:crypto/crypto.dart';
+
+// from chia/wallet/puzzles/p2_delegated_puzzle_or_hidden_puzzle.clvm
+final standardTransactionPuzzle = Program.deserializeHexFile('lib/src/standard/puzzles/p2_delegated_puzzle_or_hidden_puzzle.clvm.hex');
 
 // from chia/wallet/puzzles/p2_delegated_puzzle_or_hidden_puzzle.py
 final defaultHiddenPuzzle = Program.parse('(=)');
 
-// compiled from chia/wallet/puzzles/calculate_synthetic_public_key.clvm
-final calculateSyntheticKeyProgram = Program.parse('(point_add 2 (pubkey_for_exp (sha256 2 5)))');
+// from chia/wallet/puzzles/calculate_synthetic_public_key.clvm
+final calculateSyntheticKeyProgram = Program.deserializeHexFile('lib/src/core/puzzles/calculate_synthetic_public_key/calculate_synthetic_public_key.clvm.hex');
 
 // cribbed from chia/wallet/derive_keys.py
 // EIP 2334 bls key derivation
@@ -68,26 +68,44 @@ PrivateKey masterSkToSingletonOwnerSk(PrivateKey masterSk, int poolWalletIndex) 
 
 // This key is used for the farmer to authenticate to the pool when sending partials
 PrivateKey masterSkToPoolingAuthenticationSk(PrivateKey masterSk, int poolWalletIndex, int index) {
-  assert(index < 10000);
-  assert(poolWalletIndex < 10000);
+  assert(index < 10000, 'Index must be less tah 10000');
+  assert(poolWalletIndex < 10000, 'Pool wallet index must be less tah 10000');
   return derivePath(masterSk, [blsSpecNumber, chiaBlockchanNumber, poolingAuthenticationPathNumber, poolWalletIndex * 10000 + index]);
-}
-
-String getAddressFromPuzzle(Program puzzle, {bool testnet = false}) {
-  final puzzleHash = puzzle.hash();
-
-  final ticker = (testnet ? 'txch' : 'xch');
-  
-  final address = segwit.encode(Segwit(ticker, puzzleHash));
-  return address;
 }
 
 // cribbed from chia/wallet/puzzles/p2_delegated_puzzle_or_hidden_puzzle.py
 Program getPuzzleFromPk(JacobianPoint publicKey) {
-  final syntheticPubKey = calculateSyntheticKeyProgram
-    .run(Program.list([Program.fromBytes(publicKey.toBytes()), Program.fromBytes(defaultHiddenPuzzle.hash())]));
+  final syntheticPubKey = calculateSyntheticKeyProgram.run(
+    Program.list([Program.fromBytes(publicKey.toBytes()), Program.fromBytes(defaultHiddenPuzzle.hash())
+  ]));
 
   final curried = standardTransactionPuzzle.curry([syntheticPubKey.program]);
 
   return curried;
+}
+
+final groupOrder = BigInt.parse('0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001');
+
+BigInt calculateSyntheticOffset(JacobianPoint publicKey) {
+  final blob = sha256.convert(publicKey.toBytes() + defaultHiddenPuzzle.hash()).bytes;
+  // print(blob);
+  final offset = bytesToBigInt(blob, Endian.big, signed: true);
+  // print(offset.toString());
+  final newOffset = offset % groupOrder;
+  return newOffset;
+}
+
+PrivateKey calculateSyntheticPrivateKey(PrivateKey privateKey) {
+  final secretExponent = bytesToBigInt(privateKey.toBytes(), Endian.big);
+
+  final publicKey = privateKey.getG1();
+
+  final syntheticOffset = calculateSyntheticOffset(publicKey);
+
+  final syntheticSecretExponent = (secretExponent + syntheticOffset) % groupOrder;
+
+  final blob = bigIntToBytes(syntheticSecretExponent, 32, Endian.big);
+  final syntheticPrivateKey = PrivateKey.fromBytes(blob);
+
+  return syntheticPrivateKey;
 }

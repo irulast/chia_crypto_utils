@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:chia_utils/src/clvm/bytes.dart';
@@ -10,6 +11,7 @@ import 'package:chia_utils/src/clvm/printable.dart';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 import 'package:quiver/core.dart';
+import 'package:path/path.dart' as path;
 
 class Output {
   final Program program;
@@ -80,6 +82,21 @@ class Program {
     }
   }
 
+  // TODO: dont want to keep reloading this every time
+  factory Program.deserializeHexFile(String pathToFile) {
+    var filePath = path.join(path.current, pathToFile);
+    filePath = path.normalize(filePath);
+    final lines = File(filePath).readAsLinesSync();
+
+    final nonEmptyLines = lines.where((line) => line.isNotEmpty).toList();
+    
+    if (nonEmptyLines.length != 1) {
+      throw Exception('Invalid file input: Should include one line of hex');
+    }
+
+    return Program.deserializeHex(nonEmptyLines[0]);
+  }
+
   factory Program.deserialize(List<int> source) {
     var iterator = source.iterator;
     if (iterator.moveNext()) {
@@ -94,11 +111,11 @@ class Program {
 
   Output run(Program args, {RunOptions? options}) {
     options ??= RunOptions();
-    List<dynamic> instructions = [eval];
+    var instructions = <dynamic>[eval];
     var stack = [Program.cons(this, args)];
     var cost = BigInt.zero;
     while (instructions.isNotEmpty) {
-      var instruction = instructions.removeLast();
+      dynamic  instruction = instructions.removeLast();
       cost += instruction(instructions, stack, options) as BigInt;
       if (options.maxCost != null && cost > options.maxCost!) {
         throw StateError(
