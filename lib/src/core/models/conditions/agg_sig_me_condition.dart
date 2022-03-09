@@ -2,29 +2,29 @@ import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/core/models/conditions/condition.dart';
 import 'package:chia_utils/src/standard/exceptions/invalid_condition_cast_exception.dart';
 
-class CreateCoinCondition implements Condition {
-  static int conditionCode = 51;
+class AggSigMeCondition implements Condition {
+  static int conditionCode = 50;
 
-  Puzzlehash destinationHash;
-  int amount;
+  JacobianPoint publicKey;
+  Puzzlehash message;
 
-  CreateCoinCondition(this.destinationHash, this.amount);
-
-  factory CreateCoinCondition.fromProgram(Program program) {
-    final programList = program.toList();
-    if (!isThisCondition(program)) {
-      throw InvalidConditionCastException(CreateCoinCondition);
-    }
-    return CreateCoinCondition(Puzzlehash(programList[1].atom), programList[2].toInt());
-  }
+  AggSigMeCondition(this.publicKey, this.message);
 
   @override
   Program get program {
     return Program.list([
       Program.fromInt(conditionCode),
-      Program.fromBytes(destinationHash.bytes),
-      Program.fromInt(amount)
+      Program.fromBytes(publicKey.toBytes()),
+      Program.fromBytes(message.bytes),
     ]);
+  }
+
+  factory AggSigMeCondition.fromProgram(Program program) {
+    final programList = program.toList();
+    if (!isThisCondition(program)) {
+      throw InvalidConditionCastException(AggSigMeCondition);
+    }
+    return AggSigMeCondition(JacobianPoint.fromBytesG1(programList[1].atom), Puzzlehash(programList[2].atom));
   }
 
   static bool isThisCondition(Program condition) {
