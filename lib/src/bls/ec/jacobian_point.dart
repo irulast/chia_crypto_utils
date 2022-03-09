@@ -211,7 +211,7 @@ class JacobianPoint {
     return JacobianPoint(X3, Y3, Z3, false, ec: ec);
   }
 
-  JacobianPoint operator *(other) {
+  JacobianPoint operator *(dynamic other) {
     if (other is! BigInt && other is! Fq) {
       throw ArgumentError('Must multiply JacobianPoint with BigInt or Fq.');
     }

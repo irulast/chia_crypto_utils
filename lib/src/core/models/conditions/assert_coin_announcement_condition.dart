@@ -1,17 +1,26 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/core/models/conditions/condition.dart';
+import 'package:chia_utils/src/standard/exceptions/invalid_condition_cast_exception.dart';
 
 class AssertCoinAnnouncementCondition implements Condition {
   static int conditionCode = 61;
 
-  Puzzlehash coinId;
-  Puzzlehash message;
+  Puzzlehash announcementId;
 
-  Puzzlehash get announcementId {
-    return (coinId + message).sha256Hash();
+
+  AssertCoinAnnouncementCondition(this.announcementId);
+
+  factory AssertCoinAnnouncementCondition.fromParts(Puzzlehash coinId, Puzzlehash message) {
+    return AssertCoinAnnouncementCondition((coinId + message).sha256Hash());
   }
 
-  AssertCoinAnnouncementCondition(this.coinId, this.message);
+  factory AssertCoinAnnouncementCondition.fromProgram(Program program) {
+    final programList = program.toList();
+    if (!isThisCondition(program)) {
+      throw InvalidConditionCastException(AssertCoinAnnouncementCondition);
+    }
+    return AssertCoinAnnouncementCondition(Puzzlehash(programList[1].atom));
+  }
 
   @override
   Program get program {
@@ -19,5 +28,16 @@ class AssertCoinAnnouncementCondition implements Condition {
       Program.fromInt(conditionCode),
       Program.fromBytes(announcementId.bytes),
     ]);
+  }
+
+  static bool isThisCondition(Program condition) {
+    final conditionParts = condition.toList();
+    if (conditionParts.length != 2) {
+      return false;
+    }
+    if (conditionParts[0].toInt() != conditionCode) {
+      return false;
+    }
+    return true;
   }
 }
