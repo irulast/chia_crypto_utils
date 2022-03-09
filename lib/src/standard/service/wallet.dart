@@ -161,20 +161,17 @@ class WalletService {
   void validateSpendBundle(SpendBundle spendBundle) {
     final publicKeys = <JacobianPoint>[];
     final messages = <List<int>>[];
-    try {
-      for (final spend in spendBundle.coinSpends) {
-        final outputConditions = spend.puzzleReveal.run(spend.solution).program.toList();
+    for (final spend in spendBundle.coinSpends) {
+      final outputConditions = spend.puzzleReveal.run(spend.solution).program.toList();
 
-        // look for assert agg sig me condition
-        final aggSigMeProgram = outputConditions.singleWhere(AggSigMeCondition.isThisCondition);
+      // look for assert agg sig me condition
+      final aggSigMeProgram = outputConditions.singleWhere(AggSigMeCondition.isThisCondition);
 
-        final aggSigMeCondition = AggSigMeCondition.fromProgram(aggSigMeProgram);
-        publicKeys.add(aggSigMeCondition.publicKey);
-        messages.add((aggSigMeCondition.message + spend.coin.id + Puzzlehash.fromHex(blockchainNetwork.aggSigMeExtraData)).bytes);
-      }
-    } catch (e) {
-      throw ClvmErrorException(e.toString());
+      final aggSigMeCondition = AggSigMeCondition.fromProgram(aggSigMeProgram);
+      publicKeys.add(aggSigMeCondition.publicKey);
+      messages.add((aggSigMeCondition.message + spend.coin.id + Puzzlehash.fromHex(blockchainNetwork.aggSigMeExtraData)).bytes);
     }
+
     // validate signature
     if(!AugSchemeMPL.aggregateVerify(publicKeys, messages, spendBundle.aggregatedSignature)) {
       throw FailedSignatureVerificationException();
