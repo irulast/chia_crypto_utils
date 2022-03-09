@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:bip39/bip39.dart';
 import 'package:chia_utils/src/core/models/address.dart';
 import 'package:chia_utils/src/core/models/master_key_pair.dart';
 import 'package:chia_utils/src/core/models/wallet_set.dart';
@@ -75,4 +76,11 @@ void main() async {
     print('Pool public key (m/$blsSpecNumber/$chiaBlockchanNumber/$poolPathNumber/0: $poolPublicKeyHex');
     print('First wallet address: $firstAddress');
   });
+
+   test('should generate a 24 word mnemonic', () {
+     final mnemonicPhrase = generateMnemonic(strength: 256);
+     print(mnemonicPhrase);
+
+     expect(24, mnemonicPhrase.split(' ').length);
+   });
 }

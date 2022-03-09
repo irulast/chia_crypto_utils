@@ -52,7 +52,7 @@ class WalletService {
 
     final originCoin = coins.removeAt(originIndex);
 
-    // create coin spend for origin coin 
+    // create coin spend for origin coin
     final originCoinWalletVector = keychain.getWalletVector(originCoin.puzzlehash);
     final originCoinPrivateKey = originCoinWalletVector!.childPrivateKey;
     final originCoinPublicKey = originCoinPrivateKey.getG1();
@@ -139,8 +139,8 @@ class WalletService {
 
   Puzzlehash getAddSigMeMessageFromResult(Program result, Coin coin) {
     return Puzzlehash(result.toList()[0].toList()[2].atom) +
-        coin.id +
-        Puzzlehash.fromHex(blockchainNetwork.aggSigMeExtraData,
+      coin.id +
+      Puzzlehash.fromHex(blockchainNetwork.aggSigMeExtraData,
     );
   }
 

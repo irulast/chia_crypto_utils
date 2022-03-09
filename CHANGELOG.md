@@ -5,3 +5,7 @@
 ## 1.0.1
 
 - Added wallet tools.
+
+## 1.0.2
+
+- Added standard transaction support and core Chia models.
