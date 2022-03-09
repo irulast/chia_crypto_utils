@@ -7,7 +7,6 @@ class AssertCoinAnnouncementCondition implements Condition {
 
   Puzzlehash announcementId;
 
-
   AssertCoinAnnouncementCondition(this.announcementId);
 
   factory AssertCoinAnnouncementCondition.fromParts(Puzzlehash coinId, Puzzlehash message) {
