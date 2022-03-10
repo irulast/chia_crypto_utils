@@ -106,8 +106,13 @@ class Program {
     }
   }
 
-  factory Program.deserializeHex(String source) =>
-      Program.deserialize(HexDecoder().convert(source));
+  factory Program.deserializeHex(String source) {
+    if (source.startsWith('0x')) {
+      return Program.deserialize(HexDecoder().convert(source.replaceFirst('0x', '')));
+    }
+    return Program.deserialize(HexDecoder().convert(source));
+  }
+      
 
   Output run(Program args, {RunOptions? options}) {
     options ??= RunOptions();

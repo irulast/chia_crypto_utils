@@ -49,7 +49,7 @@ class Puzzlehash {
       other.hex == hex;
 
   @override
-  int get hashCode => byteList.hashCode;
+  int get hashCode => hex.hashCode;
 
   Puzzlehash sha256Hash() {
     return Puzzlehash(sha256.convert(bytes).bytes);

@@ -181,7 +181,7 @@ class WalletService {
     if (spendBundle.coinSpends.length > 1) {
       AssertCoinAnnouncementCondition? assertCoinAnnouncement;
       final coinsToCreate = <CoinPrototype>[];
-      final coinsBeingSpent = <Coin>[];
+      final coinsBeingSpent = <CoinPrototype>[];
       Puzzlehash? originId;
       for (final spend in spendBundle.coinSpends) {
         final outputConditions = spend.puzzleReveal.run(spend.solution).program.toList();
