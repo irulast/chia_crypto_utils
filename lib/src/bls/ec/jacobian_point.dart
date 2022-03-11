@@ -85,7 +85,8 @@ class JacobianPoint {
   }
 
   factory JacobianPoint.fromHex(String hex, bool isExtension, {EC? ec}) =>
-      JacobianPoint.fromBytes(HexDecoder().convert(hex), isExtension, ec: ec);
+      JacobianPoint.fromBytes(const HexDecoder().convert(hex), isExtension,
+          ec: ec);
 
   factory JacobianPoint.generateG1() =>
       AffinePoint(defaultEc.gx, defaultEc.gy, false, ec: defaultEc)

@@ -10,8 +10,8 @@ import 'package:chia_utils/src/clvm/parser.dart';
 import 'package:chia_utils/src/clvm/printable.dart';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
-import 'package:quiver/core.dart';
 import 'package:path/path.dart' as path;
+import 'package:quiver/core.dart';
 
 class Output {
   final Program program;
@@ -57,7 +57,7 @@ class Program {
   Program.cons(Program left, Program right) : _cons = [left, right];
   Program.fromBytes(List<int> atom) : _atom = Uint8List.fromList(atom);
   Program.fromHex(String hex)
-      : _atom = Uint8List.fromList(HexDecoder().convert(hex));
+      : _atom = Uint8List.fromList(const HexDecoder().convert(hex));
   Program.fromBool(bool value) : _atom = Uint8List.fromList(value ? [1] : []);
   Program.fromInt(int number) : _atom = encodeInt(number);
   Program.fromBigInt(BigInt number) : _atom = encodeBigInt(number);
@@ -89,7 +89,7 @@ class Program {
     final lines = File(filePath).readAsLinesSync();
 
     final nonEmptyLines = lines.where((line) => line.isNotEmpty).toList();
-    
+
     if (nonEmptyLines.length != 1) {
       throw Exception('Invalid file input: Should include one line of hex');
     }
@@ -107,7 +107,7 @@ class Program {
   }
 
   factory Program.deserializeHex(String source) =>
-      Program.deserialize(HexDecoder().convert(source));
+      Program.deserialize(const HexDecoder().convert(source));
 
   Output run(Program args, {RunOptions? options}) {
     options ??= RunOptions();
@@ -115,7 +115,7 @@ class Program {
     var stack = [Program.cons(this, args)];
     var cost = BigInt.zero;
     while (instructions.isNotEmpty) {
-      dynamic  instruction = instructions.removeLast();
+      dynamic instruction = instructions.removeLast();
       cost += instruction(instructions, stack, options) as BigInt;
       if (options.maxCost != null && cost > options.maxCost!) {
         throw StateError(
