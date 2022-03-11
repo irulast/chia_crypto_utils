@@ -354,9 +354,8 @@ class Program {
     }
   }
 
-  Program at(Position? position) {
+  void at(Position? position) {
     this.position = position;
-    return this;
   }
 
   String toSource({bool? showKeywords}) {
