@@ -112,8 +112,7 @@ class Program {
 
   Output run(Program args, {RunOptions? options}) {
     options ??= RunOptions();
-    final instructions =
-        <BigInt Function(List<dynamic>, List<Program>, RunOptions)>[eval];
+    final instructions = <Instruction>[eval];
     final stack = [Program.cons(this, args)];
     var cost = BigInt.zero;
     while (instructions.isNotEmpty) {
