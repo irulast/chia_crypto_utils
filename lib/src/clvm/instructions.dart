@@ -5,6 +5,17 @@ import 'package:chia_utils/src/clvm/keywords.dart';
 import 'package:chia_utils/src/clvm/operators.dart';
 import 'package:chia_utils/src/clvm/program.dart';
 
+/// An [Instruction] describe the interface for functions like:
+/// - [swap]
+/// - [cons]
+/// - [eval]
+/// - [apply]
+typedef Instruction = BigInt Function(
+  List<dynamic> instructions,
+  List<Program> stack,
+  RunOptions options,
+);
+
 BigInt swap(
   List<dynamic> instructions,
   List<Program> stack,
