@@ -11,9 +11,7 @@ import 'package:quiver/core.dart';
 @immutable
 class AffinePoint {
   // ignore: avoid_positional_boolean_parameters
-  AffinePoint(this.x, this.y, this.infinity, {EC? ec})
-      : ec = ec ?? defaultEc,
-        isExtension = x is! Fq {
+  AffinePoint(this.x, this.y, this.infinity, {EC? ec}) : ec = ec ?? defaultEc {
     if (x.runtimeType != y.runtimeType) {
       throw ArgumentError('Both x and y should be similar field instances.');
     }
@@ -23,8 +21,8 @@ class AffinePoint {
   final Field y;
   final bool infinity;
   final EC ec;
-  final bool isExtension;
 
+  bool get isExtension => x is! Fq;
   bool get isOnCurve => infinity || y * y == x * x * x + ec.a * x + ec.b;
 
   AffinePoint untwist() {
