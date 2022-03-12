@@ -9,9 +9,11 @@ import 'package:meta/meta.dart';
 
 @immutable
 class FullNode {
-  FullNode(String baseURL) : client = Client(baseURL);
+  const FullNode(this.baseURL);
 
-  final Client client;
+  final String baseURL;
+
+  Client get client => Client(baseURL);
 
   Future<List<Coin>> getCoinRecordsByPuzzleHashes(
     List<Puzzlehash> puzzlehashes, {
@@ -72,8 +74,8 @@ class FullNode {
       identical(this, other) ||
       other is FullNode &&
           runtimeType == other.runtimeType &&
-          client.baseURL == other.client.baseURL;
+          baseURL == other.baseURL;
 
   @override
-  int get hashCode => runtimeType.hashCode ^ client.baseURL.hashCode;
+  int get hashCode => runtimeType.hashCode ^ baseURL.hashCode;
 }
