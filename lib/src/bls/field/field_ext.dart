@@ -19,23 +19,22 @@ abstract class FieldExtBase implements Field {
   abstract int embedding;
   abstract Field root;
 
-  late List<Field> elements;
-  late Field basefield;
+  final List<Field> elements;
+  final Field basefield;
 
   @override
   BigInt Q;
 
-  FieldExtBase(this.Q, this.elements) {
+  FieldExtBase(this.Q, this.elements) : basefield = elements[0] {
     if (elements.length != embedding) {
       throw ArgumentError('Expected $embedding elements.');
     }
-    var childExtension = extension ~/ embedding;
-    for (var item in elements) {
+    final childExtension = extension ~/ embedding;
+    for (final item in elements) {
       if (item.extension != childExtension) {
         throw ArgumentError('Expected extension of $childExtension.');
       }
     }
-    basefield = elements[0];
   }
 
   FieldExtBase construct(BigInt Q, List<Field> args);
@@ -46,9 +45,8 @@ abstract class FieldExtBase implements Field {
 
   @override
   FieldExtBase operator -() {
-    var result = construct(Q, elements.map((element) => -element).toList());
-    result.root = root;
-    return result;
+    return construct(Q, elements.map((element) => -element).toList())
+      ..root = root;
   }
 
   @override
@@ -63,13 +61,12 @@ abstract class FieldExtBase implements Field {
     } else {
       otherNew = other.elements;
     }
-    var result = construct(
-        Q,
-        zip([elements, otherNew as List<Field>])
-            .map((element) => element[0] + element[1])
-            .toList());
-    result.root = root;
-    return result;
+    return construct(
+      Q,
+      zip([elements, otherNew as List<Field>])
+          .map((element) => element[0] + element[1])
+          .toList(),
+    )..root = root;
   }
 
   @override
@@ -78,20 +75,18 @@ abstract class FieldExtBase implements Field {
   @override
   FieldExtBase multiply(other) {
     if (other is BigInt) {
-      var result =
-          construct(Q, elements.map((element) => element * other).toList());
-      result.root = root;
-      return result;
+      return construct(Q, elements.map((element) => element * other).toList())
+        ..root = root;
     }
     if (extension < other.extension) {
       throw FailedOp();
     }
-    var buf = elements.map((_) => basefield.myZero(Q)).toList();
-    for (var x in enumerate(elements)) {
+    final buf = elements.map((_) => basefield.myZero(Q)).toList();
+    for (final x in enumerate(elements)) {
       if (extension == other.extension) {
         for (IndexedValue<Field> y in enumerate(other.elements)) {
           if (x.value.toBool() && y.value.toBool()) {
-            var i = (x.index + y.index) % embedding;
+            final i = (x.index + y.index) % embedding;
             if (x.index + y.index >= embedding) {
               buf[i] = buf[i] + x.value * y.value * root;
             } else {
@@ -103,9 +98,7 @@ abstract class FieldExtBase implements Field {
         buf[x.index] = x.value * other;
       }
     }
-    var result = construct(Q, buf);
-    result.root = root;
-    return result;
+    return construct(Q, buf)..root = root;
   }
 
   @override
@@ -136,7 +129,7 @@ abstract class FieldExtBase implements Field {
     if (other.runtimeType != runtimeType) {
       if (other is FieldExtBase || other is BigInt) {
         if (other is! FieldExtBase || extension > other.extension) {
-          for (var i in range(1, embedding)) {
+          for (final i in range(1, embedding)) {
             if (elements[i.toInt()] != root.myZero(Q)) {
               return false;
             }
@@ -167,7 +160,7 @@ abstract class FieldExtBase implements Field {
 
   @override
   bool operator <(FieldExtBase other) {
-    for (var item in zip([elements.reversed, other.elements.reversed])) {
+    for (final item in zip([elements.reversed, other.elements.reversed])) {
       if (item[0] < item[1]) {
         return true;
       } else if (item[0] > item[1]) {
@@ -179,7 +172,7 @@ abstract class FieldExtBase implements Field {
 
   @override
   bool operator >(FieldExtBase other) {
-    for (var item in zip([elements, other.elements])) {
+    for (final item in zip([elements, other.elements])) {
       if (item[0] > item[1]) {
         return true;
       } else if (item[0] < item[1]) {
@@ -194,46 +187,49 @@ abstract class FieldExtBase implements Field {
 
   @override
   Uint8List toBytes() {
-    List<int> bytes = [];
-    for (var item in elements.reversed) {
-      bytes.addAll(item.toBytes());
-    }
-    return Uint8List.fromList(bytes);
+    return Uint8List.fromList([
+      for (final item in elements.reversed) ...item.toBytes(),
+    ]);
   }
 
   @override
-  String toHex() => HexEncoder().convert(toBytes());
+  String toHex() => const HexEncoder().convert(toBytes());
 
   @override
   FieldExtBase myFromBytes(List<int> bytes, BigInt Q) {
     if (bytes.length != extension * 48) {
       throw ArgumentError('Invalid byte length.');
     }
-    var embeddedSize = 48 * (extension ~/ embedding);
-    List<List<int>> tup = [];
-    for (var i in range(embedding)) {
+    final embeddedSize = 48 * (extension ~/ embedding);
+    final tup = <List<int>>[];
+    for (final i in range(embedding)) {
       tup.add(bytes.sublist((i as int) * embeddedSize, (i + 1) * embeddedSize));
     }
-    return construct(Q,
-        tup.reversed.map((bytes) => basefield.myFromBytes(bytes, Q)).toList());
+    return construct(
+      Q,
+      tup.reversed.map((bytes) => basefield.myFromBytes(bytes, Q)).toList(),
+    );
   }
 
   @override
   FieldExtBase myFromHex(String hex, BigInt Q) =>
-      myFromBytes(HexDecoder().convert(hex), Q);
+      myFromBytes(const HexDecoder().convert(hex), Q);
 
   @override
   FieldExtBase pow(BigInt exponent) {
-    assert(exponent >= BigInt.zero);
-    var result = myOne(Q);
-    result.root = root;
+    assert(
+      exponent >= BigInt.zero,
+      'exponent must non-negative',
+    );
+    var _exponent = exponent;
+    var result = myOne(Q)..root = root;
     var base = this;
-    while (exponent != BigInt.zero) {
-      if (exponent & BigInt.one != BigInt.zero) {
+    while (_exponent != BigInt.zero) {
+      if (_exponent & BigInt.one != BigInt.zero) {
         result = result * base;
       }
       base = base * base;
-      exponent >>= 1;
+      _exponent >>= 1;
     }
     return result;
   }
@@ -245,9 +241,9 @@ abstract class FieldExtBase implements Field {
 
   @override
   FieldExtBase myFromFq(BigInt Q, Fq fq) {
-    var y = basefield.myFromFq(Q, fq);
-    var z = basefield.myZero(Q);
-    var result =
+    final y = basefield.myFromFq(Q, fq);
+    final z = basefield.myZero(Q);
+    final result =
         construct(Q, range(embedding).map((i) => i == 0 ? y : z).toList());
     if (runtimeType == Fq2) {
       result.root = Fq(Q, -BigInt.one);
@@ -261,10 +257,8 @@ abstract class FieldExtBase implements Field {
 
   @override
   FieldExtBase clone() {
-    var result =
-        construct(Q, elements.map((element) => element.clone()).toList());
-    result.root = root;
-    return result;
+    return construct(Q, elements.map((element) => element.clone()).toList())
+      ..root = root;
   }
 
   @override
@@ -272,18 +266,19 @@ abstract class FieldExtBase implements Field {
     if (Q != q) {
       throw FailedOp();
     }
-    i %= extension;
-    if (i == 0) {
+
+    final _i = i % extension;
+    if (_i == 0) {
       return this;
     }
-    var items = enumerate(elements)
-        .map((element) => element.index == 0
-            ? element.value.qiPower(i)
-            : element.value.qiPower(i) *
-                getFrobCoeff([extension, i, element.index]))
+    final items = enumerate(elements)
+        .map(
+          (element) => element.index == 0
+              ? element.value.qiPower(_i)
+              : element.value.qiPower(_i) *
+                  getFrobCoeff([extension, _i, element.index]),
+        )
         .toList();
-    var result = construct(Q, items);
-    result.root = root;
-    return result;
+    return construct(Q, items)..root = root;
   }
 }
