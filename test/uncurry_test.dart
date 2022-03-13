@@ -25,6 +25,7 @@ void main() {
   print(uncurriedpuzAndArgs.arguments);
 }
 
+// TODO(njoshi): exception types
 // If uncurry is throwing exceptions these should probably be a bit more
 // specific.
 // See: https://dart.dev/guides/language/language-tour#exceptions
@@ -67,6 +68,7 @@ ProgramAndArguments matchCurriedArgsHelper(List<Program> arguments, Program inpu
     }
     arguments.add(program);
   }
+  // TODO(njoshi): exception handling
   // if this can throw an exception then the exception needs to be caught here
   // and appropriately dealt with. Using exceptions in a recursive function is
   // likely to make things really confusing. Try an alternate approach.
