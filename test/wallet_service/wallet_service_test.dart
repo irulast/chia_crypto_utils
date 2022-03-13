@@ -8,7 +8,6 @@ import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
 void main() {
-  final mockFullNode = FullNode('');
   final configurationProvider = ConfigurationProvider()
     ..setConfig(NetworkFactory.configId, {
       'yaml_file_path': 'lib/src/networks/chia/testnet10/config.yaml'
@@ -18,7 +17,7 @@ void main() {
   final context = Context(configurationProvider);
   final blockcahinNetworkLoader = ChiaBlockchainNetworkLoader();
   context.registerFactory(NetworkFactory(blockcahinNetworkLoader.loadfromLocalFileSystem));
-  final walletService = WalletService(mockFullNode, context);
+  final walletService = StandardWalletService(context);
 
   final destinationAddress = Address('txch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jksxp6hy3');
 
@@ -65,6 +64,19 @@ void main() {
     final spendBundle = walletService.createSpendBundle(
         coins,
         550000,
+        destinationAddress,
+        changePuzzlehash,
+        walletKeychain,
+        fee: 10000,
+    );
+
+    walletService.validateSpendBundle(spendBundle);
+  });
+
+  test('Should create valid spendbundle with only fee', () {
+    final spendBundle = walletService.createSpendBundle(
+        coins,
+        0,
         destinationAddress,
         changePuzzlehash,
         walletKeychain,

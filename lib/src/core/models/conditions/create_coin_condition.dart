@@ -7,15 +7,20 @@ class CreateCoinCondition implements Condition {
 
   Puzzlehash destinationHash;
   int amount;
+  Puzzlehash? memos;
 
-  CreateCoinCondition(this.destinationHash, this.amount);
+  CreateCoinCondition(this.destinationHash, this.amount, {this.memos});
 
   factory CreateCoinCondition.fromProgram(Program program) {
     final programList = program.toList();
     if (!isThisCondition(program)) {
       throw InvalidConditionCastException(CreateCoinCondition);
     }
-    return CreateCoinCondition(Puzzlehash(programList[1].atom), programList[2].toInt());
+    return CreateCoinCondition(
+      Puzzlehash(programList[1].atom),
+      programList[2].toInt(),
+      memos: programList.length > 3 ? Puzzlehash(programList[3].atom) : null
+    );
   }
 
   @override

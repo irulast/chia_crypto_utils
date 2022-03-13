@@ -142,6 +142,72 @@ class Program {
     return Program.parse('(a (q . ${toString()}) ${current.toString()})');
   }
 
+  ProgramAndArguments uncurry() {
+    final programList = toList();
+    if (programList.length != 3) {
+      throw Exception('Program is wrong length, should contain 3: (operator, puzzle, arguments)');
+    }
+    if (programList[0].toInt() != 2) {
+      throw Exception('Program is missing apply operator (a)');
+    }
+    final uncurriedModule = _matchQuotedProgram(programList[1]);
+    if (uncurriedModule == null) {
+      throw Exception('Puzzle did not match expected pattern');
+    }
+    final uncurriedArgs = _matchCurriedArgs(programList[2]);
+
+    return ProgramAndArguments(uncurriedArgs, uncurriedModule);
+  }
+
+  static Program? _matchQuotedProgram(Program program) {
+    final programList = program.toList();
+    try {
+      if (programList.length > 2 && programList[0].toInt() == 1 && programList[1].toInt() == 2) {
+        return program.cons[1];
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static List<Program> _matchCurriedArgs(Program program) {
+    final result = _matchCurriedArgsHelper([], program);
+    return result.arguments; 
+  }
+
+  static ProgramAndArguments _matchCurriedArgsHelper(List<Program> arguments, Program inputProgram) {
+    final inputProgramList = inputProgram.toList();
+    // base case
+    if (inputProgramList.isEmpty) {
+      return ProgramAndArguments(arguments, inputProgram);
+    }
+    final atom = _matchQuotedAtom(inputProgramList[1]);
+    if (atom != null) {
+      arguments.add(atom);
+    } else{
+      final program = _matchQuotedProgram(inputProgramList[1]);
+      if (program == null) {
+        return ProgramAndArguments(arguments, inputProgram);
+      }
+      arguments.add(program);
+    }
+
+    return _matchCurriedArgsHelper(arguments, inputProgramList[2]);
+  }
+
+  static Program? _matchQuotedAtom(Program program) {
+    final cons = program.cons;
+    try {
+      if (cons[0].toInt() == 1 && cons[1].isAtom) {
+        return cons[1];
+      }
+    } catch (e) {
+      return null;
+    }
+    return null;
+  }
+
   Program first() {
     if (isAtom) {
       throw StateError('Cannot access first of ${toString()}$positionSuffix.');
@@ -392,4 +458,11 @@ class Program {
 
   @override
   String toString() => toSource();
+}
+
+class ProgramAndArguments {
+  List<Program> arguments;
+  Program program;
+
+  ProgramAndArguments(this.arguments, this.program);
 }

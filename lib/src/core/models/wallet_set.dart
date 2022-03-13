@@ -48,10 +48,12 @@ class WalletVector {
   PrivateKey childPrivateKey;
   JacobianPoint childPublicKey;
   Puzzlehash puzzlehash;
+  Map<Puzzlehash, Puzzlehash> assetIdtoOuterPuzzlehash;
 
   WalletVector({
     required this.childPrivateKey,
     required this.childPublicKey,
     required this.puzzlehash,
+    this.assetIdtoOuterPuzzlehash = const {},
   });
 }
