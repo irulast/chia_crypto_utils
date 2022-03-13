@@ -68,8 +68,8 @@ PrivateKey masterSkToSingletonOwnerSk(PrivateKey masterSk, int poolWalletIndex) 
 
 // This key is used for the farmer to authenticate to the pool when sending partials
 PrivateKey masterSkToPoolingAuthenticationSk(PrivateKey masterSk, int poolWalletIndex, int index) {
-  assert(index < 10000, 'Index must be less tah 10000');
-  assert(poolWalletIndex < 10000, 'Pool wallet index must be less tah 10000');
+  assert(index < 10000, 'Index must be less than 10000');
+  assert(poolWalletIndex < 10000, 'Pool wallet index must be less than 10000');
   return derivePath(masterSk, [blsSpecNumber, chiaBlockchanNumber, poolingAuthenticationPathNumber, poolWalletIndex * 10000 + index]);
 }
 
@@ -84,7 +84,7 @@ Program getPuzzleFromPk(JacobianPoint publicKey) {
   return curried;
 }
 
-final groupOrder = BigInt.parse('0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001');
+final groupOrder = BigInt.parse('0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001');
 
 BigInt calculateSyntheticOffset(JacobianPoint publicKey) {
   final blob = sha256.convert(publicKey.toBytes() + defaultHiddenPuzzle.hash()).bytes;
