@@ -21,7 +21,7 @@ class CatCoin extends Coin {
       timestamp: timestamp,
       parentCoinInfo: parentCoinInfo,
       puzzlehash: puzzlehash,
-      amount: amount
+      amount: amount,
     );
   
   Program get lineageProof {

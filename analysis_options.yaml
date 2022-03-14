@@ -18,3 +18,4 @@ linter:
     public_member_api_docs: false
     use_decorated_box: true
     sort_constructors_first: false
+    

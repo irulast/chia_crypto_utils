@@ -31,6 +31,7 @@ class StandardWalletService {
       {
         int fee = 0,
         Puzzlehash? originId,
+        AssertCoinAnnouncementCondition? coinAnnouncementToAssert,
       }) 
     {
     // copy coins input since coins list is modified in this function
@@ -89,6 +90,10 @@ class StandardWalletService {
     if (fee > 0) {
       conditions.add(ReserveFeeCondition(fee));
     }
+
+    // if (coinAnnouncementToAssert != null) {
+    //   conditions.add(coinAnnouncementToAssert);
+    // }
 
     // generate message for coin announcements by appending coin_ids
     // see: chia/wallet/wallet.py: 380
