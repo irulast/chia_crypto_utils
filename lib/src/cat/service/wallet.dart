@@ -59,7 +59,7 @@ class CatWalletService extends WalletService {
     final originCoin = catCoins.removeAt(originIndex);
 
     // create coin spend for origin coin
-    final originCoinWalletVector = keychain.getWalletVectorByOuterHash(originCoin.puzzlehash);
+    final originCoinWalletVector = keychain.getWalletVector(originCoin.puzzlehash);
     final originCoinPrivateKey = originCoinWalletVector!.childPrivateKey;
     final originCoinPublicKey = originCoinPrivateKey.getG1();
 
@@ -108,7 +108,7 @@ class CatWalletService extends WalletService {
 
     // do the rest of the coins
     for (final catCoin in catCoins) {
-      final coinWalletVector = keychain.getWalletVectorByOuterHash(catCoin.puzzlehash);
+      final coinWalletVector = keychain.getWalletVector(catCoin.puzzlehash);
       final coinPrivateKey = coinWalletVector!.childPrivateKey;
       final coinPublicKey = coinPrivateKey.getG1();
 
