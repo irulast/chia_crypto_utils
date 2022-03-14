@@ -1,7 +1,7 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/full_node.dart';
-import 'package:chia_utils/src/api/full_node_service.dart';
 import 'package:chia_utils/src/cat/service/wallet.dart';
+import 'package:chia_utils/src/cat/transport/transport.dart';
 import 'package:chia_utils/src/core/models/payment.dart';
 import 'package:test/test.dart';
 
