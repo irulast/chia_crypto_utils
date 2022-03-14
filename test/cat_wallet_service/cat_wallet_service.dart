@@ -51,11 +51,11 @@ void main(List<String> args) async {
   final targetPuzzlehash = walletKeychain.unhardenedMap.values.toList()[1].puzzlehash;
   final changePuzzlehash = walletKeychain.unhardenedMap.values.toList()[0].puzzlehash;
   
-  // test('Produces valid spendbundle', () async {
-  //   final payment = Payment(100, targetPuzzlehash);
-  //   final spendBundle = catWalletService.createSpendBundle([payment], [catCoins[0]], changePuzzlehash, walletKeychain);
-  //   await fullNode.pushTransaction(spendBundle);
-  // });
+  test('Produces valid spendbundle', () async {
+    final payment = Payment(100, targetPuzzlehash);
+    final spendBundle = catWalletService.createSpendBundle([payment], [catCoins[0]], changePuzzlehash, walletKeychain);
+    await fullNode.pushTransaction(spendBundle);
+  });
 
   test('Produces valid spendbundle with fee', () async {
     final payment = Payment(100, targetPuzzlehash);

@@ -90,21 +90,20 @@ class CatWalletService extends WalletService {
     }
 
     final existingCoinsMessage = catCoins.fold(Puzzlehash.empty, (Puzzlehash previousValue, coin) => previousValue + coin.id) + originCoin.id;
-    final createdCoinsMessage = createdCoins.fold(Puzzlehash.empty, (Puzzlehash previousValue, coin) => previousValue + coin.id);
-    final message = (existingCoinsMessage + createdCoinsMessage).sha256Hash();
+    final message = existingCoinsMessage.sha256Hash();
     conditions.add(CreateCoinAnnouncementCondition(message));
 
     final originCoinInnerSolution = WalletService.makeSolutionFromConditions(conditions);
     final originCoinInnerPuzzle = getPuzzleFromPk(originCoinPublicKey);
 
-    final catPuzzle = makeCatPuzzle(originCoinInnerPuzzle, originCoin.assetId);
-    final catSolution = makeCatSolution(originCoinInnerPuzzle, originCoinInnerSolution, originCoin);
+    final originCatPuzzle = makeCatPuzzle(originCoinInnerPuzzle, originCoin.assetId);
+    final originCatSolution = makeCatSolution(originCoinInnerPuzzle, originCoinInnerSolution, originCoin);
 
-    final coinSpendAndSig = createCoinsSpendAndSignature(catSolution, catPuzzle, originCoinPrivateKey, originCoin);
+    final coinSpendAndSig = createCoinsSpendAndSignature(originCatSolution, originCatPuzzle, originCoinPrivateKey, originCoin);
     spends.add(coinSpendAndSig.coinSpend);
     signatures.add(coinSpendAndSig.signature);
 
-    final primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition.fromParts(originCoin.id, message);
+    final primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition.fromParts(originCoin.id, message, morphBytes: Puzzlehash([202]));
 
     // do the rest of the coins
     for (final catCoin in catCoins) {
@@ -118,7 +117,7 @@ class CatWalletService extends WalletService {
       final catPuzzle = makeCatPuzzle(innerPuzzle, catCoin.assetId);
       final catSolution = makeCatSolution(innerPuzzle, innerSolution, catCoin);
 
-      final coinSpendAndSig = createCoinsSpendAndSignature(catSolution, catPuzzle, originCoinPrivateKey, originCoin);
+      final coinSpendAndSig = createCoinsSpendAndSignature(catSolution, catPuzzle, coinPrivateKey, catCoin);
       spends.add(coinSpendAndSig.coinSpend);
       signatures.add(coinSpendAndSig.signature);
     } 

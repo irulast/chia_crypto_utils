@@ -9,7 +9,6 @@ class FullNodeApi {
 
   Future<List<CatCoin>> getCatCoinsByOuterPuzzleHashes(List<Puzzlehash> puzzlehashes, Puzzlehash assetId) async {
     final coins = await fullNode.getCoinRecordsByPuzzleHashes(puzzlehashes);
-    print(coins.length);
     final catCoins = <CatCoin>[];
     for(final coin in coins) {
       final parentCoin = await fullNode.getCoinByName(coin.parentCoinInfo);
@@ -32,7 +31,6 @@ class FullNodeApi {
         ),
       );
     }
-    print(catCoins.length);
     
     return catCoins;
   }

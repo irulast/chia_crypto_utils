@@ -9,7 +9,11 @@ class AssertCoinAnnouncementCondition implements Condition {
 
   AssertCoinAnnouncementCondition(this.announcementId);
 
-  factory AssertCoinAnnouncementCondition.fromParts(Puzzlehash coinId, Puzzlehash message) {
+  factory AssertCoinAnnouncementCondition.fromParts(Puzzlehash coinId, Puzzlehash message, {Puzzlehash? morphBytes}) {
+    if (morphBytes != null) {
+      final prefixedMessage = (morphBytes + message).sha256Hash();
+      return AssertCoinAnnouncementCondition((coinId + prefixedMessage).sha256Hash());
+    }
     return AssertCoinAnnouncementCondition((coinId + message).sha256Hash());
   }
 
