@@ -1,4 +1,6 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:chia_utils/src/cat/exceptions/invalid_cat_exception.dart';
+import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
 
 // ignore: must_be_immutable
 class CatCoin extends Coin {
@@ -23,7 +25,12 @@ class CatCoin extends Coin {
       parentCoinInfo: parentCoinInfo,
       puzzlehash: puzzlehash,
       amount: amount,
-    );
+    ) {
+      final uncurriedParentPuzzle = parentCoinSpend.puzzleReveal.uncurry().program;
+      if(uncurriedParentPuzzle.toSource() != catProgram.toSource()) {
+        throw InvalidCatException(message: 'Parent puzzle is not cat puzzle');
+      }
+    }
   
   Program get lineageProof {
     return Program.list([

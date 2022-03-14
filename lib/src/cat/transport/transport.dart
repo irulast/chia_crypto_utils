@@ -16,14 +16,7 @@ class CatTransport {
       final parentCoin = await fullNode.getCoinByName(coin.parentCoinInfo);
 
       final parentCoinSpend = await fullNode.getPuzzleAndSolution(parentCoin.id, parentCoin.spentBlockIndex);
-
-      //verify here that parent coin puzzle is the cat puzzle 
-      final uncurriedParentPuzzle = parentCoinSpend.puzzleReveal.uncurry().program;
-
-      if(uncurriedParentPuzzle.toSource() != catProgram.toSource()) {
-        throw InvalidCatException(message: 'Parent puzzle is not cat puzzle');
-      }
-
+      
       catCoins.add(
         CatCoin(
           parentCoinSpend: parentCoinSpend, 
