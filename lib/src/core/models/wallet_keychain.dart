@@ -2,26 +2,21 @@ import 'package:chia_utils/chia_crypto_utils.dart';
 
 class WalletKeychain {
   Map<Puzzlehash, WalletVector> hardenedMap = <Puzzlehash, WalletVector>{};
-  Map<Puzzlehash, WalletVector> unhardenedMap = <Puzzlehash, WalletVector>{};
-  Map<Puzzlehash, WalletVector> outerHashMap = <Puzzlehash, WalletVector>{};
+  Map<Puzzlehash, UnhardenedWalletVector> unhardenedMap = <Puzzlehash, UnhardenedWalletVector>{};
 
   WalletVector? getWalletVector(Puzzlehash puzzlehash) {
-    final walletVector = unhardenedMap[puzzlehash.hex];
+    final walletVector = unhardenedMap[puzzlehash];
 
     if (walletVector != null) {
       return walletVector;
     }
 
-    return hardenedMap[puzzlehash.hex];
-  }
-
-  WalletVector? getWalletVectorByOuterHash(Puzzlehash outerPuzzleHash) {
-    return outerHashMap[outerPuzzleHash];
+    return hardenedMap[puzzlehash];
   }
 
   WalletKeychain(List<WalletSet> walletSets) {
     final newHardenedMap = <Puzzlehash, WalletVector>{};
-    final newUnhardenedMap = <Puzzlehash, WalletVector>{};
+    final newUnhardenedMap = <Puzzlehash, UnhardenedWalletVector>{};
 
     for (final walletSet in walletSets) {
       newHardenedMap[walletSet.hardened.puzzlehash] = walletSet.hardened;
@@ -33,11 +28,14 @@ class WalletKeychain {
   }
 
   void addOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
+    final entriesToAdd = <Puzzlehash, UnhardenedWalletVector>{};
     for (final walletVector in unhardenedMap.values) {
       final outerPuzzleHash = makeOuterPuzzleHash(walletVector.puzzlehash, assetId);
       walletVector.assetIdtoOuterPuzzlehash[assetId] = outerPuzzleHash;
-      outerHashMap[outerPuzzleHash] = walletVector;
+      entriesToAdd[outerPuzzleHash] = walletVector;
     }
+    unhardenedMap.addAll(entriesToAdd);
+    
   }
 
   static final Program catOuterPuzzleHashGenerator = Program.parse("(a (q 2 30 (c 2 (c 5 (c 23 (c (sha256 28 11) (c (sha256 28 5) ())))))) (c (q (a 4 . 1) (q . 2) (a (i 5 (q 2 22 (c 2 (c 13 (c (sha256 26 (sha256 28 20) (sha256 26 (sha256 26 (sha256 28 18) 9) (sha256 26 11 (sha256 28 ())))) ())))) (q . 11)) 1) 11 26 (sha256 28 8) (sha256 26 (sha256 26 (sha256 28 18) 5) (sha256 26 (a 22 (c 2 (c 7 (c (sha256 28 28) ())))) (sha256 28 ())))) 1))");

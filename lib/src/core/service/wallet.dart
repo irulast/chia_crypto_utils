@@ -4,6 +4,7 @@ import 'package:chia_utils/src/context/context.dart';
 import 'package:chia_utils/src/core/models/blockchain_network.dart';
 import 'package:chia_utils/src/core/models/conditions/agg_sig_me_condition.dart';
 import 'package:chia_utils/src/core/models/conditions/assert_coin_announcement_condition.dart';
+import 'package:chia_utils/src/core/models/conditions/assert_coin_id_condition.dart';
 import 'package:chia_utils/src/core/models/conditions/condition.dart';
 import 'package:chia_utils/src/core/models/conditions/create_coin_condition.dart';
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/duplicate_coin_exception.dart';
@@ -57,6 +58,16 @@ class WalletService {
     final messages = <List<int>>[];
     for (final spend in spendBundle.coinSpends) {
       final outputConditions = spend.puzzleReveal.run(spend.solution).program.toList();
+      final assertMyCoinIdConditions = outputConditions.where(AssertMyCoinIdCondition.isThisCondition).toList();
+      if (assertMyCoinIdConditions.isNotEmpty) {
+        assert(assertMyCoinIdConditions.length == 1);
+        final assertMyCoinIdConditionProgram = assertMyCoinIdConditions[0];
+        print(spend.coin.id.hex);
+        print(AssertMyCoinIdCondition.fromProgram(assertMyCoinIdConditionProgram).coinId.hex);
+      }
+      
+      assert(spend.coin.puzzlehash == Puzzlehash(spend.puzzleReveal.hash()));
+      
 
       // look for assert agg sig me condition
       final aggSigMeProgram = outputConditions.singleWhere(AggSigMeCondition.isThisCondition);

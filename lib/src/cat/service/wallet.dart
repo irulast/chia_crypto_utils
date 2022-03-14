@@ -28,6 +28,7 @@ class CatWalletService extends WalletService {
       Puzzlehash? originId,
     }
     ) {
+    final catCoins = List<CatCoin>.from(catCoinsInput);
     final spendBundlesToAggregate = <SpendBundle>[];
     if (fee > 0) {
       assert(standardCoinsForFee.isNotEmpty, 'If passing in a fee, you must also pass in standard coins to use for that fee.');
@@ -37,10 +38,9 @@ class CatWalletService extends WalletService {
       final spendBundleForFee = standardWalletService.createSpendBundle(standardCoinsForFee, 0, Address.fromPuzzlehash(changePuzzlehash, blockchainNetwork.addressPrefix), changePuzzlehash, keychain);
       spendBundlesToAggregate.add(spendBundleForFee);
     }
-
     final totalPaymentAmount = payments.fold(0, (int previousValue, payment) => previousValue + payment.amount);
 
-    final catCoins = List<CatCoin>.from(catCoinsInput);
+    
 
     // TODO: only CATs with the same TAIL can be summed? This may result in undefined behavior with mixed kinds
     final totalCatCoinValue = catCoins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
@@ -59,7 +59,7 @@ class CatWalletService extends WalletService {
     final originCoin = catCoins.removeAt(originIndex);
 
     // create coin spend for origin coin
-    final originCoinWalletVector = keychain.getWalletVectorByOuterHash(originCoin.puzzlehash);
+    final originCoinWalletVector = keychain.getWalletVector(originCoin.puzzlehash);
     final originCoinPrivateKey = originCoinWalletVector!.childPrivateKey;
     final originCoinPublicKey = originCoinPrivateKey.getG1();
 
@@ -105,10 +105,24 @@ class CatWalletService extends WalletService {
     signatures.add(coinSpendAndSig.signature);
 
     final primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition.fromParts(originCoin.id, message);
+    // final message = (catCoins.fold(Puzzlehash.empty, (Puzzlehash previousValue, coin) => previousValue + coin.id) + originCoin.id).sha256Hash();
+    // conditions.add(CreateCoinAnnouncementCondition(message));
+    // final primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition.fromParts(originCoin.id, Puzzlehash([202]) + message);
+    // if (fee > 0) {
+    //   assert(standardCoinsForFee.isNotEmpty, 'If passing in a fee, you must also pass in standard coins to use for that fee.');
+    //   final totalStandardCoinsValue = standardCoinsForFee.fold(0, (int previousValue, standardCoin) => previousValue + standardCoin.amount);
+    //   assert(totalStandardCoinsValue >= fee, 'Total value of passed in standad coins is not enough to cover fee.');
+
+    //   final spendBundleForFee = standardWalletService.createSpendBundle(standardCoinsForFee, 0, Address.fromPuzzlehash(changePuzzlehash, blockchainNetwork.addressPrefix), changePuzzlehash, keychain, fee: fee);
+    //   print(spendBundleForFee.coinSpends[0].solution.toSource());
+    //   spendBundlesToAggregate.add(spendBundleForFee);
+    // }
+
+    
 
     // do the rest of the coins
     for (final catCoin in catCoins) {
-      final coinWalletVector = keychain.getWalletVectorByOuterHash(catCoin.puzzlehash);
+      final coinWalletVector = keychain.getWalletVector(catCoin.puzzlehash);
       final coinPrivateKey = coinWalletVector!.childPrivateKey;
       final coinPublicKey = coinPrivateKey.getG1();
 
