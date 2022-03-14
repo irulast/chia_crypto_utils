@@ -10,6 +10,22 @@ import 'package:chia_utils/src/bls/field/field_base.dart';
 import 'package:quiver/iterables.dart';
 
 class EC {
+  const EC(
+    this.q,
+    this.a,
+    this.b,
+    this.gx,
+    this.gy,
+    this.g2x,
+    this.g2y,
+    this.n,
+    this.h,
+    this.x,
+    this.k,
+    this.sqrtN3,
+    this.sqrtN3m1o2,
+  );
+
   final BigInt q;
   final Field a;
   final Field b;
@@ -23,8 +39,6 @@ class EC {
   final BigInt k;
   final BigInt sqrtN3;
   final BigInt sqrtN3m1o2;
-  EC(this.q, this.a, this.b, this.gx, this.gy, this.g2x, this.g2y, this.n,
-      this.h, this.x, this.k, this.sqrtN3, this.sqrtN3m1o2);
 }
 
 final defaultEc = EC(q, a, b, gx, gy, g2x, g2y, n, h, x, k, sqrtN3, sqrtN3m1o2);
@@ -46,8 +60,8 @@ bool signFq2(Fq2 element, {EC? ec}) {
 
 Field yForX(Field x, {EC? ec}) {
   ec ??= defaultEc;
-  var u = x * x * x + ec.a * x + ec.b as dynamic;
-  var y = u.modSqrt();
+  final u = x * x * x + ec.a * x + ec.b;
+  var y = (u as dynamic).modSqrt();
   if (y == BigInt.zero || !AffinePoint(x, y, false, ec: ec).isOnCurve) {
     throw ArgumentError('No y for point x.');
   }

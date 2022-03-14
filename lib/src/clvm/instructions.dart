@@ -5,44 +5,68 @@ import 'package:chia_utils/src/clvm/keywords.dart';
 import 'package:chia_utils/src/clvm/operators.dart';
 import 'package:chia_utils/src/clvm/program.dart';
 
+/// An [Instruction] describe the interface for functions like:
+/// - [swap]
+/// - [cons]
+/// - [eval]
+/// - [apply]
+typedef Instruction = BigInt Function(
+  List<dynamic> instructions,
+  List<Program> stack,
+  RunOptions options,
+);
+
 BigInt swap(
-    List<dynamic> instructions, List<Program> stack, RunOptions options) {
-  var second = stack.removeLast();
-  var first = stack.removeLast();
-  stack.add(second);
-  stack.add(first);
+  List<dynamic> instructions,
+  List<Program> stack,
+  RunOptions options,
+) {
+  final second = stack.removeLast();
+  final first = stack.removeLast();
+  stack
+    ..add(second)
+    ..add(first);
   return BigInt.zero;
 }
 
 BigInt cons(
-    List<dynamic> instructions, List<Program> stack, RunOptions options) {
-  var first = stack.removeLast();
-  var second = stack.removeLast();
+  List<dynamic> instructions,
+  List<Program> stack,
+  RunOptions options,
+) {
+  final first = stack.removeLast();
+  final second = stack.removeLast();
   stack.add(Program.cons(first, second));
   return BigInt.zero;
 }
 
 BigInt eval(
-    List<dynamic> instructions, List<Program> stack, RunOptions options) {
-  var pair = stack.removeLast();
-  var program = pair.first();
-  var args = pair.rest();
+  List<dynamic> instructions,
+  List<Program> stack,
+  RunOptions options,
+) {
+  final pair = stack.removeLast();
+  final program = pair.first();
+  final args = pair.rest();
   if (program.isAtom) {
-    var output = traversePath(program, args);
+    final output = traversePath(program, args);
     stack.add(output.program);
     return output.cost;
   }
-  var op = program.first();
+  final op = program.first();
   if (op.isCons) {
-    var newOperator = op.first();
-    var mustBeNil = op.rest();
+    final newOperator = op.first();
+    final mustBeNil = op.rest();
     if (newOperator.isCons || !mustBeNil.isNull) {
       throw StateError(
-          'Operators that are lists must contain a single atom${op.positionSuffix}.');
+        'Operators that are lists must contain a '
+        'single atom${op.positionSuffix}.',
+      );
     }
-    var newOperandList = program.rest();
-    stack.add(newOperator);
-    stack.add(newOperandList);
+    final newOperandList = program.rest();
+    stack
+      ..add(newOperator)
+      ..add(newOperandList);
     instructions.add(apply);
     return Cost.applyCost;
   }
@@ -55,9 +79,10 @@ BigInt eval(
   stack.add(op);
   while (!operandList.isNull) {
     stack.add(Program.cons(operandList.first(), args));
-    instructions.add(cons);
-    instructions.add(eval);
-    instructions.add(swap);
+    instructions
+      ..add(cons)
+      ..add(eval)
+      ..add(swap);
     operandList = operandList.rest();
   }
   stack.add(Program.nil);
@@ -65,19 +90,22 @@ BigInt eval(
 }
 
 BigInt apply(
-    List<dynamic> instructions, List<Program> stack, RunOptions options) {
-  var operandList = stack.removeLast();
-  var op = stack.removeLast();
+  List<dynamic> instructions,
+  List<Program> stack,
+  RunOptions options,
+) {
+  final operandList = stack.removeLast();
+  final op = stack.removeLast();
   if (op.isCons) {
     throw StateError('An internal error occurred${op.positionSuffix}.');
   }
   if (bytesEqual(op.atom, encodeBigInt(keywords['a']!))) {
-    var args = operandList.toList(size: 2);
+    final args = operandList.toList(size: 2);
     stack.add(Program.cons(args[0], args[1]));
     instructions.add(eval);
     return Cost.applyCost;
   }
-  var output = runOperator(op, operandList, options);
+  final output = runOperator(op, operandList, options);
   stack.add(output.program);
   return output.cost;
 }

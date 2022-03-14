@@ -1,15 +1,23 @@
-## 1.0.0
+## 1.0.4
 
-- Initial version.
+- Added support for Flutter Mobile
+- Optimization for FieldExtBase.toBool() method
+- JacobianPoint is immutable
+- FullNode and Client are immutable
+- breaking: Program.at() returns void instead of Program because it is now thought to be used with cascade operator
 
-## 1.0.1
+## 1.0.3
 
-- Added wallet tools.
+- Added spend bundle validation. Minor bug fixes.
 
 ## 1.0.2
 
 - Added standard transaction support and core Chia models.
 
-## 1.0.3
+## 1.0.1
 
-- Added spend bundle validation. Minor bug fixes.
+- Added wallet tools.
+
+## 1.0.0
+
+- Initial version.

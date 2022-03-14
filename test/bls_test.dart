@@ -97,11 +97,11 @@ void main() {
       test(
           'For ikm(${item.ikm}), salt(${item.salt}), info(${item.info}), prkExpected(${item.prkExpected}), okmExpected(${item.okmExpected})',
           () {
-        var salt = HexDecoder().convert(item.salt);
-        var ikm = HexDecoder().convert(item.ikm);
-        var info = HexDecoder().convert(item.info);
-        var prkExpected = HexDecoder().convert(item.prkExpected);
-        var okmExpected = HexDecoder().convert(item.okmExpected);
+        var salt = const HexDecoder().convert(item.salt);
+        var ikm = const HexDecoder().convert(item.ikm);
+        var info = const HexDecoder().convert(item.info);
+        var prkExpected = const HexDecoder().convert(item.prkExpected);
+        var okmExpected = const HexDecoder().convert(item.okmExpected);
         var prk = extract(salt, ikm);
         var okm = expand(item.L, prk, info);
         expect(prkExpected.length == 32, isTrue);
@@ -140,15 +140,18 @@ void main() {
       test(
           'For seed(${item.seed}), masterSk(${item.masterSk}), childSk(${item.childSk}), childIndex(${item.childIndex})',
           () {
-        var seed = HexDecoder().convert(item.seed);
+        var seed = const HexDecoder().convert(item.seed);
         var master = BasicSchemeMPL.keyGen(seed);
         var child = BasicSchemeMPL.deriveChildSk(master, item.childIndex);
         expect(master.toBytes().length == 32, isTrue);
         expect(child.toBytes().length == 32, isTrue);
         expect(
-            bytesEqual(master.toBytes(), HexDecoder().convert(item.masterSk)),
+            bytesEqual(
+                master.toBytes(), const HexDecoder().convert(item.masterSk)),
             isTrue);
-        expect(bytesEqual(child.toBytes(), HexDecoder().convert(item.childSk)),
+        expect(
+            bytesEqual(
+                child.toBytes(), const HexDecoder().convert(item.childSk)),
             isTrue);
       });
     }
@@ -531,7 +534,7 @@ void main() {
     ];
     for (var s in invalidInputs1) {
       test('G1 $s', () {
-        var bytes = HexDecoder().convert(s);
+        var bytes = const HexDecoder().convert(s);
         expect(() {
           assert(JacobianPoint.fromBytesG1(bytes).isValid);
         }, throwsA(isA<dynamic>()));
@@ -539,7 +542,7 @@ void main() {
     }
     for (var s in invalidInputs2) {
       test('G2 $s', () {
-        var bytes = HexDecoder().convert(s);
+        var bytes = const HexDecoder().convert(s);
         expect(() {
           assert(JacobianPoint.fromBytesG2(bytes).isValid);
         }, throwsA(isA<dynamic>()));
