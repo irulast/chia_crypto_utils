@@ -150,14 +150,14 @@ class Program {
   ProgramAndArguments uncurry() {
     final programList = toList();
     if (programList.length != 3) {
-      throw Exception('Program is wrong length, should contain 3: (operator, puzzle, arguments)');
+      throw ArgumentError('Program is wrong length, should contain 3: (operator, puzzle, arguments)');
     }
     if (programList[0].toInt() != 2) {
-      throw Exception('Program is missing apply operator (a)');
+      throw ArgumentError('Program is missing apply operator (a)');
     }
     final uncurriedModule = _matchQuotedProgram(programList[1]);
     if (uncurriedModule == null) {
-      throw Exception('Puzzle did not match expected pattern');
+      throw ArgumentError('Puzzle did not match expected pattern');
     }
     final uncurriedArgs = _matchCurriedArgs(programList[2]);
 
@@ -166,14 +166,10 @@ class Program {
 
   static Program? _matchQuotedProgram(Program program) {
     final programList = program.toList();
-    try {
-      if (programList.length > 2 && programList[0].toInt() == 1 && programList[1].toInt() == 2) {
-        return program.cons[1];
-      }
-      return null;
-    } catch (e) {
-      return null;
+    if (programList.length > 2 && programList[0].toInt() == 1 && programList[1].toInt() == 2) {
+      return program.cons[1];
     }
+    return null;
   }
 
   static List<Program> _matchCurriedArgs(Program program) {
@@ -181,34 +177,30 @@ class Program {
     return result.arguments; 
   }
 
-  static ProgramAndArguments _matchCurriedArgsHelper(List<Program> arguments, Program inputProgram) {
+  static ProgramAndArguments _matchCurriedArgsHelper(List<Program> uncurriedArguments, Program inputProgram) {
     final inputProgramList = inputProgram.toList();
     // base case
     if (inputProgramList.isEmpty) {
-      return ProgramAndArguments(arguments, inputProgram);
+      return ProgramAndArguments(uncurriedArguments, inputProgram);
     }
     final atom = _matchQuotedAtom(inputProgramList[1]);
     if (atom != null) {
-      arguments.add(atom);
+      uncurriedArguments.add(atom);
     } else{
       final program = _matchQuotedProgram(inputProgramList[1]);
       if (program == null) {
-        return ProgramAndArguments(arguments, inputProgram);
+        return ProgramAndArguments(uncurriedArguments, inputProgram);
       }
-      arguments.add(program);
+      uncurriedArguments.add(program);
     }
-
-    return _matchCurriedArgsHelper(arguments, inputProgramList[2]);
+    final nextArgumentToParse = inputProgramList[2];
+    return _matchCurriedArgsHelper(uncurriedArguments, nextArgumentToParse);
   }
 
   static Program? _matchQuotedAtom(Program program) {
     final cons = program.cons;
-    try {
-      if (cons[0].toInt() == 1 && cons[1].isAtom) {
-        return cons[1];
-      }
-    } catch (e) {
-      return null;
+    if (cons[0].toInt() == 1 && cons[1].isAtom) {
+      return cons[1];
     }
     return null;
   }

@@ -10,11 +10,10 @@ import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/dupli
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/failed_signature_verification.dart';
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/incorrect_announcement_id_exception.dart';
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/multiple_origin_coin_exception.dart';
-// TODO: rename to BaseWalletService with git rename 
-class WalletService {
+class BaseWalletService {
   Context context;
 
-  WalletService(this.context);
+  BaseWalletService(this.context);
 
   BlockchainNetwork get blockchainNetwork {
     return context.get<BlockchainNetwork>();

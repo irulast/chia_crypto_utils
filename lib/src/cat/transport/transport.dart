@@ -1,11 +1,13 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/full_node.dart';
+import 'package:chia_utils/src/cat/exceptions/invalid_cat_exception.dart';
 import 'package:chia_utils/src/cat/models/cat_coin.dart';
+import 'package:chia_utils/src/cat/puzzles/cat.clvm.hex.dart';
 
-class FullNodeApi {
+class CatTransport {
   FullNode fullNode;
 
-  FullNodeApi(this.fullNode);
+  CatTransport(this.fullNode);
 
   Future<List<CatCoin>> getCatCoinsByOuterPuzzleHashes(List<Puzzlehash> puzzlehashes, Puzzlehash assetId) async {
     final coins = await fullNode.getCoinRecordsByPuzzleHashes(puzzlehashes);
@@ -16,6 +18,11 @@ class FullNodeApi {
       final parentCoinSpend = await fullNode.getPuzzleAndSolution(parentCoin.id, parentCoin.spentBlockIndex);
 
       //verify here that parent coin puzzle is the cat puzzle 
+      final uncurriedParentPuzzle = parentCoinSpend.puzzleReveal.uncurry().program;
+
+      if(uncurriedParentPuzzle.toSource() != catProgram.toSource()) {
+        throw InvalidCatException(message: 'Parent puzzle is not cat puzzle');
+      }
 
       catCoins.add(
         CatCoin(

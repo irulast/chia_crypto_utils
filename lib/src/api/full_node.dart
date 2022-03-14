@@ -1,7 +1,6 @@
 // ignore_for_file: avoid_dynamic_calls
 
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:chia_utils/src/api/client.dart';
 import 'package:chia_utils/src/core/models/coin.dart';
@@ -45,7 +44,6 @@ class FullNode {
       throw Exception('Failed to fetch coin records: ${responseData.body}');
     }
 
-    print(responseData.body);
     // ignore: avoid_dynamic_calls
     final coins = (jsonDecode(responseData.body)['coin_records'] as List)
         .map(
@@ -63,8 +61,6 @@ class FullNode {
       {'spend_bundle': spendBundle.toJson()},
     );
 
-    log(responseData.body);
-
     if (responseData.statusCode != 200) {
       throw Exception('Failed to push transaction: ${responseData.body}');
     }
@@ -75,7 +71,6 @@ class FullNode {
       'name': coinId.hex,
     });
 
-    print(responseData.body);
 
     if (responseData.statusCode != 200) {
       throw Exception('Failed to push transaction: ${responseData.body}');
@@ -90,7 +85,7 @@ class FullNode {
       'coin_id': coinId.hex,
       'height': height,
     });
-    // print(responseData.body);
+
     if (responseData.statusCode != 200) {
       throw Exception('Failed to get puzzle and solution: ${responseData.body}');
     }

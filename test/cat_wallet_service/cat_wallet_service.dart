@@ -1,6 +1,6 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/full_node.dart';
-import 'package:chia_utils/src/api/transport.dart';
+import 'package:chia_utils/src/api/full_node_service.dart';
 import 'package:chia_utils/src/cat/service/wallet.dart';
 import 'package:chia_utils/src/core/models/payment.dart';
 import 'package:test/test.dart';
@@ -17,7 +17,7 @@ void main(List<String> args) async {
   context.registerFactory(NetworkFactory(blockcahinNetworkLoader.loadfromLocalFileSystem));
   final catWalletService = CatWalletService(context);
   final fullNode = FullNode('http://localhost:4000');
-  final fullNodeApi = FullNodeApi(fullNode);
+  final catTransport = CatTransport(fullNode);
 
   const targetAssetIdHex = '625c2184e97576f5df1be46c15b2b8771c79e4e6f0aa42d3bfecaebe733f4b8c';
 
@@ -43,7 +43,7 @@ void main(List<String> args) async {
 
   final outerPuzzleHashesToSearchFor = walletKeychain.unhardenedMap.values
     .map((e) => e.assetIdtoOuterPuzzlehash[targetAssetId]!).toList();
-  final catCoins = await fullNodeApi.getCatCoinsByOuterPuzzleHashes(outerPuzzleHashesToSearchFor, targetAssetId);
+  final catCoins = await catTransport.getCatCoinsByOuterPuzzleHashes(outerPuzzleHashesToSearchFor, targetAssetId);
   final standardCoins = await fullNode.getCoinRecordsByPuzzleHashes(walletKeychain.unhardenedMap.values.map((e) => e.puzzlehash).toList());
 
   print(catCoins.map((e) => e.puzzlehash.hex));
@@ -54,7 +54,7 @@ void main(List<String> args) async {
   test('Produces valid spendbundle', () async {
     final payment = Payment(100, targetPuzzlehash);
     final spendBundle = catWalletService.createSpendBundle([payment], [catCoins[0]], changePuzzlehash, walletKeychain);
-    await fullNode.pushTransaction(spendBundle);
+    // await fullNode.pushTransaction(spendBundle);
   });
 
   test('Produces valid spendbundle with fee', () async {

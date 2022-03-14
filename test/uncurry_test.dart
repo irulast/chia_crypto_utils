@@ -33,14 +33,14 @@ void main() {
 ProgramAndArguments uncurry(Program program) {
   final programList = program.toList();
   if (programList.length != 3) {
-    throw Exception('Program is wrong length, should contain 3: (operator, puzzle, arguments)');
+    throw ArgumentError('Program is wrong length, should contain 3: (operator, puzzle, arguments)');
   }
   if (programList[0].toInt() != 2) {
-    throw Exception('Program is missing apply operator (a)');
+    throw ArgumentError('Program is missing apply operator (a)');
   }
   final uncurriedModule = matchQuotedProgram(programList[1]);
   if (uncurriedModule == null) {
-    throw Exception('Puzzle did not match expected pattern');
+    throw ArgumentError('Puzzle did not match expected pattern');
   }
   final uncurriedArgs = matchCurriedArgs(programList[2]);
 
