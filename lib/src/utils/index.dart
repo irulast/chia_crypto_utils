@@ -1,7 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/utils/programs/programs.dart';
+import 'package:chia_utils/src/core/puzzles/calculate_synthetic_public_key/calculate_synthetic_public_key.clvm.hex.dart';
+import 'package:chia_utils/src/standard/puzzles/default_hidden_puzzle/default_hidden_puzzle.clvm.hex.dart';
+import 'package:chia_utils/src/standard/puzzles/p2_delegated_puzzle_or_hidden_puzzle/p2_delegated_puzzle_or_hidden_puzzle.clvm.hex.dart';
 import 'package:crypto/crypto.dart';
 
 // cribbed from chia/wallet/derive_keys.py
@@ -105,14 +107,14 @@ PrivateKey masterSkToPoolingAuthenticationSk(
 
 // cribbed from chia/wallet/puzzles/p2_delegated_puzzle_or_hidden_puzzle.py
 Program getPuzzleFromPk(JacobianPoint publicKey) {
-  final syntheticPubKey = calculateSyntheticKeyProgram.run(
+  final syntheticPubKey = calculateSyntheticPublicKeyProgram.run(
     Program.list([
       Program.fromBytes(publicKey.toBytes()),
-      Program.fromBytes(defaultHiddenPuzzle.hash())
+      Program.fromBytes(defaultHiddenPuzzleProgram.hash())
     ]),
   );
 
-  final curried = standardTransactionPuzzle.curry([syntheticPubKey.program]);
+  final curried = p2DelegatedPuzzleOrHiddenPuzzleProgram.curry([syntheticPubKey.program]);
 
   return curried;
 }
@@ -123,7 +125,7 @@ final groupOrder = BigInt.parse(
 
 BigInt calculateSyntheticOffset(JacobianPoint publicKey) {
   final blob =
-      sha256.convert(publicKey.toBytes() + defaultHiddenPuzzle.hash()).bytes;
+      sha256.convert(publicKey.toBytes() + defaultHiddenPuzzleProgram.hash()).bytes;
   // print(blob);
   final offset = bytesToBigInt(blob, Endian.big, signed: true);
   // print(offset.toString());
