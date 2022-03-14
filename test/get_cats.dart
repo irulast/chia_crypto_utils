@@ -6,8 +6,6 @@ import 'package:chia_utils/src/core/models/conditions/create_coin_condition.dart
 import 'package:chia_utils/src/core/service/base_wallet.dart';
 import 'package:hex/hex.dart';
 
-import 'uncurry_test.dart';
-
 void main() async {
   final fullNode = FullNode('http://localhost:4000');
   final configurationProvider = ConfigurationProvider()
