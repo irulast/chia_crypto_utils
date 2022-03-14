@@ -40,8 +40,7 @@ abstract class FieldExtBase implements Field {
   FieldExtBase construct(BigInt Q, List<Field> args);
 
   @override
-  bool toBool() =>
-      !elements.map((element) => element.toBool()).toList().contains(false);
+  bool toBool() => elements.every((element) => element.toBool());
 
   @override
   FieldExtBase operator -() {
