@@ -62,7 +62,7 @@ Token consumeUntilWhitespace(String text, int index) {
 Program tokenizeCons(String source, Iterator<Token> tokens) {
   var token = tokens.current;
   if (token.text == ')') {
-    return Program.nil.at(Position(source, token.index));
+    return Program.nil..at(Position(source, token.index));
   }
   var consStart = token.index;
   var first = tokenizeExpr(source, tokens);
@@ -92,13 +92,13 @@ Program tokenizeCons(String source, Iterator<Token> tokens) {
   } else {
     rest = tokenizeCons(source, tokens);
   }
-  return Program.cons(first, rest).at(Position(source, consStart));
+  return Program.cons(first, rest)..at(Position(source, consStart));
 }
 
 Program? tokenizeInt(String source, Token token) {
   return RegExp(r'^[+\-]?[0-9]+(?:_[0-9]+)*$').hasMatch(token.text)
-      ? Program.fromBigInt(BigInt.parse(token.text.replaceAll('_', '')))
-          .at(Position(source, token.index))
+      ? (Program.fromBigInt(BigInt.parse(token.text.replaceAll('_', '')))
+        ..at(Position(source, token.index)))
       : null;
 }
 
@@ -110,7 +110,7 @@ Program? tokenizeHex(String source, Token token) {
       hex = '0$hex';
     }
     try {
-      return Program.fromHex(hex).at(Position(source, token.index));
+      return Program.fromHex(hex)..at(Position(source, token.index));
     } catch (e) {
       throw StateError('Invalid hex at ${token.index}: ${token.text}.');
     }
@@ -132,7 +132,7 @@ Program? tokenizeQuotes(String source, Token token) {
         'Unterminated string ${token.text} at ${Position(source, token.index)}.');
   }
   return Program.fromString(token.text.substring(1, token.text.length - 1))
-      .at(Position(source, token.index));
+    ..at(Position(source, token.index));
 }
 
 Program? tokenizeSymbol(String source, Token token) {
@@ -142,9 +142,9 @@ Program? tokenizeSymbol(String source, Token token) {
   }
   var keyword = keywords[text];
   return (keyword != null
-          ? Program.fromBigInt(keyword)
-          : Program.fromString(text))
-      .at(Position(source, token.index));
+      ? Program.fromBigInt(keyword)
+      : Program.fromString(text))
+    ..at(Position(source, token.index));
 }
 
 Program tokenizeExpr(String source, Iterator<Token> tokens) {

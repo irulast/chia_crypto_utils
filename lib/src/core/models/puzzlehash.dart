@@ -20,7 +20,8 @@ class Puzzlehash {
   factory Puzzlehash.fromHex(String phHex) {
     if (phHex.startsWith(bytesPrefix)) {
       return Puzzlehash(
-          const HexDecoder().convert(phHex.replaceFirst(bytesPrefix, '')));
+        const HexDecoder().convert(phHex.replaceFirst(bytesPrefix, '')),
+      );
     }
     return Puzzlehash(const HexDecoder().convert(phHex));
   }

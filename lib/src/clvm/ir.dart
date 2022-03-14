@@ -2,7 +2,7 @@ import 'package:chia_utils/src/clvm/bytes.dart';
 import 'package:chia_utils/src/clvm/program.dart';
 
 Program deserialize(Iterator<int> program) {
-  List<int> sizeBytes = [];
+  final sizeBytes = <int>[];
   if (program.current <= 0x7f) {
     return Program.fromBytes([program.current]);
   } else if (program.current <= 0xbf) {
@@ -41,17 +41,17 @@ Program deserialize(Iterator<int> program) {
     if (!program.moveNext()) {
       throw StateError('Expected first atom in cons.');
     }
-    var first = deserialize(program);
+    final first = deserialize(program);
     if (!program.moveNext()) {
       throw StateError('Expected rest atom in cons.');
     }
-    var rest = deserialize(program);
+    final rest = deserialize(program);
     return Program.cons(first, rest);
   } else {
     throw StateError('Invalid encoding.');
   }
-  var size = decodeInt(sizeBytes);
-  List<int> bytes = [];
+  final size = decodeInt(sizeBytes);
+  final bytes = <int>[];
   for (var i = 0; i < size; i++) {
     if (!program.moveNext()) {
       throw StateError('Expected next byte in atom.');
