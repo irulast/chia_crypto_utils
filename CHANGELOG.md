@@ -1,3 +1,11 @@
+## 1.0.4
+
+- Added support for Flutter Mobile
+- Optimization for FieldExtBase.toBool() method
+- JacobianPoint is immutable
+- FullNode and Client are immutable
+- breaking: Program.at() returns void instead of Program because it is now thought to be used with cascade operator
+
 ## 1.0.3
 
 - Added spend bundle validation. Minor bug fixes.
