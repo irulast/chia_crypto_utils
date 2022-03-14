@@ -1,6 +1,8 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 part of 'programs.dart';
 
-// from chia/wallet/puzzles/calculate_synthetic_public_key.clvm
-final calculateSyntheticKeyProgram = Program.deserializeHexFile(
-  'lib/src/core/puzzles/calculate_synthetic_public_key/calculate_synthetic_public_key.clvm.hex',
+// program: lib/src/core/puzzles/calculate_synthetic_public_key/calculate_synthetic_public_key.clvm.hex
+final calculateSyntheticKeyProgram = Program.deserializeHex(
+  'ff1dff02ffff1effff0bff02ff05808080',
 );
