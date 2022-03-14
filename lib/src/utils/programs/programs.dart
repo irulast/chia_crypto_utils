@@ -1,6 +1,6 @@
-part of 'index.dart';
-
 // from chia/wallet/puzzles/p2_delegated_puzzle_or_hidden_puzzle.clvm
+import 'package:chia_utils/chia_crypto_utils.dart';
+
 final standardTransactionPuzzle = Program.deserializeHexFile(
   'lib/src/standard/puzzles/p2_delegated_puzzle_or_hidden_puzzle.clvm.hex',
 );
