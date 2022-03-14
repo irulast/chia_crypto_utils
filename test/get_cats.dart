@@ -3,6 +3,7 @@ import 'package:chia_utils/src/api/full_node.dart';
 import 'package:chia_utils/src/context/context.dart';
 import 'package:chia_utils/src/core/models/conditions/condition.dart';
 import 'package:chia_utils/src/core/models/conditions/create_coin_condition.dart';
+import 'package:chia_utils/src/core/service/base_wallet.dart';
 import 'package:hex/hex.dart';
 
 import 'uncurry_test.dart';
@@ -140,7 +141,7 @@ void main() async {
     Program.fromInt(catCoin.amount),
   ]);
 
-  final innerSolution = StandardWalletService.makeSolutionFromConditions(conditions);
+  final innerSolution = BaseWalletService.makeSolutionFromConditions(conditions);
 
   var catSolution = Program.list([
     innerSolution, 

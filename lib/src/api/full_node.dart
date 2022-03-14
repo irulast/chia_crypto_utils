@@ -44,7 +44,6 @@ class FullNode {
       throw Exception('Failed to fetch coin records: ${responseData.body}');
     }
 
-    // ignore: avoid_dynamic_calls
     final coins = (jsonDecode(responseData.body)['coin_records'] as List)
         .map(
           (dynamic value) =>

@@ -21,16 +21,11 @@ class BaseWalletService {
 
   CoinSpendAndSignature createCoinsSpendAndSignature(Program solution, Program puzzle, PrivateKey privateKey, Coin coin) {
     final result = puzzle.run(solution);
-    final aggSigMeConditionProgram = result.program.toList().singleWhere(AggSigMeCondition.isThisCondition);
-    final aggSigMeCondition = AggSigMeCondition.fromProgram(aggSigMeConditionProgram);
-    
 
     final addsigmessage = getAddSigMeMessageFromResult(result.program, coin);
 
     final synthSecretKey = calculateSyntheticPrivateKey(privateKey);
     final signature = AugSchemeMPL.sign(synthSecretKey, addsigmessage.bytes);
-
-    print(AugSchemeMPL.verify(aggSigMeCondition.publicKey, addsigmessage.bytes, signature));
 
     final coinSpend = CoinSpend(coin: coin, puzzleReveal: puzzle, solution: solution);
 
