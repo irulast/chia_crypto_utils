@@ -21,6 +21,6 @@ class ChiaWalletVector {
 
   ChiaWalletVector({
     required this.childPublicKeyHex,
-    required this.puzzlehashHex
+    required this.puzzlehashHex,
   });
 }

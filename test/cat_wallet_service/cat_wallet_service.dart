@@ -61,6 +61,6 @@ void main(List<String> args) async {
     final payment = Payment(100, targetPuzzlehash);
     final spendBundle = catWalletService.createSpendBundle([payment], [catCoins[0]], changePuzzlehash, walletKeychain, fee: 100, standardCoinsForFee: [standardCoins[0]]);
     // catWalletService.validateSpendBundle(spendBundle);
-    await fullNode.pushTransaction(spendBundle);
+    // await fullNode.pushTransaction(spendBundle);
   });
 }

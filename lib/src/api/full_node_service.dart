@@ -1,7 +1,7 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/full_node.dart';
 import 'package:chia_utils/src/cat/models/cat_coin.dart';
-import 'package:chia_utils/src/cat/puzzles/cat.clvm.hex.dart';
+import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
 
 class CatTransport {
   FullNode fullNode;

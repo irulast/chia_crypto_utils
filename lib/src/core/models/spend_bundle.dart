@@ -14,7 +14,7 @@ class SpendBundle {
       'aggregated_signature': aggregatedSignature.toHex(),
     };
 
-  static SpendBundle aggregate(List<SpendBundle> spendBundles) {
+  factory SpendBundle.aggregate(List<SpendBundle> spendBundles) {
     final signatures = <JacobianPoint>[];
     var coinSpends = <CoinSpend>[];
     for (final spendBundle in spendBundles) {

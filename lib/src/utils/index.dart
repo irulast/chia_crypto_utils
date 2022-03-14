@@ -126,9 +126,9 @@ final groupOrder = BigInt.parse(
 BigInt calculateSyntheticOffset(JacobianPoint publicKey) {
   final blob =
       sha256.convert(publicKey.toBytes() + defaultHiddenPuzzleProgram.hash()).bytes;
-  // print(blob);
+
   final offset = bytesToBigInt(blob, Endian.big, signed: true);
-  // print(offset.toString());
+
   final newOffset = offset % groupOrder;
   return newOffset;
 }

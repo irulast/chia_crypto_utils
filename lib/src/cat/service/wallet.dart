@@ -1,7 +1,7 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/cat/exceptions/mixed_asset_ids_exception.dart';
 import 'package:chia_utils/src/cat/models/cat_coin.dart';
-import 'package:chia_utils/src/cat/puzzles/cat.clvm.hex.dart';
+import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
 import 'package:chia_utils/src/core/models/conditions/assert_coin_announcement_condition.dart';
 import 'package:chia_utils/src/core/models/conditions/condition.dart';
 import 'package:chia_utils/src/core/models/conditions/create_coin_announcement_condition.dart';
@@ -105,7 +105,7 @@ class CatWalletService extends BaseWalletService {
     spends.add(coinSpendAndSig.coinSpend);
     signatures.add(coinSpendAndSig.signature);
 
-    final primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition.fromParts(originCoin.id, message, morphBytes: Puzzlehash([202]));
+    final primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition.fromParts(originCoin.id, message, morphBytes: const Puzzlehash([202]));
 
     // do the rest of the coins
     for (final catCoin in catCoins) {
@@ -133,7 +133,7 @@ class CatWalletService extends BaseWalletService {
   }
 
   // see chia/wallet/cc_wallet/cc_wallet.py: generate_unsigned_spendbundle
-  Program makeCatSolution(Program innerPuzzle, Program innerSolution, CatCoin catCoin) {
+  static Program makeCatSolution(Program innerPuzzle, Program innerSolution, CatCoin catCoin) {
     return Program.list([
       innerSolution, 
       catCoin.lineageProof,
@@ -145,7 +145,7 @@ class CatWalletService extends BaseWalletService {
     ]);
   }
 
-  Program makeCatPuzzle(Program innerPuzzle, Puzzlehash assetId) {
+  static Program makeCatPuzzle(Program innerPuzzle, Puzzlehash assetId) {
     return catProgram.curry([
       Program.fromBytes(catProgram.hash()),
       Program.fromBytes(assetId.bytes),

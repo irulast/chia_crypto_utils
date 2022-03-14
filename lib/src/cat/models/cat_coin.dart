@@ -1,5 +1,6 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 
+// ignore: must_be_immutable
 class CatCoin extends Coin {
   CoinSpend parentCoinSpend;
   Puzzlehash assetId;

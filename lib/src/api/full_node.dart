@@ -70,7 +70,6 @@ class FullNode {
       'name': coinId.hex,
     });
 
-
     if (responseData.statusCode != 200) {
       throw Exception('Failed to push transaction: ${responseData.body}');
     }

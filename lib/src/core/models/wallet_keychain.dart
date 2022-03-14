@@ -1,4 +1,6 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
+import 'package:chia_utils/src/cat/puzzles/outer_puzzle_hash_generator/outer_puzzle_hash_generator.clvm.hex.dart';
 
 class WalletKeychain {
   Map<Puzzlehash, WalletVector> hardenedMap = <Puzzlehash, WalletVector>{};
@@ -38,12 +40,9 @@ class WalletKeychain {
     
   }
 
-  static final Program catOuterPuzzleHashGenerator = Program.parse("(a (q 2 30 (c 2 (c 5 (c 23 (c (sha256 28 11) (c (sha256 28 5) ())))))) (c (q (a 4 . 1) (q . 2) (a (i 5 (q 2 22 (c 2 (c 13 (c (sha256 26 (sha256 28 20) (sha256 26 (sha256 26 (sha256 28 18) 9) (sha256 26 11 (sha256 28 ())))) ())))) (q . 11)) 1) 11 26 (sha256 28 8) (sha256 26 (sha256 26 (sha256 28 18) 5) (sha256 26 (a 22 (c 2 (c 7 (c (sha256 28 28) ())))) (sha256 28 ())))) 1))");
-  static const String TAIL_ADDRESS_GENERATOR_MOD_HASH = "72dec062874cd4d3aab892a0906688a1ae412b0109982e1797a170add88bdcdc";
-
   Puzzlehash makeOuterPuzzleHash(Puzzlehash innerPuzzleHash, Puzzlehash assetId) {
-    final solution = Program.list([Program.fromHex(TAIL_ADDRESS_GENERATOR_MOD_HASH), Program.fromBytes(assetId.bytes), Program.fromBytes(innerPuzzleHash.bytes)]);
-    final result = catOuterPuzzleHashGenerator.run(solution);
+    final solution = Program.list([Program.fromBytes(catProgram.hash()), Program.fromBytes(assetId.bytes), Program.fromBytes(innerPuzzleHash.bytes)]);
+    final result = outerPuzzleHashGeneratorProgram.run(solution);
     return Puzzlehash(result.program.atom);
   }
 }
