@@ -105,7 +105,7 @@ class CatWalletService extends BaseWalletService {
     spends.add(coinSpendAndSig.coinSpend);
     signatures.add(coinSpendAndSig.signature);
 
-    final primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition.fromParts(originCoin.id, message, morphBytes: const Puzzlehash([202]));
+    final primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition(originCoin.id, message, morphBytes: const Puzzlehash([202]));
 
     // do the rest of the coins
     for (final catCoin in catCoins) {

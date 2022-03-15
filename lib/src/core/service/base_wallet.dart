@@ -72,7 +72,7 @@ class BaseWalletService {
 
     // validate assert_coin_announcement if it is created (if there are multiple coins spent)
     if (spendBundle.coinSpends.length > 1) {
-      AssertCoinAnnouncementCondition? assertCoinAnnouncement;
+      Puzzlehash? assertCoinAnnouncementId;
       final coinsToCreate = <CoinPrototype>[];
       final coinsBeingSpent = <CoinPrototype>[];
       Puzzlehash? originId;
@@ -81,8 +81,8 @@ class BaseWalletService {
 
         // look for assert coin announcement condition
         final assertCoinAnnouncementProgram =  outputConditions.where(AssertCoinAnnouncementCondition.isThisCondition).toList();
-        if (assertCoinAnnouncementProgram.length == 1 && assertCoinAnnouncement == null) {
-          assertCoinAnnouncement = AssertCoinAnnouncementCondition.fromProgram(assertCoinAnnouncementProgram[0]);
+        if (assertCoinAnnouncementProgram.length == 1 && assertCoinAnnouncementId == null) {
+          assertCoinAnnouncementId = AssertCoinAnnouncementCondition.getAnnouncementIdromProgram(assertCoinAnnouncementProgram[0]);
         }
 
         // find create_coin conditions
@@ -105,7 +105,7 @@ class BaseWalletService {
       checkForDuplicateCoins(coinsToCreate);
       checkForDuplicateCoins(coinsBeingSpent);
 
-      assert(assertCoinAnnouncement != null, 'No assert_coin_announcement condition when multiple spends');
+      assert(assertCoinAnnouncementId != null, 'No assert_coin_announcement condition when multiple spends');
       assert(originId != null, 'No create_coin conditions');
       
       // construct assert_coin_announcement id from spendbundle, verify against output
@@ -119,7 +119,7 @@ class BaseWalletService {
 
       final message = (existingCoinsMessage + createdCoinsMessage).sha256Hash();
 
-      if ((originId + message).sha256Hash() != assertCoinAnnouncement!.announcementId) {
+      if ((originId + message).sha256Hash() != assertCoinAnnouncementId) {
         throw IncorrectAnnouncementIdException();
       }
     }

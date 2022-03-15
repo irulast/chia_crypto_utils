@@ -98,7 +98,7 @@ class StandardWalletService extends BaseWalletService{
     signatures.add(coinSpendAndSignature.signature);
     spends.add(coinSpendAndSignature.coinSpend);
 
-    final primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition.fromParts(originCoin.id, message);
+    final primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition(originCoin.id, message);
 
     // create coin spends for the rest of the coins
     for (final coin in coins) {
