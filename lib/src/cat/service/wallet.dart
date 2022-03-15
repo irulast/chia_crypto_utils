@@ -14,9 +14,29 @@ class CatWalletService extends BaseWalletService {
   
   CatWalletService(Context context) : super(context) {
     standardWalletService = StandardWalletService(context);
-  } 
+  }
 
   SpendBundle createSpendBundle(
+    List<Payment> payments, 
+    CatCoin catCoin, 
+    Puzzlehash changePuzzlehash, 
+    WalletKeychain keychain, 
+    {
+      List<Coin> standardCoinsForFee = const [], 
+      int fee = 0, 
+    }
+    ) {
+      return _createSpendBundle(
+        payments, 
+        [catCoin], 
+        changePuzzlehash,
+        keychain,
+        standardCoinsForFee: standardCoinsForFee,
+        fee: fee,
+      );
+    }
+
+  SpendBundle _createSpendBundle(
     List<Payment> payments, 
     List<CatCoin> catCoinsInput, 
     Puzzlehash changePuzzlehash, 
@@ -24,7 +44,6 @@ class CatWalletService extends BaseWalletService {
     {
       List<Coin> standardCoinsForFee = const [], 
       int fee = 0, 
-      Puzzlehash? originId,
     }
     ) {
     final spendBundlesToAggregate = <SpendBundle>[];
@@ -51,69 +70,65 @@ class CatWalletService extends BaseWalletService {
     final signatures = <JacobianPoint>[];
     final spends = <CoinSpend>[];
 
-    // returns -1 if originId is given but is not in coins
-    final originIndex = originId == null ? 0 : catCoins.indexWhere((coin) => coin.id.hex == originId.hex);
+    AssertCoinAnnouncementCondition? primaryAssertCoinAnnouncement;
 
-    if (originIndex == -1) {
-      throw Exception('Origin id not in coins');
-    }
-
-    final originCoin = catCoins.removeAt(originIndex);
-
-    // create coin spend for origin coin
-    final originCoinWalletVector = keychain.getWalletVector(originCoin.puzzlehash);
-    final originCoinPrivateKey = originCoinWalletVector!.childPrivateKey;
-    final originCoinPublicKey = originCoinPrivateKey.getG1();
-
-    final conditions = <Condition>[];
-    final createdCoins = <CoinPrototype>[];
-
-    for (final payment in payments) {
-      final sendCreateCoinCondition = payment.toCreateCoinCondition();
-      conditions.add(sendCreateCoinCondition);
-      createdCoins.add(
-        CoinPrototype(
-          parentCoinInfo: originCoin.id,
-          puzzlehash: payment.puzzlehash,
-          amount: payment.amount,
-        ),
-      );
-    } 
-
-    if (change > 0) {
-      conditions.add(CreateCoinCondition(changePuzzlehash, change));
-      createdCoins.add(
-        CoinPrototype(
-          parentCoinInfo: originCoin.id,
-          puzzlehash: changePuzzlehash,
-          amount: change,
-        ),
-      );
-    }
-
-    final existingCoinsMessage = catCoins.fold(Puzzlehash.empty, (Puzzlehash previousValue, coin) => previousValue + coin.id) + originCoin.id;
-    final message = existingCoinsMessage.sha256Hash();
-    conditions.add(CreateCoinAnnouncementCondition(message));
-
-    final originCoinInnerSolution = BaseWalletService.makeSolutionFromConditions(conditions);
-    final originCoinInnerPuzzle = getPuzzleFromPk(originCoinPublicKey);
-
-    final originCatPuzzle = makeCatPuzzle(originCoinInnerPuzzle, originCoin.assetId);
-    final originCatSolution = makeCatSolution(originCoinInnerPuzzle, originCoinInnerSolution, originCoin);
-
-    final coinSpendAndSig = createCoinsSpendAndSignature(originCatSolution, originCatPuzzle, originCoinPrivateKey, originCoin);
-    spends.add(coinSpendAndSig.coinSpend);
-    signatures.add(coinSpendAndSig.signature);
-
-    final primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition(originCoin.id, message, morphBytes: const Puzzlehash([202]));
-
-    // do the rest of the coins
+    var first = true;
     for (final catCoin in catCoins) {
       final coinWalletVector = keychain.getWalletVector(catCoin.puzzlehash);
       final coinPrivateKey = coinWalletVector!.childPrivateKey;
       final coinPublicKey = coinPrivateKey.getG1();
 
-      final innerSolution = BaseWalletService.makeSolutionFromConditions([primaryAssertCoinAnnouncement]);
+      Program? innerSolution;
+      // if first coin, make inner solution with output
+      if (first) {
+        first = false;
+
+        final message = catCoins.fold(
+          Puzzlehash.empty, 
+          (Puzzlehash previousValue, coin) => previousValue + coin.id,
+        ).sha256Hash();
+
+        primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition(
+          catCoin.id,
+          message,
+          morphBytes: const Puzzlehash([202]),
+        );
+          
+
+        final conditions = <Condition>[];
+        final createdCoins = <CoinPrototype>[];
+
+        conditions.add(CreateCoinAnnouncementCondition(primaryAssertCoinAnnouncement.message));
+
+        for (final payment in payments) {
+          final sendCreateCoinCondition = payment.toCreateCoinCondition();
+          conditions.add(sendCreateCoinCondition);
+          createdCoins.add(
+            CoinPrototype(
+              parentCoinInfo: catCoin.id,
+              puzzlehash: payment.puzzlehash,
+              amount: payment.amount,
+            ),
+          );
+        } 
+
+        if (change > 0) {
+          conditions.add(CreateCoinCondition(changePuzzlehash, change));
+          createdCoins.add(
+            CoinPrototype(
+              parentCoinInfo: catCoin.id,
+              puzzlehash: changePuzzlehash,
+              amount: change,
+            ),
+          );
+        }
+
+        innerSolution = BaseWalletService.makeSolutionFromConditions(conditions);
+      } else {
+        innerSolution = BaseWalletService.makeSolutionFromConditions([primaryAssertCoinAnnouncement!]);
+      }
+      print(innerSolution.toSource());
+
       final innerPuzzle = getPuzzleFromPk(coinPublicKey);
 
       final catPuzzle = makeCatPuzzle(innerPuzzle, catCoin.assetId);
@@ -122,7 +137,7 @@ class CatWalletService extends BaseWalletService {
       final coinSpendAndSig = createCoinsSpendAndSignature(catSolution, catPuzzle, coinPrivateKey, catCoin);
       spends.add(coinSpendAndSig.coinSpend);
       signatures.add(coinSpendAndSig.signature);
-    } 
+    }
 
     final catAggregateSignature = AugSchemeMPL.aggregate(signatures);
     final catSpendBundle = SpendBundle(coinSpends: spends, aggregatedSignature: catAggregateSignature);

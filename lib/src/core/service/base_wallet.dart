@@ -51,7 +51,7 @@ class BaseWalletService {
     ]);
   }
 
-  void validateSpendBundle(SpendBundle spendBundle) {
+  void validateSpendBundleSignature(SpendBundle spendBundle) {
     final publicKeys = <JacobianPoint>[];
     final messages = <List<int>>[];
     for (final spend in spendBundle.coinSpends) {
@@ -69,6 +69,10 @@ class BaseWalletService {
     if(!AugSchemeMPL.aggregateVerify(publicKeys, messages, spendBundle.aggregatedSignature)) {
       throw FailedSignatureVerificationException();
     }
+  }
+
+  void validateSpendBundle(SpendBundle spendBundle) {
+    validateSpendBundleSignature(spendBundle);
 
     // validate assert_coin_announcement if it is created (if there are multiple coins spent)
     if (spendBundle.coinSpends.length > 1) {

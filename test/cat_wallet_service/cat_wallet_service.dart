@@ -53,14 +53,15 @@ void main(List<String> args) async {
   
   test('Produces valid spendbundle', () async {
     final payment = Payment(100, targetPuzzlehash);
-    final spendBundle = catWalletService.createSpendBundle([payment], catCoins, changePuzzlehash, walletKeychain);
+    final spendBundle = catWalletService.createSpendBundle([payment], catCoins[0], changePuzzlehash, walletKeychain);
+    catWalletService.validateSpendBundleSignature(spendBundle);
     await fullNode.pushTransaction(spendBundle);
   });
 
   test('Produces valid spendbundle with fee', () async {
     final payment = Payment(100, targetPuzzlehash);
-    final spendBundle = catWalletService.createSpendBundle([payment], [catCoins[0]], changePuzzlehash, walletKeychain, fee: 100, standardCoinsForFee: [standardCoins[0]]);
-    // catWalletService.validateSpendBundle(spendBundle);
-    // await fullNode.pushTransaction(spendBundle);
+    final spendBundle = catWalletService.createSpendBundle([payment], catCoins[0], changePuzzlehash, walletKeychain, fee: 1000, standardCoinsForFee: [standardCoins[0]]);
+    catWalletService.validateSpendBundleSignature(spendBundle);
+    await fullNode.pushTransaction(spendBundle);
   });
 }
