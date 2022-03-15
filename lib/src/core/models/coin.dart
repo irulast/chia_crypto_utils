@@ -10,7 +10,7 @@ class Coin extends CoinPrototype {
   final bool coinbase;
   final int timestamp;
 
-  Coin({
+  const Coin({
     required this.confirmedBlockIndex,
     required this.spentBlockIndex,
     required this.coinbase,
@@ -21,7 +21,8 @@ class Coin extends CoinPrototype {
   }) : super(
             puzzlehash: puzzlehash,
             amount: amount,
-            parentCoinInfo: parentCoinInfo);
+            parentCoinInfo: parentCoinInfo,
+    );
 
   factory Coin.fromChiaCoinRecordJson(Map<String, dynamic> json) {
     final coinPrototype = CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>);

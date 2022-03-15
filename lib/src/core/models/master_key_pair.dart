@@ -16,6 +16,6 @@ class MasterKeyPair {
     final privateKey = PrivateKey.fromSeed(seed);
 
     return MasterKeyPair(
-        masterPrivateKey: privateKey, masterPublicKey: privateKey.getG1());
+        masterPrivateKey: privateKey, masterPublicKey: privateKey.getG1(),);
   }
 }

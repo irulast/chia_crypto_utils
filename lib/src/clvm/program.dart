@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_equals_and_hash_code_on_mutable_classes
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -109,9 +111,9 @@ class Program {
 
   factory Program.deserializeHex(String source) {
     if (source.startsWith('0x')) {
-      return Program.deserialize(HexDecoder().convert(source.replaceFirst('0x', '')));
+      return Program.deserialize(const HexDecoder().convert(source.replaceFirst('0x', '')));
     }
-    return Program.deserialize(HexDecoder().convert(source));
+    return Program.deserialize(const HexDecoder().convert(source));
   }
       
 

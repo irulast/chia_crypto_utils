@@ -5,7 +5,7 @@ import 'package:chia_utils/src/cat/transport/transport.dart';
 import 'package:chia_utils/src/core/models/payment.dart';
 import 'package:test/test.dart';
 
-void main(List<String> args) async {
+Future<void> main(List<String> args) async {
   final configurationProvider = ConfigurationProvider()
     ..setConfig(NetworkFactory.configId, {
       'yaml_file_path': 'lib/src/networks/chia/testnet10/config.yaml'
@@ -16,7 +16,7 @@ void main(List<String> args) async {
   final blockcahinNetworkLoader = ChiaBlockchainNetworkLoader();
   context.registerFactory(NetworkFactory(blockcahinNetworkLoader.loadfromLocalFileSystem));
   final catWalletService = CatWalletService(context);
-  final fullNode = FullNode('http://localhost:4000');
+  const fullNode = FullNode('http://localhost:4000');
   final catTransport = CatTransport(fullNode);
 
   const targetAssetIdHex = '625c2184e97576f5df1be46c15b2b8771c79e4e6f0aa42d3bfecaebe733f4b8c';

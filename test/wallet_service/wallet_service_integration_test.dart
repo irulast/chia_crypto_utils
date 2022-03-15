@@ -13,8 +13,8 @@ import 'package:chia_utils/src/standard/service/wallet.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
-void main() async {
-  final fullNode = FullNode('http://localhost:4000');
+Future<void> main() async {
+  const fullNode = FullNode('http://localhost:4000');
   final configurationProvider = ConfigurationProvider()
     ..setConfig(NetworkFactory.configId, {
       'yaml_file_path': 'lib/src/networks/chia/testnet10/config.yaml'

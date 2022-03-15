@@ -1,7 +1,5 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/clvm/keywords.dart';
-import 'package:chia_utils/src/context/context.dart';
-import 'package:chia_utils/src/core/models/blockchain_network.dart';
 import 'package:chia_utils/src/core/models/conditions/agg_sig_me_condition.dart';
 import 'package:chia_utils/src/core/models/conditions/assert_coin_announcement_condition.dart';
 import 'package:chia_utils/src/core/models/conditions/condition.dart';

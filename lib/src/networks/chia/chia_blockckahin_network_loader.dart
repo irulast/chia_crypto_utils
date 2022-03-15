@@ -9,7 +9,7 @@ class ChiaBlockchainNetworkLoader implements BlockchainNetworkLoader {
   BlockchainNetwork loadfromLocalFileSystem(String filePath) {
     final dynamic yaml = loadYamlFromLocalFileSystem(filePath);
 
-    final dynamic selectedNetwork = yaml['full_node']['selected_network']!;
+    final dynamic selectedNetwork = yaml['full_node']['selected_network'];
     return BlockchainNetwork(
       name: selectedNetwork as String,
       addressPrefix: yaml['farmer']['network_overrides']['config'][selectedNetwork]['address_prefix']! as String,
