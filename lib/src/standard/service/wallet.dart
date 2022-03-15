@@ -78,9 +78,9 @@ class StandardWalletService extends BaseWalletService{
       conditions.add(ReserveFeeCondition(fee));
     }
 
-    // if (coinAnnouncementToAssert != null) {
-    //   conditions.add(coinAnnouncementToAssert);
-    // }
+    if (coinAnnouncementToAssert != null) {
+      conditions.add(coinAnnouncementToAssert);
+    }
 
     // generate message for coin announcements by appending coin_ids
     // see: chia/wallet/wallet.py: 380
