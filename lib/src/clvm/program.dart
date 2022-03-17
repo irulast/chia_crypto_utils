@@ -167,9 +167,9 @@ class Program {
   }
 
   static Program? _matchQuotedProgram(Program program) {
-    final programList = program.toList();
-    if (programList.length > 2 && programList[0].toInt() == 1 && programList[1].toInt() == 2) {
-      return program.cons[1];
+    final cons = program.cons;
+    if (cons[0].toInt() == 1 && !cons[1].isAtom) {
+      return cons[1];
     }
     return null;
   }
