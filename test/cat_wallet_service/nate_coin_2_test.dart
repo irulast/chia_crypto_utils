@@ -29,7 +29,7 @@ Future<void> main() async {
 
 
 
-  final genesisCoin = await fullNode.getCoinByName(Puzzlehash.fromHex('6468acf73bd52b38ee43ab1462a03121672f5057bfd3f818abeb2eea66f34ecb'));
+  final genesisCoin = await fullNode.getCoinByName(Puzzlehash.fromHex('16468acf73bd52b38ee43ab1462a03121672f5057bfd3f818abeb2eea66f34ecb'));
   print(genesisCoin.spentBlockIndex);
   // await printAllCoinInfo('6468acf73bd52b38ee43ab1462a03121672f5057bfd3f818abeb2eea66f34ecb', fullNode);
 

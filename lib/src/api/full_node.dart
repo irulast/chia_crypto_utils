@@ -3,6 +3,7 @@
 import 'dart:convert';
 
 import 'package:chia_utils/src/api/client.dart';
+import 'package:chia_utils/src/api/models/responses/coin_record_response.dart';
 import 'package:chia_utils/src/core/models/coin.dart';
 import 'package:chia_utils/src/core/models/coin_spend.dart';
 import 'package:chia_utils/src/core/models/puzzlehash.dart';
@@ -43,6 +44,7 @@ class FullNode {
     if (responseData.statusCode != 200) {
       throw Exception('Failed to fetch coin records: ${responseData.body}');
     }
+    final coinRecordsResponse = CoinRecordResponse.fromJson(jsonDecode(responseData.body) as Map<String, dynamic>)
 
     final coins = (jsonDecode(responseData.body)['coin_records'] as List)
         .map(
@@ -71,6 +73,8 @@ class FullNode {
     final responseData = await client.sendRequest(Uri.parse('get_coin_record_by_name'), {
       'name': coinId.hex,
     });
+
+    print(responseData.body);
 
     if (responseData.statusCode != 200) {
       throw Exception('Failed to push transaction: ${responseData.body}');

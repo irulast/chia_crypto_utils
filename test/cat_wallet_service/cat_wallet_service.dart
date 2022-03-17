@@ -60,7 +60,7 @@ Future<void> main(List<String> args) async {
 
   test('Produces valid spendbundle with fee', () async {
     final payment = Payment(100, targetPuzzlehash);
-    final spendBundle = catWalletService.createSpendBundle([payment], catCoins[0], changePuzzlehash, walletKeychain, fee: 1000, standardCoinsForFee: [standardCoins[0]]);
+    final spendBundle = catWalletService.createSpendBundle([payment], catCoins[0], changePuzzlehash, walletKeychain, fee: 10000, standardCoinsForFee: [standardCoins[0]]);
     catWalletService.validateSpendBundleSignature(spendBundle);
     await fullNode.pushTransaction(spendBundle);
   });

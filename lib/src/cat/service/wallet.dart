@@ -52,7 +52,7 @@ class CatWalletService extends BaseWalletService {
       final totalStandardCoinsValue = standardCoinsForFee.fold(0, (int previousValue, standardCoin) => previousValue + standardCoin.amount);
       assert(totalStandardCoinsValue >= fee, 'Total value of passed in standad coins is not enough to cover fee.');
 
-      final spendBundleForFee = standardWalletService.createSpendBundle(standardCoinsForFee, 0, Address.fromPuzzlehash(changePuzzlehash, blockchainNetwork.addressPrefix), changePuzzlehash, keychain);
+      final spendBundleForFee = standardWalletService.createSpendBundle(standardCoinsForFee, 0, Address.fromPuzzlehash(changePuzzlehash, blockchainNetwork.addressPrefix), changePuzzlehash, keychain, fee: fee);
       spendBundlesToAggregate.add(spendBundleForFee);
     }
 
