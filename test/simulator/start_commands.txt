@@ -1,0 +1,1 @@
+docker run -p 8555:8555 -v "$PWD/temp/chia_plots":/root/.chia/mainnet/test-plots -it chia_sim:latest bash
