@@ -1,12 +1,12 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/cat/models/cat_coin.dart';
 
-class SpendableCat {
+class CatSpendInfo {
   CatCoin coin;
   Program innerPuzzle;
   Program innerSolution;
 
-  SpendableCat({
+  CatSpendInfo({
     required this.coin,
     required this.innerPuzzle,
     required this.innerSolution,

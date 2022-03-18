@@ -18,7 +18,7 @@ void main() {
   context.registerFactory(NetworkFactory(blockcahinNetworkLoader.loadfromLocalFileSystem));
   final walletService = StandardWalletService(context);
 
-  final destinationAddress = Address('txch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jksxp6hy3');
+  final destinationPuzzlehash = Address('txch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jksxp6hy3').toPuzzlehash();
 
   const testMnemonic = [
       'elder', 'quality', 'this', 'chalk', 'crane', 'endless',
@@ -51,7 +51,7 @@ void main() {
     final spendBundle = walletService.createSpendBundle(
         coins,
         550000,
-        destinationAddress,
+        destinationPuzzlehash,
         changePuzzlehash,
         walletKeychain,
     );
@@ -63,7 +63,7 @@ void main() {
     final spendBundle = walletService.createSpendBundle(
         coins,
         550000,
-        destinationAddress,
+        destinationPuzzlehash,
         changePuzzlehash,
         walletKeychain,
         fee: 10000,
@@ -76,7 +76,7 @@ void main() {
     final spendBundle = walletService.createSpendBundle(
         coins,
         0,
-        destinationAddress,
+        destinationPuzzlehash,
         changePuzzlehash,
         walletKeychain,
         fee: 10000,
@@ -89,7 +89,7 @@ void main() {
     final spendBundle = walletService.createSpendBundle(
         coins,
         550000,
-        destinationAddress,
+        destinationPuzzlehash,
         changePuzzlehash,
         walletKeychain,
         originId: coin2.id,
@@ -102,7 +102,7 @@ void main() {
     final spendBundle = walletService.createSpendBundle(
         coins,
         3000,
-        destinationAddress,
+        destinationPuzzlehash,
         changePuzzlehash,
         walletKeychain,
     );
@@ -114,7 +114,7 @@ void main() {
     final spendBundle = walletService.createSpendBundle(
         [...coins, coin0],
         3000,
-        destinationAddress,
+        destinationPuzzlehash,
         changePuzzlehash,
         walletKeychain,
     );

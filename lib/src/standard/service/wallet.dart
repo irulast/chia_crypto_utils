@@ -12,13 +12,13 @@ class StandardWalletService extends BaseWalletService{
   SpendBundle createSpendBundle(
       List<Coin> coinsInput,
       int amount,
-      Address destinationAddress,
+      Puzzlehash destinationPuzzlehash,
       Puzzlehash changePuzzlehash,
       WalletKeychain keychain,
       {
         int fee = 0,
         Puzzlehash? originId,
-        AssertCoinAnnouncementCondition? coinAnnouncementToAssert,
+        List<AssertCoinAnnouncementCondition>? coinAnnouncementsToAssert,
       }) 
     {
     // copy coins input since coins list is modified in this function
@@ -26,8 +26,6 @@ class StandardWalletService extends BaseWalletService{
     final totalCoinValue =
         coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
     final change = totalCoinValue - amount - fee;
-
-    final destinationHash = destinationAddress.toPuzzlehash();
 
     final signatures = <JacobianPoint>[];
     final spends = <CoinSpend>[];
@@ -51,12 +49,12 @@ class StandardWalletService extends BaseWalletService{
 
     // generate conditions
     if (amount > 0) {
-      final sendCreateCoinCondition = CreateCoinCondition(destinationHash, amount);
+      final sendCreateCoinCondition = CreateCoinCondition(destinationPuzzlehash, amount);
       conditions.add(sendCreateCoinCondition);
       createdCoins.add(
         CoinPrototype(
           parentCoinInfo: originCoin.id,
-          puzzlehash: destinationHash,
+          puzzlehash: destinationPuzzlehash,
           amount: amount,
         ),
       );
@@ -78,9 +76,12 @@ class StandardWalletService extends BaseWalletService{
       conditions.add(ReserveFeeCondition(fee));
     }
 
-    if (coinAnnouncementToAssert != null) {
-      conditions.add(coinAnnouncementToAssert);
+    if (coinAnnouncementsToAssert != null) {
+      for (final coinAnnouncementToAssert in coinAnnouncementsToAssert) {
+        conditions.add(coinAnnouncementToAssert);
+      }
     }
+    
 
     // generate message for coin announcements by appending coin_ids
     // see: chia/wallet/wallet.py: 380

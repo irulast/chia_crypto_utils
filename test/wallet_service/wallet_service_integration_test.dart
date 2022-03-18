@@ -26,7 +26,7 @@ Future<void> main() async {
   context.registerFactory(NetworkFactory(blockcahinNetworkLoader.loadfromLocalFileSystem));
   final walletService = StandardWalletService(context);
 
-  final destinationAddress = Address('txch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jksxp6hy3');
+  final destinationPuzzlehash = Address('txch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jksxp6hy3').toPuzzlehash();
 
   const testMnemonic = [
       'elder', 'quality', 'this', 'chalk', 'crane', 'endless',
@@ -62,7 +62,7 @@ Future<void> main() async {
     final spendBundle = walletService.createSpendBundle(
         coinsToSpend,
         amountToSend,
-        destinationAddress,
+        destinationPuzzlehash,
         walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
         walletKeychain,
         fee: fee,
@@ -82,7 +82,7 @@ Future<void> main() async {
     final spendBundle = walletService.createSpendBundle(
         coinsToSpend,
         amountToSend,
-        destinationAddress,
+        destinationPuzzlehash,
         walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
         walletKeychain,
     );
@@ -101,7 +101,7 @@ Future<void> main() async {
     final spendBundle = walletService.createSpendBundle(
         coinsToSpend,
         amountToSend,
-        destinationAddress,
+        destinationPuzzlehash,
         walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
         walletKeychain,
         originId: coinsToSpend[coinsToSpend.length - 1].id,
@@ -122,7 +122,7 @@ Future<void> main() async {
     expect(() => walletService.createSpendBundle(
           coinsToSpend,
           amountToSend,
-          destinationAddress,
+          destinationPuzzlehash,
           walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
           walletKeychain,
           originId: Puzzlehash.fromHex('ff8'),

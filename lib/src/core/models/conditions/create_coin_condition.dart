@@ -34,9 +34,6 @@ class CreateCoinCondition implements Condition {
 
   static bool isThisCondition(Program condition) {
     final conditionParts = condition.toList();
-    if (conditionParts.length != 3) {
-      return false;
-    }
     if (conditionParts[0].toInt() != conditionCode) {
       return false;
     }

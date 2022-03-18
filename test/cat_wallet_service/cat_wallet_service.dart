@@ -23,19 +23,19 @@ Future<void> main(List<String> args) async {
 
   final targetAssetId = Puzzlehash.fromHex(targetAssetIdHex);
 
-  // const testMnemonic = [
-  //     'elder', 'quality', 'this', 'chalk', 'crane', 'endless',
-  //     'machine', 'hotel', 'unfair', 'castle', 'expand', 'refuse',
-  //     'lizard', 'vacuum', 'embody', 'track', 'crash', 'truth',
-  //     'arrow', 'tree', 'poet', 'audit', 'grid', 'mesh',
-  // ];
-  final testMnemonic = 'guilt rail green junior loud track cupboard citizen begin play west adapt myself panda eye finger nuclear someone update light dance exotic expect layer'.split(' ');
+  const testMnemonic = [
+      'elder', 'quality', 'this', 'chalk', 'crane', 'endless',
+      'machine', 'hotel', 'unfair', 'castle', 'expand', 'refuse',
+      'lizard', 'vacuum', 'embody', 'track', 'crash', 'truth',
+      'arrow', 'tree', 'poet', 'audit', 'grid', 'mesh',
+  ];
+  // final testMnemonic = 'guilt rail green junior loud track cupboard citizen begin play west adapt myself panda eye finger nuclear someone update light dance exotic expect layer'.split(' ');
   
 
   final masterKeyPair = MasterKeyPair.fromMnemonic(testMnemonic);
 
   final walletsSetList = <WalletSet>[];
-  for (var i = 2; i < 55; i++) {
+  for (var i = 0; i < 20; i++) {
     final set1 = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
     walletsSetList.add(set1);
   }
@@ -49,10 +49,11 @@ Future<void> main(List<String> args) async {
   final standardCoins = await fullNode.getCoinRecordsByPuzzleHashes(walletKeychain.unhardenedMap.values.map((e) => e.puzzlehash).toList());
   print('standard coin balance: ${standardCoins.fold(0, (int previousValue, element) => previousValue + element.amount)}');
   print('cat coin balance: ${catCoins.fold(0, (int previousValue, element) => previousValue + element.amount)}');
-  // prev  standard: 
+  // prev  standard: 10000001100
   // after standard: 
 
-  // prev  cat: 
+  // prev  cat: 3850
+
   // after cat: 
 
   print('n cat coins: ${catCoins.length}');
@@ -68,14 +69,15 @@ Future<void> main(List<String> args) async {
   
   // test('Produces valid spendbundle', () async {
   //   final payment = Payment(100, targetPuzzlehash);
-  //   final spendBundle = catWalletService.createSpendBundle([payment], catCoins[0], changePuzzlehash, walletKeychain);
-  //   await fullNode.pushTransaction(spendBundle);
+  //   final spendBundle = catWalletService.createSpendBundle([payment], [catCoins[0]], changePuzzlehash, walletKeychain);
+  //   spendBundle.debug();
+  //   // await fullNode.pushTransaction(spendBundle);
   // });
 
   test('Produces valid spendbundle with fee', () async {
-    final payment = Payment(1100, targetPuzzlehash);
+    final payment = Payment(100, targetPuzzlehash);
     final payment1 = Payment(150, targetPuzzlehash);
-    final spendBundle = catWalletService.createSpendBundle([payment, payment1], catCoins, changePuzzlehash, walletKeychain, fee: 1000, standardCoinsForFee: [standardCoins.firstWhere((element) => element.amount >= 1000)]);
+    final spendBundle = catWalletService.createSpendBundle([payment, payment1], catCoins.sublist(0, 2), changePuzzlehash, walletKeychain, fee: 1000, standardCoinsForFee: [standardCoins.firstWhere((element) => element.amount >= 1000)]);
     spendBundle.debug();
     await fullNode.pushTransaction(spendBundle);
   });
