@@ -24,4 +24,14 @@ class SpendBundle {
     final aggregatedSignature = AugSchemeMPL.aggregate(signatures);
     return SpendBundle(coinSpends: coinSpends, aggregatedSignature: aggregatedSignature);
   }
+
+  void debug() {
+    for (final spend in coinSpends) {
+      print('---------');
+      print('coin: ${spend.coin.toJson()}');
+      print('puzzle reveal: ${spend.puzzleReveal}');
+      print('solution: ${spend.solution}');
+      print('result: ${spend.puzzleReveal.run(spend.solution).program}');
+    }
+  }
 }
