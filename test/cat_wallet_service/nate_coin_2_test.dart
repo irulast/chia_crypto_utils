@@ -1,5 +1,6 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/api/full_node.dart';
+import 'package:chia_utils/src/api/chia_full_node_interface.dart';
+import 'package:chia_utils/src/api/full_node_http_rpc.dart';
 import 'package:chia_utils/src/cat/models/cat_coin.dart';
 import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
 import 'package:chia_utils/src/cat/service/wallet.dart';
@@ -25,12 +26,13 @@ Future<void> main() async {
   context.registerFactory(NetworkFactory(blockcahinNetworkLoader.loadfromLocalFileSystem));
   final catWalletService = CatWalletService(context);
   // const fullNode = FullNode('http://localhost:4000');
-  const fullNode = FullNode('https://chia-rpc-stateful-1-3-0.bitsports-dev.co');
+  const fullNodeRpc = FullNodeHttpRpc('https://chia-rpc-stateful-1-3-0.bitsports-dev.co');
+  const fullNode = ChiaFullNodeInterface(fullNodeRpc);
 
 
 
-  final genesisCoin = await fullNode.getCoinByName(Puzzlehash.fromHex('16468acf73bd52b38ee43ab1462a03121672f5057bfd3f818abeb2eea66f34ecb'));
-  print(genesisCoin.spentBlockIndex);
+  final genesisCoin = await fullNode.getCoinById(Puzzlehash.fromHex('16468acf73bd52b38ee43ab1462a03121672f5057bfd3f818abeb2eea66f34ecb'));
+  print(genesisCoin!.spentBlockIndex);
   // await printAllCoinInfo('6468acf73bd52b38ee43ab1462a03121672f5057bfd3f818abeb2eea66f34ecb', fullNode);
 
   // print('Nate2 coin');
@@ -46,11 +48,11 @@ Future<void> main() async {
   //
 }
 
-Future<void> printAllCoinInfo(String coinIdHex, FullNode fullNode) async {
-  final coin = await fullNode.getCoinByName(Puzzlehash.fromHex(coinIdHex));
-  final coinSpend = await fullNode.getPuzzleAndSolution(coin.id, coin.spentBlockIndex);
+Future<void> printAllCoinInfo(String coinIdHex, ChiaFullNodeInterface fullNode) async {
+  final coin = await fullNode.getCoinById(Puzzlehash.fromHex(coinIdHex));
+  final coinSpend = await fullNode.getCoinSpend(coin!);
   print('puzzle reveal:');
-  print(coinSpend.puzzleReveal);
+  print(coinSpend!.puzzleReveal);
   print('uncurried args:');
   print(coinSpend.puzzleReveal.uncurry().arguments);
   print('solution:');

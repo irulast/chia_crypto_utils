@@ -44,4 +44,17 @@ class Coin extends CoinPrototype {
     Program.fromInt(amount),
   ]);
   }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return <String, dynamic> {
+      'confirmed_block_index': confirmedBlockIndex,
+      'spent_block_index': spentBlockIndex,
+      'coinbase': coinbase,
+      'timestamp': timestamp,
+      'parent_coin_info': parentCoinInfo.hex,
+      'puzzle_hash': puzzlehash.hex,
+      'amount': amount,
+    };
+  }
 }

@@ -41,9 +41,8 @@ class CoinPrototype {
   @override
   bool operator ==(Object other) =>
       other is CoinPrototype &&
-      other.runtimeType == runtimeType &&
       other.id == id;
 
   @override
-  int get hashCode => id.hashCode;
+  int get hashCode => id.hex.hashCode;
 }

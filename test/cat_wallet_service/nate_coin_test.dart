@@ -1,5 +1,6 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/api/full_node.dart';
+import 'package:chia_utils/src/api/chia_full_node_interface.dart';
+import 'package:chia_utils/src/api/full_node_http_rpc.dart';
 import 'package:chia_utils/src/cat/models/cat_coin.dart';
 import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
 import 'package:chia_utils/src/cat/service/wallet.dart';
@@ -47,28 +48,25 @@ Future<void> main() async {
   final context = Context(configurationProvider);
   final blockcahinNetworkLoader = ChiaBlockchainNetworkLoader();
   context.registerFactory(NetworkFactory(blockcahinNetworkLoader.loadfromLocalFileSystem));
-  const fullNode = FullNode('http://localhost:4000');
-  final catTransport = CatTransport(fullNode);
+  const fullNodeRpc = FullNodeHttpRpc('http://localhost:4000');
+  const fullNode = ChiaFullNodeInterface(fullNodeRpc);
 
   final outerPuzzleHashesToSearchFor = walletKeychain.unhardenedMap.values
     .map((e) => e.assetIdtoOuterPuzzlehash[assetId]!).toList();
 
-  final catCoins = await catTransport.getCatCoinsByOuterPuzzleHashes(outerPuzzleHashesToSearchFor, assetId);
- var total = 0;
+  final catCoins = await fullNode.getCatCoinsByOuterPuzzleHashes(outerPuzzleHashesToSearchFor, assetId);
+
  catCoins.forEach((cat) {
-   if(cat.amount == 1000) {
-     print(cat.parentCoinInfo.hex);
-   }
+   print(cat.toJson());
   });
- print(total);
+
 
   
 
-  final genesisId = Puzzlehash.fromHex('6b3411074ffcb230e29871abdad2f7c996b67737f3277f178a6bec42cc8a0a5e');
+  // final genesisId = Puzzlehash.fromHex('6b3411074ffcb230e29871abdad2f7c996b67737f3277f178a6bec42cc8a0a5e');
 
-  final mamaCoin = await fullNode.getCoinByName(genesisId);
-  final mamaCoinSpend = await fullNode.getPuzzleAndSolution(mamaCoin.id, mamaCoin.spentBlockIndex);
-  print(const HexEncoder().convert(mamaCoinSpend.puzzleReveal.hash()));
+  // final mamaCoin = await fullNode.getCoinById(genesisId);
+  // final mamaCoinSpend = await fullNode.getCoinSpend(mamaCoin!);
 
   // final childCatCoinMaybe = await fullNode.getCoinRecordsByPuzzleHashes([Puzzlehash.fromHex('0x97e714fb28d521a8dafbe8d727af5c4c3bb04f75300021efc28adffe1a8cd6eb')]);
   // print(childCatCoinMaybe.length);

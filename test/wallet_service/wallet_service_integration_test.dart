@@ -1,5 +1,6 @@
-@Skip('Integration test')
-import 'package:chia_utils/src/api/full_node.dart';
+// @Skip('Integration test')
+import 'package:chia_utils/src/api/chia_full_node_interface.dart';
+import 'package:chia_utils/src/api/full_node_http_rpc.dart';
 import 'package:chia_utils/src/context/context.dart';
 import 'package:chia_utils/src/core/models/address.dart';
 import 'package:chia_utils/src/core/models/coin.dart';
@@ -14,7 +15,8 @@ import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
 Future<void> main() async {
-  const fullNode = FullNode('http://localhost:4000');
+  const fullNodeRpc = FullNodeHttpRpc('http://localhost:4000');
+  const fullNode = ChiaFullNodeInterface(fullNodeRpc);
   final configurationProvider = ConfigurationProvider()
     ..setConfig(NetworkFactory.configId, {
       'yaml_file_path': 'lib/src/networks/chia/testnet10/config.yaml'
@@ -47,88 +49,94 @@ Future<void> main() async {
 
   final unhardenedPuzzlehashes = walletKeychain.unhardenedMap.values.map((vec) => vec.puzzlehash).toList();
 
-  final coins = await fullNode.getCoinRecordsByPuzzleHashes(unhardenedPuzzlehashes);
+  final coins = await fullNode.getCoinsByPuzzleHashes(unhardenedPuzzlehashes);
+  
+  coins.forEach((element) {
+    print('-----');
+    print(element.id.hex);
+    print(element.toJson());
+  });
   
 
-  test('Should push transaction with fee', () async {
-    const amountToSend = 10000;
-    const fee = 10000;
-    const totalAmount = amountToSend + fee;
+  // test('Should push transaction with fee', () async {
+  //   const amountToSend = 10000;
+  //   const fee = 10000;
+  //   const totalAmount = amountToSend + fee;
 
-    final coinsToSpend = selectCoinsToSpend(coins, totalAmount);
+  //   final coinsToSpend = selectCoinsToSpend(coins, totalAmount);
 
-    coins.removeWhere(coinsToSpend.contains);
+  //   coins.removeWhere(coinsToSpend.contains);
 
-    final spendBundle = walletService.createSpendBundle(
-        coinsToSpend,
-        amountToSend,
-        destinationAddress,
-        walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
-        walletKeychain,
-        fee: fee,
-    );
+  //   final spendBundle = walletService.createSpendBundle(
+  //       coinsToSpend,
+  //       amountToSend,
+  //       destinationAddress,
+  //       walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
+  //       walletKeychain,
+  //       fee: fee,
+  //   );
 
-    await fullNode.pushTransaction(spendBundle);
-  });
+  //   await fullNode.pushTransaction(spendBundle);
+  // });
 
-  test('Should push transaction without fee', () async {
-    const amountToSend = 10000;
+  // test('Should push transaction without fee', () async {
+  //   const amountToSend = 10000;
 
-    final coinsToSpend =
-        selectCoinsToSpend(coins, amountToSend);
+  //   final coinsToSpend =
+  //       selectCoinsToSpend(coins, amountToSend);
     
-    coins.removeWhere(coinsToSpend.contains);
+  //   coins.removeWhere(coinsToSpend.contains);
 
-    final spendBundle = walletService.createSpendBundle(
-        coinsToSpend,
-        amountToSend,
-        destinationAddress,
-        walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
-        walletKeychain,
-    );
+  //   final spendBundle = walletService.createSpendBundle(
+  //       coinsToSpend,
+  //       amountToSend,
+  //       destinationAddress,
+  //       walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
+  //       walletKeychain,
+  //   );
 
-    await fullNode.pushTransaction(spendBundle);
-  });
+  //   await fullNode.pushTransaction(spendBundle);
+  // });
 
-  test('Should push transaction with origin', () async {
-    const amountToSend = 10000;
+  // test('Should push transaction with origin', () async {
+  //   const amountToSend = 10000;
 
-    final coinsToSpend =
-        selectCoinsToSpend(coins, amountToSend);
+  //   final coinsToSpend =
+  //       selectCoinsToSpend(coins, amountToSend);
 
-    coins.removeWhere(coinsToSpend.contains);
+  //   coins.removeWhere(coinsToSpend.contains);
 
-    final spendBundle = walletService.createSpendBundle(
-        coinsToSpend,
-        amountToSend,
-        destinationAddress,
-        walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
-        walletKeychain,
-        originId: coinsToSpend[coinsToSpend.length - 1].id,
-    );
+  //   final spendBundle = walletService.createSpendBundle(
+  //       coinsToSpend,
+  //       amountToSend,
+  //       destinationAddress,
+  //       walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
+  //       walletKeychain,
+  //       originId: coinsToSpend[coinsToSpend.length - 1].id,
+  //   );
 
-    await fullNode.pushTransaction(spendBundle);
-  });
+  //   await fullNode.pushTransaction(spendBundle);
+  // });
 
-  test('Should fail when given originId not in coins', () async {
-    final coinsForThisTest = coins.sublist(coins.length ~/ 2);
-    const amountToSend = 10000;
+  // test('Should fail when given originId not in coins', () async {
+  //   final coinsForThisTest = coins.sublist(coins.length ~/ 2);
+  //   const amountToSend = 10000;
 
-    final coinsToSpend =
-        selectCoinsToSpend(coinsForThisTest, amountToSend);
+  //   final coinsToSpend =
+  //       selectCoinsToSpend(coinsForThisTest, amountToSend);
 
-    coins.removeWhere(coinsToSpend.contains);
+  //   coins.removeWhere(coinsToSpend.contains);
 
-    expect(() => walletService.createSpendBundle(
-          coinsToSpend,
-          amountToSend,
-          destinationAddress,
-          walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
-          walletKeychain,
-          originId: Puzzlehash.fromHex('ff8'),
-      ), throwsException,
-    );
-  });
+  //   expect(() => walletService.createSpendBundle(
+  //         coinsToSpend,
+  //         amountToSend,
+  //         destinationAddress,
+  //         walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
+  //         walletKeychain,
+  //         originId: Puzzlehash.fromHex('ff8'),
+  //     ), throwsException,
+  //   );
+  // });
 }
 
 List<Coin> selectCoinsToSpend(List<Coin> allCoins, int amount) {
