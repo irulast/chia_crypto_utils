@@ -45,11 +45,18 @@ Future<void> main(List<String> args) async {
     .map((e) => e.assetIdtoOuterPuzzlehash[targetAssetId]!).toList();
   final catCoins = await catTransport.getCatCoinsByOuterPuzzleHashes(outerPuzzleHashesToSearchFor, targetAssetId);
   final standardCoins = await fullNode.getCoinRecordsByPuzzleHashes(walletKeychain.unhardenedMap.values.map((e) => e.puzzlehash).toList());
+  // print('standard coin balance: ${standardCoins.fold(0, (int previousValue, element) => previousValue + element.amount)}');
+  // print('cat coin balance: ${catCoins.fold(0, (int previousValue, element) => previousValue + element.amount)}');
+  // prev  standard: 
+  // after standard: 
 
-  print(catCoins.map((e) => e.puzzlehash.hex));
+  // prev  cat: 
+  // after cat: 
 
-  final targetPuzzlehash = walletKeychain.unhardenedMap.values.toList()[1].puzzlehash;
-  // final targetPuzzlehash = Address('txch1ftnx4dxr05mestyguwcys3t23dn767nyd6py8w69l70hxmk7332s5f5zx6').toPuzzlehash();
+  print('n cat coins: ${catCoins.length}');
+
+  // final targetPuzzlehash = walletKeychain.unhardenedMap.values.toList()[1].puzzlehash;
+  final targetPuzzlehash = Address('txch1ftnx4dxr05mestyguwcys3t23dn767nyd6py8w69l70hxmk7332s5f5zx6').toPuzzlehash();
   final changePuzzlehash = walletKeychain.unhardenedMap.values.toList()[0].puzzlehash;
   
   test('Produces valid spendbundle', () async {
