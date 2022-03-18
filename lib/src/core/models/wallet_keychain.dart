@@ -1,6 +1,6 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
-import 'package:chia_utils/src/cat/puzzles/outer_puzzle_hash_generator/outer_puzzle_hash_generator.clvm.hex.dart';
+import 'package:chia_utils/src/cat/puzzles/curry_and_treehash/curry_and_treehash.clvm.hex.dart';
 
 class WalletKeychain {
   Map<Puzzlehash, WalletVector> hardenedMap = <Puzzlehash, WalletVector>{};
@@ -42,7 +42,7 @@ class WalletKeychain {
 
   static Puzzlehash makeOuterPuzzleHash(Puzzlehash innerPuzzleHash, Puzzlehash assetId) {
     final solution = Program.list([Program.fromBytes(catProgram.hash()), Program.fromBytes(assetId.bytes), Program.fromBytes(innerPuzzleHash.bytes)]);
-    final result = outerPuzzleHashGeneratorProgram.run(solution);
+    final result = curryAndTreehashProgram.run(solution);
     return Puzzlehash(result.program.atom);
   }
 }
