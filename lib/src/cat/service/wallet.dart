@@ -1,9 +1,7 @@
-import 'dart:math';
-
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/cat/exceptions/mixed_asset_ids_exception.dart';
 import 'package:chia_utils/src/cat/models/cat_coin.dart';
-import 'package:chia_utils/src/cat/models/cat_spend_info.dart';
+import 'package:chia_utils/src/cat/models/spedable_cat.dart';
 import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
 import 'package:chia_utils/src/core/models/conditions/assert_coin_announcement_condition.dart';
 import 'package:chia_utils/src/core/models/conditions/condition.dart';
@@ -20,26 +18,6 @@ class CatWalletService extends BaseWalletService {
   }
 
   SpendBundle createSpendBundle(
-    List<Payment> payments, 
-     List<CatCoin> catCoinsInput, 
-    Puzzlehash changePuzzlehash, 
-    WalletKeychain keychain, 
-    {
-      List<Coin> standardCoinsForFee = const [], 
-      int fee = 0, 
-    }
-    ) {
-      return _createSpendBundle(
-        payments, 
-        catCoinsInput, 
-        changePuzzlehash,
-        keychain,
-        standardCoinsForFee: standardCoinsForFee,
-        fee: fee,
-      );
-    }
-
-  SpendBundle _createSpendBundle(
     List<Payment> payments, 
     List<CatCoin> catCoinsInput, 
     Puzzlehash changePuzzlehash, 
@@ -64,12 +42,11 @@ class CatWalletService extends BaseWalletService {
 
     final spendBundlesToAggregate = <SpendBundle>[];
 
-    final catSpendInfos = <CatSpendInfo>[];
+    final spendableCats = <SpendableCat>[];
     var first = true;
     for (final catCoin in catCoins) {
       final coinWalletVector = keychain.getWalletVector(catCoin.puzzlehash);
-      final coinPrivateKey = coinWalletVector!.childPrivateKey;
-      final coinPublicKey = coinPrivateKey.getG1();
+      final coinPublicKey = coinWalletVector!.childPublicKey;
 
       Program? innerSolution;
       // if first coin, make inner solution with output
@@ -117,20 +94,12 @@ class CatWalletService extends BaseWalletService {
           );
         }
         if (fee > 0) {
-          assert(standardCoinsForFee.isNotEmpty, 'If passing in a fee, you must also pass in standard coins to use for that fee.');
-          final totalStandardCoinsValue = standardCoinsForFee.fold(0, (int previousValue, standardCoin) => previousValue + standardCoin.amount);
-          assert(totalStandardCoinsValue >= fee, 'Total value of passed in standad coins is not enough to cover fee.');
-
-          final spendBundleForFee = standardWalletService.createSpendBundle(
-            standardCoinsForFee, 
-            0, 
-            changePuzzlehash, 
-            changePuzzlehash, 
-            keychain, 
+         spendBundlesToAggregate.add(_makeStandardSpendBundleForFee(
             fee: fee,
-            coinAnnouncementsToAssert: [primaryAssertCoinAnnouncement],
-          );
-          spendBundlesToAggregate.add(spendBundleForFee);
+            standardCoins: standardCoinsForFee,
+            keychain: keychain, 
+            changePuzzlehash: changePuzzlehash
+          ));
         }
 
         innerSolution = BaseWalletService.makeSolutionFromConditions(conditions);
@@ -140,8 +109,8 @@ class CatWalletService extends BaseWalletService {
 
       final innerPuzzle = getPuzzleFromPk(coinPublicKey);
 
-      catSpendInfos.add(
-        CatSpendInfo(
+      spendableCats.add(
+        SpendableCat(
           coin: catCoin, 
           innerPuzzle: innerPuzzle, 
           innerSolution: innerSolution,
@@ -149,122 +118,96 @@ class CatWalletService extends BaseWalletService {
       );
     }
 
-    final deltas = calculateDeltas(catSpendInfos);
-
-    final subtotals = subtotalsForDeltas(deltas);
-
-    final infosForNext = <Program>[];
-    final infosForMe = <Program>[];
-    final ids = <Puzzlehash>[];
-    for (final catSpendInfo in catSpendInfos) {
-      infosForNext.add(catSpendInfo.standardCoinProgram);
-      infosForMe.add(catSpendInfo.coin.toProgram());
-      ids.add(catSpendInfo.coin.id);
-    }
-
-    
-    final spends = <CoinSpend>[];
-    final signatures = <JacobianPoint>[];
-    
-    final n = catSpendInfos.length;
-    for (var index = 0; index < n; index++) {
-      final spendInfo = catSpendInfos[index];
-
-      final puzzleReveal = makeCatPuzzle(spendInfo.innerPuzzle, spendInfo.coin.assetId);
-
-      final prevIndex = (index - 1) % n;
-      final nextIndex = (index + 1) % n;
-      final prevId = ids[prevIndex];
-      final myInfo = infosForMe[index];
-      final nextInfo = infosForNext[nextIndex];
-
-      final solution = Program.list([
-        spendInfo.innerSolution, 
-        spendInfo.coin.lineageProof,
-        Program.fromBytes(prevId.bytes),
-        myInfo,
-        nextInfo,
-        Program.fromInt(subtotals[index]), 
-        Program.fromInt(0), // limitations_program_reveal: unused since we're not handling any cat discrepancy
-      ]);
-
-      final coinWalletVector = keychain.getWalletVector(spendInfo.coin.puzzlehash);
-      final coinPrivateKey = coinWalletVector!.childPrivateKey;
-
-      final solAndSig = createCoinsSpendAndSignature(solution, puzzleReveal, coinPrivateKey, spendInfo.coin);
-
-      spends.add(solAndSig.coinSpend);
-      signatures.add(solAndSig.signature);
-    }
-
-    final catAggregateSignature = AugSchemeMPL.aggregate(signatures);
-    final catSpendBundle = SpendBundle(coinSpends: spends, aggregatedSignature: catAggregateSignature);
+    final catSpendBundle = _makeCatSpendBundleFromSpendableCats(spendableCats, keychain);
 
     spendBundlesToAggregate.add(catSpendBundle);
 
     return SpendBundle.aggregate(spendBundlesToAggregate);
   }
 
+  SpendBundle _makeCatSpendBundleFromSpendableCats(List<SpendableCat> spendableCats, WalletKeychain keychain) {
+    SpendableCat.calculateAndAttachSubtotals(spendableCats);
+
+    final spends = <CoinSpend>[];
+    final signatures = <JacobianPoint>[];
+    
+    final n = spendableCats.length;
+    for (var index = 0; index < n; index++) {
+      final previousIndex = (index - 1) % n;
+      final nextIndex = (index + 1) % n;
+
+      final previousSpendableCat = spendableCats[previousIndex];
+      final currentSpendableCat = spendableCats[index];
+      final nextSpendableCat = spendableCats[nextIndex];
+
+      final puzzleReveal = makeCatPuzzle(currentSpendableCat);
+
+      final solution = makeCatSolution(
+        previousSpendableCat: previousSpendableCat, 
+        currentSpendableCat: currentSpendableCat, 
+        nextSpendableCat: nextSpendableCat
+      );
+
+      final coinWalletVector = keychain.getWalletVector(currentSpendableCat.coin.puzzlehash);
+      final coinPrivateKey = coinWalletVector!.childPrivateKey;
+
+      final solAndSig = createCoinsSpendAndSignature(solution, puzzleReveal, coinPrivateKey, currentSpendableCat.coin);
+
+      spends.add(solAndSig.coinSpend);
+      signatures.add(solAndSig.signature);
+    }
+
+    final catAggregateSignature = AugSchemeMPL.aggregate(signatures);
+
+    return SpendBundle(coinSpends: spends, aggregatedSignature: catAggregateSignature);
+  }
+
+  SpendBundle _makeStandardSpendBundleForFee({
+    required int fee,
+    required List<Coin> standardCoins,
+    required WalletKeychain keychain,
+    required Puzzlehash changePuzzlehash,
+    List<AssertCoinAnnouncementCondition> coinAnnouncementsToAsset = const [],
+  }) {
+    assert(standardCoins.isNotEmpty, 'If passing in a fee, you must also pass in standard coins to use for that fee.');
+    final totalStandardCoinsValue = standardCoins.fold(0, (int previousValue, standardCoin) => previousValue + standardCoin.amount);
+    assert(totalStandardCoinsValue >= fee, 'Total value of passed in standad coins is not enough to cover fee.');
+
+    return standardWalletService.createSpendBundle(
+      standardCoins, 
+      0, 
+      changePuzzlehash, 
+      changePuzzlehash, 
+      keychain, 
+      fee: fee,
+      coinAnnouncementsToAssert: coinAnnouncementsToAsset,
+    );
+  }
+
   // see chia/wallet/cc_wallet/cc_wallet.py: generate_unsigned_spendbundle
-  static Program makeCatSolution(Program innerPuzzle, Program innerSolution, CatCoin catCoin) {
+  static Program makeCatSolution({
+    required SpendableCat previousSpendableCat, 
+    required SpendableCat currentSpendableCat, 
+    required SpendableCat nextSpendableCat,
+
+    }) {
+    assert(currentSpendableCat.subtotal != null, 'subtotal has not been attached to currentSpendableCat');
     return Program.list([
-      innerSolution, 
-      catCoin.lineageProof,
-      Program.fromBytes(catCoin.id.bytes),
-      catCoin.toProgram(),
-      Program.list([Program.fromBytes(catCoin.parentCoinInfo.bytes), Program.fromBytes(innerPuzzle.hash()), Program.fromInt(catCoin.amount)]),
-      Program.fromInt(0), // extra_delta: unused since we're not melting or issuing CATs
+      currentSpendableCat.innerSolution, 
+      currentSpendableCat.coin.lineageProof,
+      Program.fromBytes(previousSpendableCat.coin.id.bytes),
+      currentSpendableCat.coin.toProgram(),
+      nextSpendableCat.makeStandardCoinProgram(),
+      Program.fromInt(currentSpendableCat.subtotal!),
       Program.fromInt(0), // limitations_program_reveal: unused since we're not handling any cat discrepancy
     ]);
   }
 
-  static Program makeCatPuzzle(Program innerPuzzle, Puzzlehash assetId) {
+  static Program makeCatPuzzle(SpendableCat spendableCat) {
     return catProgram.curry([
       Program.fromBytes(catProgram.hash()),
-      Program.fromBytes(assetId.bytes),
-      innerPuzzle
+      Program.fromBytes(spendableCat.coin.assetId.bytes),
+      spendableCat.innerPuzzle
     ]);
-  }
-
-  static List<int> subtotalsForDeltas(List<int> deltas){
-    if (deltas.isEmpty) {
-      return [];
-    }
-
-    final subtotals = <int>[];
-    var subtotal = 0;
-
-    for (final delta in deltas) {
-        subtotals.add(subtotal);
-        subtotal += delta;
-    }
-
-    // tweak the subtotals so the smallest value is 0
-    final subtotalOffset = subtotals.reduce(min);
-    return subtotals.map((s) => s - subtotalOffset).toList();
-  }
-
-  static List<int> calculateDeltas(List<CatSpendInfo> catSpendInfos) {
-    final deltas = <int>[];
-    for (final catSpendInfo in catSpendInfos)  {
-      final conditionPrograms = catSpendInfo.innerPuzzle.run(catSpendInfo.innerSolution).program.toList();
-
-      var total = 0;
-      // print('coin amount: ${catSpendInfo.coin.amount}');
-      for (final createCoinConditionProgram in conditionPrograms.where(CreateCoinCondition.isThisCondition)) {
-        if (!createCoinConditionProgram.toSource().contains('-113')) {
-          final createCoinCondition = CreateCoinCondition.fromProgram(createCoinConditionProgram);
-          // print('condition amount: ${createCoinCondition.amount}');
-          total += createCoinCondition.amount;
-        }
-      }
-      deltas.add(catSpendInfo.coin.amount - total);
-    }
-
-    return deltas;
-  }
-}
-
-class CatRingSet {
-  
+  }  
 }

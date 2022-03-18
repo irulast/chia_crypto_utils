@@ -75,10 +75,10 @@ Future<void> main(List<String> args) async {
   // });
 
   test('Produces valid spendbundle with fee', () async {
-    final payment = Payment(100, targetPuzzlehash);
-    final payment1 = Payment(150, targetPuzzlehash);
-    final spendBundle = catWalletService.createSpendBundle([payment, payment1], catCoins.sublist(0, 2), changePuzzlehash, walletKeychain, fee: 1000, standardCoinsForFee: [standardCoins.firstWhere((element) => element.amount >= 1000)]);
-    spendBundle.debug();
+    final payment = Payment(200, targetPuzzlehash);
+    final payment1 = Payment(100, targetPuzzlehash);
+    final spendBundle = catWalletService.createSpendBundle([payment, payment1], catCoins.sublist(1), changePuzzlehash, walletKeychain, fee: 1000, standardCoinsForFee: [standardCoins.firstWhere((element) => element.amount >= 1000)]);
+    // spendBundle.debug();
     await fullNode.pushTransaction(spendBundle);
   });
 }
