@@ -118,7 +118,9 @@ class CatWalletService extends BaseWalletService {
       );
     }
 
-    final catSpendBundle = _makeCatSpendBundleFromSpendableCats(spendableCats, keychain);
+    final immutableSpendableCats = List<SpendableCat>.unmodifiable(spendableCats);
+
+    final catSpendBundle = _makeCatSpendBundleFromSpendableCats(immutableSpendableCats, keychain);
 
     spendBundlesToAggregate.add(catSpendBundle);
 
