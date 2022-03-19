@@ -3,6 +3,7 @@
 import 'dart:convert';
 
 import 'package:chia_utils/src/api/client.dart';
+import 'package:chia_utils/src/api/exceptions/internal_server_error.dart';
 import 'package:chia_utils/src/api/full_node.dart';
 import 'package:chia_utils/src/api/models/responses/chia_base_response.dart';
 import 'package:chia_utils/src/api/models/responses/coin_record_response.dart';
@@ -10,6 +11,7 @@ import 'package:chia_utils/src/api/models/responses/coin_records_response.dart';
 import 'package:chia_utils/src/api/models/responses/coin_spend_response.dart';
 import 'package:chia_utils/src/core/models/puzzlehash.dart';
 import 'package:chia_utils/src/core/models/spend_bundle.dart';
+import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 
@@ -44,6 +46,7 @@ class FullNodeHttpRpc implements FullNode{
       Uri.parse('get_coin_records_by_puzzle_hashes'),
       body,
     );
+    mapResponseToError(responseData);
 
     return CoinRecordsResponse.fromJson(jsonDecode(responseData.body) as Map<String, dynamic>);
   }
@@ -54,6 +57,7 @@ class FullNodeHttpRpc implements FullNode{
       Uri.parse('push_tx'),
       {'spend_bundle': spendBundle.toJson()},
     );
+    mapResponseToError(responseData);
 
     return ChiaBaseResponse.fromJson(jsonDecode(responseData.body) as Map<String, dynamic>);
   }
@@ -63,6 +67,7 @@ class FullNodeHttpRpc implements FullNode{
     final responseData = await client.sendRequest(Uri.parse('get_coin_record_by_name'), {
       'name': coinId.hex,
     });
+    mapResponseToError(responseData);
 
     return CoinRecordResponse.fromJson(jsonDecode(responseData.body) as Map<String, dynamic>);
   }
@@ -73,8 +78,16 @@ class FullNodeHttpRpc implements FullNode{
       'coin_id': coinId.hex,
       'height': height,
     });
+    mapResponseToError(responseData);
 
     return CoinSpendResponse.fromJson(jsonDecode(responseData.body) as Map<String, dynamic>);
+  }
+
+  static void mapResponseToError(http.Response response) {
+    switch(response.statusCode) {
+      case 500:
+        throw InternalServeErrorException(message: response.body);
+    }
   }
 
   @override

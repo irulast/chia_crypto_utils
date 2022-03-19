@@ -62,4 +62,10 @@ Future<void> main() async {
     expect(errorThrown, true);
   });
 
+  test('should get cat coins by puzzlehashes', () async {
+    final coins = await fullNode.getCoinsByPuzzleHashes(testCatCoins.map((c) => c.puzzlehash,).toList());
+    for(final testCoin in testCatCoins) {
+      expect(coins.contains(testCoin), true);
+    }
+  });
 }
