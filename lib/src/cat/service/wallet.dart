@@ -94,12 +94,14 @@ class CatWalletService extends BaseWalletService {
           );
         }
         if (fee > 0) {
-         spendBundlesToAggregate.add(_makeStandardSpendBundleForFee(
-            fee: fee,
-            standardCoins: standardCoinsForFee,
-            keychain: keychain, 
-            changePuzzlehash: changePuzzlehash
-          ));
+          spendBundlesToAggregate.add(
+            _makeStandardSpendBundleForFee(
+              fee: fee,
+              standardCoins: standardCoinsForFee,
+              keychain: keychain,
+              changePuzzlehash: changePuzzlehash,
+            ),
+          );
         }
 
         innerSolution = BaseWalletService.makeSolutionFromConditions(conditions);
