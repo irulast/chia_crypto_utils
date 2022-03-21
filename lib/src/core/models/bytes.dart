@@ -56,5 +56,5 @@ class Bytes {
     return Bytes(sha256.convert(bytes).bytes);
   }
 }
-// Type alias for readibility. In some places it makes more sense to think of Bytes as a Puzzlehash
+
 typedef Puzzlehash = Bytes;
