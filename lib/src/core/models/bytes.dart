@@ -7,9 +7,9 @@ import 'package:meta/meta.dart';
 @immutable
 class Bytes {
   static String bytesPrefix = '0x';
-  final List<int> byteList;
+  final List<int> _byteList;
 
-  const Bytes(this.byteList);
+  const Bytes(this._byteList);
 
   // empty byte array
   // ignore: prefer_constructors_over_static_methods
@@ -26,34 +26,34 @@ class Bytes {
     return Bytes(const HexDecoder().convert(phHex));
   }
 
-  Uint8List get bytes {
-    return Uint8List.fromList(byteList);
+  Uint8List toUint8List() {
+    return Uint8List.fromList(_byteList);
   }
 
-  String get hex {
-    return const HexEncoder().convert(byteList);
+  String toHex() {
+    return const HexEncoder().convert(_byteList);
   }
 
   String get hexWithBytesPrefix {
-    return bytesPrefix + hex;
+    return bytesPrefix + toHex();
   }
 
   /// Returns a concatenation of this puzzlehash and [other].
   Bytes operator +(Bytes other) {
-    return Bytes(bytes + other.bytes);
+    return Bytes(toUint8List() + other.toUint8List());
   }
 
   @override
   bool operator ==(Object other) =>
       other is Bytes &&
       other.runtimeType == runtimeType &&
-      other.hex == hex;
+      other.toHex() == toHex();
 
   @override
-  int get hashCode => hex.hashCode;
+  int get hashCode => toHex().hashCode;
 
   Bytes sha256Hash() {
-    return Bytes(sha256.convert(bytes).bytes);
+    return Bytes(sha256.convert(toUint8List()).bytes);
   }
 }
 

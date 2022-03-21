@@ -23,7 +23,7 @@ class BaseWalletService {
     final addsigmessage = getAddSigMeMessageFromResult(result.program, coin);
 
     final synthSecretKey = calculateSyntheticPrivateKey(privateKey);
-    final signature = AugSchemeMPL.sign(synthSecretKey, addsigmessage.bytes);
+    final signature = AugSchemeMPL.sign(synthSecretKey, addsigmessage.toUint8List());
 
     final coinSpend = CoinSpend(coin: coin, puzzleReveal: puzzle, solution: solution);
 
@@ -60,7 +60,7 @@ class BaseWalletService {
 
       final aggSigMeCondition = AggSigMeCondition.fromProgram(aggSigMeProgram);
       publicKeys.add(aggSigMeCondition.publicKey);
-      messages.add((aggSigMeCondition.message + spend.coin.id + Bytes.fromHex(blockchainNetwork.aggSigMeExtraData)).bytes);
+      messages.add((aggSigMeCondition.message + spend.coin.id + Bytes.fromHex(blockchainNetwork.aggSigMeExtraData)).toUint8List());
     }
 
     // validate signature
@@ -130,7 +130,7 @@ class BaseWalletService {
   static void checkForDuplicateCoins(List<CoinPrototype> coins) {
     final idSet = <String>{};
     for(final coin in coins) {
-      final coinIdHex = coin.id.hex;
+      final coinIdHex = coin.id.toHex();
       if (idSet.contains(coinIdHex)) {
         throw DuplicateCoinException(coinIdHex);
       } else {

@@ -2,9 +2,9 @@
 import 'package:chia_utils/src/api/full_node.dart';
 import 'package:chia_utils/src/context/context.dart';
 import 'package:chia_utils/src/core/models/address.dart';
+import 'package:chia_utils/src/core/models/bytes.dart';
 import 'package:chia_utils/src/core/models/coin.dart';
 import 'package:chia_utils/src/core/models/master_key_pair.dart';
-import 'package:chia_utils/src/core/models/puzzlehash.dart';
 import 'package:chia_utils/src/core/models/wallet_keychain.dart';
 import 'package:chia_utils/src/core/models/wallet_set.dart';
 import 'package:chia_utils/src/networks/chia/chia_blockckahin_network_loader.dart';

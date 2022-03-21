@@ -197,7 +197,7 @@ class CatWalletService extends BaseWalletService {
     return Program.list([
       currentSpendableCat.innerSolution, 
       currentSpendableCat.coin.lineageProof,
-      Program.fromBytes(previousSpendableCat.coin.id.bytes),
+      Program.fromBytes(previousSpendableCat.coin.id.toUint8List()),
       currentSpendableCat.coin.toProgram(),
       nextSpendableCat.makeStandardCoinProgram(),
       Program.fromInt(currentSpendableCat.subtotal!),
@@ -208,7 +208,7 @@ class CatWalletService extends BaseWalletService {
   static Program makeCatPuzzle(SpendableCat spendableCat) {
     return catProgram.curry([
       Program.fromBytes(catProgram.hash()),
-      Program.fromBytes(spendableCat.coin.assetId.bytes),
+      Program.fromBytes(spendableCat.coin.assetId.toUint8List()),
       spendableCat.innerPuzzle
     ]);
   }  

@@ -27,7 +27,7 @@ class CreateCoinCondition implements Condition {
   Program get program {
     return Program.list([
       Program.fromInt(conditionCode),
-      Program.fromBytes(destinationHash.bytes),
+      Program.fromBytes(destinationHash.toUint8List()),
       Program.fromInt(amount)
     ]);
   }

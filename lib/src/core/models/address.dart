@@ -1,5 +1,5 @@
 import 'package:bech32m/bech32m.dart';
-import 'package:chia_utils/src/core/models/puzzlehash.dart';
+import 'package:chia_utils/src/core/models/bytes.dart';
 
 class Address {
   String address;
@@ -9,7 +9,7 @@ class Address {
   );
 
   factory Address.fromPuzzlehash(Puzzlehash puzzlehash, String addressPrefix) {
-    return Address(segwit.encode(Segwit(addressPrefix, puzzlehash.bytes)));
+    return Address(segwit.encode(Segwit(addressPrefix, puzzlehash.toUint8List())));
   }
 
   Puzzlehash toPuzzlehash() {

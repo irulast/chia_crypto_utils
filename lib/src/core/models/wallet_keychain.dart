@@ -41,7 +41,7 @@ class WalletKeychain {
   }
 
   static Puzzlehash makeOuterPuzzleHash(Puzzlehash innerPuzzleHash, Puzzlehash assetId) {
-    final solution = Program.list([Program.fromBytes(catProgram.hash()), Program.fromBytes(assetId.bytes), Program.fromBytes(innerPuzzleHash.bytes)]);
+    final solution = Program.list([Program.fromBytes(catProgram.hash()), Program.fromBytes(assetId.toUint8List()), Program.fromBytes(innerPuzzleHash.toUint8List())]);
     final result = curryAndTreehashProgram.run(solution);
     return Puzzlehash(result.program.atom);
   }

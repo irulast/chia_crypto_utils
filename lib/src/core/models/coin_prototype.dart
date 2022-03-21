@@ -24,8 +24,8 @@ class CoinPrototype {
   Bytes get id {
     return Bytes(sha256
         .convert(
-            parentCoinInfo.bytes +
-            puzzlehash.bytes +
+            parentCoinInfo.toUint8List() +
+            puzzlehash.toUint8List() +
             intToBytesStandard(amount, Endian.big),
           )
         .bytes,
@@ -33,8 +33,8 @@ class CoinPrototype {
   }
 
   Map<String, dynamic> toJson() => <String, dynamic> {
-      'parent_coin_info': parentCoinInfo.hex,
-      'puzzle_hash': puzzlehash.hex,
+      'parent_coin_info': parentCoinInfo.toHex(),
+      'puzzle_hash': puzzlehash.toHex(),
       'amount': amount
   };
   

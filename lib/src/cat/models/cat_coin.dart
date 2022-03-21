@@ -48,7 +48,7 @@ class CatCoin extends Coin {
   
   Program get lineageProof {
     return Program.list([
-      Program.fromBytes(parentCoinSpend.coin.parentCoinInfo.bytes),
+      Program.fromBytes(parentCoinSpend.coin.parentCoinInfo.toUint8List()),
       Program.fromBytes(parentCoinSpend.puzzleReveal.uncurry().arguments[2].hash()),
       Program.fromInt(parentCoinSpend.coin.amount)
    ]);

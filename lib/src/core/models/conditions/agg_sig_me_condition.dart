@@ -15,7 +15,7 @@ class AggSigMeCondition implements Condition {
     return Program.list([
       Program.fromInt(conditionCode),
       Program.fromBytes(publicKey.toBytes()),
-      Program.fromBytes(message.bytes),
+      Program.fromBytes(message.toUint8List()),
     ]);
   }
 

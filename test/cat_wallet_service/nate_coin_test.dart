@@ -57,7 +57,7 @@ Future<void> main() async {
  var total = 0;
  catCoins.forEach((cat) {
    if(cat.amount == 1000) {
-     print(cat.parentCoinInfo.hex);
+     print(cat.parentCoinInfo.toHex());
    }
   });
  print(total);

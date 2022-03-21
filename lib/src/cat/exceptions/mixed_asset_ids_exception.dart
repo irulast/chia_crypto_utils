@@ -1,4 +1,4 @@
-import 'package:chia_utils/src/core/models/puzzlehash.dart';
+import 'package:chia_utils/src/core/models/bytes.dart';
 
 class MixedAssetIdsException implements Exception {
   Iterable<Puzzlehash> mixedAssetIds;
@@ -7,6 +7,6 @@ class MixedAssetIdsException implements Exception {
 
   @override
   String toString() {
-    return 'Can not mix cat coins with different asset ids for this opperation: [${mixedAssetIds.map((tail) => tail.hex)}]';
+    return 'Can not mix cat coins with different asset ids for this opperation: [${mixedAssetIds.map((tail) => tail.toHex())}]';
   }
 }

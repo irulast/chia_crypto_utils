@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'package:chia_utils/src/api/client.dart';
 import 'package:chia_utils/src/core/models/coin.dart';
 import 'package:chia_utils/src/core/models/coin_spend.dart';
-import 'package:chia_utils/src/core/models/puzzlehash.dart';
+import 'package:chia_utils/src/core/models/bytes.dart';
 import 'package:chia_utils/src/core/models/spend_bundle.dart';
 import 'package:meta/meta.dart';
 
@@ -24,7 +24,7 @@ class FullNode {
     bool includeSpentCoins = false,
   }) async {
     final body = <String, dynamic>{
-      'puzzle_hashes': puzzlehashes.map((ph) => ph.hex).toList(),
+      'puzzle_hashes': puzzlehashes.map((ph) => ph.toHex()).toList(),
     };
     if (startHeight != null) {
       body['start_height'] = startHeight;
@@ -69,7 +69,7 @@ class FullNode {
 
   Future<Coin> getCoinByName(Bytes coinId) async {
     final responseData = await client.sendRequest(Uri.parse('get_coin_record_by_name'), {
-      'name': coinId.hex,
+      'name': coinId.toHex(),
     });
 
     if (responseData.statusCode != 200) {
@@ -82,7 +82,7 @@ class FullNode {
 
   Future<CoinSpend> getPuzzleAndSolution(Bytes coinId, int height) async {
     final responseData = await client.sendRequest(Uri.parse('get_puzzle_and_solution'), {
-      'coin_id': coinId.hex,
+      'coin_id': coinId.toHex(),
       'height': height,
     });
 

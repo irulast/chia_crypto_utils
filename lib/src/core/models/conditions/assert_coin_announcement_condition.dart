@@ -31,7 +31,7 @@ class AssertCoinAnnouncementCondition implements Condition {
   Program get program {
     return Program.list([
       Program.fromInt(conditionCode),
-      Program.fromBytes(announcementId.bytes),
+      Program.fromBytes(announcementId.toUint8List()),
     ]);
   }
 

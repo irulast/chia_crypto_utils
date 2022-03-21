@@ -31,7 +31,7 @@ class StandardWalletService extends BaseWalletService{
     final spends = <CoinSpend>[];
 
     // returns -1 if originId is given but is not in coins
-    final originIndex = originId == null ? 0 : coins.indexWhere((coin) => coin.id.hex == originId.hex);
+    final originIndex = originId == null ? 0 : coins.indexWhere((coin) => coin.id.toHex() == originId.toHex());
 
     if (originIndex == -1) {
       throw Exception('Origin id not in coins');

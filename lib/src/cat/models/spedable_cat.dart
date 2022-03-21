@@ -18,7 +18,7 @@ class SpendableCat {
 
   Program makeStandardCoinProgram() {
     return Program.list([
-      Program.fromBytes(coin.parentCoinInfo.bytes),
+      Program.fromBytes(coin.parentCoinInfo.toUint8List()),
       Program.fromBytes(innerPuzzle.hash()),
       Program.fromInt(coin.amount),
     ]);
