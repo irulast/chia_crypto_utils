@@ -19,7 +19,7 @@ class AssertCoinAnnouncementCondition implements Condition {
 
   AssertCoinAnnouncementCondition(this.coinId, this.message, {this.morphBytes});
 
-  static Bytes getAnnouncementIdromProgram(Program program) {
+  static Bytes getAnnouncementIdFromProgram(Program program) {
     final programList = program.toList();
     if (!isThisCondition(program)) {
       throw InvalidConditionCastException(AssertCoinAnnouncementCondition);

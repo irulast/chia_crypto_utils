@@ -52,6 +52,11 @@ class Bytes {
   @override
   int get hashCode => toHex().hashCode;
 
+  @override
+  String toString() {
+    return toHex();
+  }
+
   Bytes sha256Hash() {
     return Bytes(sha256.convert(toUint8List()).bytes);
   }

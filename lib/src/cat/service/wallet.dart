@@ -9,6 +9,8 @@ import 'package:chia_utils/src/core/models/conditions/create_coin_announcement_c
 import 'package:chia_utils/src/core/models/conditions/create_coin_condition.dart';
 import 'package:chia_utils/src/core/models/payment.dart';
 import 'package:chia_utils/src/core/service/base_wallet.dart';
+import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/incorrect_announcement_id_exception.dart';
+import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/multiple_origin_coin_exception.dart';
 
 class CatWalletService extends BaseWalletService {
   late StandardWalletService standardWalletService;
@@ -65,7 +67,7 @@ class CatWalletService extends BaseWalletService {
           // https://chialisp.com/docs/puzzles/cats under "Design Choices"
           morphBytes: Bytes.fromHex('ca'),
         );
-          
+        
 
         final conditions = <Condition>[];
         final createdCoins = <CoinPrototype>[];
@@ -99,7 +101,8 @@ class CatWalletService extends BaseWalletService {
             fee: fee,
             standardCoins: standardCoinsForFee,
             keychain: keychain, 
-            changePuzzlehash: changePuzzlehash
+            changePuzzlehash: changePuzzlehash,
+            coinAnnouncementsToAsset: [primaryAssertCoinAnnouncement],
           ));
         }
 
@@ -212,5 +215,63 @@ class CatWalletService extends BaseWalletService {
       Program.fromBytes(spendableCat.coin.assetId.toUint8List()),
       spendableCat.innerPuzzle
     ]);
+  }
+
+  void validateSpendBundle(SpendBundle spendBundle) {
+    validateSpendBundleSignature(spendBundle);
+
+    // validate assert_coin_announcement if it is created (if there are multiple coins spent)
+    if (spendBundle.coinSpends.length > 1) {
+      List<Bytes>? actualAssertCoinAnnouncementIds;
+      final coinsToCreate = <CoinPrototype>[];
+      final coinsBeingSpent = <CoinPrototype>[];
+      Bytes? originId;
+      for (final catSpend in spendBundle.coinSpends.where((spend) => spend.type == SpendType.cat)) {
+        final outputConditions = catSpend.puzzleReveal.run(catSpend.solution).program.toList();
+
+        // find create_coin conditions
+        final coinCreationConditions = outputConditions.where(CreateCoinCondition.isThisCondition)
+          .map((program) => CreateCoinCondition.fromProgram(program)).toList();
+        
+        for (final coinCreationCondition in coinCreationConditions) {
+          coinsToCreate.add(CoinPrototype(parentCoinInfo: catSpend.coin.id, puzzlehash: coinCreationCondition.destinationHash, amount: coinCreationCondition.amount));
+        }
+        coinsBeingSpent.add(catSpend.coin);
+
+        if (coinCreationConditions.isNotEmpty) {
+          // if originId is already set, multiple coins are creating output which is invalid
+          if (originId != null) {
+            throw MultipleOriginCoinsException();
+          }
+          originId = catSpend.coin.id;
+        }
+
+        // origin id doesn't contain its own assert coin announcement
+        if (catSpend.coin.id != originId) {
+          final assertCoinAnnouncementPrograms =  outputConditions.where(AssertCoinAnnouncementCondition.isThisCondition).toList();
+
+          // set actualAssertCoinAnnouncementIds only if it is null
+          actualAssertCoinAnnouncementIds ??= assertCoinAnnouncementPrograms.map(AssertCoinAnnouncementCondition.getAnnouncementIdFromProgram).toList();
+        }
+        // look for assert coin announcement condition
+        
+      }
+      // check for duplicate coins
+      BaseWalletService.checkForDuplicateCoins(coinsToCreate);
+      BaseWalletService.checkForDuplicateCoins(coinsBeingSpent);
+
+      assert(actualAssertCoinAnnouncementIds != null, 'No assert_coin_announcement condition when multiple spends');
+      assert(originId != null, 'No create_coin conditions');
+      
+      // construct assert_coin_announcement id from spendbundle, verify against output
+      final existingCoinsMessage = coinsBeingSpent.fold(Bytes.empty, (Bytes previousValue, coin) => previousValue + coin.id);
+
+      final message = existingCoinsMessage.sha256Hash();
+
+      final constructedAnnouncement = AssertCoinAnnouncementCondition(originId!, message, morphBytes: Bytes.fromHex('ca'));
+      if (!actualAssertCoinAnnouncementIds!.contains(constructedAnnouncement.announcementId)) {
+        throw IncorrectAnnouncementIdException();
+      }
+    }
   }  
 }
