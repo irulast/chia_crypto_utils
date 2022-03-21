@@ -1,7 +1,7 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/cat/exceptions/mixed_asset_ids_exception.dart';
 import 'package:chia_utils/src/cat/models/cat_coin.dart';
-import 'package:chia_utils/src/cat/models/spedable_cat.dart';
+import 'package:chia_utils/src/cat/models/spendable_cat.dart';
 import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
 import 'package:chia_utils/src/core/models/conditions/assert_coin_announcement_condition.dart';
 import 'package:chia_utils/src/core/models/conditions/condition.dart';
@@ -99,13 +99,14 @@ class CatWalletService extends BaseWalletService {
           );
         }
         if (fee > 0) {
-         spendBundlesToAggregate.add(_makeStandardSpendBundleForFee(
-            fee: fee,
-            standardCoins: standardCoinsForFee,
-            keychain: keychain, 
-            changePuzzlehash: changePuzzlehash,
-            coinAnnouncementsToAsset: [primaryAssertCoinAnnouncement],
-          ));
+          spendBundlesToAggregate.add(
+            _makeStandardSpendBundleForFee(
+              fee: fee,
+              standardCoins: standardCoinsForFee,
+              keychain: keychain,
+              changePuzzlehash: changePuzzlehash,
+            ),
+          );
         }
 
         innerSolution = BaseWalletService.makeSolutionFromConditions(conditions);
