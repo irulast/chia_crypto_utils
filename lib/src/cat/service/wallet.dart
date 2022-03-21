@@ -27,14 +27,15 @@ class CatWalletService extends BaseWalletService {
       int fee = 0, 
     }
     ) {
-    final totalPaymentAmount = payments.fold(0, (int previousValue, payment) => previousValue + payment.amount);
-
-    final catCoins = List<CatCoin>.from(catCoinsInput);
-
-    final distinctAssetIds = catCoins.map((c) => c.assetId).toSet();
+    final distinctAssetIds = catCoinsInput.map((c) => c.assetId).toSet();
     if(distinctAssetIds.length != 1) {
       throw MixedAssetIdsException(distinctAssetIds);
     }
+
+    final totalPaymentAmount = payments.fold(0, (int previousValue, payment) => previousValue + payment.amount);
+
+    final catCoins = List<CatCoin>.from(catCoinsInput);
+    
     final totalCatCoinValue = catCoins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
     final change = totalCatCoinValue - totalPaymentAmount;
 
@@ -61,8 +62,8 @@ class CatWalletService extends BaseWalletService {
         primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition(
           catCoin.id,
           message,
-          // "ca" in bytes
-          morphBytes: const Bytes([202]),
+          // https://chialisp.com/docs/puzzles/cats under "Design Choices"
+          morphBytes: Bytes.fromHex('ca'),
         );
           
 
