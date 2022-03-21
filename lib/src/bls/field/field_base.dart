@@ -22,13 +22,13 @@ class Fq implements Field {
 
   @override
   Fq myFromBytes(List<int> bytes, BigInt Q) {
-    assert(bytes.length == 48);
+    assert(bytes.length == 48, 'There must be 48 bytes');
     return Fq(Q, bytesToBigInt(bytes, Endian.big));
   }
 
   @override
   Fq myFromHex(String hex, BigInt Q) =>
-      myFromBytes(HexDecoder().convert(hex), Q);
+      myFromBytes(const HexDecoder().convert(hex), Q);
 
   factory Fq.zero(BigInt Q) => Fq(Q, BigInt.zero);
 
@@ -103,7 +103,7 @@ class Fq implements Field {
 
   @override
   String toString() {
-    var hex = value.toRadixString(16);
+    final hex = value.toRadixString(16);
     return 'Fq(0x${hex.length > 10 ? '${hex.substring(0, 5)}..${hex.substring(hex.length - 5, hex.length)}' : hex})';
   }
 
@@ -111,7 +111,7 @@ class Fq implements Field {
   Uint8List toBytes() => bigIntToBytes(value, 48, Endian.big);
 
   @override
-  String toHex() => HexEncoder().convert(toBytes());
+  String toHex() => const HexEncoder().convert(toBytes());
 
   @override
   Fq pow(BigInt other) => other == BigInt.zero
@@ -130,14 +130,14 @@ class Fq implements Field {
     var a = Q;
     var b = value;
     while (a != BigInt.zero) {
-      var q = b ~/ a;
-      var tempB = b;
+      final q = b ~/ a;
+      final tempB = b;
       b = a;
       a = tempB % a;
-      var tempX0 = x0;
+      final tempX0 = x0;
       x0 = x1;
       x1 = tempX0 - q * x1;
-      var tempY0 = y0;
+      final tempY0 = y0;
       y0 = y1;
       y1 = tempY0 - q * y1;
     }
@@ -146,12 +146,12 @@ class Fq implements Field {
 
   @override
   Field operator ~/(other) {
-    if (other is BigInt) {
-      other = Fq(Q, other);
-    } else if (other is! Fq) {
-      throw ArgumentError('Can only divide by Fq or int objects.');
+    if (other is Fq) {
+      return this * ~other;
+    } else if (other is BigInt) {
+      return this * ~Fq(Q, other);
     }
-    return this * ~(other as Fq);
+    throw ArgumentError('Can only divide by Fq or int objects.');
   }
 
   @override
@@ -175,7 +175,7 @@ class Fq implements Field {
     }
     var z = BigInt.zero;
     for (var i = BigInt.zero; i < Q; i += BigInt.one) {
-      var euler = i.modPow((Q - BigInt.one) ~/ BigInt.two, Q);
+      final euler = i.modPow((Q - BigInt.one) ~/ BigInt.two, Q);
       if (euler == BigInt.from(-1) % Q) {
         z = i;
         break;
@@ -197,7 +197,7 @@ class Fq implements Field {
         f = f.pow(2) % Q;
         i += BigInt.one;
       }
-      var b = c.modPow((BigInt.two.modPow((M - i - BigInt.one), Q)), Q);
+      final b = c.modPow(BigInt.two.modPow(M - i - BigInt.one, Q), Q);
       M = i;
       c = b.pow(2) % Q;
       t = (t * c) % Q;

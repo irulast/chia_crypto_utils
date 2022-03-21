@@ -18,7 +18,7 @@ class PrivateKey {
       PrivateKey(bytesToBigInt(bytes, Endian.big) % defaultEc.n);
 
   factory PrivateKey.fromHex(String hex) =>
-      PrivateKey.fromBytes(HexDecoder().convert(hex));
+      PrivateKey.fromBytes(const HexDecoder().convert(hex));
 
   factory PrivateKey.fromSeed(List<int> seed) {
     var L = 48;

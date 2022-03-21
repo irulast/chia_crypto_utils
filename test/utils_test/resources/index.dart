@@ -8,8 +8,8 @@ class ChiaWalletSet {
   });
 
   factory ChiaWalletSet.fromRow(List<dynamic> row) {
-    final hardenedVector = ChiaWalletVector(childPublicKeyHex: row[0], puzzleHashHex: row[1]);
-    final unhardenedVector = ChiaWalletVector(childPublicKeyHex: row[2], puzzleHashHex: row[3]);
+    final hardenedVector = ChiaWalletVector(childPublicKeyHex: row[0] as String, puzzlehashHex: row[1] as String);
+    final unhardenedVector = ChiaWalletVector(childPublicKeyHex: row[2] as String, puzzlehashHex: row[3] as String);
 
     return ChiaWalletSet(hardened: hardenedVector, unhardened: unhardenedVector);
   }
@@ -17,10 +17,10 @@ class ChiaWalletSet {
 
 class ChiaWalletVector {
   String childPublicKeyHex;
-  String puzzleHashHex;
+  String puzzlehashHex;
 
   ChiaWalletVector({
     required this.childPublicKeyHex,
-    required this.puzzleHashHex
+    required this.puzzlehashHex
   });
 }

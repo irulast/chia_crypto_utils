@@ -1,13 +1,17 @@
+// ignore_for_file: avoid_void_async
+
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:bip39/bip39.dart';
+import 'package:chia_utils/src/core/models/address.dart';
+import 'package:chia_utils/src/core/models/master_key_pair.dart';
+import 'package:chia_utils/src/core/models/wallet_set.dart';
 import 'package:chia_utils/src/utils/index.dart';
-import 'package:chia_utils/src/utils/master_key_pair.dart';
-import 'package:chia_utils/src/utils/wallet_set.dart';
-import 'package:hex/hex.dart';
-import 'package:test/test.dart';
 import 'package:csv/csv.dart';
+import 'package:hex/hex.dart';
 import 'package:path/path.dart' as path;
+import 'package:test/test.dart';
 
 import 'resources/index.dart';
 
@@ -27,10 +31,13 @@ const chiaFirstAddress = 'txch1v8vergyvwugwv0tmxwnmeecuxh3tat5jaskkunnn79zjz0mud
 
 void main() async {
   // get chia wallet sets generated from testMnemonic
-  String filePath = path.join(path.current, 'test/utils_test/resources/chia_wallet_sets.csv');
+  var filePath = path.join(path.current, 'test/utils_test/resources/chia_wallet_sets.csv');
   filePath = path.normalize(filePath);
   final input = File(filePath).openRead();
-  final chiaWalletSetRows = await input.transform(utf8.decoder).transform(CsvToListConverter(eol: '\n')).toList();
+  final chiaWalletSetRows = await input
+      .transform(utf8.decoder)
+      .transform(const CsvToListConverter(eol: '\n'))
+      .toList();
 
   test('should generate correct puzzle hashes from mnemonic', () {
     const hexEncoder = HexEncoder();
@@ -48,17 +55,17 @@ void main() async {
     expect(poolPublicKeyHex, chiaPoolPublicKeyHex);
 
     String? firstAddress;
-    for(var i = 0; i < 20; i++) {
+    for (var i = 0; i < 20; i++) {
       final chiaSet = ChiaWalletSet.fromRow(chiaWalletSetRows[i]);
-      final set = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i, testnet: true);
+      final set = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
 
-      if(i == 0) {
-        firstAddress = set.hardened.address;
+      if (i == 0) {
+        firstAddress = Address.fromPuzzlehash(set.hardened.puzzlehash, 'txch').address;
       }
 
-      expect(chiaSet.hardened.puzzleHashHex, set.hardened.puzzleHash.hex);
+      expect(chiaSet.hardened.puzzlehashHex, set.hardened.puzzlehash.hex);
       expect(chiaSet.hardened.childPublicKeyHex, hexEncoder.convert(set.hardened.childPublicKey.toBytes()));
-      expect(chiaSet.unhardened.puzzleHashHex, set.unhardened.puzzleHash.hex);
+      expect(chiaSet.unhardened.puzzlehashHex, set.unhardened.puzzlehash.hex);
       expect(chiaSet.unhardened.childPublicKeyHex, hexEncoder.convert(set.unhardened.childPublicKey.toBytes()));
       expect(firstAddress, chiaFirstAddress);
     }
@@ -69,4 +76,11 @@ void main() async {
     print('Pool public key (m/$blsSpecNumber/$chiaBlockchanNumber/$poolPathNumber/0: $poolPublicKeyHex');
     print('First wallet address: $firstAddress');
   });
+
+   test('should generate a 24 word mnemonic', () {
+     final mnemonicPhrase = generateMnemonic(strength: 256);
+     print(mnemonicPhrase);
+
+     expect(24, mnemonicPhrase.split(' ').length);
+   });
 }

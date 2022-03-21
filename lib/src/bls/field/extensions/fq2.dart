@@ -20,21 +20,21 @@ class Fq2 extends FieldExtBase {
 
   @override
   Fq2 operator ~() {
-    var a = elements[0];
-    var b = elements[1];
-    var factor = ~(a * a + b * b);
+    final a = elements[0];
+    final b = elements[1];
+    final factor = ~(a * a + b * b);
     return Fq2(Q, [a * factor, -b * factor]);
   }
 
   Fq2 mulByNonResidue() {
-    var a = elements[0];
-    var b = elements[1];
+    final a = elements[0];
+    final b = elements[1];
     return Fq2(Q, [a - b, a + b]);
   }
 
   Fq2 modSqrt() {
-    var a0 = elements[0];
-    var a1 = elements[1];
+    final a0 = elements[0];
+    final a1 = elements[1];
     if (a1 == basefield.myOne(Q)) {
       return myFromFq(Q, (a0 as Fq).modSqrt()) as Fq2;
     }
@@ -49,8 +49,8 @@ class Fq2 extends FieldExtBase {
     if (gamma == Fq(Q, -BigInt.one)) {
       delta = (a0 - alpha) * ~Fq(Q, BigInt.two);
     }
-    var x0 = (delta as Fq).modSqrt();
-    var x1 = a1 * ~(Fq(Q, BigInt.two) * x0);
+    final x0 = (delta as Fq).modSqrt();
+    final x1 = a1 * ~(Fq(Q, BigInt.two) * x0);
     return Fq2(Q, [x0, x1]);
   }
 
