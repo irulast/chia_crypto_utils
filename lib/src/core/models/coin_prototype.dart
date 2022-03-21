@@ -6,7 +6,7 @@ import 'package:meta/meta.dart';
 
 @immutable
 class CoinPrototype {
-  final Puzzlehash parentCoinInfo;
+  final Bytes parentCoinInfo;
   final Puzzlehash puzzlehash;
   final int amount;
 
@@ -17,12 +17,12 @@ class CoinPrototype {
   });
 
   CoinPrototype.fromJson(Map<String, dynamic> json)
-      : parentCoinInfo = Puzzlehash.fromHex(json['parent_coin_info'] as String),
+      : parentCoinInfo = Bytes.fromHex(json['parent_coin_info'] as String),
         puzzlehash = Puzzlehash.fromHex(json['puzzle_hash'] as String),
         amount = json['amount'] as int;
 
-  Puzzlehash get id {
-    return Puzzlehash(sha256
+  Bytes get id {
+    return Bytes(sha256
         .convert(
             parentCoinInfo.bytes +
             puzzlehash.bytes +

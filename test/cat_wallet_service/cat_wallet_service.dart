@@ -54,17 +54,17 @@ Future<void> main() async {
   // final targetPuzzlehash = Address('txch1dwd0y9czedfhmh420st0gnscyzv650yn2nnqlmgc5zavhnx2af8sfl20ra').toPuzzlehash();
   
   
-  test('Produces valid spendbundle', () async {
-    final payment = Payment(200, targetPuzzlehash);
-    final spendBundle = catWalletService.createSpendBundle([payment], [catCoins[0]], changePuzzlehash, walletKeychain);
-    await fullNode.pushTransaction(spendBundle);
-  });
+  // test('Produces valid spendbundle', () async {
+  //   final payment = Payment(200, targetPuzzlehash);
+  //   final spendBundle = catWalletService.createSpendBundle([payment], [catCoins[0]], changePuzzlehash, walletKeychain);
+  //   await fullNode.pushTransaction(spendBundle);
+  // });
 
-  test('Produces valid spendbundle with fee', () async {
-    final payment = Payment(200, targetPuzzlehash);
-    final spendBundle = catWalletService.createSpendBundle([payment], catCoins.sublist(1), changePuzzlehash, walletKeychain, fee: 1000, standardCoinsForFee: [standardCoins.firstWhere((element) => element.amount >= 1000)]);
-    await fullNode.pushTransaction(spendBundle);
-  });
+  // test('Produces valid spendbundle with fee', () async {
+  //   final payment = Payment(200, targetPuzzlehash);
+  //   final spendBundle = catWalletService.createSpendBundle([payment], catCoins.sublist(1), changePuzzlehash, walletKeychain, fee: 1000, standardCoinsForFee: [standardCoins.firstWhere((element) => element.amount >= 1000)]);
+  //   await fullNode.pushTransaction(spendBundle);
+  // });
 
   test('Produces valid spendbundle with fee and multiple payments', () async {
     final payment = Payment(200, targetPuzzlehash);

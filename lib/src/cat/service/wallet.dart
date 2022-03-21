@@ -54,15 +54,15 @@ class CatWalletService extends BaseWalletService {
         first = false;
 
         final message = catCoins.fold(
-          Puzzlehash.empty, 
-          (Puzzlehash previousValue, coin) => previousValue + coin.id,
+          Bytes.empty, 
+          (Bytes previousValue, coin) => previousValue + coin.id,
         ).sha256Hash();
 
         primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition(
           catCoin.id,
           message,
           // "ca" in bytes
-          morphBytes: const Puzzlehash([202]),
+          morphBytes: const Bytes([202]),
         );
           
 

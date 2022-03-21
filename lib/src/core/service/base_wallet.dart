@@ -30,11 +30,11 @@ class BaseWalletService {
     return CoinSpendAndSignature(coinSpend, signature);
   }
 
-  Puzzlehash getAddSigMeMessageFromResult(Program result, Coin coin) {
+  Bytes getAddSigMeMessageFromResult(Program result, Coin coin) {
     final aggSigMeCondition = result.toList().singleWhere(AggSigMeCondition.isThisCondition);
-    return Puzzlehash(aggSigMeCondition.toList()[2].atom) +
+    return Bytes(aggSigMeCondition.toList()[2].atom) +
       coin.id +
-      Puzzlehash.fromHex(blockchainNetwork.aggSigMeExtraData,
+      Bytes.fromHex(blockchainNetwork.aggSigMeExtraData,
     );
   }
 
@@ -60,7 +60,7 @@ class BaseWalletService {
 
       final aggSigMeCondition = AggSigMeCondition.fromProgram(aggSigMeProgram);
       publicKeys.add(aggSigMeCondition.publicKey);
-      messages.add((aggSigMeCondition.message + spend.coin.id + Puzzlehash.fromHex(blockchainNetwork.aggSigMeExtraData)).bytes);
+      messages.add((aggSigMeCondition.message + spend.coin.id + Bytes.fromHex(blockchainNetwork.aggSigMeExtraData)).bytes);
     }
 
     // validate signature
@@ -74,10 +74,10 @@ class BaseWalletService {
 
     // validate assert_coin_announcement if it is created (if there are multiple coins spent)
     if (spendBundle.coinSpends.length > 1) {
-      Puzzlehash? assertCoinAnnouncementId;
+      Bytes? assertCoinAnnouncementId;
       final coinsToCreate = <CoinPrototype>[];
       final coinsBeingSpent = <CoinPrototype>[];
-      Puzzlehash? originId;
+      Bytes? originId;
       for (final spend in spendBundle.coinSpends) {
         final outputConditions = spend.puzzleReveal.run(spend.solution).program.toList();
 
@@ -114,10 +114,10 @@ class BaseWalletService {
 
       // move origin id to end to preserve order
       final existingCoinsMessage = coinsBeingSpent.where((element) => element.id != originId)
-        .fold(Puzzlehash.empty, (Puzzlehash previousValue, coin) => previousValue + coin.id)
+        .fold(Bytes.empty, (Bytes previousValue, coin) => previousValue + coin.id)
         + originId!;
 
-      final createdCoinsMessage = coinsToCreate.fold(Puzzlehash.empty, (Puzzlehash previousValue, coin) => previousValue + coin.id);
+      final createdCoinsMessage = coinsToCreate.fold(Bytes.empty, (Bytes previousValue, coin) => previousValue + coin.id);
 
       final message = (existingCoinsMessage + createdCoinsMessage).sha256Hash();
 

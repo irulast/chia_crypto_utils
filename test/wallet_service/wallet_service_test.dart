@@ -40,9 +40,9 @@ void main() {
   final coinPuzzlehash = walletKeychain.unhardenedMap.values.toList()[0].puzzlehash;
   final changePuzzlehash = walletKeychain.unhardenedMap.values.toList()[1].puzzlehash;
 
-  const parentInfo0 = Puzzlehash([227, 176, 196, 66, 152, 252, 28, 20, 154, 251, 244, 200, 153, 111, 185, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3]);
-  const parentInfo1 = Puzzlehash([227, 176, 196, 66, 152, 252, 28, 20, 154, 251, 244, 200, 153, 111, 185, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6]);
-  const parentInfo2 = Puzzlehash([227, 176, 196, 66, 152, 252, 28, 20, 154, 251, 244, 200, 153, 111, 185, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6]);
+  const parentInfo0 = Bytes([227, 176, 196, 66, 152, 252, 28, 20, 154, 251, 244, 200, 153, 111, 185, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3]);
+  const parentInfo1 = Bytes([227, 176, 196, 66, 152, 252, 28, 20, 154, 251, 244, 200, 153, 111, 185, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6]);
+  const parentInfo2 = Bytes([227, 176, 196, 66, 152, 252, 28, 20, 154, 251, 244, 200, 153, 111, 185, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6]);
   final coin0 = Coin(spentBlockIndex: 0, confirmedBlockIndex: 100, coinbase: false, timestamp: 100177271, parentCoinInfo: parentInfo0, puzzlehash: coinPuzzlehash, amount: 100000);
   final coin1 = Coin(spentBlockIndex: 0, confirmedBlockIndex: 1000, coinbase: false, timestamp: 100177372, parentCoinInfo: parentInfo1, puzzlehash: coinPuzzlehash, amount: 500000);
   final coin2 = Coin(spentBlockIndex: 0, confirmedBlockIndex: 2000, coinbase: false, timestamp: 100179373, parentCoinInfo: parentInfo2, puzzlehash: coinPuzzlehash, amount: 200000);

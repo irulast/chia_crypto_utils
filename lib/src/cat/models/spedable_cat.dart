@@ -25,8 +25,8 @@ class SpendableCat {
   }
 
   static void calculateAndAttachSubtotals(List<SpendableCat> spendableCats) {
-    final spendInfoMap = <Puzzlehash, SpendableCat>{};
-    final deltasMap = <Puzzlehash, int>{};
+    final spendInfoMap = <Bytes, SpendableCat>{};
+    final deltasMap = <Bytes, int>{};
 
     // calculate deltas
     for (final spendableCat in spendableCats)  {
@@ -44,7 +44,7 @@ class SpendableCat {
     }
 
     //calculate subtotals
-    final subtotalsMap = <Puzzlehash, int>{};
+    final subtotalsMap = <Bytes, int>{};
     var subtotal = 0;
     deltasMap.forEach((coinId, delta) { 
       subtotalsMap[coinId] = subtotal;

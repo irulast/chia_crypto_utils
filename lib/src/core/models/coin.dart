@@ -15,7 +15,7 @@ class Coin extends CoinPrototype {
     required this.spentBlockIndex,
     required this.coinbase,
     required this.timestamp,
-    required Puzzlehash parentCoinInfo,
+    required Bytes parentCoinInfo,
     required Puzzlehash puzzlehash,
     required int amount,
   }) : super(

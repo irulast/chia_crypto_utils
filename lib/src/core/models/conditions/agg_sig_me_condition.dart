@@ -6,7 +6,7 @@ class AggSigMeCondition implements Condition {
   static int conditionCode = 50;
 
   JacobianPoint publicKey;
-  Puzzlehash message;
+  Bytes message;
 
   AggSigMeCondition(this.publicKey, this.message);
 
@@ -24,7 +24,7 @@ class AggSigMeCondition implements Condition {
     if (!isThisCondition(program)) {
       throw InvalidConditionCastException(AggSigMeCondition);
     }
-    return AggSigMeCondition(JacobianPoint.fromBytesG1(programList[1].atom), Puzzlehash(programList[2].atom));
+    return AggSigMeCondition(JacobianPoint.fromBytesG1(programList[1].atom), Bytes(programList[2].atom));
   }
 
   static bool isThisCondition(Program condition) {

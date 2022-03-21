@@ -125,7 +125,7 @@ Future<void> main() async {
           destinationPuzzlehash,
           walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
           walletKeychain,
-          originId: Puzzlehash.fromHex('ff8'),
+          originId: Bytes.fromHex('ff8'),
       ), throwsException,
     );
   });

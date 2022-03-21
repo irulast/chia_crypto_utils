@@ -67,7 +67,7 @@ class FullNode {
     }
   }
 
-  Future<Coin> getCoinByName(Puzzlehash coinId) async {
+  Future<Coin> getCoinByName(Bytes coinId) async {
     final responseData = await client.sendRequest(Uri.parse('get_coin_record_by_name'), {
       'name': coinId.hex,
     });
@@ -80,7 +80,7 @@ class FullNode {
     return Coin.fromChiaCoinRecordJson(coinRecordJson);
   }
 
-  Future<CoinSpend> getPuzzleAndSolution(Puzzlehash coinId, int height) async {
+  Future<CoinSpend> getPuzzleAndSolution(Bytes coinId, int height) async {
     final responseData = await client.sendRequest(Uri.parse('get_puzzle_and_solution'), {
       'coin_id': coinId.hex,
       'height': height,

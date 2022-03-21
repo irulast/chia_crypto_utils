@@ -5,25 +5,25 @@ import 'package:hex/hex.dart';
 import 'package:meta/meta.dart';
 
 @immutable
-class Puzzlehash {
+class Bytes {
   static String bytesPrefix = '0x';
   final List<int> byteList;
 
-  const Puzzlehash(this.byteList);
+  const Bytes(this.byteList);
 
   // empty byte array
   // ignore: prefer_constructors_over_static_methods
-  static Puzzlehash get empty {
-    return const Puzzlehash([]);
+  static Bytes get empty {
+    return const Bytes([]);
   }
 
-  factory Puzzlehash.fromHex(String phHex) {
+  factory Bytes.fromHex(String phHex) {
     if (phHex.startsWith(bytesPrefix)) {
-      return Puzzlehash(
+      return Bytes(
         const HexDecoder().convert(phHex.replaceFirst(bytesPrefix, '')),
       );
     }
-    return Puzzlehash(const HexDecoder().convert(phHex));
+    return Bytes(const HexDecoder().convert(phHex));
   }
 
   Uint8List get bytes {
@@ -39,20 +39,22 @@ class Puzzlehash {
   }
 
   /// Returns a concatenation of this puzzlehash and [other].
-  Puzzlehash operator +(Puzzlehash other) {
-    return Puzzlehash(bytes + other.bytes);
+  Bytes operator +(Bytes other) {
+    return Bytes(bytes + other.bytes);
   }
 
   @override
   bool operator ==(Object other) =>
-      other is Puzzlehash &&
+      other is Bytes &&
       other.runtimeType == runtimeType &&
       other.hex == hex;
 
   @override
   int get hashCode => hex.hashCode;
 
-  Puzzlehash sha256Hash() {
-    return Puzzlehash(sha256.convert(bytes).bytes);
+  Bytes sha256Hash() {
+    return Bytes(sha256.convert(bytes).bytes);
   }
 }
+
+typedef Puzzlehash = Bytes;

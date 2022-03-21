@@ -64,7 +64,7 @@ Future<void> main() async {
 
   
 
-  final genesisId = Puzzlehash.fromHex('6b3411074ffcb230e29871abdad2f7c996b67737f3277f178a6bec42cc8a0a5e');
+  final genesisId = Bytes.fromHex('6b3411074ffcb230e29871abdad2f7c996b67737f3277f178a6bec42cc8a0a5e');
 
   final mamaCoin = await fullNode.getCoinByName(genesisId);
   final mamaCoinSpend = await fullNode.getPuzzleAndSolution(mamaCoin.id, mamaCoin.spentBlockIndex);

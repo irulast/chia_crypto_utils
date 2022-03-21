@@ -17,7 +17,7 @@ class StandardWalletService extends BaseWalletService{
       WalletKeychain keychain,
       {
         int fee = 0,
-        Puzzlehash? originId,
+        Bytes? originId,
         List<AssertCoinAnnouncementCondition>? coinAnnouncementsToAssert,
       }) 
     {
@@ -86,8 +86,8 @@ class StandardWalletService extends BaseWalletService{
     // generate message for coin announcements by appending coin_ids
     // see: chia/wallet/wallet.py: 380
     //   message: bytes32 = std_hash(b"".join(message_list))
-    final existingCoinsMessage = coins.fold(Puzzlehash.empty, (Puzzlehash previousValue, coin) => previousValue + coin.id) + originCoin.id;
-    final createdCoinsMessage = createdCoins.fold(Puzzlehash.empty, (Puzzlehash previousValue, coin) => previousValue + coin.id);
+    final existingCoinsMessage = coins.fold(Bytes.empty, (Bytes previousValue, coin) => previousValue + coin.id) + originCoin.id;
+    final createdCoinsMessage = createdCoins.fold(Bytes.empty, (Bytes previousValue, coin) => previousValue + coin.id);
     final message = (existingCoinsMessage + createdCoinsMessage).sha256Hash();
     conditions.add(CreateCoinAnnouncementCondition(message));
 
