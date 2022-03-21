@@ -39,6 +39,8 @@ class CatWalletService extends BaseWalletService {
     final catCoins = List<CatCoin>.from(catCoinsInput);
     
     final totalCatCoinValue = catCoins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
+
+    assert(totalPaymentAmount <= totalCatCoinValue, 'Insufficient total cat coin value');
     final change = totalCatCoinValue - totalPaymentAmount;
 
     AssertCoinAnnouncementCondition? primaryAssertCoinAnnouncement;
@@ -67,7 +69,7 @@ class CatWalletService extends BaseWalletService {
           // https://chialisp.com/docs/puzzles/cats under "Design Choices"
           morphBytes: Bytes.fromHex('ca'),
         );
-        
+
 
         final conditions = <Condition>[];
         final createdCoins = <CoinPrototype>[];
@@ -221,45 +223,46 @@ class CatWalletService extends BaseWalletService {
     validateSpendBundleSignature(spendBundle);
 
     // validate assert_coin_announcement if it is created (if there are multiple coins spent)
-    if (spendBundle.coinSpends.length > 1) {
-      List<Bytes>? actualAssertCoinAnnouncementIds;
-      final coinsToCreate = <CoinPrototype>[];
-      final coinsBeingSpent = <CoinPrototype>[];
-      Bytes? originId;
-      for (final catSpend in spendBundle.coinSpends.where((spend) => spend.type == SpendType.cat)) {
-        final outputConditions = catSpend.puzzleReveal.run(catSpend.solution).program.toList();
+    List<Bytes>? actualAssertCoinAnnouncementIds;
+    final coinsToCreate = <CoinPrototype>[];
+    final coinsBeingSpent = <CoinPrototype>[];
+    Bytes? originId;
+    final catSpends = spendBundle.coinSpends.where((spend) => spend.type == SpendType.cat);
+    for (final catSpend in catSpends) {
+      final outputConditions = catSpend.puzzleReveal.run(catSpend.solution).program.toList();
 
-        // find create_coin conditions
-        final coinCreationConditions = outputConditions.where(CreateCoinCondition.isThisCondition)
-          .map((program) => CreateCoinCondition.fromProgram(program)).toList();
-        
-        for (final coinCreationCondition in coinCreationConditions) {
-          coinsToCreate.add(CoinPrototype(parentCoinInfo: catSpend.coin.id, puzzlehash: coinCreationCondition.destinationHash, amount: coinCreationCondition.amount));
-        }
-        coinsBeingSpent.add(catSpend.coin);
-
-        if (coinCreationConditions.isNotEmpty) {
-          // if originId is already set, multiple coins are creating output which is invalid
-          if (originId != null) {
-            throw MultipleOriginCoinsException();
-          }
-          originId = catSpend.coin.id;
-        }
-
-        // origin id doesn't contain its own assert coin announcement
-        if (catSpend.coin.id != originId) {
-          final assertCoinAnnouncementPrograms =  outputConditions.where(AssertCoinAnnouncementCondition.isThisCondition).toList();
-
-          // set actualAssertCoinAnnouncementIds only if it is null
-          actualAssertCoinAnnouncementIds ??= assertCoinAnnouncementPrograms.map(AssertCoinAnnouncementCondition.getAnnouncementIdFromProgram).toList();
-        }
-        // look for assert coin announcement condition
-        
+      // find create_coin conditions
+      final coinCreationConditions = outputConditions.where(CreateCoinCondition.isThisCondition)
+        .map((program) => CreateCoinCondition.fromProgram(program)).toList();
+      
+      for (final coinCreationCondition in coinCreationConditions) {
+        coinsToCreate.add(CoinPrototype(parentCoinInfo: catSpend.coin.id, puzzlehash: coinCreationCondition.destinationHash, amount: coinCreationCondition.amount));
       }
-      // check for duplicate coins
-      BaseWalletService.checkForDuplicateCoins(coinsToCreate);
-      BaseWalletService.checkForDuplicateCoins(coinsBeingSpent);
+      coinsBeingSpent.add(catSpend.coin);
 
+      if (coinCreationConditions.isNotEmpty) {
+        // if originId is already set, multiple coins are creating output which is invalid
+        if (originId != null) {
+          throw MultipleOriginCoinsException();
+        }
+        originId = catSpend.coin.id;
+      }
+
+      // origin id doesn't contain its own assert coin announcement
+      if (catSpend.coin.id != originId) {
+        final assertCoinAnnouncementPrograms =  outputConditions.where(AssertCoinAnnouncementCondition.isThisCondition).toList();
+
+        // set actualAssertCoinAnnouncementIds only if it is null
+        actualAssertCoinAnnouncementIds ??= assertCoinAnnouncementPrograms.map(AssertCoinAnnouncementCondition.getAnnouncementIdFromProgram).toList();
+      }
+      // look for assert coin announcement condition
+      
+    }
+    // check for duplicate coins
+    BaseWalletService.checkForDuplicateCoins(coinsToCreate);
+    BaseWalletService.checkForDuplicateCoins(coinsBeingSpent);
+
+    if (catSpends.length > 1) {
       assert(actualAssertCoinAnnouncementIds != null, 'No assert_coin_announcement condition when multiple spends');
       assert(originId != null, 'No create_coin conditions');
       

@@ -47,6 +47,7 @@ void main() {
   final coin1 = Coin(spentBlockIndex: 0, confirmedBlockIndex: 1000, coinbase: false, timestamp: 100177372, parentCoinInfo: parentInfo1, puzzlehash: coinPuzzlehash, amount: 500000);
   final coin2 = Coin(spentBlockIndex: 0, confirmedBlockIndex: 2000, coinbase: false, timestamp: 100179373, parentCoinInfo: parentInfo2, puzzlehash: coinPuzzlehash, amount: 200000);
   final coins = [coin0, coin1, coin2];
+
   test('Should create valid spendbundle', () {
     final spendBundle = walletService.createSpendBundle(
         coins,

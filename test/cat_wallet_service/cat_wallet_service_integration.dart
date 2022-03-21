@@ -1,3 +1,4 @@
+@Skip('Integration test')
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/full_node.dart';
 import 'package:chia_utils/src/cat/service/wallet.dart';
@@ -48,11 +49,8 @@ Future<void> main() async {
 
   final changePuzzlehash = walletKeychain.unhardenedMap.values.toList()[0].puzzlehash;
   final targetPuzzlehash = walletKeychain.unhardenedMap.values.toList()[1].puzzlehash;
-  //7
-  // final targetPuzzlehash = Address('txch1ftnx4dxr05mestyguwcys3t23dn767nyd6py8w69l70hxmk7332s5f5zx6').toPuzzlehash();
-  //3 
-  // final targetPuzzlehash = Address('txch1dwd0y9czedfhmh420st0gnscyzv650yn2nnqlmgc5zavhnx2af8sfl20ra').toPuzzlehash();
-  
+
+  const fee = 1000;
   
   test('Produces valid spendbundle', () async {
     final payment = Payment(200, targetPuzzlehash);
@@ -62,16 +60,14 @@ Future<void> main() async {
 
   test('Produces valid spendbundle with fee', () async {
     final payment = Payment(200, targetPuzzlehash);
-    final spendBundle = catWalletService.createSpendBundle([payment], catCoins.sublist(1), changePuzzlehash, walletKeychain, fee: 1000, standardCoinsForFee: [standardCoins.firstWhere((element) => element.amount >= 1000)]);
+    final spendBundle = catWalletService.createSpendBundle([payment], catCoins.sublist(1), changePuzzlehash, walletKeychain, fee: fee, standardCoinsForFee: [standardCoins.firstWhere((element) => element.amount >= fee)]);
     await fullNode.pushTransaction(spendBundle);
   });
 
   test('Produces valid spendbundle with fee and multiple payments', () async {
-    final payment = Payment(200, targetPuzzlehash, memos: 'Sup bro');
+    final payment = Payment(200, targetPuzzlehash, memos: 'Chia is cool');
     final payment1 = Payment(100, targetPuzzlehash, memos: 1000);
-    final spendBundle = catWalletService.createSpendBundle([payment, payment1], catCoins.sublist(1), changePuzzlehash, walletKeychain, fee: 1000, standardCoinsForFee: [standardCoins.firstWhere((element) => element.amount >= 1000)]);
+    final spendBundle = catWalletService.createSpendBundle([payment, payment1], catCoins.sublist(1), changePuzzlehash, walletKeychain, fee: fee, standardCoinsForFee: [standardCoins.firstWhere((element) => element.amount >= fee)]);
     await fullNode.pushTransaction(spendBundle);
-    // catWalletService.validateSpendBundle(spendBundle);
-    // spendBundle.debug();
   });
 }

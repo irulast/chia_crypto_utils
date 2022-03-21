@@ -1,4 +1,4 @@
-// @Skip('Integration test')
+@Skip('Integration test')
 import 'package:chia_utils/src/api/full_node.dart';
 import 'package:chia_utils/src/context/context.dart';
 import 'package:chia_utils/src/core/models/address.dart';
@@ -49,9 +49,6 @@ Future<void> main() async {
 
   final coins = await fullNode.getCoinRecordsByPuzzleHashes(unhardenedPuzzlehashes);
 
-  print(coins.map((e) => e.amount));
-  print(coins.fold(0, (previousValue, element) => element.amount + (previousValue as int)));
-  
 
   test('Should push transaction with fee', () async {
     const amountToSend = 10000;

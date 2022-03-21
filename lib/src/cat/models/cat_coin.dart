@@ -5,11 +5,10 @@ import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
 // ignore: must_be_immutable
 class CatCoin extends Coin {
   CoinSpend parentCoinSpend;
-  Puzzlehash assetId;
+  late Puzzlehash assetId;
 
   CatCoin({
     required this.parentCoinSpend,
-    required this.assetId,
     required int confirmedBlockIndex,
     required int spentBlockIndex,
     required bool coinbase,
@@ -26,16 +25,17 @@ class CatCoin extends Coin {
       puzzlehash: puzzlehash,
       amount: amount,
     ) {
-      final uncurriedParentPuzzle = parentCoinSpend.puzzleReveal.uncurry().program;
-      if(uncurriedParentPuzzle.toSource() != catProgram.toSource()) {
+      final uncurriedParentPuzzleReveal = parentCoinSpend.puzzleReveal.uncurry();
+      if(uncurriedParentPuzzleReveal.program.toSource() != catProgram.toSource()) {
           throw InvalidCatException();
       }
+      // second argument to the cat puzzle is the asset id
+      assetId = Puzzlehash(uncurriedParentPuzzleReveal.arguments[1].atom);
     }
   
-  factory CatCoin.fromCoin(Coin coin, CoinSpend parentCoinSpend, Puzzlehash assetId) {
+  factory CatCoin.fromCoin(Coin coin, CoinSpend parentCoinSpend) {
     return CatCoin(
       parentCoinSpend: parentCoinSpend, 
-      assetId: assetId, 
       confirmedBlockIndex: coin.confirmedBlockIndex, 
       spentBlockIndex: coin.spentBlockIndex, 
       coinbase: coin.coinbase, 
@@ -49,6 +49,7 @@ class CatCoin extends Coin {
   Program get lineageProof {
     return Program.list([
       Program.fromBytes(parentCoinSpend.coin.parentCoinInfo.toUint8List()),
+      // third argument to the cat puzzle is the inner puzzle
       Program.fromBytes(parentCoinSpend.puzzleReveal.uncurry().arguments[2].hash()),
       Program.fromInt(parentCoinSpend.coin.amount)
    ]);

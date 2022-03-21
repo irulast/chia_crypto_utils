@@ -126,40 +126,40 @@ class StandardWalletService extends BaseWalletService{
     validateSpendBundleSignature(spendBundle);
 
     // validate assert_coin_announcement if it is created (if there are multiple coins spent)
-    if (spendBundle.coinSpends.length > 1) {
-      Bytes? actualAssertCoinAnnouncementId;
-      final coinsToCreate = <CoinPrototype>[];
-      final coinsBeingSpent = <CoinPrototype>[];
-      Bytes? originId;
-      for (final spend in spendBundle.coinSpends) {
-        final outputConditions = spend.puzzleReveal.run(spend.solution).program.toList();
+    Bytes? actualAssertCoinAnnouncementId;
+    final coinsToCreate = <CoinPrototype>[];
+    final coinsBeingSpent = <CoinPrototype>[];
+    Bytes? originId;
+    for (final spend in spendBundle.coinSpends) {
+      final outputConditions = spend.puzzleReveal.run(spend.solution).program.toList();
 
-        // look for assert coin announcement condition
-        final assertCoinAnnouncementPrograms =  outputConditions.where(AssertCoinAnnouncementCondition.isThisCondition).toList();
-        if (assertCoinAnnouncementPrograms.length == 1 && actualAssertCoinAnnouncementId == null) {
-          actualAssertCoinAnnouncementId = AssertCoinAnnouncementCondition.getAnnouncementIdFromProgram(assertCoinAnnouncementPrograms[0]);
-        }
-
-        // find create_coin conditions
-        final coinCreationConditions = outputConditions.where(CreateCoinCondition.isThisCondition)
-          .map((program) => CreateCoinCondition.fromProgram(program)).toList();
-        
-        if (coinCreationConditions.isNotEmpty) {
-          // if originId is already set, multiple coins are creating output which is invalid
-          if (originId != null) {
-            throw MultipleOriginCoinsException();
-          }
-          originId = spend.coin.id;
-        }
-        for (final coinCreationCondition in coinCreationConditions) {
-          coinsToCreate.add(CoinPrototype(parentCoinInfo: spend.coin.id, puzzlehash: coinCreationCondition.destinationHash, amount: coinCreationCondition.amount));
-        }
-        coinsBeingSpent.add(spend.coin);
+      // look for assert coin announcement condition
+      final assertCoinAnnouncementPrograms =  outputConditions.where(AssertCoinAnnouncementCondition.isThisCondition).toList();
+      if (assertCoinAnnouncementPrograms.length == 1 && actualAssertCoinAnnouncementId == null) {
+        actualAssertCoinAnnouncementId = AssertCoinAnnouncementCondition.getAnnouncementIdFromProgram(assertCoinAnnouncementPrograms[0]);
       }
-      // check for duplicate coins
-      BaseWalletService.checkForDuplicateCoins(coinsToCreate);
-      BaseWalletService.checkForDuplicateCoins(coinsBeingSpent);
 
+      // find create_coin conditions
+      final coinCreationConditions = outputConditions.where(CreateCoinCondition.isThisCondition)
+        .map((program) => CreateCoinCondition.fromProgram(program)).toList();
+      
+      if (coinCreationConditions.isNotEmpty) {
+        // if originId is already set, multiple coins are creating output which is invalid
+        if (originId != null) {
+          throw MultipleOriginCoinsException();
+        }
+        originId = spend.coin.id;
+      }
+      for (final coinCreationCondition in coinCreationConditions) {
+        coinsToCreate.add(CoinPrototype(parentCoinInfo: spend.coin.id, puzzlehash: coinCreationCondition.destinationHash, amount: coinCreationCondition.amount));
+      }
+      coinsBeingSpent.add(spend.coin);
+    }
+    // check for duplicate coins
+    BaseWalletService.checkForDuplicateCoins(coinsToCreate);
+    BaseWalletService.checkForDuplicateCoins(coinsBeingSpent);
+
+    if  (spendBundle.coinSpends.length > 1) {
       assert(actualAssertCoinAnnouncementId != null, 'No assert_coin_announcement condition when multiple spends');
       assert(originId != null, 'No create_coin conditions');
       
