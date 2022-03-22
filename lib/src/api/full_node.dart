@@ -3,9 +3,9 @@
 import 'dart:convert';
 
 import 'package:chia_utils/src/api/client.dart';
+import 'package:chia_utils/src/core/models/bytes.dart';
 import 'package:chia_utils/src/core/models/coin.dart';
 import 'package:chia_utils/src/core/models/coin_spend.dart';
-import 'package:chia_utils/src/core/models/bytes.dart';
 import 'package:chia_utils/src/core/models/spend_bundle.dart';
 import 'package:meta/meta.dart';
 
