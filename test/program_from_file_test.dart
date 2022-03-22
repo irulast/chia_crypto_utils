@@ -1,3 +1,5 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'package:chia_utils/src/clvm/program.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';

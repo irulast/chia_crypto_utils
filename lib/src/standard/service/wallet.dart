@@ -1,3 +1,5 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/core/models/conditions/assert_coin_announcement_condition.dart';
 import 'package:chia_utils/src/core/models/conditions/condition.dart';
@@ -5,6 +7,8 @@ import 'package:chia_utils/src/core/models/conditions/create_coin_announcement_c
 import 'package:chia_utils/src/core/models/conditions/create_coin_condition.dart';
 import 'package:chia_utils/src/core/models/conditions/reserve_fee_condition.dart';
 import 'package:chia_utils/src/core/service/base_wallet.dart';
+import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/incorrect_announcement_id_exception.dart';
+import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/multiple_origin_coin_exception.dart';
 
 class StandardWalletService extends BaseWalletService{
   StandardWalletService(Context context) : super(context);
@@ -12,13 +16,13 @@ class StandardWalletService extends BaseWalletService{
   SpendBundle createSpendBundle(
       List<Coin> coinsInput,
       int amount,
-      Address destinationAddress,
+      Puzzlehash destinationPuzzlehash,
       Puzzlehash changePuzzlehash,
       WalletKeychain keychain,
       {
         int fee = 0,
-        Puzzlehash? originId,
-        AssertCoinAnnouncementCondition? coinAnnouncementToAssert,
+        Bytes? originId,
+        List<AssertCoinAnnouncementCondition>? coinAnnouncementsToAssert,
       }) 
     {
     // copy coins input since coins list is modified in this function
@@ -27,86 +31,87 @@ class StandardWalletService extends BaseWalletService{
         coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
     final change = totalCoinValue - amount - fee;
 
-    final destinationHash = destinationAddress.toPuzzlehash();
-
     final signatures = <JacobianPoint>[];
     final spends = <CoinSpend>[];
 
     // returns -1 if originId is given but is not in coins
-    final originIndex = originId == null ? 0 : coins.indexWhere((coin) => coin.id.hex == originId.hex);
+    final originIndex = originId == null ? 0 : coins.indexWhere((coin) => coin.id == originId);
 
     if (originIndex == -1) {
       throw Exception('Origin id not in coins');
     }
 
-    final originCoin = coins.removeAt(originIndex);
-
-    // create coin spend for origin coin
-    final originCoinWalletVector = keychain.getWalletVector(originCoin.puzzlehash);
-    final originCoinPrivateKey = originCoinWalletVector!.childPrivateKey;
-    final originCoinPublicKey = originCoinPrivateKey.getG1();
-
-    final conditions = <Condition>[];
-    final createdCoins = <CoinPrototype>[];
-
-    // generate conditions
-    if (amount > 0) {
-      final sendCreateCoinCondition = CreateCoinCondition(destinationHash, amount);
-      conditions.add(sendCreateCoinCondition);
-      createdCoins.add(
-        CoinPrototype(
-          parentCoinInfo: originCoin.id,
-          puzzlehash: destinationHash,
-          amount: amount,
-        ),
-      );
-    }
-    
-
-    if (change > 0) {
-      conditions.add(CreateCoinCondition(changePuzzlehash, change));
-      createdCoins.add(
-        CoinPrototype(
-          parentCoinInfo: originCoin.id,
-          puzzlehash: changePuzzlehash,
-          amount: change,
-        ),
-      );
+    // origin coin should be processed first so move it to the front of the list
+    if (originIndex != 0) {
+      final originCoin = coins.removeAt(originIndex);
+      coins.insert(0, originCoin);
     }
 
-    if (fee > 0) {
-      conditions.add(ReserveFeeCondition(fee));
-    }
+    AssertCoinAnnouncementCondition? primaryAssertCoinAnnouncement;
 
-    if (coinAnnouncementToAssert != null) {
-      conditions.add(coinAnnouncementToAssert);
-    }
-
-    // generate message for coin announcements by appending coin_ids
-    // see: chia/wallet/wallet.py: 380
-    //   message: bytes32 = std_hash(b"".join(message_list))
-    final existingCoinsMessage = coins.fold(Puzzlehash.empty, (Puzzlehash previousValue, coin) => previousValue + coin.id) + originCoin.id;
-    final createdCoinsMessage = createdCoins.fold(Puzzlehash.empty, (Puzzlehash previousValue, coin) => previousValue + coin.id);
-    final message = (existingCoinsMessage + createdCoinsMessage).sha256Hash();
-    conditions.add(CreateCoinAnnouncementCondition(message));
-
-    final originCoinSolution = BaseWalletService.makeSolutionFromConditions(conditions);
-    final originCoinPuzzle = getPuzzleFromPk(originCoinPublicKey);
-
-    final coinSpendAndSignature = createCoinsSpendAndSignature(originCoinSolution, originCoinPuzzle, originCoinPrivateKey, originCoin);
-
-    signatures.add(coinSpendAndSignature.signature);
-    spends.add(coinSpendAndSignature.coinSpend);
-
-    final primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition(originCoin.id, message);
-
-    // create coin spends for the rest of the coins
-    for (final coin in coins) {
+    var first = true;
+    for (var i = 0; i < coins.length; i++) {
+      final coin = coins[i];
       final walletVector = keychain.getWalletVector(coin.puzzlehash);
       final privateKey = walletVector!.childPrivateKey;
       final publicKey = privateKey.getG1();
 
-      final solution = BaseWalletService.makeSolutionFromConditions([primaryAssertCoinAnnouncement]);
+      Program? solution;
+      // create output for origin coin
+      if (first) {
+        first = false;
+        final conditions = <Condition>[];
+        final createdCoins = <CoinPrototype>[];
+        if (amount > 0) {
+          final sendCreateCoinCondition = CreateCoinCondition(destinationPuzzlehash, amount);
+          conditions.add(sendCreateCoinCondition);
+          createdCoins.add(
+            CoinPrototype(
+              parentCoinInfo: coin.id,
+              puzzlehash: destinationPuzzlehash,
+              amount: amount,
+            ),
+          );
+        }
+    
+
+        if (change > 0) {
+          conditions.add(CreateCoinCondition(changePuzzlehash, change));
+          createdCoins.add(
+            CoinPrototype(
+              parentCoinInfo: coin.id,
+              puzzlehash: changePuzzlehash,
+              amount: change,
+            ),
+          );
+        }
+
+        if (fee > 0) {
+          conditions.add(ReserveFeeCondition(fee));
+        }
+
+        if (coinAnnouncementsToAssert != null) {
+          for (final coinAnnouncementToAssert in coinAnnouncementsToAssert) {
+            conditions.add(coinAnnouncementToAssert);
+          }
+        }
+      
+
+        // generate message for coin announcements by appending coin_ids
+        // see https://github.com/Chia-Network/chia-blockchain/blob/4bd5c53f48cb049eff36c87c00d21b1f2dd26b27/chia/wallet/wallet.py#L383
+        //   message: bytes32 = std_hash(b"".join(message_list))
+        final existingCoinsMessage = coins.fold(Bytes.empty, (Bytes previousValue, coin) => previousValue + coin.id);
+        final createdCoinsMessage = createdCoins.fold(Bytes.empty, (Bytes previousValue, coin) => previousValue + coin.id);
+        final message = (existingCoinsMessage + createdCoinsMessage).sha256Hash();
+        conditions.add(CreateCoinAnnouncementCondition(message));
+
+        primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition(coin.id, message);
+
+        solution = BaseWalletService.makeSolutionFromConditions(conditions);
+      } else {
+        solution = BaseWalletService.makeSolutionFromConditions([primaryAssertCoinAnnouncement!]);
+      }
+
       final puzzle = getPuzzleFromPk(publicKey);
 
       final coinSpendAndSignature = createCoinsSpendAndSignature(solution, puzzle, privateKey, coin);
@@ -117,5 +122,61 @@ class StandardWalletService extends BaseWalletService{
     final aggregate = AugSchemeMPL.aggregate(signatures);
 
     return SpendBundle(coinSpends: spends, aggregatedSignature: aggregate);
+  }
+
+  void validateSpendBundle(SpendBundle spendBundle) {
+    validateSpendBundleSignature(spendBundle);
+
+    // validate assert_coin_announcement if it is created (if there are multiple coins spent)
+    Bytes? actualAssertCoinAnnouncementId;
+    final coinsToCreate = <CoinPrototype>[];
+    final coinsBeingSpent = <CoinPrototype>[];
+    Bytes? originId;
+    for (final spend in spendBundle.coinSpends) {
+      final outputConditions = spend.puzzleReveal.run(spend.solution).program.toList();
+
+      // look for assert coin announcement condition
+      final assertCoinAnnouncementPrograms =  outputConditions.where(AssertCoinAnnouncementCondition.isThisCondition).toList();
+      if (assertCoinAnnouncementPrograms.length == 1 && actualAssertCoinAnnouncementId == null) {
+        actualAssertCoinAnnouncementId = AssertCoinAnnouncementCondition.getAnnouncementIdFromProgram(assertCoinAnnouncementPrograms[0]);
+      }
+
+      // find create_coin conditions
+      final coinCreationConditions = outputConditions.where(CreateCoinCondition.isThisCondition)
+        .map((program) => CreateCoinCondition.fromProgram(program)).toList();
+      
+      if (coinCreationConditions.isNotEmpty) {
+        // if originId is already set, multiple coins are creating output which is invalid
+        if (originId != null) {
+          throw MultipleOriginCoinsException();
+        }
+        originId = spend.coin.id;
+      }
+      for (final coinCreationCondition in coinCreationConditions) {
+        coinsToCreate.add(CoinPrototype(parentCoinInfo: spend.coin.id, puzzlehash: coinCreationCondition.destinationHash, amount: coinCreationCondition.amount));
+      }
+      coinsBeingSpent.add(spend.coin);
+    }
+    // check for duplicate coins
+    BaseWalletService.checkForDuplicateCoins(coinsToCreate);
+    BaseWalletService.checkForDuplicateCoins(coinsBeingSpent);
+
+    if  (spendBundle.coinSpends.length > 1) {
+      assert(actualAssertCoinAnnouncementId != null, 'No assert_coin_announcement condition when multiple spends');
+      assert(originId != null, 'No create_coin conditions');
+      
+      // construct assert_coin_announcement id from spendbundle, verify against output
+
+      final existingCoinsMessage = coinsBeingSpent.fold(Bytes.empty, (Bytes previousValue, coin) => previousValue + coin.id);
+
+      final createdCoinsMessage = coinsToCreate.fold(Bytes.empty, (Bytes previousValue, coin) => previousValue + coin.id);
+
+      final message = (existingCoinsMessage + createdCoinsMessage).sha256Hash();
+      final constructedAnnouncementId = (originId! + message).sha256Hash();
+
+      if (constructedAnnouncementId != actualAssertCoinAnnouncementId) {
+        throw IncorrectAnnouncementIdException();
+      }
+    }
   }
 }

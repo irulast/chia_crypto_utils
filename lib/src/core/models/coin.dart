@@ -1,6 +1,7 @@
-// ignore_for_file: avoid_equals_and_hash_code_on_mutable_classes
+// ignore_for_file: avoid_equals_and_hash_code_on_mutable_classes, lines_longer_than_80_chars
 
 import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:chia_utils/src/core/models/bytes.dart';
 
 
 // ignore: must_be_immutable
@@ -15,7 +16,7 @@ class Coin extends CoinPrototype {
     required this.spentBlockIndex,
     required this.coinbase,
     required this.timestamp,
-    required Puzzlehash parentCoinInfo,
+    required Bytes parentCoinInfo,
     required Puzzlehash puzzlehash,
     required int amount,
   }) : super(
@@ -39,8 +40,8 @@ class Coin extends CoinPrototype {
 
   Program toProgram() {
     return Program.list([
-    Program.fromBytes(parentCoinInfo.bytes),
-    Program.fromBytes(puzzlehash.bytes),
+    Program.fromBytes(parentCoinInfo.toUint8List()),
+    Program.fromBytes(puzzlehash.toUint8List()),
     Program.fromInt(amount),
   ]);
   }
@@ -52,8 +53,8 @@ class Coin extends CoinPrototype {
       'spent_block_index': spentBlockIndex,
       'coinbase': coinbase,
       'timestamp': timestamp,
-      'parent_coin_info': parentCoinInfo.hex,
-      'puzzle_hash': puzzlehash.hex,
+      'parent_coin_info': parentCoinInfo.toHex(),
+      'puzzle_hash': puzzlehash.toHex(),
       'amount': amount,
     };
   }

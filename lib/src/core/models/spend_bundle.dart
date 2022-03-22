@@ -1,3 +1,5 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'package:chia_utils/chia_crypto_utils.dart';
 
 class SpendBundle {
@@ -23,5 +25,15 @@ class SpendBundle {
     }
     final aggregatedSignature = AugSchemeMPL.aggregate(signatures);
     return SpendBundle(coinSpends: coinSpends, aggregatedSignature: aggregatedSignature);
+  }
+
+  void debug() {
+    for (final spend in coinSpends) {
+      print('---------');
+      print('coin: ${spend.coin.toJson()}');
+      print('puzzle reveal: ${spend.puzzleReveal}');
+      print('solution: ${spend.solution}');
+      print('result: ${spend.puzzleReveal.run(spend.solution).program}');
+    }
   }
 }

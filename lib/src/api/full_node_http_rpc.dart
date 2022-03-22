@@ -9,7 +9,7 @@ import 'package:chia_utils/src/api/models/responses/chia_base_response.dart';
 import 'package:chia_utils/src/api/models/responses/coin_record_response.dart';
 import 'package:chia_utils/src/api/models/responses/coin_records_response.dart';
 import 'package:chia_utils/src/api/models/responses/coin_spend_response.dart';
-import 'package:chia_utils/src/core/models/puzzlehash.dart';
+import 'package:chia_utils/src/core/models/models.dart';
 import 'package:chia_utils/src/core/models/spend_bundle.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -32,7 +32,7 @@ class FullNodeHttpRpc implements FullNode{
     bool includeSpentCoins = false,
   }) async {
     final body = <String, dynamic>{
-      'puzzle_hashes': puzzlehashes.map((ph) => ph.hex).toList(),
+      'puzzle_hashes': puzzlehashes.map((ph) => ph.toHex()).toList(),
     };
     if (startHeight != null) {
       body['start_height'] = startHeight;
@@ -65,7 +65,7 @@ class FullNodeHttpRpc implements FullNode{
   @override
   Future<CoinRecordResponse> getCoinByName(Puzzlehash coinId) async {
     final responseData = await client.sendRequest(Uri.parse('get_coin_record_by_name'), {
-      'name': coinId.hex,
+      'name': coinId.toHex(),
     });
     mapResponseToError(responseData);
 
@@ -75,7 +75,7 @@ class FullNodeHttpRpc implements FullNode{
   @override
   Future<CoinSpendResponse> getPuzzleAndSolution(Puzzlehash coinId, int height) async {
     final responseData = await client.sendRequest(Uri.parse('get_puzzle_and_solution'), {
-      'coin_id': coinId.hex,
+      'coin_id': coinId.toHex(),
       'height': height,
     });
     mapResponseToError(responseData);

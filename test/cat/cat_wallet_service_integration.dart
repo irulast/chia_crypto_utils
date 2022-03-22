@@ -1,12 +1,14 @@
+// ignore_for_file: lines_longer_than_80_chars
+
+@Skip('Integration test')
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/chia_full_node_interface.dart';
 import 'package:chia_utils/src/api/full_node_http_rpc.dart';
 import 'package:chia_utils/src/cat/service/wallet.dart';
-import 'package:chia_utils/src/cat/transport/transport.dart';
 import 'package:chia_utils/src/core/models/payment.dart';
 import 'package:test/test.dart';
 
-Future<void> main(List<String> args) async {
+Future<void> main() async {
   final configurationProvider = ConfigurationProvider()
     ..setConfig(NetworkFactory.configId, {
       'yaml_file_path': 'lib/src/networks/chia/testnet10/config.yaml'
@@ -34,7 +36,7 @@ Future<void> main(List<String> args) async {
   final masterKeyPair = MasterKeyPair.fromMnemonic(testMnemonic);
 
   final walletsSetList = <WalletSet>[];
-  for (var i = 0; i < 5; i++) {
+  for (var i = 0; i < 20; i++) {
     final set1 = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
     walletsSetList.add(set1);
   }
@@ -47,22 +49,27 @@ Future<void> main(List<String> args) async {
   final catCoins = await fullNode.getCatCoinsByOuterPuzzleHashes(outerPuzzleHashesToSearchFor, targetAssetId);
   final standardCoins = await fullNode.getCoinsByPuzzleHashes(walletKeychain.unhardenedMap.values.map((e) => e.puzzlehash).toList());
 
-  print(catCoins.map((e) => e.puzzlehash.hex));
-
-  final targetPuzzlehash = walletKeychain.unhardenedMap.values.toList()[1].puzzlehash;
   final changePuzzlehash = walletKeychain.unhardenedMap.values.toList()[0].puzzlehash;
+  final targetPuzzlehash = walletKeychain.unhardenedMap.values.toList()[1].puzzlehash;
+
+  const fee = 1000;
   
   test('Produces valid spendbundle', () async {
-    final payment = Payment(100, targetPuzzlehash);
-    final spendBundle = catWalletService.createSpendBundle([payment], catCoins[0], changePuzzlehash, walletKeychain);
-    catWalletService.validateSpendBundleSignature(spendBundle);
+    final payment = Payment(200, targetPuzzlehash);
+    final spendBundle = catWalletService.createSpendBundle([payment], catCoins, changePuzzlehash, walletKeychain);
     await fullNode.pushTransaction(spendBundle);
   });
 
   test('Produces valid spendbundle with fee', () async {
-    final payment = Payment(100, targetPuzzlehash);
-    final spendBundle = catWalletService.createSpendBundle([payment], catCoins[0], changePuzzlehash, walletKeychain, fee: 10000, standardCoinsForFee: [standardCoins[0]]);
-    catWalletService.validateSpendBundleSignature(spendBundle);
+    final payment = Payment(200, targetPuzzlehash);
+    final spendBundle = catWalletService.createSpendBundle([payment], catCoins, changePuzzlehash, walletKeychain, fee: fee, standardCoinsForFee: [standardCoins.firstWhere((element) => element.amount >= fee)]);
+    await fullNode.pushTransaction(spendBundle);
+  });
+
+  test('Produces valid spendbundle with fee and multiple payments', () async {
+    final payment = Payment(200, targetPuzzlehash, memos: 'Chia is cool');
+    final payment1 = Payment(100, targetPuzzlehash, memos: 1000);
+    final spendBundle = catWalletService.createSpendBundle([payment, payment1], catCoins, changePuzzlehash, walletKeychain, fee: fee, standardCoinsForFee: [standardCoins.firstWhere((element) => element.amount >= fee)]);
     await fullNode.pushTransaction(spendBundle);
   });
 }

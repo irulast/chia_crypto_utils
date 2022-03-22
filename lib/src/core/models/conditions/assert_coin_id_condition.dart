@@ -5,7 +5,7 @@ import 'package:chia_utils/src/standard/exceptions/invalid_condition_cast_except
 class AssertMyCoinIdCondition implements Condition {
   static int conditionCode = 70;
 
-  Puzzlehash coinId;
+  Bytes coinId;
 
   AssertMyCoinIdCondition(this.coinId);
 
@@ -14,14 +14,14 @@ class AssertMyCoinIdCondition implements Condition {
     if (!isThisCondition(program)) {
       throw InvalidConditionCastException(AssertMyCoinIdCondition);
     }
-    return AssertMyCoinIdCondition(Puzzlehash(programList[1].atom));
+    return AssertMyCoinIdCondition(Bytes(programList[1].atom));
   }
 
   @override
   Program get program {
     return Program.list([
       Program.fromInt(conditionCode),
-      Program.fromBytes(coinId.bytes),
+      Program.fromBytes(coinId.toUint8List()),
     ]);
   }
 

@@ -7,7 +7,7 @@ class CreateCoinCondition implements Condition {
 
   Puzzlehash destinationHash;
   int amount;
-  Puzzlehash? memos;
+  Bytes? memos;
 
   CreateCoinCondition(this.destinationHash, this.amount, {this.memos});
 
@@ -19,7 +19,7 @@ class CreateCoinCondition implements Condition {
     return CreateCoinCondition(
       Puzzlehash(programList[1].atom),
       programList[2].toInt(),
-      memos: programList.length > 3 ? Puzzlehash(programList[3].atom) : null,
+      memos: programList.length > 3 ? Bytes(programList[3].atom) : null,
     );
   }
 
@@ -27,16 +27,13 @@ class CreateCoinCondition implements Condition {
   Program get program {
     return Program.list([
       Program.fromInt(conditionCode),
-      Program.fromBytes(destinationHash.bytes),
+      Program.fromBytes(destinationHash.toUint8List()),
       Program.fromInt(amount)
     ]);
   }
 
   static bool isThisCondition(Program condition) {
     final conditionParts = condition.toList();
-    if (conditionParts.length != 3) {
-      return false;
-    }
     if (conditionParts[0].toInt() != conditionCode) {
       return false;
     }

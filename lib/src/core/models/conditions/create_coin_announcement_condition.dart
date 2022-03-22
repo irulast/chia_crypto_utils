@@ -4,7 +4,7 @@ import 'package:chia_utils/src/core/models/conditions/condition.dart';
 class CreateCoinAnnouncementCondition implements Condition {
   static int conditionCode = 60;
 
-  Puzzlehash message;
+  Bytes message;
 
   CreateCoinAnnouncementCondition(this.message);
 
@@ -12,7 +12,7 @@ class CreateCoinAnnouncementCondition implements Condition {
   Program get program {
     return Program.list([
       Program.fromInt(conditionCode),
-      Program.fromBytes(message.bytes),
+      Program.fromBytes(message.toUint8List()),
     ]);
   }
 }

@@ -5,11 +5,11 @@ import 'package:chia_utils/src/standard/exceptions/invalid_condition_cast_except
 class AssertCoinAnnouncementCondition implements Condition {
   static int conditionCode = 61;
 
-  Puzzlehash coinId;
-  Puzzlehash message;
-  Puzzlehash? morphBytes;
+  Bytes coinId;
+  Bytes message;
+  Bytes? morphBytes;
 
-  Puzzlehash get announcementId {
+  Bytes get announcementId {
     if (morphBytes != null) {
       final prefixedMessage = (morphBytes! + message).sha256Hash();
       return (coinId + prefixedMessage).sha256Hash();
@@ -19,19 +19,19 @@ class AssertCoinAnnouncementCondition implements Condition {
 
   AssertCoinAnnouncementCondition(this.coinId, this.message, {this.morphBytes});
 
-  static Puzzlehash getAnnouncementIdromProgram(Program program) {
+  static Bytes getAnnouncementIdFromProgram(Program program) {
     final programList = program.toList();
     if (!isThisCondition(program)) {
       throw InvalidConditionCastException(AssertCoinAnnouncementCondition);
     }
-    return Puzzlehash(programList[1].atom);
+    return Bytes(programList[1].atom);
   }
 
   @override
   Program get program {
     return Program.list([
       Program.fromInt(conditionCode),
-      Program.fromBytes(announcementId.bytes),
+      Program.fromBytes(announcementId.toUint8List()),
     ]);
   }
 

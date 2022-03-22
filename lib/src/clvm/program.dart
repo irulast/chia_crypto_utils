@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_equals_and_hash_code_on_mutable_classes
+// ignore_for_file: avoid_equals_and_hash_code_on_mutable_classes, lines_longer_than_80_chars
 
 import 'dart:convert';
 import 'dart:io';
@@ -127,7 +127,6 @@ class Program {
       cost += instruction(instructions, stack, options);
       if (options.maxCost != null && cost > options.maxCost!) {
         throw StateError(
-          // ignore: lines_longer_than_80_chars
           'Exceeded cost of ${options.maxCost}${stack[stack.length - 1].positionSuffix}.',
         );
       }
