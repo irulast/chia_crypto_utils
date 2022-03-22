@@ -24,6 +24,7 @@ ENV farmer="false"
 
 RUN git clone https://github.com/Chia-Network/chia-blockchain.git
 WORKDIR /chia-blockchain
+RUN git checkout 911f164442e96dda41d7e31e71f5301397301012
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get -y install lsb-release && apt-get -y install sed && apt-get -y install vim
 
@@ -37,6 +38,7 @@ RUN python3 -m pip install --upgrade pip && \
     python3 -m pip install -e . --extra-index-url https://pypi.chia.net/simple/
 
 RUN sed -i 's/from .full_node_simulator import FullNodeSimulator/from full_node_simulator import FullNodeSimulator/' /chia-blockchain/chia/simulator/start_simulator.py
+
 RUN chmod +x /opt/venv/bin/activate
 RUN activate
 RUN chia init
