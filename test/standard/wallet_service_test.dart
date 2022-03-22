@@ -1,4 +1,5 @@
-import 'package:chia_utils/src/api/full_node.dart';
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'package:chia_utils/src/context/context.dart';
 import 'package:chia_utils/src/core/models/models.dart';
 import 'package:chia_utils/src/networks/chia/chia_blockckahin_network_loader.dart';
@@ -8,7 +9,6 @@ import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
 void main() {
-  final mockFullNode = FullNode('');
   final configurationProvider = ConfigurationProvider()
     ..setConfig(NetworkFactory.configId, {
       'yaml_file_path': 'lib/src/networks/chia/testnet10/config.yaml'
@@ -18,9 +18,9 @@ void main() {
   final context = Context(configurationProvider);
   final blockcahinNetworkLoader = ChiaBlockchainNetworkLoader();
   context.registerFactory(NetworkFactory(blockcahinNetworkLoader.loadfromLocalFileSystem));
-  final walletService = WalletService(mockFullNode, context);
+  final walletService = StandardWalletService(context);
 
-  final destinationAddress = Address('txch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jksxp6hy3');
+  final destinationPuzzlehash = Address('txch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jksxp6hy3').toPuzzlehash();
 
   const testMnemonic = [
       'elder', 'quality', 'this', 'chalk', 'crane', 'endless',
@@ -42,18 +42,19 @@ void main() {
   final coinPuzzlehash = walletKeychain.unhardenedMap.values.toList()[0].puzzlehash;
   final changePuzzlehash = walletKeychain.unhardenedMap.values.toList()[1].puzzlehash;
 
-  const parentInfo0 = Puzzlehash([227, 176, 196, 66, 152, 252, 28, 20, 154, 251, 244, 200, 153, 111, 185, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3]);
-  const parentInfo1 = Puzzlehash([227, 176, 196, 66, 152, 252, 28, 20, 154, 251, 244, 200, 153, 111, 185, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6]);
-  const parentInfo2 = Puzzlehash([227, 176, 196, 66, 152, 252, 28, 20, 154, 251, 244, 200, 153, 111, 185, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6]);
+  const parentInfo0 = Bytes([227, 176, 196, 66, 152, 252, 28, 20, 154, 251, 244, 200, 153, 111, 185, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3]);
+  const parentInfo1 = Bytes([227, 176, 196, 66, 152, 252, 28, 20, 154, 251, 244, 200, 153, 111, 185, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6]);
+  const parentInfo2 = Bytes([227, 176, 196, 66, 152, 252, 28, 20, 154, 251, 244, 200, 153, 111, 185, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6]);
   final coin0 = Coin(spentBlockIndex: 0, confirmedBlockIndex: 100, coinbase: false, timestamp: 100177271, parentCoinInfo: parentInfo0, puzzlehash: coinPuzzlehash, amount: 100000);
   final coin1 = Coin(spentBlockIndex: 0, confirmedBlockIndex: 1000, coinbase: false, timestamp: 100177372, parentCoinInfo: parentInfo1, puzzlehash: coinPuzzlehash, amount: 500000);
   final coin2 = Coin(spentBlockIndex: 0, confirmedBlockIndex: 2000, coinbase: false, timestamp: 100179373, parentCoinInfo: parentInfo2, puzzlehash: coinPuzzlehash, amount: 200000);
   final coins = [coin0, coin1, coin2];
+
   test('Should create valid spendbundle', () {
     final spendBundle = walletService.createSpendBundle(
         coins,
         550000,
-        destinationAddress,
+        destinationPuzzlehash,
         changePuzzlehash,
         walletKeychain,
     );
@@ -65,7 +66,20 @@ void main() {
     final spendBundle = walletService.createSpendBundle(
         coins,
         550000,
-        destinationAddress,
+        destinationPuzzlehash,
+        changePuzzlehash,
+        walletKeychain,
+        fee: 10000,
+    );
+
+    walletService.validateSpendBundle(spendBundle);
+  });
+
+  test('Should create valid spendbundle with only fee', () {
+    final spendBundle = walletService.createSpendBundle(
+        coins,
+        0,
+        destinationPuzzlehash,
         changePuzzlehash,
         walletKeychain,
         fee: 10000,
@@ -78,7 +92,7 @@ void main() {
     final spendBundle = walletService.createSpendBundle(
         coins,
         550000,
-        destinationAddress,
+        destinationPuzzlehash,
         changePuzzlehash,
         walletKeychain,
         originId: coin2.id,
@@ -91,7 +105,7 @@ void main() {
     final spendBundle = walletService.createSpendBundle(
         coins,
         3000,
-        destinationAddress,
+        destinationPuzzlehash,
         changePuzzlehash,
         walletKeychain,
     );
@@ -103,7 +117,7 @@ void main() {
     final spendBundle = walletService.createSpendBundle(
         [...coins, coin0],
         3000,
-        destinationAddress,
+        destinationPuzzlehash,
         changePuzzlehash,
         walletKeychain,
     );

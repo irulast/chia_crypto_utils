@@ -1,3 +1,9 @@
+# Changelog
+
+## 1.0.5
+
+- Added support for Chia Asset Token (CAT)
+
 ## 1.0.4
 
 - Added support for Flutter Mobile

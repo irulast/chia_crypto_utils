@@ -1,3 +1,5 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 class ChiaWalletSet {
   ChiaWalletVector hardened;
   ChiaWalletVector unhardened;
@@ -21,6 +23,6 @@ class ChiaWalletVector {
 
   ChiaWalletVector({
     required this.childPublicKeyHex,
-    required this.puzzlehashHex
+    required this.puzzlehashHex,
   });
 }
