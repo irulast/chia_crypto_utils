@@ -1,3 +1,5 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'package:bech32m/bech32m.dart';
 import 'package:chia_utils/src/core/models/bytes.dart';
 

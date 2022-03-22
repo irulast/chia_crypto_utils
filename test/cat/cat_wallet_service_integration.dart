@@ -1,3 +1,5 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 @Skip('Integration test')
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/full_node.dart';

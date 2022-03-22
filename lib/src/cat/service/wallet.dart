@@ -1,3 +1,5 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/cat/exceptions/mixed_asset_ids_exception.dart';
 import 'package:chia_utils/src/cat/models/cat_coin.dart';
@@ -155,7 +157,7 @@ class CatWalletService extends BaseWalletService {
       final solution = makeCatSolution(
         previousSpendableCat: previousSpendableCat, 
         currentSpendableCat: currentSpendableCat, 
-        nextSpendableCat: nextSpendableCat
+        nextSpendableCat: nextSpendableCat,
       );
 
       final coinWalletVector = keychain.getWalletVector(currentSpendableCat.coin.puzzlehash);

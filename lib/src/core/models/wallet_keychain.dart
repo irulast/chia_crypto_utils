@@ -1,3 +1,5 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/curry_and_treehash/curry_and_treehash.clvm.hex.dart';
