@@ -96,7 +96,7 @@ class StandardWalletService extends BaseWalletService{
       
 
         // generate message for coin announcements by appending coin_ids
-        // see: chia/wallet/wallet.py: 380
+        // see https://github.com/Chia-Network/chia-blockchain/blob/4bd5c53f48cb049eff36c87c00d21b1f2dd26b27/chia/wallet/wallet.py#L383
         //   message: bytes32 = std_hash(b"".join(message_list))
         final existingCoinsMessage = coins.fold(Bytes.empty, (Bytes previousValue, coin) => previousValue + coin.id);
         final createdCoinsMessage = createdCoins.fold(Bytes.empty, (Bytes previousValue, coin) => previousValue + coin.id);

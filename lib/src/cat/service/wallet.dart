@@ -57,7 +57,8 @@ class CatWalletService extends BaseWalletService {
       // if first coin, make inner solution with output
       if (first) {
         first = false;
-
+        // see https://github.com/Chia-Network/chia-blockchain/blob/4bd5c53f48cb049eff36c87c00d21b1f2dd26b27/chia/wallet/cat_wallet/cat_wallet.py#L646
+        //   announcement = Announcement(coin.name(), std_hash(b"".join([c.name() for c in cat_coins])), b"\xca")
         final message = catCoins.fold(
           Bytes.empty, 
           (Bytes previousValue, coin) => previousValue + coin.id,
@@ -193,7 +194,6 @@ class CatWalletService extends BaseWalletService {
     );
   }
 
-  // see chia/wallet/cc_wallet/cc_wallet.py: generate_unsigned_spendbundle
   static Program makeCatSolution({
     required SpendableCat previousSpendableCat, 
     required SpendableCat currentSpendableCat, 
@@ -201,6 +201,7 @@ class CatWalletService extends BaseWalletService {
 
     }) {
     assert(currentSpendableCat.subtotal != null, 'subtotal has not been attached to currentSpendableCat');
+    // see https://github.com/Chia-Network/chia-blockchain/blob/4bd5c53f48cb049eff36c87c00d21b1f2dd26b27/chia/wallet/cat_wallet/cat_utils.py#L123
     return Program.list([
       currentSpendableCat.innerSolution, 
       currentSpendableCat.coin.lineageProof,
