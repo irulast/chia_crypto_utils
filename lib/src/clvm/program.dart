@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_equals_and_hash_code_on_mutable_classes, lines_longer_than_80_chars
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -107,8 +109,13 @@ class Program {
     }
   }
 
-  factory Program.deserializeHex(String source) =>
-      Program.deserialize(const HexDecoder().convert(source));
+  factory Program.deserializeHex(String source) {
+    if (source.startsWith('0x')) {
+      return Program.deserialize(const HexDecoder().convert(source.replaceFirst('0x', '')));
+    }
+    return Program.deserialize(const HexDecoder().convert(source));
+  }
+      
 
   Output run(Program args, {RunOptions? options}) {
     options ??= RunOptions();
@@ -120,7 +127,6 @@ class Program {
       cost += instruction(instructions, stack, options);
       if (options.maxCost != null && cost > options.maxCost!) {
         throw StateError(
-          // ignore: lines_longer_than_80_chars
           'Exceeded cost of ${options.maxCost}${stack[stack.length - 1].positionSuffix}.',
         );
       }
@@ -140,6 +146,64 @@ class Program {
       );
     }
     return Program.parse('(a (q . ${toString()}) ${current.toString()})');
+  }
+
+  ProgramAndArguments uncurry() {
+    final programList = toList();
+    if (programList.length != 3) {
+      throw ArgumentError('Program is wrong length, should contain 3: (operator, puzzle, arguments)');
+    }
+    if (programList[0].toInt() != 2) {
+      throw ArgumentError('Program is missing apply operator (a)');
+    }
+    final uncurriedModule = _matchQuotedProgram(programList[1]);
+    if (uncurriedModule == null) {
+      throw ArgumentError('Puzzle did not match expected pattern');
+    }
+    final uncurriedArgs = _matchCurriedArgs(programList[2]);
+
+    return ProgramAndArguments(uncurriedArgs, uncurriedModule);
+  }
+
+  static Program? _matchQuotedProgram(Program program) {
+    final cons = program.cons;
+    if (cons[0].toInt() == 1 && !cons[1].isAtom) {
+      return cons[1];
+    }
+    return null;
+  }
+
+  static List<Program> _matchCurriedArgs(Program program) {
+    final result = _matchCurriedArgsHelper([], program);
+    return result.arguments; 
+  }
+
+  static ProgramAndArguments _matchCurriedArgsHelper(List<Program> uncurriedArguments, Program inputProgram) {
+    final inputProgramList = inputProgram.toList();
+    // base case
+    if (inputProgramList.isEmpty) {
+      return ProgramAndArguments(uncurriedArguments, inputProgram);
+    }
+    final atom = _matchQuotedAtom(inputProgramList[1]);
+    if (atom != null) {
+      uncurriedArguments.add(atom);
+    } else{
+      final program = _matchQuotedProgram(inputProgramList[1]);
+      if (program == null) {
+        return ProgramAndArguments(uncurriedArguments, inputProgram);
+      }
+      uncurriedArguments.add(program);
+    }
+    final nextArgumentToParse = inputProgramList[2];
+    return _matchCurriedArgsHelper(uncurriedArguments, nextArgumentToParse);
+  }
+
+  static Program? _matchQuotedAtom(Program program) {
+    final cons = program.cons;
+    if (cons[0].toInt() == 1 && cons[1].isAtom) {
+      return cons[1];
+    }
+    return null;
   }
 
   Program first() {
@@ -413,4 +477,11 @@ class Program {
 
   @override
   String toString() => toSource();
+}
+
+class ProgramAndArguments {
+  List<Program> arguments;
+  Program program;
+
+  ProgramAndArguments(this.arguments, this.program);
 }

@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_void_async
+// ignore_for_file: avoid_void_async, lines_longer_than_80_chars
 
 import 'dart:convert';
 import 'dart:io';
@@ -63,9 +63,9 @@ void main() async {
         firstAddress = Address.fromPuzzlehash(set.hardened.puzzlehash, 'txch').address;
       }
 
-      expect(chiaSet.hardened.puzzlehashHex, set.hardened.puzzlehash.hex);
+      expect(chiaSet.hardened.puzzlehashHex, set.hardened.puzzlehash.toHex());
       expect(chiaSet.hardened.childPublicKeyHex, hexEncoder.convert(set.hardened.childPublicKey.toBytes()));
-      expect(chiaSet.unhardened.puzzlehashHex, set.unhardened.puzzlehash.hex);
+      expect(chiaSet.unhardened.puzzlehashHex, set.unhardened.puzzlehash.toHex());
       expect(chiaSet.unhardened.childPublicKeyHex, hexEncoder.convert(set.unhardened.childPublicKey.toBytes()));
       expect(firstAddress, chiaFirstAddress);
     }

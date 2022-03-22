@@ -1,3 +1,5 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'dart:typed_data';
 
 import 'package:chia_utils/chia_crypto_utils.dart';
@@ -6,7 +8,7 @@ import 'package:chia_utils/src/standard/puzzles/default_hidden_puzzle/default_hi
 import 'package:chia_utils/src/standard/puzzles/p2_delegated_puzzle_or_hidden_puzzle/p2_delegated_puzzle_or_hidden_puzzle.clvm.hex.dart';
 import 'package:crypto/crypto.dart';
 
-// cribbed from chia/wallet/derive_keys.py
+// cribbed from https://github.com/Chia-Network/chia-blockchain/blob/4bd5c53f48cb049eff36c87c00d21b1f2dd26b27/chia/wallet/derive_keys.py
 // EIP 2334 bls key derivation
 // https://eips.ethereum.org/EIPS/eip-2334
 // 12381 = bls spec number
@@ -105,7 +107,7 @@ PrivateKey masterSkToPoolingAuthenticationSk(
   ]);
 }
 
-// cribbed from chia/wallet/puzzles/p2_delegated_puzzle_or_hidden_puzzle.py
+// cribbed from https://github.com/Chia-Network/chia-blockchain/blob/4bd5c53f48cb049eff36c87c00d21b1f2dd26b27/chia/wallet/puzzles/p2_delegated_puzzle_or_hidden_puzzle.py
 Program getPuzzleFromPk(JacobianPoint publicKey) {
   final syntheticPubKey = calculateSyntheticPublicKeyProgram.run(
     Program.list([
@@ -126,9 +128,9 @@ final groupOrder = BigInt.parse(
 BigInt calculateSyntheticOffset(JacobianPoint publicKey) {
   final blob =
       sha256.convert(publicKey.toBytes() + defaultHiddenPuzzleProgram.hash()).bytes;
-  // print(blob);
+
   final offset = bytesToBigInt(blob, Endian.big, signed: true);
-  // print(offset.toString());
+
   final newOffset = offset % groupOrder;
   return newOffset;
 }

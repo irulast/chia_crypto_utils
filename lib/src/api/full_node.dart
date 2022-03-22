@@ -1,9 +1,11 @@
+// ignore_for_file: avoid_dynamic_calls, lines_longer_than_80_chars
+
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:chia_utils/src/api/client.dart';
+import 'package:chia_utils/src/core/models/bytes.dart';
 import 'package:chia_utils/src/core/models/coin.dart';
-import 'package:chia_utils/src/core/models/puzzlehash.dart';
+import 'package:chia_utils/src/core/models/coin_spend.dart';
 import 'package:chia_utils/src/core/models/spend_bundle.dart';
 import 'package:meta/meta.dart';
 
@@ -22,17 +24,16 @@ class FullNode {
     bool includeSpentCoins = false,
   }) async {
     final body = <String, dynamic>{
-      'puzzle_hashes': puzzlehashes.map((ph) => ph.hex).toList(),
+      'puzzle_hashes': puzzlehashes.map((ph) => ph.toHex()).toList(),
     };
     if (startHeight != null) {
       body['start_height'] = startHeight;
     }
-    if (startHeight != null) {
+    if (endHeight != null) {
       body['end_height'] = endHeight;
     }
-    if (startHeight != null) {
-      body['include_spent_coins'] = includeSpentCoins;
-    }
+    body['include_spent_coins'] = includeSpentCoins;
+
     final responseData = await client.sendRequest(
       Uri.parse('get_coin_records_by_puzzle_hashes'),
       body,
@@ -42,7 +43,7 @@ class FullNode {
     if (responseData.statusCode != 200) {
       throw Exception('Failed to fetch coin records: ${responseData.body}');
     }
-    // ignore: avoid_dynamic_calls
+
     final coins = (jsonDecode(responseData.body)['coin_records'] as List)
         .map(
           (dynamic value) =>
@@ -59,13 +60,38 @@ class FullNode {
       {'spend_bundle': spendBundle.toJson()},
     );
 
-    log(responseData.body);
+    print(responseData.body);
 
     if (responseData.statusCode != 200) {
       throw Exception('Failed to push transaction: ${responseData.body}');
     }
   }
 
+  Future<Coin> getCoinByName(Bytes coinId) async {
+    final responseData = await client.sendRequest(Uri.parse('get_coin_record_by_name'), {
+      'name': coinId.toHex(),
+    });
+
+    if (responseData.statusCode != 200) {
+      throw Exception('Failed to push transaction: ${responseData.body}');
+    }
+
+    final coinRecordJson = jsonDecode(responseData.body)['coin_record'] as Map<String, dynamic>;
+    return Coin.fromChiaCoinRecordJson(coinRecordJson);
+  }
+
+  Future<CoinSpend> getPuzzleAndSolution(Bytes coinId, int height) async {
+    final responseData = await client.sendRequest(Uri.parse('get_puzzle_and_solution'), {
+      'coin_id': coinId.toHex(),
+      'height': height,
+    });
+
+    if (responseData.statusCode != 200) {
+      throw Exception('Failed to get puzzle and solution: ${responseData.body}');
+    }
+
+    return CoinSpend.fromJson(jsonDecode(responseData.body)['coin_solution'] as Map<String, dynamic>);
+  }
   @override
   String toString() => 'FullNode(${client.baseURL})';
 

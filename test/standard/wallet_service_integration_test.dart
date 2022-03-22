@@ -1,11 +1,12 @@
-@Skip("Integration test")
+// ignore_for_file: lines_longer_than_80_chars
+
+@Skip('Integration test')
 import 'package:chia_utils/src/api/full_node.dart';
-import 'package:chia_utils/src/context/configuration_provider.dart';
 import 'package:chia_utils/src/context/context.dart';
 import 'package:chia_utils/src/core/models/address.dart';
+import 'package:chia_utils/src/core/models/bytes.dart';
 import 'package:chia_utils/src/core/models/coin.dart';
 import 'package:chia_utils/src/core/models/master_key_pair.dart';
-import 'package:chia_utils/src/core/models/puzzlehash.dart';
 import 'package:chia_utils/src/core/models/wallet_keychain.dart';
 import 'package:chia_utils/src/core/models/wallet_set.dart';
 import 'package:chia_utils/src/networks/chia/chia_blockckahin_network_loader.dart';
@@ -14,8 +15,8 @@ import 'package:chia_utils/src/standard/service/wallet.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
-void main() async {
-  final fullNode = FullNode('http://localhost:4000');
+Future<void> main() async {
+  const fullNode = FullNode('http://localhost:4000');
   final configurationProvider = ConfigurationProvider()
     ..setConfig(NetworkFactory.configId, {
       'yaml_file_path': 'lib/src/networks/chia/testnet10/config.yaml'
@@ -25,9 +26,9 @@ void main() async {
   final context = Context(configurationProvider);
   final blockcahinNetworkLoader = ChiaBlockchainNetworkLoader();
   context.registerFactory(NetworkFactory(blockcahinNetworkLoader.loadfromLocalFileSystem));
-  final walletService = WalletService(fullNode, context);
+  final walletService = StandardWalletService(context);
 
-  final destinationAddress = Address('txch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jksxp6hy3');
+  final destinationPuzzlehash = Address('txch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jksxp6hy3').toPuzzlehash();
 
   const testMnemonic = [
       'elder', 'quality', 'this', 'chalk', 'crane', 'endless',
@@ -49,7 +50,7 @@ void main() async {
   final unhardenedPuzzlehashes = walletKeychain.unhardenedMap.values.map((vec) => vec.puzzlehash).toList();
 
   final coins = await fullNode.getCoinRecordsByPuzzleHashes(unhardenedPuzzlehashes);
-  
+
 
   test('Should push transaction with fee', () async {
     const amountToSend = 10000;
@@ -63,7 +64,7 @@ void main() async {
     final spendBundle = walletService.createSpendBundle(
         coinsToSpend,
         amountToSend,
-        destinationAddress,
+        destinationPuzzlehash,
         walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
         walletKeychain,
         fee: fee,
@@ -83,7 +84,7 @@ void main() async {
     final spendBundle = walletService.createSpendBundle(
         coinsToSpend,
         amountToSend,
-        destinationAddress,
+        destinationPuzzlehash,
         walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
         walletKeychain,
     );
@@ -102,7 +103,7 @@ void main() async {
     final spendBundle = walletService.createSpendBundle(
         coinsToSpend,
         amountToSend,
-        destinationAddress,
+        destinationPuzzlehash,
         walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
         walletKeychain,
         originId: coinsToSpend[coinsToSpend.length - 1].id,
@@ -123,10 +124,10 @@ void main() async {
     expect(() => walletService.createSpendBundle(
           coinsToSpend,
           amountToSend,
-          destinationAddress,
+          destinationPuzzlehash,
           walletKeychain.unhardenedMap.values.toList()[0].puzzlehash,
           walletKeychain,
-          originId: Puzzlehash.fromHex('ff8'),
+          originId: Bytes.fromHex('ff8'),
       ), throwsException,
     );
   });
