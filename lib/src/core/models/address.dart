@@ -1,19 +1,18 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:bech32m/bech32m.dart';
-import 'package:chia_utils/src/core/models/puzzlehash.dart';
-import 'package:meta/meta.dart';
 import 'package:chia_utils/src/core/models/bytes.dart';
+import 'package:meta/meta.dart';
 
 @immutable
 class Address {
   const Address(this.address);
 
-  final String address;
+  Address.fromPuzzlehash(Puzzlehash puzzlehash, String addressPrefix)
+      : address =
+            segwit.encode(Segwit(addressPrefix, puzzlehash.toUint8List()));
 
-  factory Address.fromPuzzlehash(Puzzlehash puzzlehash, String addressPrefix) {
-    return Address(segwit.encode(Segwit(addressPrefix, puzzlehash.toUint8List())));
-  }
+  final String address;
 
   Puzzlehash toPuzzlehash() {
     return Puzzlehash(segwit.decode(address).program);
@@ -28,7 +27,5 @@ class Address {
   }
 
   @override
-  String toString() {
-    return 'Address($address)';
-  }
+  String toString() => 'Address($address)';
 }
