@@ -97,7 +97,7 @@ class Program {
     final lines = file.readAsLinesSync();
 
     try {
-      final line = lines.where((line) => line.isNotEmpty).single;
+      final line = lines.singleWhere((line) => line.isNotEmpty);
       return Program.deserializeHex(line);
     } catch (_) {
       throw Exception('Invalid file input: Should include one line of hex');
