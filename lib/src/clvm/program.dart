@@ -114,12 +114,11 @@ class Program {
   }
 
   factory Program.deserializeHex(String source) {
+    var _source = source;
     if (source.startsWith('0x')) {
-      return Program.deserialize(
-        const HexDecoder().convert(source.replaceFirst('0x', '')),
-      );
+      _source = source.replaceFirst('0x', '');
     }
-    return Program.deserialize(const HexDecoder().convert(source));
+    return Program.deserialize(const HexDecoder().convert(_source));
   }
 
   Output run(Program args, {RunOptions? options}) {
