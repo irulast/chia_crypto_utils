@@ -95,13 +95,13 @@ class Program {
   /// Loads a program from a [File].
   factory Program.deserializeHexFile(File file) {
     final lines = file.readAsLinesSync();
-    final nonEmptyLines = lines.where((line) => line.isNotEmpty).toList();
 
-    if (nonEmptyLines.length != 1) {
+    try {
+      final line = lines.where((line) => line.isNotEmpty).single;
+      return Program.deserializeHex(line);
+    } catch (_) {
       throw Exception('Invalid file input: Should include one line of hex');
     }
-
-    return Program.deserializeHex(nonEmptyLines[0]);
   }
 
   factory Program.deserialize(List<int> source) {
