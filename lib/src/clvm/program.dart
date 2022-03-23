@@ -116,7 +116,8 @@ class Program {
   factory Program.deserializeHex(String source) {
     if (source.startsWith('0x')) {
       return Program.deserialize(
-          const HexDecoder().convert(source.replaceFirst('0x', '')));
+        const HexDecoder().convert(source.replaceFirst('0x', '')),
+      );
     }
     return Program.deserialize(const HexDecoder().convert(source));
   }
@@ -156,7 +157,8 @@ class Program {
     final programList = toList();
     if (programList.length != 3) {
       throw ArgumentError(
-          'Program is wrong length, should contain 3: (operator, puzzle, arguments)');
+        'Program is wrong length, should contain 3: (operator, puzzle, arguments)',
+      );
     }
     if (programList[0].toInt() != 2) {
       throw ArgumentError('Program is missing apply operator (a)');
@@ -184,7 +186,9 @@ class Program {
   }
 
   static ProgramAndArguments _matchCurriedArgsHelper(
-      List<Program> uncurriedArguments, Program inputProgram) {
+    List<Program> uncurriedArguments,
+    Program inputProgram,
+  ) {
     final inputProgramList = inputProgram.toList();
     // base case
     if (inputProgramList.isEmpty) {
@@ -424,9 +428,8 @@ class Program {
     }
   }
 
-  void at(Position? position) {
-    this.position = position;
-  }
+  // ignore: use_setters_to_change_properties
+  void at(Position? position) => this.position = position;
 
   String toSource({bool? showKeywords}) {
     showKeywords ??= true;
