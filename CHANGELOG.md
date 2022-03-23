@@ -7,6 +7,7 @@
 - New constructor `Program.deserializeHexFilePath` (formerly `Program.deserializeHexFile`)
 - Fix for `Program.deserializeHexFilePath` test
 - `WalletVector` is immutable
+- `MasterKeyPair` is immutable
 
 ## 1.0.5
 
