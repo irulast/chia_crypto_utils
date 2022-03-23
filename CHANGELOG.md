@@ -6,6 +6,7 @@
 - Breaking: `Program.deserializeHexFile` receive a `File` instead of a `String`
 - New constructor `Program.deserializeHexFilePath` (formerly `Program.deserializeHexFile`)
 - Fix for `Program.deserializeHexFilePath` test
+- `WalletVector` is immutable
 
 ## 1.0.5
 
