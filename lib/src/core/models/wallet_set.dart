@@ -1,6 +1,7 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:meta/meta.dart';
 
 class WalletSet {
   WalletVector hardened;
@@ -13,8 +14,12 @@ class WalletSet {
     required this.derivationIndex,
   });
 
-  factory WalletSet.fromPrivateKey(PrivateKey masterPrivateKey, int derivationIndex) {
-    final childPrivateKeyHardened = masterSkToWalletSk(masterPrivateKey, derivationIndex);
+  factory WalletSet.fromPrivateKey(
+    PrivateKey masterPrivateKey,
+    int derivationIndex,
+  ) {
+    final childPrivateKeyHardened =
+        masterSkToWalletSk(masterPrivateKey, derivationIndex);
     final childPublicKeyHardened = childPrivateKeyHardened.getG1();
 
     final puzzleHardened = getPuzzleFromPk(childPublicKeyHardened);
@@ -26,7 +31,8 @@ class WalletSet {
       puzzlehash: puzzlehashHardened,
     );
 
-    final childPrivateKeyUnhardened = masterSkToWalletSkUnhardened(masterPrivateKey, derivationIndex);
+    final childPrivateKeyUnhardened =
+        masterSkToWalletSkUnhardened(masterPrivateKey, derivationIndex);
     final childPublicKeyUnhardened = childPrivateKeyUnhardened.getG1();
 
     final puzzleUnhardened = getPuzzleFromPk(childPublicKeyUnhardened);
@@ -46,31 +52,49 @@ class WalletSet {
   }
 }
 
+@immutable
 class WalletVector {
-  PrivateKey childPrivateKey;
-  JacobianPoint childPublicKey;
-  Puzzlehash puzzlehash;
-
-  WalletVector({
+  const WalletVector({
     required this.childPrivateKey,
     required this.childPublicKey,
     required this.puzzlehash,
   });
+
+  final PrivateKey childPrivateKey;
+  final JacobianPoint childPublicKey;
+  final Puzzlehash puzzlehash;
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^
+      childPrivateKey.hashCode ^
+      childPublicKey.hashCode ^
+      puzzlehash.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is WalletVector &&
+            runtimeType == other.runtimeType &&
+            childPrivateKey == other.childPrivateKey &&
+            childPublicKey == other.childPublicKey &&
+            puzzlehash == other.puzzlehash;
+  }
 }
 
-class UnhardenedWalletVector extends WalletVector{
-  Map<Puzzlehash, Puzzlehash> assetIdtoOuterPuzzlehash = {};
- 
+class UnhardenedWalletVector extends WalletVector {
   UnhardenedWalletVector({
     required PrivateKey childPrivateKey,
     required JacobianPoint childPublicKey,
     required Puzzlehash puzzlehash,
     Map<Puzzlehash, Puzzlehash>? assetIdtoOuterPuzzlehash,
-  }) : super(
-    childPrivateKey: childPrivateKey,
-    childPublicKey: childPublicKey,
-    puzzlehash: puzzlehash,
-  ) {
-    assetIdtoOuterPuzzlehash = assetIdtoOuterPuzzlehash ?? {};
-  }
+  })  : assetIdtoOuterPuzzlehash =
+            assetIdtoOuterPuzzlehash ?? <Puzzlehash, Puzzlehash>{},
+        super(
+          childPrivateKey: childPrivateKey,
+          childPublicKey: childPublicKey,
+          puzzlehash: puzzlehash,
+        );
+
+  final Map<Puzzlehash, Puzzlehash> assetIdtoOuterPuzzlehash;
 }

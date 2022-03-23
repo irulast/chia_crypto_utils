@@ -1,9 +1,9 @@
-// ignore_for_file: avoid_equals_and_hash_code_on_mutable_classes, lines_longer_than_80_chars
+// ignore_for_file: lines_longer_than_80_chars
 
 import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:meta/meta.dart';
 
-
-// ignore: must_be_immutable
+@immutable
 class Coin extends CoinPrototype {
   final int confirmedBlockIndex;
   final int spentBlockIndex;

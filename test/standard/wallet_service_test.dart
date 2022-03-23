@@ -20,7 +20,7 @@ void main() {
   context.registerFactory(NetworkFactory(blockcahinNetworkLoader.loadfromLocalFileSystem));
   final walletService = StandardWalletService(context);
 
-  final destinationPuzzlehash = Address('txch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jksxp6hy3').toPuzzlehash();
+  final destinationPuzzlehash = const Address('txch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jksxp6hy3').toPuzzlehash();
 
   const testMnemonic = [
       'elder', 'quality', 'this', 'chalk', 'crane', 'endless',
@@ -31,11 +31,11 @@ void main() {
 
   final masterKeyPair = MasterKeyPair.fromMnemonic(testMnemonic);
 
-  final walletsSetList = <WalletSet>[];
-  for (var i = 0; i < 20; i++) {
-    final set1 = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
-    walletsSetList.add(set1);
-  }
+  final walletsSetList = <WalletSet>[
+    for (var i = 0; i < 20; i++) 
+      WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i),
+  ];
+  
 
   final walletKeychain = WalletKeychain(walletsSetList);
 
