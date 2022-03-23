@@ -31,11 +31,11 @@ void main() {
 
   final masterKeyPair = MasterKeyPair.fromMnemonic(testMnemonic);
 
-  final walletsSetList = <WalletSet>[];
-  for (var i = 0; i < 20; i++) {
-    final set1 = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
-    walletsSetList.add(set1);
-  }
+  final walletsSetList = <WalletSet>[
+    for (var i = 0; i < 20; i++) 
+      WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i),
+  ];
+  
 
   final walletKeychain = WalletKeychain(walletsSetList);
 
