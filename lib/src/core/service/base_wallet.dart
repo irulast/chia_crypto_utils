@@ -28,7 +28,7 @@ class BaseWalletService {
     return CoinSpendAndSignature(coinSpend, signature);
   }
 
-  Bytes getAddSigMeMessageFromResult(Program result, Coin coin) {
+  Bytes getAddSigMeMessageFromResult(Program result, CoinPrototype coin) {
     final aggSigMeCondition = result.toList().singleWhere(AggSigMeCondition.isThisCondition);
     return Bytes(aggSigMeCondition.toList()[2].atom) +
       coin.id +

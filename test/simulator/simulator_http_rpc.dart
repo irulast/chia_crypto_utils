@@ -18,6 +18,10 @@ class SimulatorHttpRpc extends FullNodeHttpRpc {
     return ChiaBaseResponse.fromJson(jsonDecode(responseData.body) as Map<String, dynamic>);
   }
 
+  Future<void> moveToNextBlock() async {
+    await farmTransactionBlock(Address('xch16wztykx2dasqk4lnpz0m2e6rwxf697fy6awhy46waf2dd6qajl7sslnadz'));
+  }
+
   static void deleteDatabase() {
     Directory('/Users/nvjoshi/.chia/mainnet/sim_db')
       .delete(recursive: true);

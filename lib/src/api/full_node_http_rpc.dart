@@ -5,12 +5,12 @@ import 'dart:convert';
 import 'package:chia_utils/src/api/client.dart';
 import 'package:chia_utils/src/api/exceptions/internal_server_error.dart';
 import 'package:chia_utils/src/api/full_node.dart';
+import 'package:chia_utils/src/api/models/responses/blockchain_state_response.dart';
 import 'package:chia_utils/src/api/models/responses/chia_base_response.dart';
 import 'package:chia_utils/src/api/models/responses/coin_record_response.dart';
 import 'package:chia_utils/src/api/models/responses/coin_records_response.dart';
 import 'package:chia_utils/src/api/models/responses/coin_spend_response.dart';
 import 'package:chia_utils/src/core/models/models.dart';
-import 'package:chia_utils/src/core/models/spend_bundle.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
@@ -57,6 +57,7 @@ class FullNodeHttpRpc implements FullNode{
       Uri.parse('push_tx'),
       {'spend_bundle': spendBundle.toJson()},
     );
+    print(responseData.body);
     mapResponseToError(responseData);
 
     return ChiaBaseResponse.fromJson(jsonDecode(responseData.body) as Map<String, dynamic>);
@@ -82,6 +83,15 @@ class FullNodeHttpRpc implements FullNode{
 
     return CoinSpendResponse.fromJson(jsonDecode(responseData.body) as Map<String, dynamic>);
   }
+
+  @override
+  Future<BlockchainStateResponse> getBlockchainState() async {
+    final responseData = await client.sendRequest(Uri.parse('get_blockchain_state'), <String, dynamic>{});
+    mapResponseToError(responseData);
+
+    return BlockchainStateResponse.fromJson(jsonDecode(responseData.body) as Map<String, dynamic>);
+  }
+
 
   static void mapResponseToError(http.Response response) {
     switch(response.statusCode) {
