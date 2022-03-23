@@ -1,8 +1,6 @@
-// ignore_for_file: avoid_equals_and_hash_code_on_mutable_classes
+// ignore_for_file: avoid_equals_and_hash_code_on_mutable_classes, lines_longer_than_80_chars
 
-import 'package:chia_utils/src/core/models/coin_prototype.dart';
-import 'package:chia_utils/src/core/models/coin_spend.dart';
-import 'package:chia_utils/src/core/models/puzzlehash.dart';
+import 'package:chia_utils/chia_crypto_utils.dart';
 
 
 // ignore: must_be_immutable
@@ -12,21 +10,19 @@ class Coin extends CoinPrototype {
   final bool coinbase;
   final int timestamp;
 
-  CoinSpend? parentCoinSpend;
-
-  Coin({
-    this.parentCoinSpend,
+  const Coin({
     required this.confirmedBlockIndex,
     required this.spentBlockIndex,
     required this.coinbase,
     required this.timestamp,
-    required Puzzlehash parentCoinInfo,
+    required Bytes parentCoinInfo,
     required Puzzlehash puzzlehash,
     required int amount,
   }) : super(
             puzzlehash: puzzlehash,
             amount: amount,
-            parentCoinInfo: parentCoinInfo);
+            parentCoinInfo: parentCoinInfo,
+    );
 
   factory Coin.fromChiaCoinRecordJson(Map<String, dynamic> json) {
     final coinPrototype = CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>);
@@ -39,5 +35,13 @@ class Coin extends CoinPrototype {
       puzzlehash: coinPrototype.puzzlehash,
       amount: coinPrototype.amount,
     );
+  }
+
+  Program toProgram() {
+    return Program.list([
+    Program.fromBytes(parentCoinInfo.toUint8List()),
+    Program.fromBytes(puzzlehash.toUint8List()),
+    Program.fromInt(amount),
+  ]);
   }
 }

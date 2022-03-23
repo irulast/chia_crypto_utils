@@ -1,0 +1,15 @@
+; This mod is a port of the cat_puzzle_hash puzzle wrapping function from cat.clvm
+(mod (
+      cat_mod_hash
+      tail_program_hash
+      inner_puzzle_hash
+    )
+
+    (include curry_and_treehash.clib)
+
+    (puzzle-hash-of-curried-function cat_mod_hash
+        inner_puzzle_hash
+        (sha256 ONE tail_program_hash)
+        (sha256 ONE cat_mod_hash)
+    )
+)
