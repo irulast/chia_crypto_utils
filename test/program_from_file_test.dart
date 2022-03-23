@@ -13,4 +13,13 @@ Future<void> main() async {
     );
     expect(program.toSource(), compiledClvm);
   });
+
+  test('Fails deserializing program from hex file with more than one line', () {
+    expect(
+      () => Program.deserializeHexFilePath(
+        'test/programs_for_testing/bad_2_lines.clvm.hex',
+      ),
+      throwsA(isA<Exception>()),
+    );
+  });
 }
