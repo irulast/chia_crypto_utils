@@ -62,8 +62,10 @@ void main() async {
       final set = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
 
       if (i == 0) {
-        firstAddress = Address.fromPuzzlehash(set.hardened.puzzlehash, 'xch').address;
-        print(set.hardened.childPrivateKey.toHex());
+        firstAddress = Address.fromPuzzlehash(set.unhardened.puzzlehash, 'xch').address;
+        print(firstAddress);
+        print(set.unhardened.puzzlehash.toUint8List());
+        print(set.unhardened.childPublicKey.toHex());
       }
       // print(Address.fromPuzzlehash(set.hardened.puzzlehash, 'xch').address);
 

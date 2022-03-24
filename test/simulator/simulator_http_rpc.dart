@@ -19,7 +19,8 @@ class SimulatorHttpRpc extends FullNodeHttpRpc {
   }
 
   Future<void> moveToNextBlock() async {
-    await farmTransactionBlock(Address('xch16wztykx2dasqk4lnpz0m2e6rwxf697fy6awhy46waf2dd6qajl7sslnadz'));
+    final address = Address('xch1ye5dzd44kkatnxx2je4s2agpwtqds5lsm5mlyef7plum5danxalq2dnqap');
+    await farmTransactionBlock(address);
   }
 
   static void deleteDatabase() {
