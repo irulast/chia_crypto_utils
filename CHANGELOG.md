@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.7
+
+- Added full node simulator
+
 ## 1.0.6
 
 - Breaking: `Program.deserializeHexFile` receives `File` instead of `String`
