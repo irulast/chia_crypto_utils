@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.6
+
+- Address model is immutable
+- Breaking: `Program.deserializeHexFile` receive a `File` instead of a `String`
+- New constructor `Program.deserializeHexFilePath` (formerly `Program.deserializeHexFile`)
+- Fix for `Program.deserializeHexFilePath` test
+- `WalletVector` is immutable
+- `MasterKeyPair` is immutable
+
 ## 1.0.5
 
 - Added support for Chia Asset Token (CAT)
