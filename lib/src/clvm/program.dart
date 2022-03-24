@@ -86,18 +86,22 @@ class Program {
   }
 
   // TODO: dont want to keep reloading this every time
-  factory Program.deserializeHexFile(String pathToFile) {
+  factory Program.deserializeHexFilePath(String pathToFile) {
     var filePath = path.join(path.current, pathToFile);
     filePath = path.normalize(filePath);
-    final lines = File(filePath).readAsLinesSync();
+    return Program.deserializeHexFile(File(filePath));
+  }
 
-    final nonEmptyLines = lines.where((line) => line.isNotEmpty).toList();
+  /// Loads a program from a [File].
+  factory Program.deserializeHexFile(File file) {
+    final lines = file.readAsLinesSync();
 
-    if (nonEmptyLines.length != 1) {
+    try {
+      final line = lines.singleWhere((line) => line.isNotEmpty);
+      return Program.deserializeHex(line);
+    } catch (_) {
       throw Exception('Invalid file input: Should include one line of hex');
     }
-
-    return Program.deserializeHex(nonEmptyLines[0]);
   }
 
   factory Program.deserialize(List<int> source) {
@@ -110,12 +114,12 @@ class Program {
   }
 
   factory Program.deserializeHex(String source) {
+    var _source = source;
     if (source.startsWith('0x')) {
-      return Program.deserialize(const HexDecoder().convert(source.replaceFirst('0x', '')));
+      _source = source.replaceFirst('0x', '');
     }
-    return Program.deserialize(const HexDecoder().convert(source));
+    return Program.deserialize(const HexDecoder().convert(_source));
   }
-      
 
   Output run(Program args, {RunOptions? options}) {
     options ??= RunOptions();
@@ -151,7 +155,9 @@ class Program {
   ProgramAndArguments uncurry() {
     final programList = toList();
     if (programList.length != 3) {
-      throw ArgumentError('Program is wrong length, should contain 3: (operator, puzzle, arguments)');
+      throw ArgumentError(
+        'Program is wrong length, should contain 3: (operator, puzzle, arguments)',
+      );
     }
     if (programList[0].toInt() != 2) {
       throw ArgumentError('Program is missing apply operator (a)');
@@ -175,10 +181,13 @@ class Program {
 
   static List<Program> _matchCurriedArgs(Program program) {
     final result = _matchCurriedArgsHelper([], program);
-    return result.arguments; 
+    return result.arguments;
   }
 
-  static ProgramAndArguments _matchCurriedArgsHelper(List<Program> uncurriedArguments, Program inputProgram) {
+  static ProgramAndArguments _matchCurriedArgsHelper(
+    List<Program> uncurriedArguments,
+    Program inputProgram,
+  ) {
     final inputProgramList = inputProgram.toList();
     // base case
     if (inputProgramList.isEmpty) {
@@ -187,7 +196,7 @@ class Program {
     final atom = _matchQuotedAtom(inputProgramList[1]);
     if (atom != null) {
       uncurriedArguments.add(atom);
-    } else{
+    } else {
       final program = _matchQuotedProgram(inputProgramList[1]);
       if (program == null) {
         return ProgramAndArguments(uncurriedArguments, inputProgram);
@@ -418,9 +427,8 @@ class Program {
     }
   }
 
-  void at(Position? position) {
-    this.position = position;
-  }
+  // ignore: use_setters_to_change_properties
+  void at(Position? position) => this.position = position;
 
   String toSource({bool? showKeywords}) {
     showKeywords ??= true;

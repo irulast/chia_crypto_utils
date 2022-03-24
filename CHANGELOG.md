@@ -1,3 +1,20 @@
+# Changelog
+
+## 1.0.7
+
+- Added full node simulator
+
+## 1.0.6
+
+- Breaking: `Program.deserializeHexFile` receives `File` instead of `String`
+- New constructor `Program.deserializeHexFilePath` (formerly `Program.deserializeHexFile`)
+- Fixed `Program.deserializeHexFilePath` test
+- `Address`, `WalletVector`, `MasterKeyPair`, and `Coin` are immutable
+
+## 1.0.5
+
+- Added support for Chia Asset Token (CAT)
+
 ## 1.0.4
 
 - Added support for Flutter Mobile

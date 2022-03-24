@@ -2,19 +2,30 @@
 
 import 'package:bech32m/bech32m.dart';
 import 'package:chia_utils/src/core/models/bytes.dart';
+import 'package:meta/meta.dart';
 
+@immutable
 class Address {
-  String address;
+  const Address(this.address);
 
-  Address(
-    this.address,
-  );
+  Address.fromPuzzlehash(Puzzlehash puzzlehash, String addressPrefix)
+      : address =
+            segwit.encode(Segwit(addressPrefix, puzzlehash.toUint8List()));
 
-  factory Address.fromPuzzlehash(Puzzlehash puzzlehash, String addressPrefix) {
-    return Address(segwit.encode(Segwit(addressPrefix, puzzlehash.toUint8List())));
-  }
+  final String address;
 
   Puzzlehash toPuzzlehash() {
     return Puzzlehash(segwit.decode(address).program);
   }
+
+  @override
+  int get hashCode => runtimeType.hashCode ^ address.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is Address && other.address == address;
+  }
+
+  @override
+  String toString() => 'Address($address)';
 }
