@@ -9,28 +9,30 @@ class CatTransport {
 
   CatTransport(this.fullNode);
 
-  Future<List<CatCoin>> getCatCoinsByOuterPuzzleHashes(List<Puzzlehash> puzzlehashes, Puzzlehash assetId) async {
+  Future<List<CatCoin>> getCatCoinsByOuterPuzzleHashes(
+      List<Puzzlehash> puzzlehashes, Puzzlehash assetId) async {
     final coins = await fullNode.getCoinRecordsByPuzzleHashes(puzzlehashes);
     final catCoins = <CatCoin>[];
-    for(final coin in coins) {
+    for (final coin in coins) {
       final parentCoin = await fullNode.getCoinByName(coin.parentCoinInfo);
 
-      final parentCoinSpend = await fullNode.getPuzzleAndSolution(parentCoin.id, parentCoin.spentBlockIndex);
-      
+      final parentCoinSpend = await fullNode.getPuzzleAndSolution(
+          parentCoin.id, parentCoin.spentBlockIndex);
+
       catCoins.add(
         CatCoin(
-          parentCoinSpend: parentCoinSpend, 
-          confirmedBlockIndex: coin.confirmedBlockIndex, 
-          spentBlockIndex: coin.spentBlockIndex, 
-          coinbase: coin.coinbase, 
+          parentCoinSpend: parentCoinSpend,
+          confirmedBlockIndex: coin.confirmedBlockIndex,
+          spentBlockIndex: coin.spentBlockIndex,
+          coinbase: coin.coinbase,
           timestamp: coin.timestamp,
-          parentCoinInfo: coin.parentCoinInfo, 
-          puzzlehash: coin.puzzlehash, 
+          parentCoinInfo: coin.parentCoinInfo,
+          puzzlehash: coin.puzzlehash,
           amount: coin.amount,
         ),
       );
     }
-    
+
     return catCoins;
   }
 }
