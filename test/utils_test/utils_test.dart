@@ -65,9 +65,10 @@ void main() async {
 
       if (i == 0) {
         firstAddress = Address.fromPuzzlehash(set.hardened.puzzlehash, 'txch');
-        print(firstAddress.address);
-        print(set.unhardened.puzzlehash.toUint8List());
-        print(set.unhardened.childPublicKey.toHex());
+        print('fist unhardened address: ${Address.fromPuzzlehash(set.unhardened.puzzlehash, 'xch').address}');
+        print('first unhardened puzzlehash: ${set.unhardened.puzzlehash.toUint8List()}');
+        print('first unhardened puzzlehash hexx: ${set.unhardened.puzzlehash.toHex()}');
+        print('first private key${set.unhardened.childPrivateKey.toBytes()}');
       }
 
       expect(chiaSet.hardened.puzzlehashHex, set.hardened.puzzlehash.toHex());
