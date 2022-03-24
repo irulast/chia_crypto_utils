@@ -1,13 +1,15 @@
 # Changelog
 
+## 1.0.7
+
+- Added full node simulator
+
 ## 1.0.6
 
-- Address model is immutable
-- Breaking: `Program.deserializeHexFile` receive a `File` instead of a `String`
+- Breaking: `Program.deserializeHexFile` receives `File` instead of `String`
 - New constructor `Program.deserializeHexFilePath` (formerly `Program.deserializeHexFile`)
-- Fix for `Program.deserializeHexFilePath` test
-- `WalletVector` is immutable
-- `MasterKeyPair` is immutable
+- Fixed `Program.deserializeHexFilePath` test
+- `Address`, `WalletVector`, `MasterKeyPair`, and `Coin` are immutable
 
 ## 1.0.5
 
