@@ -28,7 +28,7 @@ Future<void> main() async {
   context.registerFactory(NetworkFactory(blockcahinNetworkLoader.loadfromLocalFileSystem));
   final walletService = StandardWalletService(context);
 
-  final destinationPuzzlehash = Address('txch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jksxp6hy3').toPuzzlehash();
+  final  destinationPuzzlehash = const Address('txch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jksxp6hy3').toPuzzlehash();
 
   const testMnemonic = [
       'elder', 'quality', 'this', 'chalk', 'crane', 'endless',
