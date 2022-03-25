@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/chia_full_node_interface.dart';
 import 'package:chia_utils/src/api/exceptions/bad_coin_id_exception.dart';
@@ -11,8 +13,8 @@ import '../cat/cat_test_utils.dart';
 
 Future<void> main() async {
   final simulatorHttpRpc = SimulatorHttpRpc('https://localhost:5000',
-    certPath: path.join(path.current, 'test/simulator/temp/config/ssl/full_node/private_full_node.crt'),
-    keyPath: path.join(path.current, 'test/simulator/temp/config/ssl/full_node/private_full_node.key'),
+    certBytes: Bytes(File(path.join(path.current, 'test/simulator/temp/config/ssl/full_node/private_full_node.crt')).readAsBytesSync()),
+    keyBytes: Bytes(File(path.join(path.current, 'test/simulator/temp/config/ssl/full_node/private_full_node.key')).readAsBytesSync()),
   );
   final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
 

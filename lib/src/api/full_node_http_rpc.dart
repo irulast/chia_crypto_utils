@@ -15,14 +15,14 @@ import 'package:meta/meta.dart';
 
 @immutable
 class FullNodeHttpRpc implements FullNode{
-  const FullNodeHttpRpc(this.baseURL, {this.certPath, this.keyPath});
+  const FullNodeHttpRpc(this.baseURL, {this.certBytes, this.keyBytes});
 
   @override
   final String baseURL;
-  final String? certPath;
-  final String? keyPath;
+  final Bytes? certBytes;
+  final Bytes? keyBytes;
 
-  Client get client => Client(baseURL, certPath: certPath, keyPath: keyPath);
+  Client get client => Client(baseURL, certBytes: certBytes, keyBytes: keyBytes);
 
   @override
   Future<CoinRecordsResponse> getCoinRecordsByPuzzleHashes(

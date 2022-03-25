@@ -3,6 +3,8 @@
 // @Skip('Integration test')
 
 
+import 'dart:io';
+
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/simulator_full_node_interface.dart';
 import 'package:chia_utils/src/api/simulator_http_rpc.dart';
@@ -25,8 +27,8 @@ Future<void> main() async {
   context.registerFactory(NetworkFactory(blockcahinNetworkLoader.loadfromLocalFileSystem));
   final catWalletService = CatWalletService(context);
   final simulatorHttpRpc = SimulatorHttpRpc('https://localhost:5000',
-    certPath: path.join(path.current, 'test/simulator/temp/config/ssl/full_node/private_full_node.crt'),
-    keyPath: path.join(path.current, 'test/simulator/temp/config/ssl/full_node/private_full_node.key'),
+    certBytes: Bytes(File(path.join(path.current, 'test/simulator/temp/config/ssl/full_node/private_full_node.crt')).readAsBytesSync()),
+    keyBytes: Bytes(File(path.join(path.current, 'test/simulator/temp/config/ssl/full_node/private_full_node.key')).readAsBytesSync()),
   );
   final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
 

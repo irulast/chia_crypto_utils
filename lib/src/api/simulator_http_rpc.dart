@@ -5,8 +5,8 @@ import 'package:chia_utils/src/api/full_node_http_rpc.dart';
 import 'package:chia_utils/src/api/models/responses/chia_base_response.dart';
 
 class SimulatorHttpRpc extends FullNodeHttpRpc {
-  const SimulatorHttpRpc(String baseUrl, {String? certPath, String? keyPath}) : super(
-    baseUrl, certPath: certPath, keyPath: keyPath,
+  const SimulatorHttpRpc(String baseUrl, {Bytes? certBytes, Bytes? keyBytes}) : super(
+    baseUrl, certBytes: certBytes, keyBytes: keyBytes,
   );
 
   Future<ChiaBaseResponse> farmTransactionBlock(Address address) async {

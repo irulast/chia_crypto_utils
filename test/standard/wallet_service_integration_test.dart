@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:chia_utils/src/api/chia_full_node_interface.dart';
 import 'package:chia_utils/src/api/full_node_http_rpc.dart';
 import 'package:chia_utils/src/api/simulator_full_node_interface.dart';
@@ -19,8 +21,8 @@ import 'package:path/path.dart' as path;
 
 Future<void> main() async {
   final simulatorHttpRpc = SimulatorHttpRpc('https://localhost:5000',
-    certPath: path.join(path.current, 'test/simulator/temp/config/ssl/full_node/private_full_node.crt'),
-    keyPath: path.join(path.current, 'test/simulator/temp/config/ssl/full_node/private_full_node.key'),
+    certBytes: Bytes(File(path.join(path.current, 'test/simulator/temp/config/ssl/full_node/private_full_node.crt')).readAsBytesSync()),
+    keyBytes: Bytes(File(path.join(path.current, 'test/simulator/temp/config/ssl/full_node/private_full_node.key')).readAsBytesSync()),
   );
   final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
 

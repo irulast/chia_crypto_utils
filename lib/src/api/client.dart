@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:chia_utils/src/core/models/bytes.dart';
+
 class Client {
-  Client(this.baseURL, {String? certPath, String? keyPath}) {
-    final context = (certPath != null && keyPath != null) ? 
+  Client(this.baseURL, {Bytes? certBytes, Bytes? keyBytes}) {
+    final context = (certBytes != null && keyBytes != null) ? 
       (SecurityContext.defaultContext
-          ..usePrivateKey(keyPath)
-          ..useCertificateChain(certPath))
+          ..usePrivateKeyBytes(keyBytes.toUint8List())
+          ..useCertificateChainBytes(certBytes.toUint8List()))
       :
       null;
     final httpClient = HttpClient(context: context)
