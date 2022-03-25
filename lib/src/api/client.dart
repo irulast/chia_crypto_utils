@@ -1,21 +1,35 @@
 import 'dart:convert';
-import 'package:http/http.dart';
-import 'package:meta/meta.dart';
+import 'dart:io';
 
-@immutable
 class Client {
-  const Client(this.baseURL);
+  Client(this.baseURL, {String? certPath, String? keyPath}) {
+    final context = (certPath != null && keyPath != null) ? 
+      (SecurityContext.defaultContext
+          ..usePrivateKey(keyPath)
+          ..useCertificateChain(certPath))
+      :
+      null;
+    final httpClient = HttpClient(context: context)
+    ..badCertificateCallback = (cert, host, port) => true;
 
+    this.httpClient = httpClient;
+  }
+
+  late HttpClient httpClient;
   final String baseURL;
 
-  Future<Response> sendRequest(Uri url, Object request) {
-    return post(
-      Uri.parse('$baseURL/$url'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(request),
-    );
+  Future<Response> sendRequest(Uri url, Object requestBody) async {
+    print('$baseURL/$url');
+    final request = await httpClient.postUrl(Uri.parse('$baseURL/$url'));
+
+    request.headers.contentType =
+      ContentType('application', 'json', charset: 'utf-8');
+    request.write(jsonEncode(requestBody));
+
+    final response = await request.close();
+    final stringData = await response.transform(utf8.decoder).join();
+
+    return Response(stringData, response.statusCode);
   }
 
   @override
@@ -30,4 +44,11 @@ class Client {
 
   @override
   int get hashCode => runtimeType.hashCode ^ baseURL.hashCode;
+}
+
+class Response {
+  Response(this.body, this.statusCode);
+
+  String body;
+  int statusCode;
 }

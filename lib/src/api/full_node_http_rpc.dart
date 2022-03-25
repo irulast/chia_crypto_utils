@@ -11,18 +11,18 @@ import 'package:chia_utils/src/api/models/responses/coin_record_response.dart';
 import 'package:chia_utils/src/api/models/responses/coin_records_response.dart';
 import 'package:chia_utils/src/api/models/responses/coin_spend_response.dart';
 import 'package:chia_utils/src/core/models/models.dart';
-import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
-
 
 @immutable
 class FullNodeHttpRpc implements FullNode{
-  const FullNodeHttpRpc(this.baseURL);
+  const FullNodeHttpRpc(this.baseURL, {this.certPath, this.keyPath});
 
   @override
   final String baseURL;
+  final String? certPath;
+  final String? keyPath;
 
-  Client get client => Client(baseURL);
+  Client get client => Client(baseURL, certPath: certPath, keyPath: keyPath);
 
   @override
   Future<CoinRecordsResponse> getCoinRecordsByPuzzleHashes(
@@ -42,58 +42,58 @@ class FullNodeHttpRpc implements FullNode{
     }
     body['include_spent_coins'] = includeSpentCoins;
 
-    final responseData = await client.sendRequest(
+    final response = await client.sendRequest(
       Uri.parse('get_coin_records_by_puzzle_hashes'),
       body,
     );
-    mapResponseToError(responseData);
+    mapResponseToError(response);
 
-    return CoinRecordsResponse.fromJson(jsonDecode(responseData.body) as Map<String, dynamic>);
+    return CoinRecordsResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   @override
   Future<ChiaBaseResponse> pushTransaction(SpendBundle spendBundle) async {
-    final responseData = await client.sendRequest(
+    final response = await client.sendRequest(
       Uri.parse('push_tx'),
       {'spend_bundle': spendBundle.toJson()},
     );
-    print(responseData.body);
-    mapResponseToError(responseData);
+    print(response.body);
+    mapResponseToError(response);
 
-    return ChiaBaseResponse.fromJson(jsonDecode(responseData.body) as Map<String, dynamic>);
+    return ChiaBaseResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   @override
   Future<CoinRecordResponse> getCoinByName(Puzzlehash coinId) async {
-    final responseData = await client.sendRequest(Uri.parse('get_coin_record_by_name'), {
+    final response = await client.sendRequest(Uri.parse('get_coin_record_by_name'), {
       'name': coinId.toHex(),
     });
-    mapResponseToError(responseData);
+    mapResponseToError(response);
 
-    return CoinRecordResponse.fromJson(jsonDecode(responseData.body) as Map<String, dynamic>);
+    return CoinRecordResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   @override
   Future<CoinSpendResponse> getPuzzleAndSolution(Puzzlehash coinId, int height) async {
-    final responseData = await client.sendRequest(Uri.parse('get_puzzle_and_solution'), {
+    final response = await client.sendRequest(Uri.parse('get_puzzle_and_solution'), {
       'coin_id': coinId.toHex(),
       'height': height,
     });
-    mapResponseToError(responseData);
+    mapResponseToError(response);
 
-    return CoinSpendResponse.fromJson(jsonDecode(responseData.body) as Map<String, dynamic>);
+    return CoinSpendResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   @override
   Future<BlockchainStateResponse> getBlockchainState() async {
-    final responseData = await client.sendRequest(Uri.parse('get_blockchain_state'), <String, dynamic>{});
-    mapResponseToError(responseData);
+    final response = await client.sendRequest(Uri.parse('get_blockchain_state'), <dynamic, dynamic>{});
+    mapResponseToError(response);
 
-    return BlockchainStateResponse.fromJson(jsonDecode(responseData.body) as Map<String, dynamic>);
+    return BlockchainStateResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
 
-  static void mapResponseToError(http.Response response) {
+  static void mapResponseToError(Response response) {
     switch(response.statusCode) {
       case 500:
         throw InternalServeErrorException(message: response.body);

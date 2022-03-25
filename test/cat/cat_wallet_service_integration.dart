@@ -8,6 +8,8 @@ import 'package:chia_utils/src/cat/service/wallet.dart';
 import 'package:chia_utils/src/core/models/payment.dart';
 import 'package:test/test.dart';
 
+import '../simulator/simulator_http_rpc.dart';
+
 Future<void> main() async {
   final configurationProvider = ConfigurationProvider()
     ..setConfig(NetworkFactory.configId, {
@@ -19,7 +21,7 @@ Future<void> main() async {
   final blockcahinNetworkLoader = ChiaBlockchainNetworkLoader();
   context.registerFactory(NetworkFactory(blockcahinNetworkLoader.loadfromLocalFileSystem));
   final catWalletService = CatWalletService(context);
-  const fullNodeRpc = FullNodeHttpRpc('http://localhost:4000');
+  const fullNodeRpc = SimulatorHttpRpc('http://localhost:4000');
   const fullNode = ChiaFullNodeInterface(fullNodeRpc);
 
   const targetAssetIdHex = '625c2184e97576f5df1be46c15b2b8771c79e4e6f0aa42d3bfecaebe733f4b8c';
