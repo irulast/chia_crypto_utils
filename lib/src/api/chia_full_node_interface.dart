@@ -1,6 +1,7 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/exceptions/bad_coin_id_exception.dart';
 import 'package:chia_utils/src/api/exceptions/bad_request_exception.dart';
+import 'package:chia_utils/src/api/exceptions/double_spend_exception.dart';
 import 'package:chia_utils/src/api/full_node.dart';
 import 'package:chia_utils/src/api/models/responses/chia_base_response.dart';
 import 'package:chia_utils/src/cat/models/cat_coin.dart';
@@ -46,7 +47,7 @@ class ChiaFullNodeInterface {
     return coinSpendResponse.coinSpend;
   }
 
-  Future<List<CatCoin>> getCatCoinsByOuterPuzzleHashes(List<Puzzlehash> puzzlehashes, Puzzlehash assetId) async {
+  Future<List<CatCoin>> getCatCoinsByOuterPuzzleHashes(List<Puzzlehash> puzzlehashes) async {
     final coins = await getCoinsByPuzzleHashes(puzzlehashes);
     final catCoins = <CatCoin>[];
     for(final coin in coins) {
@@ -80,6 +81,10 @@ class ChiaFullNodeInterface {
     // no error on resource not found
     if (errorMessage.contains('not found')) {
       return;
+    }
+
+    if (errorMessage.contains('DOUBLE_SPEND')) {
+      throw DoubleSpendException();
     }
 
     if (errorMessage.contains('bad bytes32 initializer')) {

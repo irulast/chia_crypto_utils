@@ -53,6 +53,7 @@ class FullNodeHttpRpc implements FullNode{
 
   @override
   Future<ChiaBaseResponse> pushTransaction(SpendBundle spendBundle) async {
+    print(spendBundle.toJson());
     final response = await client.sendRequest(
       Uri.parse('push_tx'),
       {'spend_bundle': spendBundle.toJson()},

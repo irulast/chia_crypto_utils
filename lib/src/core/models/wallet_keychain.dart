@@ -31,6 +31,14 @@ class WalletKeychain {
     unhardenedMap = newUnhardenedMap;
   }
 
+  List<Puzzlehash> getOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
+    if (!unhardenedMap.values.first.assetIdtoOuterPuzzlehash.containsKey(assetId)) {
+      throw ArgumentError('Puzzlehashes for given Asset Id are not in keychain');
+    }
+    return unhardenedMap.values
+      .map((v) => v.assetIdtoOuterPuzzlehash[assetId]!).toList();
+  }
+
   void addOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
     final entriesToAdd = <Puzzlehash, UnhardenedWalletVector>{};
     for (final walletVector in unhardenedMap.values) {
