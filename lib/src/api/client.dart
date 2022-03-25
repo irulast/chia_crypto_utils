@@ -19,7 +19,6 @@ class Client {
   final String baseURL;
 
   Future<Response> sendRequest(Uri url, Object requestBody) async {
-    print('$baseURL/$url');
     final request = await httpClient.postUrl(Uri.parse('$baseURL/$url'));
 
     request.headers.contentType =

@@ -23,7 +23,6 @@ class BlockchainAwaitUtil {
     var currentHeight = startHeight;
     while(currentHeight == startHeight) {
       currentHeight = await getHeight();
-      print(currentHeight);
     }
     timer.cancel();
   }

@@ -28,6 +28,15 @@ class ChiaFullNodeInterface {
     return recordsResponse.coinRecords.map((record) => record.toCoin()).toList();
   }
 
+  Future<int> getBalance(List<Puzzlehash> puzzlehashes, {
+    int? startHeight,
+    int? endHeight,
+  }) async {
+    final coins = await getCoinsByPuzzleHashes(puzzlehashes, startHeight: startHeight, endHeight: endHeight);
+    final balance = coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
+    return balance;
+  }
+
   Future<void> pushTransaction(SpendBundle spendBundle) async {
      final response = await fullNode.pushTransaction(spendBundle);
      mapResponseToError(response);

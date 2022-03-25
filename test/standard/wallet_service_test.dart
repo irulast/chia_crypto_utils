@@ -101,6 +101,18 @@ void main() {
     walletService.validateSpendBundle(spendBundle);
   });
 
+  test('Should fail when given originId not in coins', () async {
+    expect(() => walletService.createSpendBundle(
+        coins,
+        550000,
+        destinationPuzzlehash,
+        changePuzzlehash,
+        walletKeychain,
+        originId: Bytes.fromHex('ff8'),
+      ), throwsException,
+    );
+  });
+
   test('Should create valid spendbundle with total amount less than coin value', () {
     final spendBundle = walletService.createSpendBundle(
         coins,
