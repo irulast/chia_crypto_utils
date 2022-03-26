@@ -121,15 +121,15 @@ JacobianPoint scalarMultJacobian(BigInt c, JacobianPoint p1, {EC? ec}) {
 }
 
 JacobianPoint evalIso(JacobianPoint P, List<List<Fq2>> mapCoeffs, EC ec) {
-  var x = P.x;
-  var y = P.y;
-  var z = P.z;
-  List<Fq2?> mapVals = List.filled(4, null);
+  final x = P.x;
+  final y = P.y;
+  final z = P.z;
+  final mapVals = List<Fq2?>.filled(4, null);
   var maxOrd = mapCoeffs[0].length;
-  for (var coeffs in mapCoeffs.sublist(1)) {
+  for (final coeffs in mapCoeffs.sublist(1)) {
     maxOrd = math.max(maxOrd, coeffs.length);
   }
-  List<Fq2?> zPows = List.filled(maxOrd, null);
+  final zPows = List<Fq2?>.filled(maxOrd, null);
   zPows[0] = z.pow(BigInt.zero) as Fq2;
   zPows[1] = z.pow(BigInt.two) as Fq2;
   for (var i in range(2, zPows.length)) {
@@ -137,13 +137,13 @@ JacobianPoint evalIso(JacobianPoint P, List<List<Fq2>> mapCoeffs, EC ec) {
     assert(zPows[1] != null);
     zPows[i.toInt()] = zPows[i.toInt() - 1]! * zPows[1] as Fq2;
   }
-  for (var item in enumerate(mapCoeffs)) {
-    var coeffsZ =
+  for (final item in enumerate(mapCoeffs)) {
+    final coeffsZ =
         zip([item.value.reversed.toList(), zPows.sublist(0, item.value.length)])
             .map((item) => item[0]! * item[1])
             .toList();
     var tmp = coeffsZ[0];
-    for (var coeff in coeffsZ.sublist(1, coeffsZ.length)) {
+    for (final coeff in coeffsZ.sublist(1, coeffsZ.length)) {
       tmp *= x;
       tmp += coeff;
     }
@@ -157,8 +157,8 @@ JacobianPoint evalIso(JacobianPoint P, List<List<Fq2>> mapCoeffs, EC ec) {
   assert(mapVals[3] != null);
   mapVals[2] = mapVals[2]! * y as Fq2;
   mapVals[3] = mapVals[3]! * z.pow(BigInt.from(3)) as Fq2;
-  var Z = mapVals[1]! * mapVals[3];
-  var X = mapVals[0]! * mapVals[3] * Z;
-  var Y = mapVals[2]! * mapVals[1] * Z * Z;
+  final Z = mapVals[1]! * mapVals[3];
+  final X = mapVals[0]! * mapVals[3] * Z;
+  final Y = mapVals[2]! * mapVals[1] * Z * Z;
   return JacobianPoint(X, Y, Z, P.infinity, ec: ec);
 }
