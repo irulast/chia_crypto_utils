@@ -1,10 +1,14 @@
 import 'dart:typed_data';
 
 import 'package:chia_utils/src/bls/field/field_base.dart';
+import 'package:meta/meta.dart';
 
+@immutable
 abstract class Field {
-  abstract BigInt Q;
-  abstract int extension;
+  const Field(this.Q, {required this.extension});
+
+  final BigInt Q;
+  final int extension;
 
   Field operator -();
   Field operator ~();
