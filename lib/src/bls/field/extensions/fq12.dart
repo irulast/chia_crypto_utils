@@ -23,9 +23,9 @@ class Fq12 extends FieldExtBase {
 
   @override
   Fq12 operator ~() {
-    var a = elements[0];
-    var b = elements[1];
-    var factor = ~(a * a - (b * b as Fq6).mulByNonResidue());
+    final a = elements[0];
+    final b = elements[1];
+    final factor = ~(a * a - (b * b as Fq6).mulByNonResidue());
     return Fq12(Q, [a * factor, -b * factor]);
   }
 

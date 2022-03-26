@@ -88,7 +88,7 @@ abstract class FieldExtBase extends Field {
     final buf = elements.map((_) => basefield.myZero(Q)).toList();
     for (final x in enumerate(elements)) {
       if (extension == other.extension) {
-        for (IndexedValue<Field> y in enumerate(other.elements)) {
+        for (final y in enumerate<Field>(other.elements)) {
           if (x.value.toBool() && y.value.toBool()) {
             final i = (x.index + y.index) % embedding;
             if (x.index + y.index >= embedding) {

@@ -61,7 +61,7 @@ bool signFq2(Fq2 element, {EC? ec}) {
 Field yForX(Field x, {EC? ec}) {
   ec ??= defaultEc;
   final u = x * x * x + ec.a * x + ec.b;
-  var y = (u as dynamic).modSqrt();
+  final y = (u as dynamic).modSqrt();
   if (y == BigInt.zero || !AffinePoint(x, y, false, ec: ec).isOnCurve) {
     throw ArgumentError('No y for point x.');
   }
@@ -132,7 +132,7 @@ JacobianPoint evalIso(JacobianPoint P, List<List<Fq2>> mapCoeffs, EC ec) {
   final zPows = List<Fq2?>.filled(maxOrd, null);
   zPows[0] = z.pow(BigInt.zero) as Fq2;
   zPows[1] = z.pow(BigInt.two) as Fq2;
-  for (var i in range(2, zPows.length)) {
+  for (final i in range(2, zPows.length)) {
     assert(zPows[i.toInt() - 1] != null);
     assert(zPows[1] != null);
     zPows[i.toInt()] = zPows[i.toInt() - 1]! * zPows[1] as Fq2;

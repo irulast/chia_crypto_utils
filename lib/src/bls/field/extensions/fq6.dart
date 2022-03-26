@@ -22,20 +22,20 @@ class Fq6 extends FieldExtBase {
 
   @override
   Fq6 operator ~() {
-    var a = elements[0];
-    var b = elements[1];
-    var c = elements[2];
-    var g0 = a * a - b * (c as Fq2).mulByNonResidue();
-    var g1 = (c * c as Fq2).mulByNonResidue() - a * b;
-    var g2 = b * b - a * c;
-    var factor = ~(g0 * a + (g1 * c + g2 * b as Fq2).mulByNonResidue());
+    final a = elements[0];
+    final b = elements[1];
+    final c = elements[2];
+    final g0 = a * a - b * (c as Fq2).mulByNonResidue();
+    final g1 = (c * c as Fq2).mulByNonResidue() - a * b;
+    final g2 = b * b - a * c;
+    final factor = ~(g0 * a + (g1 * c + g2 * b as Fq2).mulByNonResidue());
     return Fq6(Q, [g0 * factor, g1 * factor, g2 * factor]);
   }
 
   Fq6 mulByNonResidue() {
-    var a = elements[0];
-    var b = elements[1];
-    var c = elements[2];
+    final a = elements[0];
+    final b = elements[1];
+    final c = elements[2];
     return Fq6(Q, [c * root, a, b]);
   }
 
