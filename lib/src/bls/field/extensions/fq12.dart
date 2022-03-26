@@ -5,20 +5,21 @@ import 'package:chia_utils/src/bls/field/field_base.dart';
 import 'package:chia_utils/src/bls/field/field_ext.dart';
 
 class Fq12 extends FieldExtBase {
-  @override
-  int extension = 12;
-  @override
-  int embedding = 2;
-  @override
-  Field root;
-
-  Fq12(BigInt Q, List<Field> args)
-      : root = Fq6(Q, [Fq2.zero(Q), Fq2.one(Q), Fq2.zero(Q)]),
-        super(Q, args);
+  Fq12(BigInt Q, List<Field> args, {Field? root})
+      : super(
+          Q,
+          args,
+          root: root ?? Fq6(Q, [Fq2.zero(Q), Fq2.one(Q), Fq2.zero(Q)]),
+          extension: 12,
+          embedding: 2,
+        );
 
   Fq12.nil()
-      : root = Fq6.nil(),
-        super(BigInt.zero, [Fq6.nil(), Fq6.nil()]);
+      : this(
+          BigInt.zero,
+          [Fq6.nil(), Fq6.nil()],
+          root: Fq6.nil(),
+        );
 
   @override
   Fq12 operator ~() {
@@ -29,7 +30,8 @@ class Fq12 extends FieldExtBase {
   }
 
   @override
-  Fq12 construct(BigInt Q, List<Field> args) => Fq12(Q, args);
+  Fq12 construct(BigInt Q, List<Field> args, Field? root) =>
+      Fq12(Q, args, root: root);
 
   factory Fq12.fromFq(BigInt Q, Fq fq) => Fq12.nil().myFromFq(Q, fq) as Fq12;
   factory Fq12.fromBytes(List<int> bytes, BigInt Q) =>
