@@ -74,7 +74,7 @@ abstract class FieldExtBase extends Field {
   Field operator -(other) => this + -other;
 
   @override
-  FieldExtBase multiply(other) {
+  FieldExtBase multiply(dynamic other) {
     if (other is BigInt) {
       return construct(
         Q,
@@ -82,13 +82,14 @@ abstract class FieldExtBase extends Field {
         root,
       );
     }
-    if (extension < other.extension) {
-      throw FailedOp();
-    }
+
+    if (other is! Field) throw FailedOp();
+    if (extension < other.extension) throw FailedOp();
+
     final buf = elements.map((_) => basefield.myZero(Q)).toList();
     for (final x in enumerate(elements)) {
-      if (extension == other.extension) {
-        for (final y in enumerate<Field>(other.elements)) {
+      if (other is FieldExtBase && extension == other.extension) {
+        for (final y in enumerate(other.elements)) {
           if (x.value.toBool() && y.value.toBool()) {
             final i = (x.index + y.index) % embedding;
             if (x.index + y.index >= embedding) {
