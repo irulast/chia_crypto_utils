@@ -50,20 +50,20 @@ abstract class FieldExtBase extends Field {
   }
 
   @override
-  FieldExtBase add(other) {
-    dynamic otherNew;
-    if (other.runtimeType != runtimeType) {
-      if (other is! BigInt && other.extension > extension) {
-        throw FailedOp();
-      }
+  FieldExtBase add(dynamic other) {
+    List<Field> otherNew;
+
+    if (other is FieldExtBase) {
+      if (other.extension > extension) throw FailedOp();
+      otherNew = other.elements;
+    } else {
       otherNew = elements.map((element) => basefield.myZero(Q)).toList();
       otherNew[0] += other;
-    } else {
-      otherNew = other.elements;
     }
+
     return construct(
       Q,
-      zip([elements, otherNew as List<Field>])
+      zip([elements, otherNew])
           .map((element) => element[0] + element[1])
           .toList(),
       root,
@@ -71,7 +71,7 @@ abstract class FieldExtBase extends Field {
   }
 
   @override
-  Field operator -(other) => this + -other;
+  Field operator -(dynamic other) => this + -other;
 
   @override
   FieldExtBase multiply(dynamic other) {
