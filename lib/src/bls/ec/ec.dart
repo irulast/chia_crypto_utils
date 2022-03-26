@@ -71,13 +71,19 @@ Field yForX(Field x, {EC? ec}) {
 AffinePoint scalarMult(c, AffinePoint p1, {EC? ec}) {
   ec ??= defaultEc;
   if (p1.infinity || c % ec.q == 0) {
-    return AffinePoint(p1.isExtension ? Fq2.zero(ec.q) : Fq.zero(ec.q),
-        p1.isExtension ? Fq2.zero(ec.q) : Fq.zero(ec.q), true,
-        ec: ec);
+    return AffinePoint(
+      p1.isExtension ? Fq2.zero(ec.q) : Fq.zero(ec.q),
+      p1.isExtension ? Fq2.zero(ec.q) : Fq.zero(ec.q),
+      true,
+      ec: ec,
+    );
   }
-  var result = AffinePoint(p1.isExtension ? Fq2.zero(ec.q) : Fq.zero(ec.q),
-      p1.isExtension ? Fq2.zero(ec.q) : Fq.zero(ec.q), true,
-      ec: ec);
+  var result = AffinePoint(
+    p1.isExtension ? Fq2.zero(ec.q) : Fq.zero(ec.q),
+    p1.isExtension ? Fq2.zero(ec.q) : Fq.zero(ec.q),
+    true,
+    ec: ec,
+  );
   var addend = p1;
   while (c > 0) {
     if (c & 1) {
