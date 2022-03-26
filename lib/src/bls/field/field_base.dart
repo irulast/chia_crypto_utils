@@ -6,19 +6,14 @@ import 'package:chia_utils/src/clvm/bytes.dart';
 import 'package:hex/hex.dart';
 import 'package:quiver/core.dart';
 
-class Fq implements Field {
-  @override
-  BigInt Q;
+class Fq extends Field {
+  const Fq(BigInt Q, BigInt value) : this._(value % Q, Q);
 
-  @override
-  int extension = 1;
+  const Fq._(this.value, BigInt Q) : super(Q, extension: 1);
 
-  BigInt value;
+  Fq.nil() : this._(BigInt.zero, BigInt.zero);
 
-  Fq(this.Q, BigInt value) : value = value % Q;
-  Fq.nil()
-      : Q = BigInt.zero,
-        value = BigInt.zero;
+  final BigInt value;
 
   @override
   Fq myFromBytes(List<int> bytes, BigInt Q) {
