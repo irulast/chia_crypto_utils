@@ -71,7 +71,7 @@ class AffinePoint {
   }
 
   AffinePoint operator *(Object other) {
-    final c = other.toBigInt();
+    final c = other.extractBigInt();
     if (c == null) {
       throw ArgumentError('Must multiply AffinePoint with BigInt or Fq.');
     }

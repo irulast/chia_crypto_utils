@@ -1,7 +1,7 @@
 import 'package:chia_utils/src/bls.dart';
 
-extension BigIntExtractor on dynamic {
-  BigInt? toBigInt() {
+extension BigIntExtractor on Object {
+  BigInt? extractBigInt() {
     if (this is BigInt) {
       return this as BigInt;
     } else if (this is Fq) {

@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:chia_utils/src/bls/ec/affine_point.dart';
 import 'package:chia_utils/src/bls/ec/ec.dart';
+import 'package:chia_utils/src/bls/ec/helpers.dart';
 import 'package:chia_utils/src/bls/field/extensions/fq2.dart';
 import 'package:chia_utils/src/bls/field/field.dart';
 import 'package:chia_utils/src/bls/field/field_base.dart';
@@ -232,11 +233,12 @@ class JacobianPoint {
     return JacobianPoint(X3, Y3, Z3, false, ec: ec);
   }
 
-  JacobianPoint operator *(dynamic other) {
-    if (other is! BigInt && other is! Fq) {
+  JacobianPoint operator *(Object other) {
+    final c = other.extractBigInt();
+    if (c == null) {
       throw ArgumentError('Must multiply JacobianPoint with BigInt or Fq.');
     }
-    return scalarMultJacobian(other, this, ec: ec);
+    return scalarMultJacobian(c, this, ec: ec);
   }
 
   @override
