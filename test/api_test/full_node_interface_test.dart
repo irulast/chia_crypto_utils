@@ -1,13 +1,11 @@
 import 'dart:io';
 
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/api/chia_full_node_interface.dart';
 import 'package:chia_utils/src/api/exceptions/bad_coin_id_exception.dart';
-import 'package:chia_utils/src/api/full_node_http_rpc.dart';
 import 'package:chia_utils/src/api/simulator_full_node_interface.dart';
 import 'package:chia_utils/src/api/simulator_http_rpc.dart';
-import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
+import 'package:test/test.dart';
 
 import '../cat/cat_test_utils.dart';
 
@@ -72,7 +70,7 @@ Future<void> main() async {
     var errorThrown = false;
     try {
       await fullNodeSimulator.getCoinById(Puzzlehash.fromHex('1cd131985a09e31dc4f59353eabe1c977f508a649f3c09bb28823c060a497b3dc'));
-    } on BadCoinIdException catch (e) {
+    } on BadCoinIdException {
       errorThrown = true;
     }
     expect(errorThrown, true);

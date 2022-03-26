@@ -34,17 +34,7 @@ class Client {
   }
 
   @override
-  String toString() => 'Client($baseURL)';
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Client &&
-          runtimeType == other.runtimeType &&
-          baseURL == other.baseURL;
-
-  @override
-  int get hashCode => runtimeType.hashCode ^ baseURL.hashCode;
+  String toString() => 'Client($baseURL, $httpClient)';
 }
 
 class Response {

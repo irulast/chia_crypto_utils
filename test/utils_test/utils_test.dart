@@ -9,7 +9,6 @@ import 'package:chia_utils/src/core/models/master_key_pair.dart';
 import 'package:chia_utils/src/core/models/wallet_set.dart';
 import 'package:chia_utils/src/utils/index.dart';
 import 'package:csv/csv.dart';
-import 'package:hex/hex.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
