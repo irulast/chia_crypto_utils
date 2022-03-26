@@ -1,16 +1,21 @@
-import 'dart:io';
+// ignore_for_file: lines_longer_than_80_chars
 
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/simulator_full_node_interface.dart';
 import 'package:chia_utils/src/api/simulator_http_rpc.dart';
-import 'package:path/path.dart' as path;
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
+import '../simulator/simulator_utils.dart';
+
 Future<void> main() async {
-  final simulatorHttpRpc = SimulatorHttpRpc('https://localhost:5000',
-    certBytes: Bytes(File(path.join(path.current, 'test/simulator/temp/config/ssl/full_node/private_full_node.crt')).readAsBytesSync()),
-    keyBytes: Bytes(File(path.join(path.current, 'test/simulator/temp/config/ssl/full_node/private_full_node.key')).readAsBytesSync()),
+  if(!(await SimulatorUtils.checkIfSimulatorIsRunning())) {
+    print(SimulatorUtils.simulatorNotRunningWarning);
+    return;
+  }
+  final simulatorHttpRpc = SimulatorHttpRpc(SimulatorUtils.simulatorUrl,
+    certBytes: SimulatorUtils.certBytes,
+    keyBytes: SimulatorUtils.keyBytes,
   );
   final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
 

@@ -1,3 +1,5 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/exceptions/bad_coin_id_exception.dart';
 import 'package:chia_utils/src/api/exceptions/bad_request_exception.dart';
@@ -5,6 +7,7 @@ import 'package:chia_utils/src/api/exceptions/double_spend_exception.dart';
 import 'package:chia_utils/src/api/full_node.dart';
 import 'package:chia_utils/src/api/models/responses/chia_base_response.dart';
 import 'package:chia_utils/src/cat/models/cat_coin.dart';
+import 'package:chia_utils/src/core/models/blockchain_state.dart';
 
 class ChiaFullNodeInterface {
   const ChiaFullNodeInterface(this.fullNode);
@@ -79,6 +82,13 @@ class ChiaFullNodeInterface {
     }
     
     return catCoins;
+  }
+
+  Future<BlockchainState> getBlockchainState() async {
+    final blockchainStateResponse = await fullNode.getBlockchainState();
+    mapResponseToError(blockchainStateResponse);
+
+    return blockchainStateResponse.blockchainState!;
   }
 
   static void mapResponseToError(ChiaBaseResponse baseResponse) {
