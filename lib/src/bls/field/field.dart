@@ -8,17 +8,17 @@ abstract class Field {
 
   Field operator -();
   Field operator ~();
-  Field operator +(other);
-  Field operator -(other);
-  Field operator *(other);
-  Field operator ~/(other);
-  Field operator /(other);
-  bool operator <(covariant other);
-  bool operator >(covariant other);
+  Field operator +(dynamic other);
+  Field operator -(dynamic other);
+  Field operator *(dynamic other);
+  Field operator ~/(dynamic other);
+  Field operator /(dynamic other);
+  bool operator <(covariant dynamic other);
+  bool operator >(covariant dynamic other);
 
-  Field add(other);
-  Field multiply(other);
-  bool equal(other);
+  Field add(dynamic other);
+  Field multiply(dynamic other);
+  bool equal(dynamic other);
 
   Uint8List toBytes();
   String toHex();
