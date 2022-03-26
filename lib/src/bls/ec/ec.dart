@@ -89,32 +89,33 @@ AffinePoint scalarMult(c, AffinePoint p1, {EC? ec}) {
   return result;
 }
 
-JacobianPoint scalarMultJacobian(c, JacobianPoint p1, {EC? ec}) {
+JacobianPoint scalarMultJacobian(BigInt c, JacobianPoint p1, {EC? ec}) {
   ec ??= defaultEc;
-  if (c is Fq) {
-    c = c.value;
-  }
+
   if (p1.infinity || c % ec.q == BigInt.zero) {
     return JacobianPoint(
-        p1.isExtension ? Fq2.one(ec.q) : Fq.one(ec.q),
-        p1.isExtension ? Fq2.one(ec.q) : Fq.one(ec.q),
-        p1.isExtension ? Fq2.zero(ec.q) : Fq.zero(ec.q),
-        true,
-        ec: ec);
-  }
-  var result = JacobianPoint(
       p1.isExtension ? Fq2.one(ec.q) : Fq.one(ec.q),
       p1.isExtension ? Fq2.one(ec.q) : Fq.one(ec.q),
       p1.isExtension ? Fq2.zero(ec.q) : Fq.zero(ec.q),
       true,
-      ec: ec);
+      ec: ec,
+    );
+  }
+  var result = JacobianPoint(
+    p1.isExtension ? Fq2.one(ec.q) : Fq.one(ec.q),
+    p1.isExtension ? Fq2.one(ec.q) : Fq.one(ec.q),
+    p1.isExtension ? Fq2.zero(ec.q) : Fq.zero(ec.q),
+    true,
+    ec: ec,
+  );
   var addend = p1;
-  while (c > BigInt.zero) {
-    if (c & BigInt.one != BigInt.zero) {
+  var _c = c;
+  while (_c > BigInt.zero) {
+    if (_c & BigInt.one != BigInt.zero) {
       result += addend;
     }
     addend += addend;
-    c >>= 1;
+    _c >>= 1;
   }
   return result;
 }
