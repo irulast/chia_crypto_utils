@@ -29,8 +29,6 @@ class Fq extends Field {
 
   factory Fq.one(BigInt Q) => Fq(Q, BigInt.one);
 
-  factory Fq.fromFq(BigInt Q, Fq fq) => fq;
-
   factory Fq.fromBytes(List<int> bytes, BigInt Q) =>
       Fq.nil().myFromBytes(bytes, Q);
 
