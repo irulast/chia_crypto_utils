@@ -35,19 +35,21 @@ class Fq extends Field {
   factory Fq.fromHex(String hex, BigInt Q) => Fq.nil().myFromHex(hex, Q);
 
   @override
-  Field operator +(other) {
+  Field operator +(dynamic other) {
     try {
       return add(other);
     } on FailedOp {
+      if (other is! Field) rethrow;
       return other.add(this);
     }
   }
 
   @override
-  Field operator *(other) {
+  Field operator *(dynamic other) {
     try {
       return multiply(other);
     } on FailedOp {
+      if (other is! Field) rethrow;
       return other.multiply(this);
     }
   }
@@ -56,8 +58,12 @@ class Fq extends Field {
   Fq operator -() => Fq(Q, -value);
 
   @override
-  Field operator -(other) =>
-      other is Fq ? Fq(Q, value - other.value) : this + -other;
+  Field operator -(dynamic other) {
+    if (other is Fq) return Fq(Q, value - other.value);
+    if (other is BigInt) return this + -other;
+    if (other is Field) return this + -other;
+    throw FailedOp();
+  }
 
   @override
   bool operator ==(Object other) => equal(other);
@@ -76,7 +82,7 @@ class Fq extends Field {
   bool operator >=(Fq other) => value >= other.value;
 
   @override
-  Fq add(other) {
+  Fq add(dynamic other) {
     if (other is! Fq) {
       throw FailedOp();
     }
@@ -84,7 +90,7 @@ class Fq extends Field {
   }
 
   @override
-  Fq multiply(other) {
+  Fq multiply(dynamic other) {
     if (other is! Fq) {
       throw FailedOp();
     }
@@ -92,12 +98,18 @@ class Fq extends Field {
   }
 
   @override
-  bool equal(other) => other is Fq && value == other.value && Q == other.Q;
+  bool equal(dynamic other) =>
+      other is Fq && value == other.value && Q == other.Q;
 
   @override
   String toString() {
     final hex = value.toRadixString(16);
-    return 'Fq(0x${hex.length > 10 ? '${hex.substring(0, 5)}..${hex.substring(hex.length - 5, hex.length)}' : hex})';
+    var formatted = hex;
+    if (hex.length > 10) {
+      final n = hex.length;
+      formatted = '${hex.substring(0, 5)}..${hex.substring(n - 5, n)}';
+    }
+    return 'Fq(0x$formatted)';
   }
 
   @override
@@ -107,13 +119,13 @@ class Fq extends Field {
   String toHex() => const HexEncoder().convert(toBytes());
 
   @override
-  Fq pow(BigInt other) => other == BigInt.zero
+  Fq pow(BigInt exponent) => exponent == BigInt.zero
       ? Fq(Q, BigInt.one)
-      : other == BigInt.one
+      : exponent == BigInt.one
           ? Fq(Q, value)
-          : other % BigInt.two == BigInt.zero
-              ? Fq(Q, value * value).pow(other ~/ BigInt.two)
-              : Fq(Q, value * value).pow(other ~/ BigInt.two) * this as Fq;
+          : exponent % BigInt.two == BigInt.zero
+              ? Fq(Q, value * value).pow(exponent ~/ BigInt.two)
+              : Fq(Q, value * value).pow(exponent ~/ BigInt.two) * this as Fq;
   @override
   Fq qiPower(int i) => this;
 
@@ -138,7 +150,7 @@ class Fq extends Field {
   }
 
   @override
-  Field operator ~/(other) {
+  Field operator ~/(dynamic other) {
     if (other is Fq) {
       return this * ~other;
     } else if (other is BigInt) {
@@ -148,7 +160,7 @@ class Fq extends Field {
   }
 
   @override
-  Field operator /(other) => this ~/ other;
+  Field operator /(dynamic other) => this ~/ other;
 
   Fq modSqrt() {
     if (value == BigInt.zero) {

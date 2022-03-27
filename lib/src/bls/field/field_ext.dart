@@ -71,7 +71,11 @@ abstract class FieldExtBase extends Field {
   }
 
   @override
-  Field operator -(dynamic other) => this + -other;
+  Field operator -(dynamic other) {
+    if (other is BigInt) return this + -other;
+    if (other is Field) return this + -other;
+    throw FailedOp();
+  }
 
   @override
   FieldExtBase multiply(dynamic other) {
@@ -107,30 +111,37 @@ abstract class FieldExtBase extends Field {
   }
 
   @override
-  Field operator ~/(other) => this * ~other;
-  @override
-  Field operator /(other) => this ~/ other;
+  Field operator ~/(dynamic other) {
+    if (other is BigInt) return this * ~other;
+    if (other is Field) return this * ~other;
+    throw FailedOp();
+  }
 
   @override
-  FieldExtBase operator +(other) {
+  Field operator /(dynamic other) => this ~/ other;
+
+  @override
+  FieldExtBase operator +(dynamic other) {
     try {
       return add(other);
     } on FailedOp {
+      if (other is! FieldExtBase) rethrow;
       return other.add(this);
     }
   }
 
   @override
-  FieldExtBase operator *(other) {
+  FieldExtBase operator *(dynamic other) {
     try {
       return multiply(other);
     } on FailedOp {
+      if (other is! FieldExtBase) rethrow;
       return other.multiply(this);
     }
   }
 
   @override
-  bool equal(other) {
+  bool equal(dynamic other) {
     if (other.runtimeType != runtimeType) {
       if (other is FieldExtBase || other is BigInt) {
         if (other is! FieldExtBase || extension > other.extension) {
@@ -152,11 +163,12 @@ abstract class FieldExtBase extends Field {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(dynamic other) {
     try {
       return equal(other);
     } on FailedOp {
-      return (other as dynamic).equal(this);
+      if (other is! Field) return false;
+      return other.equal(this);
     }
   }
 
