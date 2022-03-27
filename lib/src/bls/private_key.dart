@@ -33,15 +33,16 @@ class PrivateKey {
     return PrivateKey(bytesToBigInt(okm, Endian.big) % defaultEc.n);
   }
 
-  factory PrivateKey.fromBigInt(BigInt n) => PrivateKey(n % defaultEc.n);
+  PrivateKey.fromBigInt(BigInt n) : this(n % defaultEc.n);
 
-  factory PrivateKey.aggregate(List<PrivateKey> privateKeys) => PrivateKey(
-        privateKeys.fold(
-              BigInt.zero,
-              (BigInt aggregate, privateKey) => aggregate + privateKey.value,
-            ) %
-            defaultEc.n,
-      );
+  PrivateKey.aggregate(List<PrivateKey> privateKeys)
+      : this(
+          privateKeys.fold(
+                BigInt.zero,
+                (BigInt aggregate, privateKey) => aggregate + privateKey.value,
+              ) %
+              defaultEc.n,
+        );
 
   final BigInt value;
 
