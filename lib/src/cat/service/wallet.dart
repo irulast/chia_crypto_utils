@@ -264,20 +264,15 @@ class CatWalletService extends BaseWalletService {
         final coinWalletVector = keychain.getWalletVector(currentSpendableCat.coin.puzzlehash);
         final coinPrivateKey = coinWalletVector!.childPrivateKey;
         final signature = makeSignature(solution, puzzleReveal, coinPrivateKey, currentSpendableCat.coin);
-
-        spends.add(CoinSpend(coin: currentSpendableCat.coin, puzzleReveal: puzzleReveal, solution: solution));
         signatures.add(signature);
-      } else {
-        spends.add(CoinSpend(coin: currentSpendableCat.coin, puzzleReveal: puzzleReveal, solution: solution));
-      }
-      
+      } 
+      spends.add(CoinSpend(coin: currentSpendableCat.coin, puzzleReveal: puzzleReveal, solution: solution));
     }
+
     JacobianPoint? aggregatedSignature;
     if (signed) {
       aggregatedSignature = AugSchemeMPL.aggregate(signatures);
     }
-    
-
     return SpendBundle(coinSpends: spends, aggregatedSignature: aggregatedSignature);
   }
 
