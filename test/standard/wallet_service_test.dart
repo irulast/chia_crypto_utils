@@ -16,8 +16,8 @@ void main() {
   );
 
   final context = Context(configurationProvider);
-  final blockcahinNetworkLoader = ChiaBlockchainNetworkLoader();
-  context.registerFactory(NetworkFactory(blockcahinNetworkLoader.loadfromLocalFileSystem));
+  final blockchainNetworkLoader = ChiaBlockchainNetworkLoader();
+  context.registerFactory(NetworkFactory(blockchainNetworkLoader.loadfromLocalFileSystem));
   final walletService = StandardWalletService(context);
 
   final destinationPuzzlehash = const Address('txch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jksxp6hy3').toPuzzlehash();
