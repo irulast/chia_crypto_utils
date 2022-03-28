@@ -54,9 +54,7 @@ class WalletSet {
     );
   }
 
-  factory WalletSet.fromPrivateKeyWithRoot(
-      //  PrivateKey masterPrivateKey,
-      {
+  factory WalletSet.fromPrivateKeyWithRoot({
     required PrivateKey rootChildPrivateKey,
     required PrivateKey rootChildPrivateKeyUnhardened,
     required int derivationIndex,
@@ -93,6 +91,11 @@ class WalletSet {
       derivationIndex: derivationIndex,
     );
   }
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'hardened': hardened.toMap(),
+        'unhardened': unhardened.toMap(),
+        'derivationIndex': derivationIndex,
+      };
 }
 
 @immutable
