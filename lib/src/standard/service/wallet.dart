@@ -114,9 +114,9 @@ class StandardWalletService extends BaseWalletService{
 
       final puzzle = getPuzzleFromPk(publicKey);
 
-      final coinSpendAndSignature = createCoinsSpendAndSignature(solution, puzzle, privateKey, coin);
-      signatures.add(coinSpendAndSignature.signature);
-      spends.add(coinSpendAndSignature.coinSpend);
+      final signature = makeSignature(solution, puzzle, privateKey, coin);
+      signatures.add(signature);
+      spends.add(CoinSpend(coin: coin, puzzleReveal: puzzle, solution: solution));
     }
 
     final aggregate = AugSchemeMPL.aggregate(signatures);

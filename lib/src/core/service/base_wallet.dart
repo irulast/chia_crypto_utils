@@ -15,7 +15,7 @@ class BaseWalletService {
     return context.get<BlockchainNetwork>();
   }
    // TODO
-  CoinSpendAndSignature createCoinsSpendAndSignature(Program solution, Program puzzle, PrivateKey privateKey, CoinPrototype coin) {
+  JacobianPoint makeSignature(Program solution, Program puzzle, PrivateKey privateKey, CoinPrototype coin) {
     final result = puzzle.run(solution);
 
     final addsigmessage = getAddSigMeMessageFromResult(result.program, coin);
@@ -23,9 +23,7 @@ class BaseWalletService {
     final synthSecretKey = calculateSyntheticPrivateKey(privateKey);
     final signature = AugSchemeMPL.sign(synthSecretKey, addsigmessage.toUint8List());
 
-    final coinSpend = CoinSpend(coin: coin, puzzleReveal: puzzle, solution: solution);
-
-    return CoinSpendAndSignature(coinSpend, signature);
+    return signature;
   }
 
   Bytes getAddSigMeMessageFromResult(Program result, CoinPrototype coin) {

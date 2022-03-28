@@ -263,10 +263,10 @@ class CatWalletService extends BaseWalletService {
       if (signed) {
         final coinWalletVector = keychain.getWalletVector(currentSpendableCat.coin.puzzlehash);
         final coinPrivateKey = coinWalletVector!.childPrivateKey;
-        final solAndSig = createCoinsSpendAndSignature(solution, puzzleReveal, coinPrivateKey, currentSpendableCat.coin);
+        final signature = makeSignature(solution, puzzleReveal, coinPrivateKey, currentSpendableCat.coin);
 
-        spends.add(solAndSig.coinSpend);
-        signatures.add(solAndSig.signature);
+        spends.add(CoinSpend(coin: currentSpendableCat.coin, puzzleReveal: puzzleReveal, solution: solution));
+        signatures.add(signature);
       } else {
         spends.add(CoinSpend(coin: currentSpendableCat.coin, puzzleReveal: puzzleReveal, solution: solution));
       }
