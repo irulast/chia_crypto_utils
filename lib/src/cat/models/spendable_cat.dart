@@ -37,8 +37,14 @@ class SpendableCat {
       var total = 0;
       for (final createCoinConditionProgram in conditionPrograms.where(CreateCoinCondition.isThisCondition)) {
         if (!createCoinConditionProgram.toSource().contains('-113')) {
-          final createCoinCondition = CreateCoinCondition.fromProgram(createCoinConditionProgram);
-          total += createCoinCondition.amount;
+          try {
+            final createCoinCondition = CreateCoinCondition.fromProgram(createCoinConditionProgram);
+            total += createCoinCondition.amount;
+          } catch (e) {
+            print(createCoinConditionProgram);
+            rethrow;
+          }
+          
         }
       }
       spendInfoMap[spendableCat.coin.id] = spendableCat;

@@ -130,14 +130,14 @@ class CatWalletService extends BaseWalletService {
 
     final immutableSpendableCats = List<SpendableCat>.unmodifiable(spendableCats);
 
-    final catSpendBundle = _makeCatSpendBundleFromSpendableCats(immutableSpendableCats, keychain);
+    final catSpendBundle = makeCatSpendBundleFromSpendableCats(immutableSpendableCats, keychain);
 
     spendBundlesToAggregate.add(catSpendBundle);
 
     return SpendBundle.aggregate(spendBundlesToAggregate);
   }
 
-  SpendBundle _makeCatSpendBundleFromSpendableCats(List<SpendableCat> spendableCats, WalletKeychain keychain) {
+  SpendBundle makeCatSpendBundleFromSpendableCats(List<SpendableCat> spendableCats, WalletKeychain keychain, {bool signed = true}) {
     SpendableCat.calculateAndAttachSubtotals(spendableCats);
 
     final spends = <CoinSpend>[];
@@ -160,18 +160,25 @@ class CatWalletService extends BaseWalletService {
         nextSpendableCat: nextSpendableCat,
       );
 
-      final coinWalletVector = keychain.getWalletVector(currentSpendableCat.coin.puzzlehash);
-      final coinPrivateKey = coinWalletVector!.childPrivateKey;
+      if (signed) {
+        final coinWalletVector = keychain.getWalletVector(currentSpendableCat.coin.puzzlehash);
+        final coinPrivateKey = coinWalletVector!.childPrivateKey;
+        final solAndSig = createCoinsSpendAndSignature(solution, puzzleReveal, coinPrivateKey, currentSpendableCat.coin);
 
-      final solAndSig = createCoinsSpendAndSignature(solution, puzzleReveal, coinPrivateKey, currentSpendableCat.coin);
-
-      spends.add(solAndSig.coinSpend);
-      signatures.add(solAndSig.signature);
+        spends.add(solAndSig.coinSpend);
+        signatures.add(solAndSig.signature);
+      } else {
+        spends.add(CoinSpend(coin: currentSpendableCat.coin, puzzleReveal: puzzleReveal, solution: solution));
+      }
+      
     }
+    JacobianPoint? aggregatedSignature;
+    if (signed) {
+      aggregatedSignature = AugSchemeMPL.aggregate(signatures);
+    }
+    
 
-    final catAggregateSignature = AugSchemeMPL.aggregate(signatures);
-
-    return SpendBundle(coinSpends: spends, aggregatedSignature: catAggregateSignature);
+    return SpendBundle(coinSpends: spends, aggregatedSignature: aggregatedSignature);
   }
 
   SpendBundle _makeStandardSpendBundleForFee({

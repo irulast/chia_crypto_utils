@@ -165,12 +165,12 @@ Future<void> main() async {
       Payment(
         sendAmounts[0], 
         receiverPuzzlehash,
-        memos: 'Chia is cool',
+        memos: <String>['Chia is cool'],
       ),
       Payment(
         sendAmounts[1], 
         receiverPuzzlehash,
-        memos: 1000,
+        memos: <int>[1000],
       ),
     ];
 

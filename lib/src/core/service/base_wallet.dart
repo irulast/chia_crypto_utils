@@ -14,7 +14,7 @@ class BaseWalletService {
   BlockchainNetwork get blockchainNetwork {
     return context.get<BlockchainNetwork>();
   }
-
+   // TODO
   CoinSpendAndSignature createCoinsSpendAndSignature(Program solution, Program puzzle, PrivateKey privateKey, Coin coin) {
     final result = puzzle.run(solution);
 
@@ -62,7 +62,7 @@ class BaseWalletService {
     }
 
     // validate signature
-    if(!AugSchemeMPL.aggregateVerify(publicKeys, messages, spendBundle.aggregatedSignature)) {
+    if(!AugSchemeMPL.aggregateVerify(publicKeys, messages, spendBundle.aggregatedSignature!)) {
       throw FailedSignatureVerificationException();
     }
   }
