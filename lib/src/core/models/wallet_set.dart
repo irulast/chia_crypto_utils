@@ -1,6 +1,9 @@
 // ignore_for_file: lines_longer_than_80_chars
 
+import 'dart:typed_data';
+
 import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:hex/hex.dart';
 import 'package:meta/meta.dart';
 
 class WalletSet {
@@ -94,12 +97,16 @@ class WalletSet {
 
 @immutable
 class WalletVector {
-  const WalletVector({
+  WalletVector({
     required this.childPrivateKey,
     required this.childPublicKey,
     required this.puzzlehash,
-  });
+    Map<Puzzlehash, Puzzlehash>? assetIdtoOuterPuzzlehash,
+  }) {
+    this.assetIdtoOuterPuzzlehash = assetIdtoOuterPuzzlehash ?? {};
+  }
 
+  late final Map<Puzzlehash, Puzzlehash> assetIdtoOuterPuzzlehash;
   final PrivateKey childPrivateKey;
   final JacobianPoint childPublicKey;
   final Puzzlehash puzzlehash;
@@ -120,6 +127,45 @@ class WalletVector {
             childPublicKey == other.childPublicKey &&
             puzzlehash == other.puzzlehash;
   }
+
+  Map<String, dynamic> toMap() {
+    final assetIdtoOuterPuzzlehashMap = <String, String>{};
+    assetIdtoOuterPuzzlehash.forEach((key, value) {
+      assetIdtoOuterPuzzlehashMap[key.toHex()] = value.toHex();
+    });
+
+    final map = <String, dynamic>{};
+    map['childPrivateKey'] = childPrivateKey.toHex();
+    map['childPublicKey'] = childPublicKey.toHex();
+    map['puzzlehash'] = puzzlehash.toHex();
+    map['assetIdtoOuterPuzzlehash'] = assetIdtoOuterPuzzlehashMap;
+
+    return map;
+  }
+
+  factory WalletVector.fromMap(Map<String, dynamic> map) {
+    final childPrivateKey =
+        PrivateKey.fromHex(map['childPrivateKey'] as String);
+    final childPublicKey = childPrivateKey.getG1();
+    final puzzlehash = Puzzlehash.fromHex(map['puzzlehash'] as String);
+
+    final assetIdtoOuterPuzzlehashMap = <Puzzlehash, Puzzlehash>{};
+    final assetIdtoOuterPuzzlehash =
+        map['assetIdtoOuterPuzzlehash'] as Map<String, String>;
+
+    // ignore: cascade_invocations
+    assetIdtoOuterPuzzlehash.forEach((key, value) {
+      assetIdtoOuterPuzzlehashMap[Puzzlehash.fromHex(key)] =
+          Puzzlehash.fromHex(value);
+    });
+
+    return WalletVector(
+      childPrivateKey: childPrivateKey,
+      childPublicKey: childPublicKey,
+      puzzlehash: puzzlehash,
+      assetIdtoOuterPuzzlehash: assetIdtoOuterPuzzlehashMap,
+    );
+  }
 }
 
 class UnhardenedWalletVector extends WalletVector {
@@ -128,13 +174,10 @@ class UnhardenedWalletVector extends WalletVector {
     required JacobianPoint childPublicKey,
     required Puzzlehash puzzlehash,
     Map<Puzzlehash, Puzzlehash>? assetIdtoOuterPuzzlehash,
-  })  : assetIdtoOuterPuzzlehash =
-            assetIdtoOuterPuzzlehash ?? <Puzzlehash, Puzzlehash>{},
-        super(
+  }) : super(
           childPrivateKey: childPrivateKey,
           childPublicKey: childPublicKey,
           puzzlehash: puzzlehash,
+          assetIdtoOuterPuzzlehash: assetIdtoOuterPuzzlehash,
         );
-
-  final Map<Puzzlehash, Puzzlehash> assetIdtoOuterPuzzlehash;
 }
