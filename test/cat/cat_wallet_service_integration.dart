@@ -22,8 +22,8 @@ Future<void> main() async {
   );
 
   final context = Context(configurationProvider);
-  final blockcahinNetworkLoader = ChiaBlockchainNetworkLoader();
-  context.registerFactory(NetworkFactory(blockcahinNetworkLoader.loadfromLocalFileSystem));
+  final blockchainNetworkLoader = ChiaBlockchainNetworkLoader();
+  context.registerFactory(NetworkFactory(blockchainNetworkLoader.loadfromLocalFileSystem));
   final catWalletService = CatWalletService(context);
   final simulatorHttpRpc = SimulatorHttpRpc(SimulatorUtils.simulatorUrl,
     certBytes: SimulatorUtils.certBytes,
@@ -64,7 +64,6 @@ Future<void> main() async {
   final receiverPuzzlehash = walletKeychain.unhardenedMap.values.toList()[1].puzzlehash;
   final receiverOuterPuzzlehash = WalletKeychain.makeOuterPuzzleHash(receiverPuzzlehash, nateCoinAssetId);
   
-
   await fullNodeSimulator.farmCoins(senderAddress);
   await fullNodeSimulator.farmCoins(senderAddress);
   await fullNodeSimulator.farmCoins(senderAddress);
@@ -75,15 +74,15 @@ Future<void> main() async {
   await fullNodeSimulator.pushTransaction(nateCoinMintSpendBundle);
   await fullNodeSimulator.moveToNextBlock();
 
-
   final initialCatCoin = (await fullNodeSimulator.getCatCoinsByOuterPuzzleHashes(outerPuzzleHashesToSearchFor))[0];
+
   // make more cat coins to use in test
   final payments = <Payment>[];
   for (var i = 0; i < 10; i++) {
-    payments
-    // to avoif duplicate coins
-      .add(Payment(990 + i, senderPuzzlehash));
+    // to avoid duplicate coins amounts must differ
+    payments.add(Payment(990 + i, senderPuzzlehash));
   }
+
   final spendBundle = catWalletService.createSpendBundle(payments, [initialCatCoin], senderPuzzlehash, walletKeychain);
   await fullNodeSimulator.pushTransaction(spendBundle);
   await fullNodeSimulator.moveToNextBlock();

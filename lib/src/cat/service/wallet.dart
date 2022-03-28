@@ -75,7 +75,6 @@ class CatWalletService extends BaseWalletService {
           morphBytes: Bytes.fromHex('ca'),
         );
 
-
         final conditions = <Condition>[];
         final createdCoins = <CoinPrototype>[];
 
@@ -103,6 +102,7 @@ class CatWalletService extends BaseWalletService {
             ),
           );
         }
+
         if (fee > 0) {
           spendBundlesToAggregate.add(
             _makeStandardSpendBundleForFee(
@@ -362,8 +362,8 @@ class CatWalletService extends BaseWalletService {
         actualAssertCoinAnnouncementIds ??= assertCoinAnnouncementPrograms.map(AssertCoinAnnouncementCondition.getAnnouncementIdFromProgram).toList();
       }
       // look for assert coin announcement condition
-      
     }
+
     // check for duplicate coins
     BaseWalletService.checkForDuplicateCoins(coinsToCreate);
     BaseWalletService.checkForDuplicateCoins(coinsBeingSpent);

@@ -6,6 +6,4 @@ class CatTransport {
   ChiaFullNodeInterface fullNode;
 
   CatTransport(this.fullNode);
-
-  
 }

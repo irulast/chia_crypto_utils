@@ -36,4 +36,7 @@ class Coin extends CoinPrototype {
       amount: coinPrototype.amount,
     );
   }
+
+  @override
+  String toString() => 'Coin(id: $id)';
 }

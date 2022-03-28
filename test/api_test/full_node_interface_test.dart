@@ -31,7 +31,6 @@ Future<void> main() async {
   await fullNodeSimulator.pushTransaction(nathanCoinMintSpendBundle);
   await fullNodeSimulator.moveToNextBlock();
 
-  
   final testStandardCoins = [
     CoinPrototype(
       parentCoinInfo: Puzzlehash.fromHex('27ae41e4649b934ca495991b7852b85500000000000000000000000000000001'), 
@@ -53,7 +52,6 @@ Future<void> main() async {
     ),
   ];
   
-
   test('should get standard coins by puzzlehashes', () async {
     final coins = await fullNodeSimulator.getCoinsByPuzzleHashes(testStandardCoins.map((c) => c.puzzlehash,).toList());
     for(final testCoin in testStandardCoins) {

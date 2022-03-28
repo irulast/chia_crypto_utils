@@ -77,8 +77,8 @@ Future<void> main() async {
   );
 
   final context = Context(configurationProvider);
-  final blockcahinNetworkLoader = ChiaBlockchainNetworkLoader();
-  context.registerFactory(NetworkFactory(blockcahinNetworkLoader.loadfromLocalFileSystem));
+  final blockchainNetworkLoader = ChiaBlockchainNetworkLoader();
+  context.registerFactory(NetworkFactory(blockchainNetworkLoader.loadfromLocalFileSystem));
   final catWalletService = CatWalletService(context);
 
   const testMnemonic = [
