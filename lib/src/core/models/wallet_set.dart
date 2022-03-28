@@ -91,11 +91,24 @@ class WalletSet {
       derivationIndex: derivationIndex,
     );
   }
-  Map<String, dynamic> toJson() => <String, dynamic>{
+  Map<String, dynamic> toMap() => <String, dynamic>{
         'hardened': hardened.toMap(),
         'unhardened': unhardened.toMap(),
         'derivationIndex': derivationIndex,
       };
+
+  factory WalletSet.fromMap(Map<String, dynamic> mapData) {
+    final derivationIndex = mapData['derivationIndex'] as int;
+    final hardenedMap = mapData['hardened'] as Map<String, dynamic>;
+    final unhardenedMap = mapData['unhardened'] as Map<String, dynamic>;
+    final _hardened = WalletVector.fromMap(hardenedMap);
+    final unhardened = UnhardenedWalletVector.fromMap(unhardenedMap);
+
+    return WalletSet(
+        hardened: _hardened,
+        unhardened: unhardened,
+        derivationIndex: derivationIndex);
+  }
 }
 
 @immutable
@@ -183,4 +196,28 @@ class UnhardenedWalletVector extends WalletVector {
           puzzlehash: puzzlehash,
           assetIdtoOuterPuzzlehash: assetIdtoOuterPuzzlehash,
         );
+
+  factory UnhardenedWalletVector.fromMap(Map<String, dynamic> map) {
+    final childPrivateKey =
+        PrivateKey.fromHex(map['childPrivateKey'] as String);
+    final childPublicKey = childPrivateKey.getG1();
+    final puzzlehash = Puzzlehash.fromHex(map['puzzlehash'] as String);
+
+    final assetIdtoOuterPuzzlehashMap = <Puzzlehash, Puzzlehash>{};
+    final assetIdtoOuterPuzzlehash =
+        map['assetIdtoOuterPuzzlehash'] as Map<String, String>;
+
+    // ignore: cascade_invocations
+    assetIdtoOuterPuzzlehash.forEach((key, value) {
+      assetIdtoOuterPuzzlehashMap[Puzzlehash.fromHex(key)] =
+          Puzzlehash.fromHex(value);
+    });
+
+    return UnhardenedWalletVector(
+      childPrivateKey: childPrivateKey,
+      childPublicKey: childPublicKey,
+      puzzlehash: puzzlehash,
+      assetIdtoOuterPuzzlehash: assetIdtoOuterPuzzlehashMap,
+    );
+  }
 }
