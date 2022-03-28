@@ -105,9 +105,10 @@ class WalletSet {
     final unhardened = UnhardenedWalletVector.fromMap(unhardenedMap);
 
     return WalletSet(
-        hardened: _hardened,
-        unhardened: unhardened,
-        derivationIndex: derivationIndex);
+      hardened: _hardened,
+      unhardened: unhardened,
+      derivationIndex: derivationIndex,
+    );
   }
 }
 
@@ -166,8 +167,9 @@ class WalletVector {
     final puzzlehash = Puzzlehash.fromHex(map['puzzlehash'] as String);
 
     final assetIdtoOuterPuzzlehashMap = <Puzzlehash, Puzzlehash>{};
-    final assetIdtoOuterPuzzlehash =
-        map['assetIdtoOuterPuzzlehash'] as Map<String, String>;
+    final assetIdtoOuterPuzzlehash = Map<String, String>.from(
+      map['assetIdtoOuterPuzzlehash'] as Map<String, dynamic>,
+    );
 
     // ignore: cascade_invocations
     assetIdtoOuterPuzzlehash.forEach((key, value) {
@@ -204,8 +206,9 @@ class UnhardenedWalletVector extends WalletVector {
     final puzzlehash = Puzzlehash.fromHex(map['puzzlehash'] as String);
 
     final assetIdtoOuterPuzzlehashMap = <Puzzlehash, Puzzlehash>{};
-    final assetIdtoOuterPuzzlehash =
-        map['assetIdtoOuterPuzzlehash'] as Map<String, String>;
+    final assetIdtoOuterPuzzlehash = Map<String, String>.from(
+      map['assetIdtoOuterPuzzlehash'] as Map<String, dynamic>,
+    );
 
     // ignore: cascade_invocations
     assetIdtoOuterPuzzlehash.forEach((key, value) {
