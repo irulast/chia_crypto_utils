@@ -36,12 +36,4 @@ class Coin extends CoinPrototype {
       amount: coinPrototype.amount,
     );
   }
-
-  Program toProgram() {
-    return Program.list([
-    Program.fromBytes(parentCoinInfo.toUint8List()),
-    Program.fromBytes(puzzlehash.toUint8List()),
-    Program.fromInt(amount),
-  ]);
-  }
 }

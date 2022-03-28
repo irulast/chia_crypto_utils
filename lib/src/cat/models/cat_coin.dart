@@ -3,70 +3,44 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/cat/exceptions/invalid_cat_exception.dart';
 import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
+import 'package:meta/meta.dart';
 
-// ignore: must_be_immutable
-class CatCoin extends Coin {
-  CoinSpend parentCoinSpend;
-  late Puzzlehash assetId;
-  bool isEveCoin;
+@immutable
+class CatCoin extends CoinPrototype{
+  final CoinSpend parentCoinSpend;
+  final Puzzlehash assetId;
+  final Program lineageProof;
 
   CatCoin({
     required this.parentCoinSpend,
-    required int confirmedBlockIndex,
-    required int spentBlockIndex,
-    required bool coinbase,
-    required int timestamp,
-    required Bytes parentCoinInfo,
-    required Puzzlehash puzzlehash,
-    required int amount,
-    Puzzlehash? assetId,
-    this.isEveCoin = false,
-  }) : super(
-      confirmedBlockIndex: confirmedBlockIndex,
-      spentBlockIndex: spentBlockIndex,
-      coinbase: coinbase,
-      timestamp: timestamp,
-      parentCoinInfo: parentCoinInfo,
-      puzzlehash: puzzlehash,
-      amount: amount,
-    ) {
-      if(isEveCoin) {
-        this.assetId = assetId!;
-      } else {
-        final uncurriedParentPuzzleReveal = parentCoinSpend.puzzleReveal.uncurry();
-        if(uncurriedParentPuzzleReveal.program.toSource() != catProgram.toSource()) {
-            throw InvalidCatException();
-        }
-        // second argument to the cat puzzle is the asset id
-        assetId = Puzzlehash(uncurriedParentPuzzleReveal.arguments[1].atom);
+    required CoinPrototype coin,
+  }): 
+    assetId = parentCoinSpend.puzzleReveal.uncurry().arguments.length > 1 ?
+        Puzzlehash(parentCoinSpend.puzzleReveal.uncurry().arguments[1].atom)
+      : throw InvalidCatException(), 
+
+    lineageProof =
+      parentCoinSpend.puzzleReveal.uncurry().arguments.length > 2 ?
+        Program.list([
+          Program.fromBytes(parentCoinSpend.coin.parentCoinInfo.toUint8List()),
+          // third argument to the cat puzzle is the inner puzzle
+          Program.fromBytes(parentCoinSpend.puzzleReveal.uncurry().arguments[2].hash()),
+          Program.fromInt(parentCoinSpend.coin.amount)
+      ])
+      : throw InvalidCatException(), 
+
+    super(parentCoinInfo: coin.parentCoinInfo, puzzlehash: coin.puzzlehash, amount: coin.amount) 
+    {
+      final uncurriedParentPuzzleReveal = parentCoinSpend.puzzleReveal.uncurry();
+      if(uncurriedParentPuzzleReveal.program.toSource() != catProgram.toSource()) {
+          throw InvalidCatException();
       }
     }
-  
-  factory CatCoin.fromCoin(Coin coin, CoinSpend parentCoinSpend, {bool isEveCoin = false, Puzzlehash? assetId}) {
-    return CatCoin(
-      parentCoinSpend: parentCoinSpend, 
-      confirmedBlockIndex: coin.confirmedBlockIndex, 
-      spentBlockIndex: coin.spentBlockIndex, 
-      coinbase: coin.coinbase, 
-      timestamp: coin.timestamp, 
-      parentCoinInfo: coin.parentCoinInfo, 
-      puzzlehash: coin.puzzlehash, 
-      amount: coin.amount,
-      isEveCoin: isEveCoin,
-      assetId: assetId,
-    );
-  }
-  
-  Program get lineageProof {
-    if (!isEveCoin) {
-      return Program.list([
-        Program.fromBytes(parentCoinSpend.coin.parentCoinInfo.toUint8List()),
-        // third argument to the cat puzzle is the inner puzzle
-        Program.fromBytes(parentCoinSpend.puzzleReveal.uncurry().arguments[2].hash()),
-        Program.fromInt(parentCoinSpend.coin.amount)
-      ]);
-    }
-    return Program.nil;
 
-  }
+  CatCoin.eve({
+    required this.parentCoinSpend,
+    required CoinPrototype coin,
+    required this.assetId,
+  }) : lineageProof = Program.nil,
+  super(parentCoinInfo: coin.parentCoinInfo, puzzlehash: coin.puzzlehash, amount: coin.amount);
 }

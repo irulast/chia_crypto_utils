@@ -15,7 +15,7 @@ class BaseWalletService {
     return context.get<BlockchainNetwork>();
   }
    // TODO
-  CoinSpendAndSignature createCoinsSpendAndSignature(Program solution, Program puzzle, PrivateKey privateKey, Coin coin) {
+  CoinSpendAndSignature createCoinsSpendAndSignature(Program solution, Program puzzle, PrivateKey privateKey, CoinPrototype coin) {
     final result = puzzle.run(solution);
 
     final addsigmessage = getAddSigMeMessageFromResult(result.program, coin);

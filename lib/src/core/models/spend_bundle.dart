@@ -8,6 +8,15 @@ class SpendBundle {
 
   bool get isSigned => aggregatedSignature != null;
 
+  List<Program> get outputConditions {
+    final conditions = <Program>[];
+    for (final spend in coinSpends) { 
+      final spendOutput = spend.puzzleReveal.run(spend.solution).program;
+      conditions.addAll(spendOutput.toList());
+    }
+    return conditions;
+  }
+
   SpendBundle({
     required this.coinSpends,
     this.aggregatedSignature,

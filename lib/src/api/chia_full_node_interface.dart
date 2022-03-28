@@ -70,13 +70,7 @@ class ChiaFullNodeInterface {
       catCoins.add(
         CatCoin(
           parentCoinSpend: parentCoinSpend!, 
-          confirmedBlockIndex: coin.confirmedBlockIndex, 
-          spentBlockIndex: coin.spentBlockIndex, 
-          coinbase: coin.coinbase, 
-          timestamp: coin.timestamp,
-          parentCoinInfo: coin.parentCoinInfo, 
-          puzzlehash: coin.puzzlehash, 
-          amount: coin.amount,
+          coin: coin, 
         ),
       );
     }

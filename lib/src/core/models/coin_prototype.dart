@@ -32,6 +32,14 @@ class CoinPrototype {
       );
   }
 
+  Program toProgram() {
+    return Program.list([
+      Program.fromBytes(parentCoinInfo.toUint8List()),
+      Program.fromBytes(puzzlehash.toUint8List()),
+      Program.fromInt(amount),
+    ]);
+  }
+
   Map<String, dynamic> toJson() => <String, dynamic> {
       'parent_coin_info': parentCoinInfo.toHex(),
       'puzzle_hash': puzzlehash.toHex(),

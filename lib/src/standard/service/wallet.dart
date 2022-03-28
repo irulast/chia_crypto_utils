@@ -14,7 +14,7 @@ class StandardWalletService extends BaseWalletService{
   StandardWalletService(Context context) : super(context);
 
   SpendBundle createSpendBundle(
-      List<Coin> coinsInput,
+      List<CoinPrototype> coinsInput,
       int amount,
       Puzzlehash destinationPuzzlehash,
       Puzzlehash changePuzzlehash,
