@@ -44,4 +44,7 @@ class Coin extends CoinPrototype {
     Program.fromInt(amount),
   ]);
   }
+
+  @override
+  String toString() => 'Coin(id: $id)';
 }
