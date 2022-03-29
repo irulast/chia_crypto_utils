@@ -11,11 +11,13 @@ class SpendableCat {
   Program innerPuzzle;
   Program innerSolution;
   int? subtotal;
+  int extraDelta;
 
   SpendableCat({
     required this.coin,
     required this.innerPuzzle,
     required this.innerSolution,
+    this.extraDelta = 0,
   });
 
   Program makeStandardCoinProgram() {
@@ -34,17 +36,11 @@ class SpendableCat {
     for (final spendableCat in spendableCats)  {
       final conditionPrograms = spendableCat.innerPuzzle.run(spendableCat.innerSolution).program.toList();
 
-      var total = 0;
+      var total = spendableCat.extraDelta * -1;
       for (final createCoinConditionProgram in conditionPrograms.where(CreateCoinCondition.isThisCondition)) {
         if (!createCoinConditionProgram.toSource().contains('-113')) {
-          try {
-            final createCoinCondition = CreateCoinCondition.fromProgram(createCoinConditionProgram);
-            total += createCoinCondition.amount;
-          } catch (e) {
-            print(createCoinConditionProgram);
-            rethrow;
-          }
-          
+          final createCoinCondition = CreateCoinCondition.fromProgram(createCoinConditionProgram);
+          total += createCoinCondition.amount;
         }
       }
       spendInfoMap[spendableCat.coin.id] = spendableCat;

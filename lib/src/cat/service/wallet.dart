@@ -313,7 +313,7 @@ class CatWalletService extends BaseWalletService {
       currentSpendableCat.coin.toProgram(),
       nextSpendableCat.makeStandardCoinProgram(),
       Program.fromInt(currentSpendableCat.subtotal!),
-      Program.fromInt(0), // limitations_program_reveal: unused since we're not handling any cat discrepancy
+      Program.fromInt(currentSpendableCat.extraDelta), // limitations_program_reveal: unused since we're not handling any cat discrepancy
     ]);
   }
 

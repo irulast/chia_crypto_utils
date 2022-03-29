@@ -69,10 +69,10 @@ void main() async {
   final publicKey = walletSet.childPublicKey;
   final curriedTail = delegatedTailProgram.curry([Program.fromBytes(publicKey.toBytes())]);
   
-  // final curriedGenesisByCoinId = genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id.toUint8List())]);
-  // final tailSolution = Program.list([curriedGenesisByCoinId, Program.nil]);
+  final curriedGenesisByCoinId = genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id.toUint8List())]);
+  final tailSolution = Program.list([curriedGenesisByCoinId, Program.nil]);
 
-  // final signature = AugSchemeMPL.sign(walletSet.childPrivateKey, curriedGenesisByCoinId.hash());
+  final signature = AugSchemeMPL.sign(walletSet.childPrivateKey, curriedGenesisByCoinId.hash());
 
 
   // final spendBundle = catWalletService.makeMintingSpendbundle(
