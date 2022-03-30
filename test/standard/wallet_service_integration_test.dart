@@ -29,12 +29,7 @@ Future<void> main() async {
   context.registerFactory(NetworkFactory(blockchainNetworkLoader.loadfromLocalFileSystem));
   final walletService = StandardWalletService(context);
 
-  const testMnemonic = [
-      'elder', 'quality', 'this', 'chalk', 'crane', 'endless',
-      'machine', 'hotel', 'unfair', 'castle', 'expand', 'refuse',
-      'lizard', 'vacuum', 'embody', 'track', 'crash', 'truth',
-      'arrow', 'tree', 'poet', 'audit', 'grid', 'mesh',
-  ];
+  final testMnemonic = WalletKeychain.generateMnemonic();
 
   final masterKeyPair = MasterKeyPair.fromMnemonic(testMnemonic);
 

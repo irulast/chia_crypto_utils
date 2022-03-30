@@ -4,9 +4,11 @@ import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/exceptions/bad_coin_id_exception.dart';
 import 'package:chia_utils/src/api/simulator_full_node_interface.dart';
 import 'package:chia_utils/src/api/simulator_http_rpc.dart';
+import 'package:chia_utils/src/cat/puzzles/tails/delegated_tail/delegated_tail.clvm.hex.dart';
+import 'package:chia_utils/src/cat/puzzles/tails/genesis_by_coin_id/genesis_by_coin_id.clvm.hex.dart';
+import 'package:chia_utils/src/cat/service/wallet.dart';
 import 'package:test/test.dart';
 
-import '../cat/cat_test_utils.dart';
 import '../simulator/simulator_utils.dart';
 
 Future<void> main() async {
@@ -15,20 +17,72 @@ Future<void> main() async {
     return;
   }
 
+  final configurationProvider = ConfigurationProvider()
+    ..setConfig(NetworkFactory.configId, {
+      'yaml_file_path': 'lib/src/networks/chia/mainnet/config.yaml'
+    }
+  );
+  final context = Context(configurationProvider);
+  final blockchainNetworkLoader = ChiaBlockchainNetworkLoader();
+  context.registerFactory(NetworkFactory(blockchainNetworkLoader.loadfromLocalFileSystem));
+
+  final catWalletService = CatWalletService(context);
+
   final simulatorHttpRpc = SimulatorHttpRpc(SimulatorUtils.simulatorUrl,
     certBytes: SimulatorUtils.certBytes,
     keyBytes: SimulatorUtils.keyBytes,
   );
   final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
 
-  const testAddress = Address('xch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jkstxap9z');
 
-  await fullNodeSimulator.farmCoins(testAddress);
+  // generate wallet
+  const testMnemonic = [
+      'elder', 'quality', 'this', 'chalk', 'crane', 'endless',
+      'machine', 'hotel', 'unfair', 'castle', 'expand', 'refuse',
+      'lizard', 'vacuum', 'embody', 'track', 'crash', 'truth',
+      'arrow', 'tree', 'poet', 'audit', 'grid', 'mesh',
+  ];
+  final masterKeyPair = MasterKeyPair.fromMnemonic(testMnemonic);
+  final walletsSetList = <WalletSet>[];
+  for (var i = 0; i < 1; i++) {
+    final set = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
+    walletsSetList.add(set);
+  }
+  final keychain = WalletKeychain(walletsSetList);
+
+  final walletVector = keychain.unhardenedMap.values.first;
+  final puzzlehash = walletVector.puzzlehash;
+  final address = Address.fromPuzzlehash(puzzlehash, catWalletService.blockchainNetwork.addressPrefix);
+
+  await fullNodeSimulator.farmCoins(address);
   await fullNodeSimulator.moveToNextBlock();
 
-  final nathanCoinMintSpendBundle = CatTestUtils.makeNateCoinSpendbundle();
+  final standardCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([puzzlehash]);
+  final originCoin = standardCoins[0];
 
-  await fullNodeSimulator.pushTransaction(nathanCoinMintSpendBundle);
+  // mint cat
+  final curriedTail = delegatedTailProgram.curry([Program.fromBytes(walletVector.childPublicKey.toBytes())]);
+  final assetId = Puzzlehash(curriedTail.hash());
+  keychain.addOuterPuzzleHashesForAssetId(assetId);
+  
+  final curriedGenesisByCoinIdPuzzle = genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id.toUint8List())]);
+  final tailSolution = Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
+
+  final signature = AugSchemeMPL.sign(walletVector.childPrivateKey, curriedGenesisByCoinIdPuzzle.hash());
+
+  final spendBundle = catWalletService.makeMintingSpendbundle(
+    tail: curriedTail, 
+    solution: tailSolution, 
+    standardCoins: [standardCoins.firstWhere((coin) => coin.amount >= 10000)], 
+    destinationPuzzlehash: puzzlehash, 
+    changePuzzlehash: puzzlehash, 
+    amount: 10000, 
+    signature: signature, 
+    keychain: keychain,
+    originId: originCoin.id,
+  );
+
+  await fullNodeSimulator.pushTransaction(spendBundle);
   await fullNodeSimulator.moveToNextBlock();
 
   final testStandardCoins = [
@@ -38,9 +92,9 @@ Future<void> main() async {
       amount: 250000000000,
     ),
     CoinPrototype(
-      parentCoinInfo: Puzzlehash.fromHex('26081b15441311d9a207a078b650a05766975814fd5aa6935a759ddaf2a05af0'), 
+      parentCoinInfo: Puzzlehash.fromHex('e3b0c44298fc1c149afbf4c8996fb92400000000000000000000000000000001'), 
       puzzlehash: Puzzlehash.fromHex('0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad'), 
-      amount: 1749999990000,
+      amount: 1750000000000,
     ),
   ];
 
@@ -53,7 +107,7 @@ Future<void> main() async {
   ];
   
   test('should get standard coins by puzzlehashes', () async {
-    final coins = await fullNodeSimulator.getCoinsByPuzzleHashes(testStandardCoins.map((c) => c.puzzlehash,).toList());
+    final coins = await fullNodeSimulator.getCoinsByPuzzleHashes(testStandardCoins.map((c) => c.puzzlehash,).toList(), includeSpentCoins: true);
     for(final testCoin in testStandardCoins) {
       expect(coins.contains(testCoin), true);
     }
@@ -80,9 +134,12 @@ Future<void> main() async {
   });
 
   test('should get cat coins by puzzlehashes', () async {
-    final coins = await fullNodeSimulator.getCoinsByPuzzleHashes(testCatCoins.map((c) => c.puzzlehash,).toList());
-    for(final testCoin in testCatCoins) {
-      expect(coins.contains(testCoin), true);
+    final catCoins = await fullNodeSimulator.getCoinsByPuzzleHashes(testCatCoins.map((c) => c.puzzlehash,).toList());
+    for(final testCatCoin in catCoins) {
+      // can't check for parentCoinInfo because it will change based on the coin used to mint the cat
+      expect(() => catCoins.firstWhere((catCoin) => catCoin.amount == testCatCoin.amount), returnsNormally);
+      expect(() => catCoins.firstWhere((catCoin) => catCoin.puzzlehash == testCatCoin.puzzlehash), returnsNormally);
     }
+
   });
 }

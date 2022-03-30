@@ -4,6 +4,7 @@ import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/simulator_full_node_interface.dart';
 import 'package:chia_utils/src/api/simulator_http_rpc.dart';
 import 'package:chia_utils/src/cat/models/spendable_cat.dart';
+import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/delegated_tail/delegated_tail.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/everything_with_signature/everything_with_signature.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/genesis_by_coin_id/genesis_by_coin_id.clvm.hex.dart';
@@ -61,26 +62,37 @@ void main() async {
   final walletSet = keychain.unhardenedMap.values.first;
   print(masterKeyPair.masterPublicKey.toHex());
 
-  final publicKey = walletSet.childPublicKey;
-  final curriedTail = everythingWithSignatureProgram.curry([Program.fromBytes(publicKey.toBytes())]);
+  final curriedTail = everythingWithSignatureProgram.curry([Program.fromBytes(walletSet.childPublicKey.toBytes())]);
+  final tailSolution = Program.list([]);
+  final catPuzzle = catProgram.curry([
+    Program.fromBytes(catProgram.hash()),
+    Program.fromBytes(curriedTail.hash()),
+    Program.fromInt(1)
+  ]);
+  final catPuzzlehash = Puzzlehash(catPuzzle.hash());
   print(curriedTail);
+  await fullNodeSimulator.farmCoins(Address.fromPuzzlehash(catPuzzlehash, catWalletService.blockchainNetwork.addressPrefix));
+  await fullNodeSimulator.moveToNextBlock();
   
-  
- final tailSolution = Program.list([]);
+  final startingCoin = (await fullNodeSimulator.getCoinsByPuzzleHashes([catPuzzlehash]))[0];
+ 
 
 
-  final signature = AugSchemeMPL.sign(walletSet.childPrivateKey, Bytes.fromHex('01').toUint8List());
+  final signature = AugSchemeMPL.sign(
+    walletSet.childPrivateKey, 
+    startingCoin.id.toUint8List() + Bytes.fromHex(catWalletService.blockchainNetwork.aggSigMeExtraData).toUint8List()
+  );
 
   final spendBundle = catWalletService.makeMintingSpendbundle(
     tail: curriedTail, 
     solution: tailSolution, 
-    standardCoins: coins, 
+    standardCoins: [startingCoin], 
     destinationPuzzlehash: address.toPuzzlehash(), 
     changePuzzlehash: address.toPuzzlehash(), 
     amount: 1000, 
     signature: signature, 
     keychain: keychain,
-    originId: originCoin.id,
+    originId: startingCoin.id,
   );
 
   await fullNodeSimulator.pushTransaction(spendBundle);
