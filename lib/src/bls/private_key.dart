@@ -37,9 +37,9 @@ class PrivateKey {
 
   PrivateKey.aggregate(List<PrivateKey> privateKeys)
       : this(
-          privateKeys.fold(
+          privateKeys.fold<BigInt>(
                 BigInt.zero,
-                (BigInt aggregate, privateKey) => aggregate + privateKey.value,
+                (aggregate, privateKey) => aggregate + privateKey.value,
               ) %
               defaultEc.n,
         );
