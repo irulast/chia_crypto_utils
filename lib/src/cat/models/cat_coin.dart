@@ -43,4 +43,7 @@ class CatCoin extends CoinPrototype{
     required this.assetId,
   }) : lineageProof = Program.nil,
   super(parentCoinInfo: coin.parentCoinInfo, puzzlehash: coin.puzzlehash, amount: coin.amount);
+  
+  @override
+  String toString() => 'CatCoin(id: $id, parentCoinSpend: $parentCoinSpend, assetId: $assetId, lineageProof: $lineageProof)';
 }

@@ -1,16 +1,21 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/simulator_full_node_interface.dart';
 import 'package:chia_utils/src/api/simulator_http_rpc.dart';
 import 'package:chia_utils/src/cat/models/spendable_cat.dart';
+import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/delegated_tail/delegated_tail.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/genesis_by_coin_id/genesis_by_coin_id.clvm.hex.dart';
 import 'package:chia_utils/src/cat/service/wallet.dart';
+import 'package:chia_utils/src/clvm/keywords.dart';
+import 'package:chia_utils/src/core/models/conditions/create_coin_condition.dart';
 
 import '../simulator/simulator_utils.dart';
 
 void main() async {
+  // set up context, services
   final configurationProvider = ConfigurationProvider()
     ..setConfig(NetworkFactory.configId, {
       'yaml_file_path': 'lib/src/networks/chia/mainnet/config.yaml'
@@ -23,26 +28,29 @@ void main() async {
 
   final catWalletService = CatWalletService(context);
 
+  // set up keychain
   const testMnemonic = [
       'elder', 'quality', 'this', 'chalk', 'crane', 'endless',
       'machine', 'hotel', 'unfair', 'castle', 'expand', 'refuse',
       'lizard', 'vacuum', 'embody', 'track', 'crash', 'truth',
       'arrow', 'tree', 'poet', 'audit', 'grid', 'mesh',
   ];
-  // final testMnemonic = 'guilt rail green junior loud track cupboard citizen begin play west adapt myself panda eye finger nuclear someone update light dance exotic expect layer'.split(' ');
 
   final masterKeyPair = MasterKeyPair.fromMnemonic(testMnemonic);
 
   final walletsSetList = <WalletSet>[];
-  for (var i = 0; i < 11; i++) {
-    final set1 = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
-    walletsSetList.add(set1);
+  for (var i = 0; i < 1; i++) {
+    final set = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
+    walletsSetList.add(set);
   }
 
   final keychain = WalletKeychain(walletsSetList);
 
-  final address = Address.fromPuzzlehash(keychain.unhardenedMap.values.first.puzzlehash, walletService.blockchainNetwork.addressPrefix);
+  final walletSet = keychain.unhardenedMap.values.first;
 
+  final address = Address.fromPuzzlehash(walletSet.puzzlehash, walletService.blockchainNetwork.addressPrefix);
+
+  // set up simulator
   final simulatorHttpRpc = SimulatorHttpRpc(SimulatorUtils.simulatorUrl,
     certBytes: SimulatorUtils.certBytes,
     keyBytes: SimulatorUtils.keyBytes,
@@ -52,21 +60,16 @@ void main() async {
   await fullNodeSimulator.farmCoins(address);
   await fullNodeSimulator.moveToNextBlock();
 
-  final coins = await fullNodeSimulator.getCoinsByPuzzleHashes([address.toPuzzlehash()]);
+  var coins = await fullNodeSimulator.getCoinsByPuzzleHashes([address.toPuzzlehash()]);
   final originCoin = coins[0];
 
-  // mint cat first
-  final walletSet = keychain.unhardenedMap.values.first;
-  print(masterKeyPair.masterPublicKey.toHex());
-
-  final publicKey = walletSet.childPublicKey;
-  final curriedTail = delegatedTailProgram.curry([Program.fromBytes(publicKey.toBytes())]);
+  // mint cat
+  final curriedTail = delegatedTailProgram.curry([Program.fromBytes(walletSet.childPublicKey.toBytes())]);
   
-  final curriedGenesisByCoinId = genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id.toUint8List())]);
-  final tailSolution = Program.list([curriedGenesisByCoinId, Program.nil]);
+  final curriedGenesisByCoinIdPuzzle = genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id.toUint8List())]);
+  final tailSolution = Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
 
-  final signature = AugSchemeMPL.sign(walletSet.childPrivateKey, curriedGenesisByCoinId.hash());
-
+  final signature = AugSchemeMPL.sign(walletSet.childPrivateKey, curriedGenesisByCoinIdPuzzle.hash());
 
   final spendBundle = catWalletService.makeMintingSpendbundle(
     tail: curriedTail, 
@@ -83,9 +86,14 @@ void main() async {
   await fullNodeSimulator.pushTransaction(spendBundle);
   await fullNodeSimulator.moveToNextBlock();
 
-  final outer = WalletKeychain.makeOuterPuzzleHash(address.toPuzzlehash(), Puzzlehash(curriedTail.hash()));
-  final cats = await fullNodeSimulator.getCatCoinsByOuterPuzzleHashes([outer]);
-  
+  final outerPuzzlehash = WalletKeychain.makeOuterPuzzleHash(address.toPuzzlehash(), Puzzlehash(curriedTail.hash()));
+  final cats = await fullNodeSimulator.getCatCoinsByOuterPuzzleHashes([outerPuzzlehash]);
+
+  print('Minted cats: ');
+  print(cats);
+  print(' ');
+
+  // attempt to melt
   final catToMelt = cats[0];
 
   final signatureForMelt = AugSchemeMPL.sign(
@@ -93,38 +101,128 @@ void main() async {
     intToBytesStandard(-1, Endian.big, signed: true) + catToMelt.id.toUint8List() + Bytes.fromHex(catWalletService.blockchainNetwork.aggSigMeExtraData).toUint8List()
   );
 
-  // print(intToBytesStandard(-47728299033, Endian.big, signed: true));
-  final acs = Program.fromInt(1);
-  final innerSolution = Program.list([
-    Program.list([
-      Program.fromInt(51), 
-      Program.fromBytes(acs.hash()), 
-      Program.fromInt(catToMelt.amount - 1)
-    ]),
-    Program.list([
-      Program.fromInt(51), 
-      Program.fromInt(0),
-      Program.fromInt(-113),
-      curriedTail,
-      Program.nil
-    ])
-  ]);
-  // print(innerSolution.serializeHex());
+  // same as https://github.com/Chia-Network/chia-blockchain/blob/4bd5c53f48cb049eff36c87c00d21b1f2dd26b27/chia/wallet/puzzles/p2_delegated_puzzle_or_hidden_puzzle.py#L119
+  final innerPuzzle = getPuzzleFromPk(walletSet.childPublicKey);
 
+  // print(intToBytesStandard(-47728299033, Endian.big, signed: true));
+  // final acs = Program.fromInt(1);
+  final innerSolution = Program.list([
+    Program.nil,
+    Program.list([
+      Program.fromBigInt(keywords['q']!),
+      Program.list([
+        Program.fromInt(51), 
+        Program.fromBytes(innerPuzzle.hash()), 
+        Program.fromInt(catToMelt.amount - 1)
+      ]),
+      Program.list([
+        Program.fromInt(51), 
+        Program.fromInt(0),
+        Program.fromInt(-113),
+        curriedTail,
+        tailSolution
+      ])
+    ]),
+    Program.nil,
+  ]);
+
+  innerPuzzle.run(innerSolution);
+  // print(innerSolution.serializeHex());
+  // return;
   final spendableCat = SpendableCat(
-    coin: catToMelt, innerPuzzle: acs, innerSolution: innerSolution, extraDelta: -1
+    coin: catToMelt, innerPuzzle: innerPuzzle, innerSolution: innerSolution, extraDelta: -1,
   );
 
-  print(catToMelt.lineageProof);
+  final spendableCats = [spendableCat];
 
-  final meltSpendBundle = catWalletService.makeCatSpendBundleFromSpendableCats([spendableCat], keychain, signed: false);
+  // key is coin id
+  final spendInfoMap = <Bytes, SpendableCat>{};
+  final deltasMap = <Bytes, int>{};
+
+    // calculate deltas
+  for (final spendableCat in spendableCats)  {
+    final conditionPrograms = spendableCat.innerPuzzle.run(spendableCat.innerSolution).program.toList();
+
+    var total = spendableCat.extraDelta * -1;
+    for (final createCoinConditionProgram in conditionPrograms.where(CreateCoinCondition.isThisCondition)) {
+      if (!createCoinConditionProgram.toSource().contains('-113')) {
+        final createCoinCondition = CreateCoinCondition.fromProgram(createCoinConditionProgram);
+        total += createCoinCondition.amount;
+      }
+    }
+    spendInfoMap[spendableCat.coin.id] = spendableCat;
+    deltasMap[spendableCat.coin.id] = spendableCat.coin.amount - total;
+  }
+
+  //calculate subtotals
+  final subtotalsMap = <Bytes, int>{};
+  var subtotal = 0;
+  deltasMap.forEach((coinId, delta) { 
+    subtotalsMap[coinId] = subtotal;
+    subtotal += delta;
+  });
+
+  final subtotalOffset = subtotalsMap.values.reduce(min);
+  final standardizedSubtotals = subtotalsMap.map((key, value) => MapEntry(key, value - subtotalOffset));
+
+  // attach subtotals to their respective spendableCat
+  // ignore: cascade_invocations
+  standardizedSubtotals.forEach((coinId, subtotal) { 
+    spendInfoMap[coinId]!.subtotal = subtotal;
+  });
+
+  final spends = <CoinSpend>[];
+  
+  final n = spendableCats.length;
+  for (var index = 0; index < n; index++) {
+    final previousIndex = (index - 1) % n;
+    final nextIndex = (index + 1) % n;
+
+    final previousSpendableCat = spendableCats[previousIndex];
+    final currentSpendableCat = spendableCats[index];
+    final nextSpendableCat = spendableCats[nextIndex];
+
+    final puzzleReveal = catProgram.curry([
+      Program.fromBytes(catProgram.hash()),
+      Program.fromBytes(currentSpendableCat.coin.assetId.toUint8List()),
+      currentSpendableCat.innerPuzzle
+    ]);
+
+    final solution = Program.list([
+      currentSpendableCat.innerSolution, 
+      currentSpendableCat.coin.lineageProof,
+      Program.fromBytes(previousSpendableCat.coin.id.toUint8List()),
+      currentSpendableCat.coin.toProgram(),
+      nextSpendableCat.makeStandardCoinProgram(),
+      Program.fromInt(currentSpendableCat.subtotal!),
+      Program.fromInt(currentSpendableCat.extraDelta),
+    ]);
+
+    spends.add(CoinSpend(coin: currentSpendableCat.coin, puzzleReveal: puzzleReveal, solution: solution));
+  }
+
+  final meltSpendBundle = SpendBundle(coinSpends: spends);
+
+  // final meltSpendBundle = catWalletService.makeCatSpendBundleFromSpendableCats([spendableCat], keychain, signed: false);
+  coins = await fullNodeSimulator.getCoinsByPuzzleHashes([address.toPuzzlehash()]);
+  final coin = coins[0];
+  const fee = 500;
+
+  final xchSpendbundle = catWalletService.standardWalletService.createSpendBundle(
+    [coin], 
+    coin.amount - fee + 1000,  // amount
+    address.toPuzzlehash(), // destination puzzlehash
+    address.toPuzzlehash(), //change puzzlehash
+    keychain,
+  );
+
   final finalSpendBundle = SpendBundle.aggregate([
     meltSpendBundle,
+    xchSpendbundle,
     SpendBundle(coinSpends: [], aggregatedSignature: signatureForMelt),
   ]);
 
-
-  // await fullNodeSimulator.pushTransaction(finalSpendBundle);
-  // await fullNodeSimulator.moveToNextBlock();
+  print('attempting to push transaction...');
+  await fullNodeSimulator.pushTransaction(finalSpendBundle); // throws error
+  await fullNodeSimulator.moveToNextBlock();
 }
-
