@@ -13,6 +13,8 @@ import 'package:test/test.dart';
 import '../simulator/simulator_utils.dart';
 
 Future<void> main() async {
+  const nTests = 3;
+
   if(!(await SimulatorUtils.checkIfSimulatorIsRunning())) {
     print(SimulatorUtils.simulatorNotRunningWarning);
     return;
@@ -41,10 +43,9 @@ Future<void> main() async {
   final senderPuzzlehash = senderWalletSet.puzzlehash;
   final senderAddress = Address.fromPuzzlehash(senderPuzzlehash, catWalletService.blockchainNetwork.addressPrefix);
 
-  await fullNodeSimulator.farmCoins(senderAddress);
-  await fullNodeSimulator.farmCoins(senderAddress);
-  await fullNodeSimulator.farmCoins(senderAddress);
-  await fullNodeSimulator.farmCoins(senderAddress);
+  for (var i = 0; i < nTests; i++) {
+    await fullNodeSimulator.farmCoins(senderAddress);
+  }
   await fullNodeSimulator.moveToNextBlock();
 
   var senderStandardCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([senderPuzzlehash]);
@@ -76,6 +77,7 @@ Future<void> main() async {
   await fullNodeSimulator.moveToNextBlock();
 
   var senderCatCoins = await fullNodeSimulator.getCatCoinsByOuterPuzzleHashes([WalletKeychain.makeOuterPuzzleHash(senderPuzzlehash, assetId)]);
+  assert(senderCatCoins.isNotEmpty, true);
 
   senderStandardCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([senderPuzzlehash]);
   final payments = <Payment>[];
@@ -199,10 +201,10 @@ Future<void> main() async {
     final newCoins = receiverEndingCatCoins.where((coin) => !receiverStartingCatCoins.contains(coin)).toList();
     expect(newCoins.length, 2);
     expect(() {
-      newCoins
-      // throws exception
-      ..singleWhere((coin) => coin.amount == sendAmounts[0])
-      ..singleWhere((coin) => coin.amount == sendAmounts[1]);
+      for (final newCoin in newCoins) {
+        // throws exception if not found
+        sendAmounts.singleWhere((a) => a == newCoin.amount);
+      }
     }, returnsNormally,);
   });
 }

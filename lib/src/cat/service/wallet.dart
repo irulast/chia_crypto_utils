@@ -208,7 +208,7 @@ class CatWalletService extends BaseWalletService {
     final catPuzzleHash = Puzzlehash(catPuzzle.hash());
 
     final standardCoinOriginId = originId ?? standardCoins[0].id;
-    final standardSpendBundle = standardWalletService.createSpendBundle(standardCoins, amount, Puzzlehash(catPuzzle.hash()), changePuzzlehash, keychain, originId: standardCoinOriginId);
+    final standardSpendBundle = standardWalletService.createSpendBundle([Payment(amount, Puzzlehash(catPuzzle.hash()))], standardCoins, changePuzzlehash, keychain, originId: standardCoinOriginId);
 
     final eveParentSpend = standardSpendBundle.coinSpends.singleWhere((spend) => spend.coin.id == standardCoinOriginId);
 
@@ -288,9 +288,8 @@ class CatWalletService extends BaseWalletService {
     assert(totalStandardCoinsValue >= fee, 'Total value of passed in standad coins is not enough to cover fee.');
 
     return standardWalletService.createSpendBundle(
+      [], 
       standardCoins, 
-      0, 
-      changePuzzlehash, 
       changePuzzlehash, 
       keychain, 
       fee: fee,

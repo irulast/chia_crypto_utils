@@ -6,6 +6,7 @@ import 'package:chia_utils/src/core/models/conditions/condition.dart';
 import 'package:chia_utils/src/core/models/conditions/create_coin_announcement_condition.dart';
 import 'package:chia_utils/src/core/models/conditions/create_coin_condition.dart';
 import 'package:chia_utils/src/core/models/conditions/reserve_fee_condition.dart';
+import 'package:chia_utils/src/core/models/payment.dart';
 import 'package:chia_utils/src/core/service/base_wallet.dart';
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/incorrect_announcement_id_exception.dart';
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/multiple_origin_coin_exception.dart';
@@ -14,9 +15,8 @@ class StandardWalletService extends BaseWalletService{
   StandardWalletService(Context context) : super(context);
 
   SpendBundle createSpendBundle(
+      List<Payment> payments, 
       List<CoinPrototype> coinsInput,
-      int amount,
-      Puzzlehash destinationPuzzlehash,
       Puzzlehash changePuzzlehash,
       WalletKeychain keychain,
       {
@@ -29,7 +29,9 @@ class StandardWalletService extends BaseWalletService{
     final coins = List<Coin>.from(coinsInput);
     final totalCoinValue =
         coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
-    final change = totalCoinValue - amount - fee;
+
+    final totalPaymentAmount = payments.fold(0, (int previousValue, payment) => previousValue + payment.amount);
+    final change = totalCoinValue - totalPaymentAmount - fee;
 
     final signatures = <JacobianPoint>[];
     final spends = <CoinSpend>[];
@@ -62,17 +64,17 @@ class StandardWalletService extends BaseWalletService{
         first = false;
         final conditions = <Condition>[];
         final createdCoins = <CoinPrototype>[];
-        if (amount > 0) {
-          final sendCreateCoinCondition = CreateCoinCondition(destinationPuzzlehash, amount);
+        for (final payment in payments) {
+          final sendCreateCoinCondition = payment.toCreateCoinCondition();
           conditions.add(sendCreateCoinCondition);
           createdCoins.add(
             CoinPrototype(
               parentCoinInfo: coin.id,
-              puzzlehash: destinationPuzzlehash,
-              amount: amount,
+              puzzlehash: payment.puzzlehash,
+              amount: payment.amount,
             ),
           );
-        }
+        } 
     
 
         if (change > 0) {
