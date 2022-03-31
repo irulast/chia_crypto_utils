@@ -15,7 +15,7 @@ This starts the simulator running on port 5000 accessible from the host system.
 ```bash
 docker run -e TARGET_UID="$(id -u)" -e TARGET_GID="$(id -g)" -e CLIENT_CONFIG_DIR="/temp/config/" \
  -p 5000:8555 \
- -v "$(pwd)/temp/test-plots":/root/.chia/mainnet/test-plots \
+ -v "$(pwd)/temp/test-plots":/root/.chia/test-plots \
  -v "$(pwd)/temp/config:/temp/config" \
  -it chia_sim:latest
 ```
