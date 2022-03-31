@@ -139,8 +139,14 @@ JacobianPoint evalIso(JacobianPoint P, List<List<Fq2>> mapCoeffs, EC ec) {
   zPows[0] = z.pow(BigInt.zero) as Fq2;
   zPows[1] = z.pow(BigInt.two) as Fq2;
   for (final i in range(2, zPows.length)) {
-    assert(zPows[i.toInt() - 1] != null);
-    assert(zPows[1] != null);
+    assert(
+      zPows[i.toInt() - 1] != null,
+      'zPows[${i.toInt() - 1}] must be non-null',
+    );
+    assert(
+      zPows[1] != null,
+      'zPows[1] must be non-null',
+    );
     zPows[i.toInt()] = zPows[i.toInt() - 1]! * zPows[1] as Fq2;
   }
   for (final item in enumerate(mapCoeffs)) {
@@ -155,7 +161,10 @@ JacobianPoint evalIso(JacobianPoint P, List<List<Fq2>> mapCoeffs, EC ec) {
     }
     mapVals[item.index] = tmp as Fq2;
   }
-  assert(mapCoeffs[1].length + 1 == mapCoeffs[0].length);
+  assert(
+    mapCoeffs[1].length + 1 == mapCoeffs[0].length,
+    'mapCoeffs[0] must have one element more than mapCoeffs[1]',
+  );
   assert(zPows[1] != null);
   assert(mapVals[1] != null);
   mapVals[1] = mapVals[1]! * zPows[1] as Fq2;
