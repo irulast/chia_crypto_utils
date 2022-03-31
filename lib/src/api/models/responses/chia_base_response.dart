@@ -1,8 +1,12 @@
-class ChiaBaseResponse {
-  String? error;
-  bool success;
 
-  ChiaBaseResponse({
+import 'package:meta/meta.dart';
+
+@immutable
+class ChiaBaseResponse {
+  final String? error;
+  final bool success;
+
+  const ChiaBaseResponse({
     required this.error, 
     required this.success,
   });

@@ -1,5 +1,7 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:meta/meta.dart';
 
+@immutable
 class ChiaCoinRecord {
   final int confirmedBlockIndex;
   final int spentBlockIndex;
@@ -7,7 +9,7 @@ class ChiaCoinRecord {
   final int timestamp;
   final CoinPrototype coin;
 
-  ChiaCoinRecord({
+  const ChiaCoinRecord({
     required this.confirmedBlockIndex,
     required this.spentBlockIndex,
     required this.coinbase,

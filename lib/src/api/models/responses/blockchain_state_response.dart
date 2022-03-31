@@ -2,11 +2,13 @@
 
 import 'package:chia_utils/src/api/models/responses/chia_base_response.dart';
 import 'package:chia_utils/src/core/models/blockchain_state.dart';
+import 'package:meta/meta.dart';
 
+@immutable
 class BlockchainStateResponse extends ChiaBaseResponse {
-  BlockchainState? blockchainState;
+  final BlockchainState? blockchainState;
 
-  BlockchainStateResponse({
+  const BlockchainStateResponse({
     required this.blockchainState,
     required bool success,
     required String? error,

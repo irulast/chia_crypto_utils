@@ -1,10 +1,12 @@
 import 'package:chia_utils/src/api/models/chia_models/chia_coin_record.dart';
 import 'package:chia_utils/src/api/models/responses/chia_base_response.dart';
+import 'package:meta/meta.dart';
 
+@immutable
 class CoinRecordResponse extends ChiaBaseResponse {
-  ChiaCoinRecord? coinRecord;
+  final ChiaCoinRecord? coinRecord;
 
-  CoinRecordResponse({
+  const CoinRecordResponse({
     required this.coinRecord,
     required bool success,
     required String? error,
