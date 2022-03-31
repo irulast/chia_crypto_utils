@@ -3,7 +3,7 @@ import 'package:chia_utils/src/bls/field/field.dart';
 import 'package:chia_utils/src/bls/field/field_base.dart';
 import 'package:chia_utils/src/bls/field/field_ext.dart';
 
-class Fq6 extends FieldExtBase {
+class Fq6 extends FieldExtBase<Fq6> {
   Fq6(BigInt Q, List<Field> args, {Field? root})
       : super(
           Q,
@@ -43,11 +43,11 @@ class Fq6 extends FieldExtBase {
   Fq6 construct(BigInt Q, List<Field> args, Field? root) =>
       Fq6(Q, args, root: root);
 
-  factory Fq6.fromFq(BigInt Q, Fq fq) => Fq6.nil().myFromFq(Q, fq) as Fq6;
+  factory Fq6.fromFq(BigInt Q, Fq fq) => Fq6.nil().myFromFq(Q, fq);
   factory Fq6.fromBytes(List<int> bytes, BigInt Q) =>
       Fq6.nil().myFromBytes(bytes, Q) as Fq6;
   factory Fq6.fromHex(String hex, BigInt Q) =>
       Fq6.nil().myFromHex(hex, Q) as Fq6;
-  factory Fq6.zero(BigInt Q) => Fq6.nil().myZero(Q) as Fq6;
-  factory Fq6.one(BigInt Q) => Fq6.nil().myOne(Q) as Fq6;
+  factory Fq6.zero(BigInt Q) => Fq6.nil().myZero(Q);
+  factory Fq6.one(BigInt Q) => Fq6.nil().myOne(Q);
 }

@@ -13,7 +13,7 @@ import 'package:quiver/collection.dart';
 import 'package:quiver/core.dart';
 import 'package:quiver/iterables.dart';
 
-abstract class FieldExtBase extends Field {
+abstract class FieldExtBase<F extends FieldExtBase<F>> extends Field {
   FieldExtBase(
     BigInt Q,
     this.elements, {
@@ -39,18 +39,18 @@ abstract class FieldExtBase extends Field {
   final List<Field> elements;
   final Field basefield;
 
-  FieldExtBase construct(BigInt Q, List<Field> args, Field? root);
+  F construct(BigInt Q, List<Field> args, Field? root);
 
   @override
   bool toBool() => elements.every((element) => element.toBool());
 
   @override
-  FieldExtBase operator -() {
+  F operator -() {
     return construct(Q, elements.map((element) => -element).toList(), root);
   }
 
   @override
-  FieldExtBase add(dynamic other) {
+  F add(dynamic other) {
     List<Field> otherNew;
 
     if (other is FieldExtBase) {
@@ -78,7 +78,7 @@ abstract class FieldExtBase extends Field {
   }
 
   @override
-  FieldExtBase multiply(dynamic other) {
+  F multiply(dynamic other) {
     if (other is BigInt) {
       return construct(
         Q,
@@ -121,7 +121,7 @@ abstract class FieldExtBase extends Field {
   Field operator /(dynamic other) => this ~/ other;
 
   @override
-  FieldExtBase operator +(dynamic other) {
+  FieldExtBase<dynamic> operator +(dynamic other) {
     try {
       return add(other);
     } on FailedOp {
@@ -131,7 +131,7 @@ abstract class FieldExtBase extends Field {
   }
 
   @override
-  FieldExtBase operator *(dynamic other) {
+  FieldExtBase<dynamic> operator *(dynamic other) {
     try {
       return multiply(other);
     } on FailedOp {
@@ -234,32 +234,31 @@ abstract class FieldExtBase extends Field {
       myFromBytes(const HexDecoder().convert(hex), Q);
 
   @override
-  FieldExtBase pow(BigInt exponent) {
+  F pow(BigInt exponent) {
     assert(
       exponent >= BigInt.zero,
       'exponent must non-negative',
     );
     var _exponent = exponent;
     var result = myOne(Q, root);
-    var base = this;
+    var base = this as F;
     while (_exponent != BigInt.zero) {
       if (_exponent & BigInt.one != BigInt.zero) {
-        result = result * base;
+        result = result * base as F;
       }
-      base = base * base;
+      base = base * base as F;
       _exponent >>= 1;
     }
     return result;
   }
 
   @override
-  FieldExtBase myZero(BigInt Q) => myFromFq(Q, Fq(Q, BigInt.zero));
+  F myZero(BigInt Q) => myFromFq(Q, Fq(Q, BigInt.zero));
   @override
-  FieldExtBase myOne(BigInt Q, [Field? root]) =>
-      myFromFq(Q, Fq(Q, BigInt.one), root);
+  F myOne(BigInt Q, [Field? root]) => myFromFq(Q, Fq(Q, BigInt.one), root);
 
   @override
-  FieldExtBase myFromFq(BigInt Q, Fq fq, [Field? root]) {
+  F myFromFq(BigInt Q, Fq fq, [Field? root]) {
     final y = basefield.myFromFq(Q, fq);
     final z = basefield.myZero(Q);
 
@@ -285,7 +284,7 @@ abstract class FieldExtBase extends Field {
   }
 
   @override
-  FieldExtBase clone() {
+  F clone() {
     return construct(
       Q,
       elements.map((element) => element.clone()).toList(),
@@ -294,14 +293,14 @@ abstract class FieldExtBase extends Field {
   }
 
   @override
-  FieldExtBase qiPower(int i) {
+  F qiPower(int i) {
     if (Q != q) {
       throw FailedOp();
     }
 
     final _i = i % extension;
     if (_i == 0) {
-      return this;
+      return this as F;
     }
     final items = enumerate(elements)
         .map(
