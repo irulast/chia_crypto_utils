@@ -1,5 +1,4 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/core/models/conditions/condition.dart';
 import 'package:chia_utils/src/standard/exceptions/invalid_condition_cast_exception.dart';
 
 class AssertCoinAnnouncementCondition implements Condition {

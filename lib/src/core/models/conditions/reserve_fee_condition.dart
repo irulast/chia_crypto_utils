@@ -1,5 +1,4 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/core/models/conditions/condition.dart';
 
 class ReserveFeeCondition implements Condition {
   static int conditionCode = 52;

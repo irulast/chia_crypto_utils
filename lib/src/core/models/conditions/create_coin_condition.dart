@@ -1,5 +1,6 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/core/models/conditions/condition.dart';
 import 'package:chia_utils/src/standard/exceptions/invalid_condition_cast_exception.dart';
 
 class CreateCoinCondition implements Condition {
@@ -7,7 +8,7 @@ class CreateCoinCondition implements Condition {
 
   Puzzlehash destinationHash;
   int amount;
-  Bytes? memos;
+  List<Bytes>? memos;
 
   CreateCoinCondition(this.destinationHash, this.amount, {this.memos});
 
@@ -19,7 +20,7 @@ class CreateCoinCondition implements Condition {
     return CreateCoinCondition(
       Puzzlehash(programList[1].atom),
       programList[2].toInt(),
-      memos: programList.length > 3 ? Bytes(programList[3].atom) : null,
+      memos: programList.length > 3 ? programList[3].toList().map((memo) => Bytes(memo.atom)).toList() : null,
     );
   }
 
@@ -29,7 +30,17 @@ class CreateCoinCondition implements Condition {
       Program.fromInt(conditionCode),
       Program.fromBytes(destinationHash.toUint8List()),
       Program.fromInt(amount)
-    ]);
+    ] + (
+      memos != null ?
+        [
+          Program.list(
+            memos!.map((memo) => Program.fromBytes(memo.toUint8List())).toList(),
+          )
+        ]
+      :
+        []
+      ),
+    );
   }
 
   static bool isThisCondition(Program condition) {
