@@ -3,7 +3,6 @@
 import 'dart:convert';
 
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/core/models/conditions/create_coin_condition.dart';
 
 class Payment {
   int amount;

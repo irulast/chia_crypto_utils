@@ -2,16 +2,9 @@
 
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/cat/exceptions/mixed_asset_ids_exception.dart';
-import 'package:chia_utils/src/cat/models/cat_coin.dart';
-import 'package:chia_utils/src/cat/models/spendable_cat.dart';
 import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/delegated_tail/delegated_tail.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/genesis_by_coin_id/genesis_by_coin_id.clvm.hex.dart';
-import 'package:chia_utils/src/core/models/conditions/assert_coin_announcement_condition.dart';
-import 'package:chia_utils/src/core/models/conditions/condition.dart';
-import 'package:chia_utils/src/core/models/conditions/create_coin_announcement_condition.dart';
-import 'package:chia_utils/src/core/models/conditions/create_coin_condition.dart';
-import 'package:chia_utils/src/core/models/payment.dart';
 import 'package:chia_utils/src/core/service/base_wallet.dart';
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/incorrect_announcement_id_exception.dart';
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/multiple_origin_coin_exception.dart';
@@ -221,7 +214,7 @@ class CatWalletService extends BaseWalletService {
     final eveCatCoin = CatCoin.eve(
       parentCoinSpend: eveParentSpend, 
       coin: eveCoin,
-      assetId: Puzzlehash(tail.hash())
+      assetId: Puzzlehash(tail.hash()),
     );
 
     final spendableEve = SpendableCat(coin: eveCatCoin, innerPuzzle: payToPuzzle, innerSolution: Program.nil);

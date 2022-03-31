@@ -10,7 +10,7 @@ import 'package:chia_utils/src/api/models/responses/chia_base_response.dart';
 import 'package:chia_utils/src/api/models/responses/coin_record_response.dart';
 import 'package:chia_utils/src/api/models/responses/coin_records_response.dart';
 import 'package:chia_utils/src/api/models/responses/coin_spend_response.dart';
-import 'package:chia_utils/src/core/models/models.dart';
+import 'package:chia_utils/src/core/models/index.dart';
 import 'package:meta/meta.dart';
 
 @immutable
@@ -57,7 +57,6 @@ class FullNodeHttpRpc implements FullNode{
       Uri.parse('push_tx'),
       {'spend_bundle': spendBundle.toJson()},
     );
-    print(response.body);
     mapResponseToError(response);
 
     return ChiaBaseResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);

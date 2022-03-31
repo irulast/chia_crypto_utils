@@ -4,8 +4,6 @@
 import 'dart:io';
 
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/api/simulator_full_node_interface.dart';
-import 'package:chia_utils/src/api/simulator_http_rpc.dart';
 import 'package:path/path.dart' as path;
 
 import 'exceptions/simulator_auth_files_not_generated.dart';

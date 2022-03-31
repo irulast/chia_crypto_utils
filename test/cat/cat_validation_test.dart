@@ -4,7 +4,6 @@ import 'dart:convert';
 
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/cat/exceptions/invalid_cat_exception.dart';
-import 'package:chia_utils/src/cat/models/cat_coin.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {

@@ -3,7 +3,6 @@
 import 'dart:convert';
 
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/api/full_node_http_rpc.dart';
 import 'package:chia_utils/src/api/models/responses/chia_base_response.dart';
 
 class SimulatorHttpRpc extends FullNodeHttpRpc {

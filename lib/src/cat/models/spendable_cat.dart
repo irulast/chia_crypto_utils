@@ -3,8 +3,6 @@
 import 'dart:math';
 
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/cat/models/cat_coin.dart';
-import 'package:chia_utils/src/core/models/conditions/create_coin_condition.dart';
 
 class SpendableCat {
   CatCoin coin;

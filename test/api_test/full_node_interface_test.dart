@@ -2,12 +2,8 @@
 
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/exceptions/bad_coin_id_exception.dart';
-import 'package:chia_utils/src/api/simulator_full_node_interface.dart';
-import 'package:chia_utils/src/api/simulator_http_rpc.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/delegated_tail/delegated_tail.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/genesis_by_coin_id/genesis_by_coin_id.clvm.hex.dart';
-import 'package:chia_utils/src/cat/service/wallet.dart';
-import 'package:chia_utils/src/networks/network_context.dart';
 import 'package:test/test.dart';
 
 import '../simulator/simulator_utils.dart';

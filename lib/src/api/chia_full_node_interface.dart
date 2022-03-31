@@ -6,7 +6,6 @@ import 'package:chia_utils/src/api/exceptions/bad_request_exception.dart';
 import 'package:chia_utils/src/api/exceptions/double_spend_exception.dart';
 import 'package:chia_utils/src/api/full_node.dart';
 import 'package:chia_utils/src/api/models/responses/chia_base_response.dart';
-import 'package:chia_utils/src/cat/models/cat_coin.dart';
 import 'package:chia_utils/src/core/models/blockchain_state.dart';
 
 class ChiaFullNodeInterface {

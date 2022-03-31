@@ -4,9 +4,6 @@ import 'dart:convert';
 
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/cat/exceptions/mixed_asset_ids_exception.dart';
-import 'package:chia_utils/src/cat/models/cat_coin.dart';
-import 'package:chia_utils/src/cat/service/wallet.dart';
-import 'package:chia_utils/src/core/models/payment.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
@@ -56,7 +53,7 @@ Future<void> main() async {
   final otherParentCoinSpend = CoinSpend.fromJson(jsonDecode(otherCatParentJson) as Map<String, dynamic>);
   final otherCat = CatCoin(
     coin: otherCoin, 
-    parentCoinSpend: otherParentCoinSpend
+    parentCoinSpend: otherParentCoinSpend,
   );
 
   final standardCoin = Coin(
