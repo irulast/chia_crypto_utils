@@ -7,6 +7,7 @@ import 'package:chia_utils/src/api/simulator_http_rpc.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/delegated_tail/delegated_tail.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/genesis_by_coin_id/genesis_by_coin_id.clvm.hex.dart';
 import 'package:chia_utils/src/cat/service/wallet.dart';
+import 'package:chia_utils/src/networks/network_context.dart';
 import 'package:test/test.dart';
 
 import '../simulator/simulator_utils.dart';
@@ -17,15 +18,7 @@ Future<void> main() async {
     return;
   }
 
-  final configurationProvider = ConfigurationProvider()
-    ..setConfig(NetworkFactory.configId, {
-      'yaml_file_path': 'lib/src/networks/chia/mainnet/config.yaml'
-    }
-  );
-  final context = Context(configurationProvider);
-  final blockchainNetworkLoader = ChiaBlockchainNetworkLoader();
-  context.registerFactory(NetworkFactory(blockchainNetworkLoader.loadfromLocalFileSystem));
-
+  final context = NetworkContext.makeContext(Network.mainnet);
   final catWalletService = CatWalletService(context);
 
   final simulatorHttpRpc = SimulatorHttpRpc(SimulatorUtils.simulatorUrl,
