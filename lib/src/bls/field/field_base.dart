@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:chia_utils/src/bls/failed_op.dart';
 import 'package:chia_utils/src/bls/field/field.dart';
 import 'package:chia_utils/src/clvm/bytes.dart';
-import 'package:hex/hex.dart';
+import 'package:chia_utils/src/utils/to_bytes_mixin.dart';
 import 'package:quiver/core.dart';
 
 class Fq extends Field {
@@ -13,26 +13,24 @@ class Fq extends Field {
 
   Fq.nil() : this._(BigInt.zero, BigInt.zero);
 
-  final BigInt value;
+  Fq.zero(BigInt Q) : this(Q, BigInt.zero);
 
-  @override
-  Fq myFromBytes(List<int> bytes, BigInt Q) {
+  Fq.one(BigInt Q) : this(Q, BigInt.one);
+
+  factory Fq.fromBytes(List<int> bytes, BigInt Q) {
     assert(bytes.length == 48, 'There must be 48 bytes');
     return Fq(Q, bytesToBigInt(bytes, Endian.big));
   }
 
+  final BigInt value;
+
+  factory Fq.fromHex(String hex, BigInt Q) => Fq.fromBytes(hex.toBytes(), Q);
+
   @override
-  Fq myFromHex(String hex, BigInt Q) =>
-      myFromBytes(const HexDecoder().convert(hex), Q);
+  Fq myFromBytes(List<int> bytes, BigInt Q) => Fq.fromBytes(bytes, Q);
 
-  factory Fq.zero(BigInt Q) => Fq(Q, BigInt.zero);
-
-  factory Fq.one(BigInt Q) => Fq(Q, BigInt.one);
-
-  factory Fq.fromBytes(List<int> bytes, BigInt Q) =>
-      Fq.nil().myFromBytes(bytes, Q);
-
-  factory Fq.fromHex(String hex, BigInt Q) => Fq.nil().myFromHex(hex, Q);
+  @override
+  Fq myFromHex(String hex, BigInt Q) => Fq.fromHex(hex, Q);
 
   @override
   Field operator +(dynamic other) {
@@ -211,10 +209,10 @@ class Fq extends Field {
   Fq clone() => Fq(Q, value);
 
   @override
-  Fq myZero(BigInt Q) => Fq(Q, BigInt.zero);
+  Fq myZero(BigInt Q) => Fq.zero(Q);
 
   @override
-  Fq myOne(BigInt Q) => Fq(Q, BigInt.one);
+  Fq myOne(BigInt Q) => Fq.one(Q);
 
   @override
   Fq myFromFq(BigInt Q, Fq fq) => fq;
