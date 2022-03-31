@@ -116,9 +116,6 @@ class Fq extends Field {
   Uint8List toBytes() => bigIntToBytes(value, 48, Endian.big);
 
   @override
-  String toHex() => const HexEncoder().convert(toBytes());
-
-  @override
   Fq pow(BigInt exponent) => exponent == BigInt.zero
       ? Fq(Q, BigInt.one)
       : exponent == BigInt.one
