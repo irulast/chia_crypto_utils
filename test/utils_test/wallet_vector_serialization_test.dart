@@ -1,6 +1,7 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:test/test.dart';
 
 void main() {
   const testMnemonic = [
@@ -19,23 +20,21 @@ void main() {
    ..addOuterPuzzleHashesForAssetId(Puzzlehash.fromHex('6357ddad396737e86e7e7efeb637d674d3cffb89080b028873aafab0f008590f'))
    ..addOuterPuzzleHashesForAssetId(Puzzlehash.fromHex('ba4484b961b7a2369d948d06c55b64bdbfaffb326bc13b490ab1215dd33d8d46'));
 
-  final walletVector = keychain.unhardenedMap.values.first;
-  final publicKey = walletVector.childPublicKey;
+  final hardenedWalletVector = keychain.hardenedMap.values.first;
+  final unhardenedWalletVector = keychain.unhardenedMap.values.first;
 
-  // serialized public key
-  final publicKeyHex = publicKey.toHex();
-  print(publicKeyHex);
+  test('should correctly serialize and deserialize hardened wallet vector', () {
+    final serializedWalletVector = hardenedWalletVector.toJson();
+    final deserializedWalletVector = WalletVector.fromJson(serializedWalletVector);
 
-  // deserialize public key
-  final publicKeyDeserialized = JacobianPoint.fromBytesG1(Bytes.fromHex(publicKeyHex).toUint8List());
-  print(publicKeyDeserialized.toHex());
+    expect(deserializedWalletVector, equals(hardenedWalletVector));
+  });
 
-  // serialize outer puzzle hashmap
-  final outerPuzzleHashes = walletVector.assetIdtoOuterPuzzlehash;
-  final serializedOuterPuzzleHashes = outerPuzzleHashes.map((assetId, outerPuzzleHash) => MapEntry(assetId.toHex(), outerPuzzleHash.toHex()));
-  print(serializedOuterPuzzleHashes);
+  test('should correctly serialize and deserialize unhardened wallet vector', () {
+    final serializedWalletVector = unhardenedWalletVector.toJson();
+    final deserializedWalletVector = UnhardenedWalletVector.fromJson(serializedWalletVector);
 
-  // deserialize outer puzzle hashmap
-  final outerPuzzleHashesDeserialized = serializedOuterPuzzleHashes.map((assetIdHex, outerPuzzleHashHex) => MapEntry(Puzzlehash.fromHex(assetIdHex), Puzzlehash.fromHex(outerPuzzleHashHex)));
+    expect(deserializedWalletVector, equals(unhardenedWalletVector));
+  });
 
 }

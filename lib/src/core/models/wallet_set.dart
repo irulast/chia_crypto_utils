@@ -80,6 +80,17 @@ class WalletVector {
             childPublicKey == other.childPublicKey &&
             puzzlehash == other.puzzlehash;
   }
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'child_private_key': childPrivateKey.toHex(),
+    'child_public_key': childPublicKey.toHex(),
+    'puzzlehash': puzzlehash.toHex(),
+  };
+
+  WalletVector.fromJson(Map<String, dynamic> json)
+    : childPrivateKey = PrivateKey.fromHex(json['child_private_key'] as String),
+      childPublicKey = JacobianPoint.fromBytesG1(Bytes.fromHex(json['child_public_key'] as String).toUint8List()),
+      puzzlehash = Puzzlehash.fromHex(json['puzzlehash'] as String);
 }
 
 class UnhardenedWalletVector extends WalletVector {
@@ -97,4 +108,59 @@ class UnhardenedWalletVector extends WalletVector {
         );
 
   final Map<Puzzlehash, Puzzlehash> assetIdtoOuterPuzzlehash;
+
+
+  @override
+  Map<String, dynamic> toJson() {
+    final walletVectorJson = super.toJson();
+    return <String, dynamic>{
+      ...walletVectorJson,
+      'asset_id_to_outer_puzzlehash': assetIdtoOuterPuzzlehash.map((assetId, outerPuzzleHash) => MapEntry(assetId.toHex(), outerPuzzleHash.toHex())),
+    };
+  }
+
+  factory UnhardenedWalletVector.fromJson(Map<String, dynamic> json) {
+    final walletVector = WalletVector.fromJson(json);
+    return UnhardenedWalletVector(
+      childPrivateKey: walletVector.childPrivateKey, 
+      childPublicKey: walletVector.childPublicKey, 
+      puzzlehash: walletVector.puzzlehash,
+      assetIdtoOuterPuzzlehash: (json['asset_id_to_outer_puzzlehash'] as Map<String, String>)
+        .map(
+          (assetIdHex, outerPuzzleHashHex) 
+            => MapEntry(Puzzlehash.fromHex(assetIdHex), Puzzlehash.fromHex(outerPuzzleHashHex)),
+        ),
+    );
+  }
+
+  @override
+  int get hashCode =>
+      super.hashCode ^
+      assetIdtoOuterPuzzlehash.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    final firstCheck = 
+      other is UnhardenedWalletVector &&
+        runtimeType == other.runtimeType &&
+        childPrivateKey == other.childPrivateKey &&
+        childPublicKey == other.childPublicKey &&
+        puzzlehash == other.puzzlehash;
+
+    if (!firstCheck) {
+      return false;
+    }
+    // ignore: test_types_in_equals
+    final otherAsUnhardenedWalletVector = other as UnhardenedWalletVector;
+    for (final assetId in assetIdtoOuterPuzzlehash.keys) {
+      if (otherAsUnhardenedWalletVector.assetIdtoOuterPuzzlehash[assetId] != assetIdtoOuterPuzzlehash[assetId]) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
 }
