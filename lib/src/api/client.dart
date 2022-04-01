@@ -44,7 +44,6 @@ class Client {
       }
       rethrow;
     }
-    
   }
 
   @override
