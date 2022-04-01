@@ -1,11 +1,6 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/core/models/conditions/assert_coin_announcement_condition.dart';
-import 'package:chia_utils/src/core/models/conditions/condition.dart';
-import 'package:chia_utils/src/core/models/conditions/create_coin_announcement_condition.dart';
-import 'package:chia_utils/src/core/models/conditions/create_coin_condition.dart';
-import 'package:chia_utils/src/core/models/conditions/reserve_fee_condition.dart';
 import 'package:chia_utils/src/core/service/base_wallet.dart';
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/incorrect_announcement_id_exception.dart';
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/multiple_origin_coin_exception.dart';
@@ -14,9 +9,8 @@ class StandardWalletService extends BaseWalletService{
   StandardWalletService(Context context) : super(context);
 
   SpendBundle createSpendBundle(
-      List<Coin> coinsInput,
-      int amount,
-      Puzzlehash destinationPuzzlehash,
+      List<Payment> payments, 
+      List<CoinPrototype> coinsInput,
       Puzzlehash changePuzzlehash,
       WalletKeychain keychain,
       {
@@ -29,7 +23,9 @@ class StandardWalletService extends BaseWalletService{
     final coins = List<Coin>.from(coinsInput);
     final totalCoinValue =
         coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
-    final change = totalCoinValue - amount - fee;
+
+    final totalPaymentAmount = payments.fold(0, (int previousValue, payment) => previousValue + payment.amount);
+    final change = totalCoinValue - totalPaymentAmount - fee;
 
     final signatures = <JacobianPoint>[];
     final spends = <CoinSpend>[];
@@ -62,17 +58,17 @@ class StandardWalletService extends BaseWalletService{
         first = false;
         final conditions = <Condition>[];
         final createdCoins = <CoinPrototype>[];
-        if (amount > 0) {
-          final sendCreateCoinCondition = CreateCoinCondition(destinationPuzzlehash, amount);
+        for (final payment in payments) {
+          final sendCreateCoinCondition = payment.toCreateCoinCondition();
           conditions.add(sendCreateCoinCondition);
           createdCoins.add(
             CoinPrototype(
               parentCoinInfo: coin.id,
-              puzzlehash: destinationPuzzlehash,
-              amount: amount,
+              puzzlehash: payment.puzzlehash,
+              amount: payment.amount,
             ),
           );
-        }
+        } 
     
 
         if (change > 0) {
@@ -114,9 +110,9 @@ class StandardWalletService extends BaseWalletService{
 
       final puzzle = getPuzzleFromPk(publicKey);
 
-      final coinSpendAndSignature = createCoinsSpendAndSignature(solution, puzzle, privateKey, coin);
-      signatures.add(coinSpendAndSignature.signature);
-      spends.add(coinSpendAndSignature.coinSpend);
+      final signature = makeSignature(solution, puzzle, privateKey, coin);
+      signatures.add(signature);
+      spends.add(CoinSpend(coin: coin, puzzleReveal: puzzle, solution: solution));
     }
 
     final aggregate = AugSchemeMPL.aggregate(signatures);

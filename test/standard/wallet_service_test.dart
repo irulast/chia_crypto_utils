@@ -1,10 +1,6 @@
 // ignore_for_file: lines_longer_than_80_chars
 
-import 'package:chia_utils/src/context/context.dart';
-import 'package:chia_utils/src/core/models/models.dart';
-import 'package:chia_utils/src/networks/chia/chia_blockckahin_network_loader.dart';
-import 'package:chia_utils/src/networks/network_factory.dart';
-import 'package:chia_utils/src/standard/service/wallet.dart';
+import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
@@ -16,8 +12,8 @@ void main() {
   );
 
   final context = Context(configurationProvider);
-  final blockcahinNetworkLoader = ChiaBlockchainNetworkLoader();
-  context.registerFactory(NetworkFactory(blockcahinNetworkLoader.loadfromLocalFileSystem));
+  final blockchainNetworkLoader = ChiaBlockchainNetworkLoader();
+  context.registerFactory(NetworkFactory(blockchainNetworkLoader.loadfromLocalFileSystem));
   final walletService = StandardWalletService(context);
 
   final destinationPuzzlehash = const Address('txch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jksxp6hy3').toPuzzlehash();
@@ -52,9 +48,8 @@ void main() {
 
   test('Should create valid spendbundle', () {
     final spendBundle = walletService.createSpendBundle(
+        [Payment(550000, destinationPuzzlehash)],
         coins,
-        550000,
-        destinationPuzzlehash,
         changePuzzlehash,
         walletKeychain,
     );
@@ -64,9 +59,20 @@ void main() {
 
   test('Should create valid spendbundle with fee', () {
     final spendBundle = walletService.createSpendBundle(
+        [Payment(550000, destinationPuzzlehash)],
         coins,
-        550000,
-        destinationPuzzlehash,
+        changePuzzlehash,
+        walletKeychain,
+        fee: 10000,
+    );
+
+    walletService.validateSpendBundle(spendBundle);
+  });
+
+  test('Should create valid spendbundle with multiple payments', () {
+    final spendBundle = walletService.createSpendBundle(
+        [Payment(548000, destinationPuzzlehash), Payment(2000, destinationPuzzlehash)],
+        coins,
         changePuzzlehash,
         walletKeychain,
         fee: 10000,
@@ -77,9 +83,8 @@ void main() {
 
   test('Should create valid spendbundle with only fee', () {
     final spendBundle = walletService.createSpendBundle(
+        [],
         coins,
-        0,
-        destinationPuzzlehash,
         changePuzzlehash,
         walletKeychain,
         fee: 10000,
@@ -90,9 +95,8 @@ void main() {
 
   test('Should create valid spendbundle with originId', () {
     final spendBundle = walletService.createSpendBundle(
+        [Payment(550000, destinationPuzzlehash)],
         coins,
-        550000,
-        destinationPuzzlehash,
         changePuzzlehash,
         walletKeychain,
         originId: coin2.id,
@@ -101,11 +105,21 @@ void main() {
     walletService.validateSpendBundle(spendBundle);
   });
 
+  test('Should fail when given originId not in coins', () async {
+    expect(() => walletService.createSpendBundle(
+        [Payment(550000, destinationPuzzlehash)],
+        coins,
+        changePuzzlehash,
+        walletKeychain,
+        originId: Bytes.fromHex('ff8'),
+      ), throwsException,
+    );
+  });
+
   test('Should create valid spendbundle with total amount less than coin value', () {
     final spendBundle = walletService.createSpendBundle(
+        [Payment(3000, destinationPuzzlehash)],
         coins,
-        3000,
-        destinationPuzzlehash,
         changePuzzlehash,
         walletKeychain,
     );
@@ -115,9 +129,8 @@ void main() {
 
    test('Should throw exception on duplicate coin', () {
     final spendBundle = walletService.createSpendBundle(
+        [Payment(3000, destinationPuzzlehash)],
         [...coins, coin0],
-        3000,
-        destinationPuzzlehash,
         changePuzzlehash,
         walletKeychain,
     );

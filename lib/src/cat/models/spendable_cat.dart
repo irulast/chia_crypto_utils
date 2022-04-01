@@ -3,19 +3,19 @@
 import 'dart:math';
 
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/cat/models/cat_coin.dart';
-import 'package:chia_utils/src/core/models/conditions/create_coin_condition.dart';
 
 class SpendableCat {
   CatCoin coin;
   Program innerPuzzle;
   Program innerSolution;
   int? subtotal;
+  int extraDelta;
 
   SpendableCat({
     required this.coin,
     required this.innerPuzzle,
     required this.innerSolution,
+    this.extraDelta = 0,
   });
 
   Program makeStandardCoinProgram() {
@@ -34,7 +34,7 @@ class SpendableCat {
     for (final spendableCat in spendableCats)  {
       final conditionPrograms = spendableCat.innerPuzzle.run(spendableCat.innerSolution).program.toList();
 
-      var total = 0;
+      var total = spendableCat.extraDelta * -1;
       for (final createCoinConditionProgram in conditionPrograms.where(CreateCoinCondition.isThisCondition)) {
         if (!createCoinConditionProgram.toSource().contains('-113')) {
           final createCoinCondition = CreateCoinCondition.fromProgram(createCoinConditionProgram);

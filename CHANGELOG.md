@@ -1,13 +1,23 @@
 # Changelog
 
+## 1.0.8
+
+- Added CAT minting and reference TAILs
+- Improved support for interaction with mainnet, testnet10
+- Added convenience method for establishing network context
+- Added a cold wallet generation example
+- Enhanced full node interaction and API
+
+## 1.0.7
+
+- Added full node simulator
+
 ## 1.0.6
 
-- Address model is immutable
-- Breaking: `Program.deserializeHexFile` receive a `File` instead of a `String`
+- Breaking: `Program.deserializeHexFile` receives `File` instead of `String`
 - New constructor `Program.deserializeHexFilePath` (formerly `Program.deserializeHexFile`)
-- Fix for `Program.deserializeHexFilePath` test
-- `WalletVector` is immutable
-- `MasterKeyPair` is immutable
+- Fixed `Program.deserializeHexFilePath` test
+- `Address`, `WalletVector`, `MasterKeyPair`, and `Coin` are immutable
 
 ## 1.0.5
 
