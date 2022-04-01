@@ -1,19 +1,42 @@
-import 'dart:io';
-
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:path/path.dart' as path;
+import 'package:chia_utils/src/api/full_node_utils.dart';
+import 'package:test/test.dart';
 
 Future<void> main() async {
-  // final homePath = path.absolute(Platform.environment['HOME']!);
-  // print(homePath);
-  // final fullNodeRpc  = FullNodeHttpRpc(
-  //   'https://localhost:8555',
-  //   certBytes: Bytes(File(path.join(homePath, '.chia/mainnet/config/ssl/full_node/private_full_node.crt')).readAsBytesSync()),
-  //   keyBytes: Bytes(File(path.join(homePath, '.chia/mainnet/config/ssl/full_node/private_full_node.key')).readAsBytesSync())
-  // );
+  final fullNodeUtils = FullNodeUtils(Network.mainnet);
+  try {
+    await fullNodeUtils.checkIsRunning();
+  } catch(e) {
+    print(e);
+    return;
+  }
 
-  // final fullNode = ChiaFullNodeInterface(fullNodeRpc);
+  final fullNodeRpc  = FullNodeHttpRpc(
+    fullNodeUtils.url,
+    certBytes: fullNodeUtils.certBytes,
+    keyBytes: fullNodeUtils.keyBytes,
+  );
 
-  // final coins = await fullNode.getCoinsByPuzzleHashes([Puzzlehash.fromHex('0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad')]);
-  // print(coins);
+  final fullNode = ChiaFullNodeInterface(fullNodeRpc);
+
+  final coinsMany = await fullNode.getCoinsByPuzzleHashes(
+    [Puzzlehash.fromHex('a7850a501d90821b517d0c921c1c480f45a3369c08ae8236e2618a7fc97be14f')],
+      startHeight: 1690666,
+      endHeight: 1691337,
+    );
+  print(coinsMany);
+
+  test('should get coins ', () async {
+    final coins = await fullNode.getCoinsByPuzzleHashes([Puzzlehash.fromHex('51de5b7230cd32f245d5b577550294e070754ae1d9214e80c46f55c0ca914635')],);
+    expect(coins.length == 3, true);
+  });
+
+  test('should get coins with specified start and end height', () async {
+    final coins = await fullNode.getCoinsByPuzzleHashes(
+    [Puzzlehash.fromHex('a7850a501d90821b517d0c921c1c480f45a3369c08ae8236e2618a7fc97be14f')],
+      startHeight: 1690666,
+      endHeight: 1691337,
+    );
+    expect(coins.length == 2, true);
+  });
 }

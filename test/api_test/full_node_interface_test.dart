@@ -2,28 +2,27 @@
 
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/exceptions/bad_coin_id_exception.dart';
+import 'package:chia_utils/src/api/simulator_utils.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/delegated_tail/delegated_tail.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/genesis_by_coin_id/genesis_by_coin_id.clvm.hex.dart';
 import 'package:test/test.dart';
 
-import '../simulator/simulator_utils.dart';
 
 Future<void> main() async {
-  if(!(await SimulatorUtils.checkIfSimulatorIsRunning())) {
-    print(SimulatorUtils.simulatorNotRunningWarning);
+  final simulatorUtils = SimulatorUtils();
+  try {
+    await simulatorUtils.checkIsRunning();
+  } catch(e) {
+    print(e);
     return;
   }
 
-  final context = NetworkContext.makeContext(Network.mainnet);
-  final catWalletService = CatWalletService(context);
-
-  final simulatorHttpRpc = SimulatorHttpRpc(SimulatorUtils.simulatorUrl,
-    certBytes: SimulatorUtils.certBytes,
-    keyBytes: SimulatorUtils.keyBytes,
+  final simulatorHttpRpc = SimulatorHttpRpc(simulatorUtils.url,
+    certBytes: simulatorUtils.certBytes,
+    keyBytes: simulatorUtils.keyBytes,
   );
   final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
-
-
+  
   // generate wallet
   const testMnemonic = [
       'elder', 'quality', 'this', 'chalk', 'crane', 'endless',
@@ -38,6 +37,9 @@ Future<void> main() async {
     walletsSetList.add(set);
   }
   final keychain = WalletKeychain(walletsSetList);
+
+  final context = NetworkContext.makeContext(Network.mainnet);
+  final catWalletService = CatWalletService(context);
 
   final walletVector = keychain.unhardenedMap.values.first;
   final puzzlehash = walletVector.puzzlehash;
@@ -98,13 +100,9 @@ Future<void> main() async {
   test('should get standard coins by puzzlehashes', () async {
     final coins = await fullNodeSimulator.getCoinsByPuzzleHashes(testStandardCoins.map((c) => c.puzzlehash,).toList(), includeSpentCoins: true);
     for(final testCoin in testStandardCoins) {
-      expect(coins.contains(testCoin), true);
+      expect(() => coins.firstWhere((coin) => coin.amount == testCoin.amount), returnsNormally);
+      expect(() => coins.firstWhere((catCoin) => catCoin.puzzlehash == testCoin.puzzlehash), returnsNormally);
     }
-  });
-  
-  test('should get standard coin by id', () async {
-    final coin = await fullNodeSimulator.getCoinById(testStandardCoins[0].id);
-    expect(coin, testStandardCoins[0]);
   });
 
   test('should return null when coin is not found', () async {
@@ -129,6 +127,5 @@ Future<void> main() async {
       expect(() => catCoins.firstWhere((catCoin) => catCoin.amount == testCatCoin.amount), returnsNormally);
       expect(() => catCoins.firstWhere((catCoin) => catCoin.puzzlehash == testCatCoin.puzzlehash), returnsNormally);
     }
-
   });
 }
