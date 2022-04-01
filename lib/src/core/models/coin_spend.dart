@@ -17,33 +17,31 @@ class CoinSpend {
   });
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-      'coin': coin.toJson(),
-      'puzzle_reveal': const HexEncoder().convert(puzzleReveal.serialize()),
-      'solution': const HexEncoder().convert(solution.serialize())
-    };
+        'coin': coin.toJson(),
+        'puzzle_reveal': const HexEncoder().convert(puzzleReveal.serialize()),
+        'solution': const HexEncoder().convert(solution.serialize())
+      };
 
   factory CoinSpend.fromJson(Map<String, dynamic> json) {
     return CoinSpend(
-      coin: CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>) ,
-      puzzleReveal: Program.deserializeHex(json['puzzle_reveal'] as String) ,
+      coin: CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>),
+      puzzleReveal: Program.deserializeHex(json['puzzle_reveal'] as String),
       solution: Program.deserializeHex(json['solution'] as String),
     );
   }
 
   SpendType get type {
     final uncurriedPuzzleSource = puzzleReveal.uncurry().program.toSource();
-    if (uncurriedPuzzleSource == p2DelegatedPuzzleOrHiddenPuzzleProgram.toSource()) {
+    if (uncurriedPuzzleSource ==
+        p2DelegatedPuzzleOrHiddenPuzzleProgram.toSource()) {
       return SpendType.standard;
     }
     if (uncurriedPuzzleSource == catProgram.toSource()) {
       return SpendType.cat;
     }
-    throw UnimplementedError('Unimplemented spend type');
+    return SpendType.unknown;
+    //throw UnimplementedError('Unimplemented spend type');
   }
 }
 
-enum SpendType {
-  standard,
-  cat,
-  nft
-}
+enum SpendType { standard, cat, nft, unknown }
