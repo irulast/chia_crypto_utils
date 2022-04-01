@@ -73,12 +73,7 @@ class JacobianPoint {
     } else {
       sign = signFq(yValue as Fq, ec: ec);
     }
-    Field y;
-    if (sign == (bitS != 0)) {
-      y = yValue;
-    } else {
-      y = -yValue;
-    }
+    final y = sign == (bitS != 0) ? yValue : -yValue;
     return AffinePoint(x, y, false, ec: ec).toJacobian();
   }
 
