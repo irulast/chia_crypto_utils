@@ -15,7 +15,7 @@ This repository is written in [Dart](https://dart.dev/get-dart) to enable mobile
 
 ## Thanks!
 
-Thanks [irulast](https://github.com/irulast/chia-crypto-utils) for you excelente Work
+Thanks [irulast](https://github.com/irulast/chia-crypto-utils) for you excelent Work
 
 ## Build and Test
 
