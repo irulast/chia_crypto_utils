@@ -11,7 +11,7 @@ ENV CHIA_ROOT=/root/.chia/mainnet
 
 RUN git clone https://github.com/Chia-Network/chia-blockchain.git
 WORKDIR /chia-blockchain
-RUN git checkout 911f164442e96dda41d7e31e71f5301397301012
+RUN git checkout 5eb8cafe5d4fcf8dc85fd1fd208c3140ddd74efc
 
 RUN git submodule update --init mozilla-ca
 ENV VIRTUAL_ENV=/opt/venv

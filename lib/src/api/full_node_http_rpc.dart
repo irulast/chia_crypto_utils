@@ -46,7 +46,6 @@ class FullNodeHttpRpc implements FullNode{
       Uri.parse('get_coin_records_by_puzzle_hashes'),
       body,
     );
-    
     mapResponseToError(response);
 
     return CoinRecordsResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);

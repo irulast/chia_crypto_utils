@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.8
+
+- Added CAT minting and reference TAILs
+- Improved support for interaction with mainnet, testnet10
+- Added convenience method for establishing network context
+- Added a cold wallet generation example
+- Enhanced full node interaction and API
+
 ## 1.0.7
 
 - Added full node simulator
