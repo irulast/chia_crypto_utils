@@ -73,14 +73,15 @@ final fullNodeRpc  = FullNodeHttpRpc(
 
 final fullNode = ChiaFullNodeInterface(fullNodeRpc);
 
+// initializing Service
+Context context = NetworkContext.makeContext(Network.mainnet);
+StandardWalletService standardWalletService = StandardWalletService(context);
+
+// getting puzzlehashes to search for
 List<Puzzlehash> myPuzzlehashes = keychain.unhardenedMap.values
   .map((walletVector) => walletVector.puzzlehash);
 
 List<Coin> myCoins = await fullNode.getCoinsByPuzzleHashes(myPuzzlehashes);
-
-// initializing Service
-Context context = NetworkContext.makeContext(Network.mainnet);
-StandardWalletService standardWalletService = StandardWalletService(context);
 
 // creating and pushing spend bundle
 final spendBundle = standardWalletService.createSpendBundle(
@@ -122,24 +123,24 @@ final fullNodeRpc  = FullNodeHttpRpc(
 
 final fullNode = ChiaFullNodeInterface(fullNodeRpc);
 
-final myOuterPuzzlehashes = keychain.getOuterPuzzleHashesForAssetId(assetId);
-
-List<CatCoin> myCatCoins = await fullNode.getCatCoinsByOuterPuzzleHashes(myOuterPuzzlehashes);
-
 // initializing Service
 final context = NetworkContext.makeContext(Network.mainnet);
 final catWalletService = CatWalletService(context);
 
+// get outer puzzle hashes from keychain
+final myOuterPuzzlehashes = keychain.getOuterPuzzleHashesForAssetId(assetId);
+
+List<CatCoin> myCatCoins = await fullNode.getCatCoinsByOuterPuzzleHashes(myOuterPuzzlehashes);
+
 // creating and pushing spend bundle
-final spendBundle = walletService.createSpendBundle(
+final spendBundle = catWalletService.createSpendBundle(
     [
       Payment(amountToSendA, destinstionPuzzlehashA),
       Payment(amountToSendB, destinstionPuzzlehashB)
     ],
-    myCoins,
+    myCatCoins,
     changePuzzlehash,
     keychain,
-    fee: fee,
 );
 
 await fullNode.pushTransaction(spendBundle);
