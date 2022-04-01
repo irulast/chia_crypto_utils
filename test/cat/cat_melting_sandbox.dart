@@ -74,7 +74,7 @@ void main() async {
 
   final mintSignature = AugSchemeMPL.sign(walletSet.childPrivateKey, curriedMeltableGenesisByCoinIdPuzzle.hash());
 
-  final spendBundle = catWalletService.makeMintingSpendbundle(
+  final spendBundle = catWalletService.makeIssuanceSpendbundle(
     tail: curriedTail, 
     solution: tailSolution, 
     standardCoins: coins, 
@@ -218,10 +218,16 @@ void main() async {
   final coin = coins[0];
   const fee = 0;
 
+  // final xchSpendbundle = catWalletService.standardWalletService.createSpendBundle(
+  //   [coin], 
+  //   coin.amount - fee + delta,  // amount
+  //   address.toPuzzlehash(), // destination puzzlehash
+  //   address.toPuzzlehash(), //change puzzlehash
+  //   keychain,
+  // );
   final xchSpendbundle = catWalletService.standardWalletService.createSpendBundle(
-    [coin], 
-    coin.amount - fee + delta,  // amount
-    address.toPuzzlehash(), // destination puzzlehash
+    [Payment(coin.amount - fee + delta, address.toPuzzlehash())],
+    [coin], // destination puzzlehash
     address.toPuzzlehash(), //change puzzlehash
     keychain,
   );
