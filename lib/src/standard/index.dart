@@ -1,0 +1,1 @@
+export './service/wallet.dart';

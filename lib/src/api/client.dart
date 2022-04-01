@@ -1,33 +1,45 @@
 import 'dart:convert';
-import 'package:http/http.dart';
-import 'package:meta/meta.dart';
+import 'dart:io';
 
-@immutable
+import 'package:chia_utils/src/core/models/bytes.dart';
+
 class Client {
-  const Client(this.baseURL);
+  Client(this.baseURL, {Bytes? certBytes, Bytes? keyBytes}) {
+    final context = (certBytes != null && keyBytes != null) ? 
+      (SecurityContext.defaultContext
+          ..usePrivateKeyBytes(keyBytes.toUint8List())
+          ..useCertificateChainBytes(certBytes.toUint8List()))
+      :
+      null;
+    final httpClient = HttpClient(context: context)
+    ..badCertificateCallback = (cert, host, port) => true;
 
+    this.httpClient = httpClient;
+  }
+
+  late HttpClient httpClient;
   final String baseURL;
 
-  Future<Response> sendRequest(Uri url, Object request) {
-    return post(
-      Uri.parse('$baseURL/$url'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(request),
-    );
+  Future<Response> sendRequest(Uri url, Object requestBody) async {
+    final request = await httpClient.postUrl(Uri.parse('$baseURL/$url'));
+
+    request.headers.contentType =
+      ContentType('application', 'json', charset: 'utf-8');
+    request.write(jsonEncode(requestBody));
+
+    final response = await request.close();
+    final stringData = await response.transform(utf8.decoder).join();
+
+    return Response(stringData, response.statusCode);
   }
 
   @override
-  String toString() => 'Client($baseURL)';
+  String toString() => 'Client($baseURL, $httpClient)';
+}
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Client &&
-          runtimeType == other.runtimeType &&
-          baseURL == other.baseURL;
+class Response {
+  Response(this.body, this.statusCode);
 
-  @override
-  int get hashCode => runtimeType.hashCode ^ baseURL.hashCode;
+  String body;
+  int statusCode;
 }

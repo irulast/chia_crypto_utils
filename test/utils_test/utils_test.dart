@@ -9,7 +9,6 @@ import 'package:chia_utils/src/core/models/master_key_pair.dart';
 import 'package:chia_utils/src/core/models/wallet_set.dart';
 import 'package:chia_utils/src/utils/index.dart';
 import 'package:csv/csv.dart';
-import 'package:hex/hex.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -42,7 +41,6 @@ void main() async {
       .toList();
 
   test('should generate correct puzzle hashes from mnemonic', () {
-    const hexEncoder = HexEncoder();
     final masterKeyPair = MasterKeyPair.fromMnemonic(testMnemonic);
     final masterPrivateKey = masterKeyPair.masterPrivateKey;
 
@@ -66,9 +64,9 @@ void main() async {
       }
 
       expect(chiaSet.hardened.puzzlehashHex, set.hardened.puzzlehash.toHex());
-      expect(chiaSet.hardened.childPublicKeyHex, hexEncoder.convert(set.hardened.childPublicKey.toBytes()));
+      expect(chiaSet.hardened.childPublicKeyHex, set.hardened.childPublicKey.toHex());
       expect(chiaSet.unhardened.puzzlehashHex, set.unhardened.puzzlehash.toHex());
-      expect(chiaSet.unhardened.childPublicKeyHex, hexEncoder.convert(set.unhardened.childPublicKey.toBytes()));
+      expect(chiaSet.unhardened.childPublicKeyHex, set.unhardened.childPublicKey.toHex());
       expect(firstAddress, chiaFirstAddress);
     }
 

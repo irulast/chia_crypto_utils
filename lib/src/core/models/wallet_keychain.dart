@@ -32,10 +32,8 @@ class WalletKeychain {
     hardenedMap = newHardenedMap;
     unhardenedMap = newUnhardenedMap;
   }
-  WalletKeychain._internal({
-    required this.hardenedMap,
-    required this.unhardenedMap,
-  });
+  WalletKeychain._internal(
+      {required this.hardenedMap, required this.unhardenedMap});
 
   List<Puzzlehash> getOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
     if (!unhardenedMap.values.first.assetIdtoOuterPuzzlehash

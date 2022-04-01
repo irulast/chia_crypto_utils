@@ -2,8 +2,6 @@
 
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/clvm/keywords.dart';
-import 'package:chia_utils/src/core/models/conditions/agg_sig_me_condition.dart';
-import 'package:chia_utils/src/core/models/conditions/condition.dart';
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/duplicate_coin_exception.dart';
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/failed_signature_verification.dart';
 class BaseWalletService {
@@ -14,8 +12,8 @@ class BaseWalletService {
   BlockchainNetwork get blockchainNetwork {
     return context.get<BlockchainNetwork>();
   }
-
-  CoinSpendAndSignature createCoinsSpendAndSignature(Program solution, Program puzzle, PrivateKey privateKey, Coin coin) {
+   // TODO
+  JacobianPoint makeSignature(Program solution, Program puzzle, PrivateKey privateKey, CoinPrototype coin) {
     final result = puzzle.run(solution);
 
     final addsigmessage = getAddSigMeMessageFromResult(result.program, coin);
@@ -23,12 +21,10 @@ class BaseWalletService {
     final synthSecretKey = calculateSyntheticPrivateKey(privateKey);
     final signature = AugSchemeMPL.sign(synthSecretKey, addsigmessage.toUint8List());
 
-    final coinSpend = CoinSpend(coin: coin, puzzleReveal: puzzle, solution: solution);
-
-    return CoinSpendAndSignature(coinSpend, signature);
+    return signature;
   }
 
-  Bytes getAddSigMeMessageFromResult(Program result, Coin coin) {
+  Bytes getAddSigMeMessageFromResult(Program result, CoinPrototype coin) {
     final aggSigMeCondition = result.toList().singleWhere(AggSigMeCondition.isThisCondition);
     return Bytes(aggSigMeCondition.toList()[2].atom) +
       coin.id +
@@ -62,7 +58,7 @@ class BaseWalletService {
     }
 
     // validate signature
-    if(!AugSchemeMPL.aggregateVerify(publicKeys, messages, spendBundle.aggregatedSignature)) {
+    if(!AugSchemeMPL.aggregateVerify(publicKeys, messages, spendBundle.aggregatedSignature!)) {
       throw FailedSignatureVerificationException();
     }
   }
