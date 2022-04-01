@@ -89,7 +89,7 @@ class WalletVector {
 
   WalletVector.fromJson(Map<String, dynamic> json)
     : childPrivateKey = PrivateKey.fromHex(json['child_private_key'] as String),
-      childPublicKey = JacobianPoint.fromBytesG1(Bytes.fromHex(json['child_public_key'] as String).toUint8List()),
+      childPublicKey = JacobianPoint.fromHexG1(json['child_public_key'] as String),
       puzzlehash = Puzzlehash.fromHex(json['puzzlehash'] as String);
 }
 
