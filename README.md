@@ -12,6 +12,11 @@ This repository seeks to provide a working example of Chia Wallet fundamentals
 
 This repository is written in [Dart](https://dart.dev/get-dart) to enable mobile and web usage.
 
+
+## Thanks!
+
+Thanks [irulast](https://github.com/irulast/chia-crypto-utils) for you excelente Work
+
 ## Build and Test
 
 ```console
