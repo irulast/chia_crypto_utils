@@ -9,14 +9,14 @@ import 'package:chia_utils/src/bls/ec/helpers.dart';
 import 'package:chia_utils/src/bls/field/extensions/fq2.dart';
 import 'package:chia_utils/src/bls/field/field.dart';
 import 'package:chia_utils/src/bls/field/field_base.dart';
-import 'package:chia_utils/src/clvm/bytes.dart';
+import 'package:chia_utils/src/utils.dart';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 import 'package:meta/meta.dart';
 import 'package:quiver/core.dart';
 
 @immutable
-class JacobianPoint {
+class JacobianPoint with ToBytesMixin {
   JacobianPoint(this.x, this.y, this.z, this.infinity, {EC? ec})
       : ec = ec ?? defaultEc,
         isExtension = x is! Fq {
@@ -137,6 +137,7 @@ class JacobianPoint {
   bool get isOnCurve => infinity || toAffine().isOnCurve;
   bool get isValid => isOnCurve && this * ec.n == JacobianPoint.infinityG2();
 
+  @override
   Uint8List toBytes() {
     final point = toAffine();
     final output = point.x.toBytes();
@@ -156,8 +157,6 @@ class JacobianPoint {
     }
     return output;
   }
-
-  String toHex() => const HexEncoder().convert(toBytes());
 
   AffinePoint toAffine() => infinity
       ? AffinePoint(Fq.zero(ec.q), Fq.zero(ec.q), infinity, ec: ec)
