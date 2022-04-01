@@ -19,6 +19,9 @@ class WalletKeychain {
     return hardenedMap[puzzlehash];
   }
 
+  WalletKeychain._internal(
+      {required this.hardenedMap, required this.unhardenedMap});
+
   WalletKeychain(List<WalletSet> walletSets) {
     final newHardenedMap = <Puzzlehash, WalletVector>{};
     final newUnhardenedMap = <Puzzlehash, UnhardenedWalletVector>{};
@@ -63,5 +66,39 @@ class WalletKeychain {
     ]);
     final result = curryAndTreehashProgram.run(solution);
     return Puzzlehash(result.program.atom);
+  }
+
+  factory WalletKeychain.fromMap(Map<String, dynamic> json) {
+    final hardened = json['hardenedMap'] as Map<String, dynamic>;
+    final unhardened = json['unhardenedMap'] as Map<String, dynamic>;
+
+    final hardenedMap = <Puzzlehash, WalletVector>{};
+    final unhardenedMap = <Puzzlehash, UnhardenedWalletVector>{};
+
+    for (final key in hardened.keys) {
+      final value = hardened[key] as Map<String, dynamic>;
+      final puzzlehash = Puzzlehash.fromHex(key);
+      final walletVector = WalletVector.fromMap(value);
+      hardenedMap[puzzlehash] = walletVector;
+    }
+    for (final key in unhardened.keys) {
+      final value = unhardened[key] as Map<String, dynamic>;
+      final puzzlehash = Puzzlehash.fromHex(key);
+      final unhardenedWalletVector = UnhardenedWalletVector.fromMap(value);
+      unhardenedMap[puzzlehash] = unhardenedWalletVector;
+    }
+
+    return WalletKeychain._internal(
+      hardenedMap: hardenedMap,
+      unhardenedMap: unhardenedMap,
+    );
+  }
+  Map<String, dynamic> toMap() {
+    final map = <String, dynamic>{};
+    map['hardenedMap'] =
+        hardenedMap.map((k, v) => MapEntry(k.toHex(), v.toMap()));
+    map['unhardenedMap'] =
+        unhardenedMap.map((k, v) => MapEntry(k.toHex(), v.toMap()));
+    return map;
   }
 }
