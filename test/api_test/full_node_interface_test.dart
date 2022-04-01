@@ -51,7 +51,7 @@ Future<void> main() async {
   final standardCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([puzzlehash]);
   final originCoin = standardCoins[0];
 
-  // mint cat
+  // issue cat
   final curriedTail = delegatedTailProgram.curry([Program.fromBytes(walletVector.childPublicKey.toBytes())]);
   final assetId = Puzzlehash(curriedTail.hash());
   keychain.addOuterPuzzleHashesForAssetId(assetId);
@@ -61,7 +61,7 @@ Future<void> main() async {
 
   final signature = AugSchemeMPL.sign(walletVector.childPrivateKey, curriedGenesisByCoinIdPuzzle.hash());
 
-  final spendBundle = catWalletService.makeMintingSpendbundle(
+  final spendBundle = catWalletService.makeIssuanceSpendbundle(
     tail: curriedTail, 
     solution: tailSolution, 
     standardCoins: [standardCoins.firstWhere((coin) => coin.amount >= 10000)], 
