@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.9
+
+- Bug fixes
+- Added details for usage of M1 and Intel Mac Simulator Docker container
+- Updated FullNode Interface
+- Fixed CAT terminology - issuance, minting
+
 ## 1.0.8
 
 - Added CAT minting and reference TAILs
