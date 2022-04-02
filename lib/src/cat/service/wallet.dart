@@ -5,6 +5,8 @@ import 'package:chia_utils/src/cat/exceptions/mixed_asset_ids_exception.dart';
 import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/delegated_tail/delegated_tail.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/genesis_by_coin_id/genesis_by_coin_id.clvm.hex.dart';
+import 'package:chia_utils/src/core/exceptions/change_puzzlehash_needed_exception.dart';
+import 'package:chia_utils/src/core/exceptions/insufficient_coins_exception.dart';
 import 'package:chia_utils/src/core/service/base_wallet.dart';
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/incorrect_announcement_id_exception.dart';
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/multiple_origin_coin_exception.dart';
@@ -17,11 +19,11 @@ class CatWalletService extends BaseWalletService {
   }
 
   SpendBundle createSpendBundle(
-    List<Payment> payments, 
-    List<CatCoin> catCoinsInput, 
-    Puzzlehash changePuzzlehash, 
-    WalletKeychain keychain, 
     {
+      required List<Payment> payments, 
+      required List<CatCoin> catCoinsInput, 
+      required WalletKeychain keychain,
+      Puzzlehash? changePuzzlehash,  
       List<Coin> standardCoinsForFee = const [], 
       int fee = 0, 
     }
@@ -37,9 +39,14 @@ class CatWalletService extends BaseWalletService {
     
     final totalCatCoinValue = catCoins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
 
-    assert(totalPaymentAmount <= totalCatCoinValue, 'Insufficient total cat coin value');
-    final change = totalCatCoinValue - totalPaymentAmount;
+    if(totalCatCoinValue < totalPaymentAmount) {
+      throw InsufficientCoinsException(attemptedSpendAmount: totalPaymentAmount, coinTotalValue: totalCatCoinValue);
+    }
 
+    final change = totalCatCoinValue - totalPaymentAmount;
+    if (changePuzzlehash == null && change != 0) {
+      throw ChangePuzzlehashNeededException();
+    }
     AssertCoinAnnouncementCondition? primaryAssertCoinAnnouncement;
 
     final spendBundlesToAggregate = <SpendBundle>[];
@@ -86,7 +93,7 @@ class CatWalletService extends BaseWalletService {
         } 
 
         if (change > 0) {
-          conditions.add(CreateCoinCondition(changePuzzlehash, change));
+          conditions.add(CreateCoinCondition(changePuzzlehash!, change));
           createdCoins.add(
             CoinPrototype(
               parentCoinInfo: catCoin.id,
@@ -201,7 +208,13 @@ class CatWalletService extends BaseWalletService {
     final catPuzzleHash = Puzzlehash(catPuzzle.hash());
 
     final standardCoinOriginId = originId ?? standardCoins[0].id;
-    final standardSpendBundle = standardWalletService.createSpendBundle([Payment(amount, Puzzlehash(catPuzzle.hash()))], standardCoins, changePuzzlehash, keychain, originId: standardCoinOriginId);
+    final standardSpendBundle = standardWalletService.createSpendBundle(
+      payments: [Payment(amount, Puzzlehash(catPuzzle.hash()))], 
+      coinsInput: standardCoins, 
+      changePuzzlehash: changePuzzlehash, 
+      keychain: keychain, 
+      originId: standardCoinOriginId
+    );
 
     final eveParentSpend = standardSpendBundle.coinSpends.singleWhere((spend) => spend.coin.id == standardCoinOriginId);
 
@@ -273,7 +286,7 @@ class CatWalletService extends BaseWalletService {
     required int fee,
     required List<Coin> standardCoins,
     required WalletKeychain keychain,
-    required Puzzlehash changePuzzlehash,
+    required Puzzlehash? changePuzzlehash,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAsset = const [],
   }) {
     assert(standardCoins.isNotEmpty, 'If passing in a fee, you must also pass in standard coins to use for that fee.');
@@ -281,10 +294,10 @@ class CatWalletService extends BaseWalletService {
     assert(totalStandardCoinsValue >= fee, 'Total value of passed in standad coins is not enough to cover fee.');
 
     return standardWalletService.createSpendBundle(
-      [], 
-      standardCoins, 
-      changePuzzlehash, 
-      keychain, 
+      payments: [], 
+      coinsInput: standardCoins, 
+      changePuzzlehash: changePuzzlehash, 
+      keychain: keychain, 
       fee: fee,
       coinAnnouncementsToAssert: coinAnnouncementsToAsset,
     );

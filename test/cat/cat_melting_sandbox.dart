@@ -226,10 +226,10 @@ void main() async {
   //   keychain,
   // );
   final xchSpendbundle = catWalletService.standardWalletService.createSpendBundle(
-    [Payment(coin.amount - fee + delta, address.toPuzzlehash())],
-    [coin], // destination puzzlehash
-    address.toPuzzlehash(), //change puzzlehash
-    keychain,
+    payments: [Payment(coin.amount - fee + delta, address.toPuzzlehash())],
+    coinsInput: [coin], // destination puzzlehash
+    changePuzzlehash: address.toPuzzlehash(), //change puzzlehash
+    keychain: keychain,
   );
 
   final finalSpendBundle = SpendBundle.aggregate([

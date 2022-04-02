@@ -83,7 +83,12 @@ Future<void> main() async {
     // to avoid duplicate coins amounts must differ
     payments.add(Payment(990 + i, senderPuzzlehash));
   }
-  final sendBundle = catWalletService.createSpendBundle(payments, senderCatCoins, senderPuzzlehash, keychain);
+  final sendBundle = catWalletService.createSpendBundle(
+    payments: payments, 
+    catCoinsInput: senderCatCoins, 
+    changePuzzlehash: senderPuzzlehash, 
+    keychain: keychain
+  );
 
   await fullNodeSimulator.pushTransaction(sendBundle);
   await fullNodeSimulator.moveToNextBlock();
@@ -109,7 +114,12 @@ Future<void> main() async {
     final amountToSend = (totalNateCoinValue * 0.8).round();
     final payment = Payment(amountToSend, receiverPuzzlehash);
 
-    final spendBundle = catWalletService.createSpendBundle([payment], catCoinsForThisTest, senderPuzzlehash, keychain);
+    final spendBundle = catWalletService.createSpendBundle(
+      payments: [payment], 
+      catCoinsInput: catCoinsForThisTest, 
+      changePuzzlehash: senderPuzzlehash, 
+      keychain: keychain,
+    );
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
@@ -137,7 +147,14 @@ Future<void> main() async {
     const fee = 1000;
     final payment = Payment(amountToSend, receiverPuzzlehash);
 
-    final spendBundle = catWalletService.createSpendBundle([payment], catCoinsForThisTest, senderPuzzlehash, keychain, fee: fee, standardCoinsForFee: standardCoinsForTest);
+    final spendBundle = catWalletService.createSpendBundle(
+      payments: [payment], 
+      catCoinsInput: catCoinsForThisTest, 
+      changePuzzlehash: senderPuzzlehash, 
+      keychain: keychain,
+      fee: fee, 
+      standardCoinsForFee: standardCoinsForTest,
+    );
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
@@ -182,7 +199,13 @@ Future<void> main() async {
 
     const fee = 1000;
 
-    final spendBundle = catWalletService.createSpendBundle(payments, catCoinsForThisTest, senderPuzzlehash, keychain, fee: fee, standardCoinsForFee: standardCoinsForTest);
+    final spendBundle = catWalletService.createSpendBundle(
+      payments: payments, 
+      catCoinsInput: catCoinsForThisTest, 
+      changePuzzlehash: senderPuzzlehash, 
+      keychain: keychain,
+      fee: fee, 
+      standardCoinsForFee: standardCoinsForTest);
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 

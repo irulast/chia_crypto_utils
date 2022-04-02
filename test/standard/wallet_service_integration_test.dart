@@ -61,10 +61,10 @@ Future<void> main() async {
     final fee = (coinsValue * 0.1).round();
 
     final spendBundle = walletService.createSpendBundle(
-        [Payment(amountToSend, receiverPuzzlehash)],
-        coinsToSend,
-        senderPuzzlehash,
-        keychain,
+        payments: [Payment(amountToSend, receiverPuzzlehash)],
+        coinsInput: coinsToSend,
+        changePuzzlehash: senderPuzzlehash,
+        keychain: keychain,
         fee: fee,
     );
 
@@ -90,10 +90,10 @@ Future<void> main() async {
     final amountToSend = (coinsValue * 0.8).round();
 
     final spendBundle = walletService.createSpendBundle(
-        [Payment(amountToSend, receiverPuzzlehash)],
-        coinsToSend,
-        senderPuzzlehash,
-        keychain,
+        payments: [Payment(amountToSend, receiverPuzzlehash)],
+        coinsInput: coinsToSend,
+        changePuzzlehash: senderPuzzlehash,
+        keychain: keychain,
     );
 
     await fullNodeSimulator.pushTransaction(spendBundle);
@@ -126,10 +126,10 @@ Future<void> main() async {
     final payments = amountsToSend.map((a) => Payment(a, receiverPuzzlehash)).toList();
 
     final spendBundle = walletService.createSpendBundle(
-        payments,
-        coinsToSend,
-        senderPuzzlehash,
-        keychain,
+        payments: payments,
+        coinsInput: coinsToSend,
+        changePuzzlehash: senderPuzzlehash,
+        keychain: keychain,
     );
 
     await fullNodeSimulator.pushTransaction(spendBundle);
@@ -165,10 +165,10 @@ Future<void> main() async {
     final amountToSend = (coinsValue * 0.8).round();
 
     final spendBundle = walletService.createSpendBundle(
-        [Payment(amountToSend, receiverPuzzlehash)],
-        coinsToSend,
-        senderPuzzlehash,
-        keychain,
+        payments: [Payment(amountToSend, receiverPuzzlehash)],
+        coinsInput: coinsToSend,
+        changePuzzlehash: senderPuzzlehash,
+        keychain: keychain,
         originId: coinsToSend[coinsToSend.length - 1].id,
     );
 

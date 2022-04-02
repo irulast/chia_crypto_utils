@@ -38,13 +38,9 @@ Future<void> main() async {
   });
 
   test('errors on invalid cat', () async {
-    var exceptionThrown = false;
-    try {
-      CatCoin(coin: standardCoin, parentCoinSpend: standardCoinParentSpend);
-    } on InvalidCatException {
-      exceptionThrown = true;
-    }
-    expect(exceptionThrown, true);
-    
+    expect(
+      () => CatCoin(coin: standardCoin, parentCoinSpend: standardCoinParentSpend),
+      throwsA(isA<InvalidCatException>()),
+    );
   });
 }
