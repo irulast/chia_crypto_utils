@@ -13,10 +13,6 @@ jobs:
     steps:
     - name: Clone the repository
       uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
-      
-    - name: Get Flutter version
-      id: get-flutter-version
-      uses: zgosalvez/github-actions-get-flutter-version-env@b5f12dbe2915d60c827758258d6193df1dacca1d
 
     - name: Cache Flutter
       id: flutter-cache
