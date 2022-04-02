@@ -12,7 +12,7 @@ class BaseWalletService {
   BlockchainNetwork get blockchainNetwork {
     return context.get<BlockchainNetwork>();
   }
-   // TODO
+  
   JacobianPoint makeSignature(Program solution, Program puzzle, PrivateKey privateKey, CoinPrototype coin) {
     final result = puzzle.run(solution);
 

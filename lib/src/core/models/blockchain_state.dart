@@ -1,5 +1,5 @@
 // ignore_for_file: lines_longer_than_80_chars
-// TODO: add more fields
+// TODO(nvjoshi): add more fields
 class BlockchainState {
   int difficulty;
   Peak? peak;
