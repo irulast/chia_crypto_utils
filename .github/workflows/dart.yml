@@ -52,11 +52,9 @@ jobs:
     - name: Run tests
       run: flutter test --coverage 
 
-    - name: Generate coverate report 
-      run: genhtml coverage/lcov.info -o coverage
-
-    - name: Upload code coverage to GitHub
-      uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074
+    - name: Report code coverage
+      uses: zgosalvez/github-actions-report-lcov@v1
       with:
-        name: code-coverage
-        path: coverage
+        coverage-files: coverage/lcov.*.info
+        artifact-name: code-coverage-report
+        github-token: ${{ secrets.GITHUB_TOKEN }}
