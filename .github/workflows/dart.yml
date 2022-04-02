@@ -26,3 +26,9 @@ jobs:
 
       - name: Run tests
         run: dart test
+
+      - name: Analyze Dart
+        uses: zgosalvez/github-actions-analyze-dart@v1.6.1
+        with:
+          fail-on-warnings: true
+          line-length: 200
