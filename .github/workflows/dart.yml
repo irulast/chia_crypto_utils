@@ -49,12 +49,6 @@ jobs:
     - name: Get Flutter packages
       run: flutter pub get
 
-    - name: Analyze Flutter
-      uses: zgosalvez/github-actions-analyze-dart@bc72307ba08e59e62f4d6e5ae311cc464dc0f296
-      with:
-        fail-on-warnings: true
-        line-length: 200
-
     - name: Run tests
       run: flutter test --coverage 
 
