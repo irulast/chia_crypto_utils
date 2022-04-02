@@ -149,7 +149,7 @@ class CatWalletService extends BaseWalletService {
 
     final signature = AugSchemeMPL.sign(privateKey, curriedGenesisByCoinId.hash());
 
-    return makeMintingSpendbundle(
+    return makeIssuanceSpendbundle(
       tail: curriedTail, 
       solution: tailSolution, 
       standardCoins: standardCoins, 
@@ -162,7 +162,7 @@ class CatWalletService extends BaseWalletService {
     );
   }
 
-  SpendBundle makeMintingSpendbundle({
+  SpendBundle makeIssuanceSpendbundle({
     required Program tail,
     required Program solution, 
     required List<CoinPrototype> standardCoins, 
