@@ -4,6 +4,7 @@ import 'package:bip39/bip39.dart' as bip39;
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/curry_and_treehash/curry_and_treehash.clvm.hex.dart';
+import 'package:chia_utils/src/core/models/wallet_vector.dart';
 
 class WalletKeychain {
   Map<Puzzlehash, WalletVector> hardenedMap = <Puzzlehash, WalletVector>{};
