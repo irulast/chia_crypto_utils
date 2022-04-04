@@ -14,9 +14,7 @@ class Bytes with ToBytesMixin {
 
   // empty byte array
   // ignore: prefer_constructors_over_static_methods
-  static Bytes get empty {
-    return const Bytes([]);
-  }
+  static Bytes get empty => const Bytes([]);
 
   factory Bytes.fromHex(String phHex) {
     if (phHex.startsWith(bytesPrefix)) {
@@ -49,9 +47,7 @@ class Bytes with ToBytesMixin {
   int get hashCode => toHex().hashCode;
 
   @override
-  String toString() {
-    return toHex();
-  }
+  String toString() => toHex();
 
   Bytes sha256Hash() {
     return Bytes(sha256.convert(toBytes()).bytes);
