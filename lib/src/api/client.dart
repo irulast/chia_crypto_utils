@@ -1,6 +1,10 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:chia_utils/src/api/exceptions/bad_authentication_exception.dart';
+import 'package:chia_utils/src/api/exceptions/not_running_exception.dart';
 import 'package:chia_utils/src/core/models/bytes.dart';
 
 class Client {
@@ -21,16 +25,25 @@ class Client {
   final String baseURL;
 
   Future<Response> sendRequest(Uri url, Object requestBody) async {
-    final request = await httpClient.postUrl(Uri.parse('$baseURL/$url'));
+    try {
+      final request = await httpClient.postUrl(Uri.parse('$baseURL/$url'));
 
-    request.headers.contentType =
-      ContentType('application', 'json', charset: 'utf-8');
-    request.write(jsonEncode(requestBody));
+      request.headers.contentType =
+        ContentType('application', 'json', charset: 'utf-8');
+      request.write(jsonEncode(requestBody));
 
-    final response = await request.close();
-    final stringData = await response.transform(utf8.decoder).join();
+      final response = await request.close();
+      final stringData = await response.transform(utf8.decoder).join();
 
-    return Response(stringData, response.statusCode);
+      return Response(stringData, response.statusCode);
+    } on SocketException {
+      throw NotRunningException(baseURL);
+    } on HttpException catch(e) {
+      if(e.toString().contains('Connection closed before full header was received')) {
+        throw BadAuthenticationException();
+      }
+      rethrow;
+    }
   }
 
   @override
