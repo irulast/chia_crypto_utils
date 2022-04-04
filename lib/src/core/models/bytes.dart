@@ -1,11 +1,12 @@
 import 'dart:typed_data';
 
+import 'package:chia_utils/src/utils.dart';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 import 'package:meta/meta.dart';
 
 @immutable
-class Bytes {
+class Bytes with ToBytesMixin {
   static String bytesPrefix = '0x';
   final List<int> _byteList;
 
@@ -26,13 +27,8 @@ class Bytes {
     return Bytes(const HexDecoder().convert(phHex));
   }
 
-  Uint8List toUint8List() {
-    return Uint8List.fromList(_byteList);
-  }
-
-  String toHex() {
-    return const HexEncoder().convert(_byteList);
-  }
+  @override
+  Uint8List toBytes() => Uint8List.fromList(_byteList);
 
   String get hexWithBytesPrefix {
     return bytesPrefix + toHex();
@@ -40,7 +36,7 @@ class Bytes {
 
   /// Returns a concatenation of this puzzlehash and [other].
   Bytes operator +(Bytes other) {
-    return Bytes(toUint8List() + other.toUint8List());
+    return Bytes(toBytes() + other.toBytes());
   }
 
   @override
@@ -58,7 +54,7 @@ class Bytes {
   }
 
   Bytes sha256Hash() {
-    return Bytes(sha256.convert(toUint8List()).bytes);
+    return Bytes(sha256.convert(toBytes()).bytes);
   }
 }
 

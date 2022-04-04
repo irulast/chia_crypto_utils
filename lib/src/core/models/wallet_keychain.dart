@@ -7,7 +7,8 @@ import 'package:chia_utils/src/cat/puzzles/curry_and_treehash/curry_and_treehash
 
 class WalletKeychain {
   Map<Puzzlehash, WalletVector> hardenedMap = <Puzzlehash, WalletVector>{};
-  Map<Puzzlehash, UnhardenedWalletVector> unhardenedMap = <Puzzlehash, UnhardenedWalletVector>{};
+  Map<Puzzlehash, UnhardenedWalletVector> unhardenedMap =
+      <Puzzlehash, UnhardenedWalletVector>{};
   static const mnemonicWordSeperator = ' ';
 
   WalletVector? getWalletVector(Puzzlehash puzzlehash) {
@@ -26,39 +27,51 @@ class WalletKeychain {
 
     for (final walletSet in walletSets) {
       newHardenedMap[walletSet.hardened.puzzlehash] = walletSet.hardened;
-      newUnhardenedMap[walletSet.unhardened.puzzlehash] =
-          walletSet.unhardened;
+      newUnhardenedMap[walletSet.unhardened.puzzlehash] = walletSet.unhardened;
     }
     hardenedMap = newHardenedMap;
     unhardenedMap = newUnhardenedMap;
   }
 
   List<Puzzlehash> getOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
-    if (!unhardenedMap.values.first.assetIdtoOuterPuzzlehash.containsKey(assetId)) {
-      throw ArgumentError('Puzzlehashes for given Asset Id are not in keychain');
+    if (!unhardenedMap.values.first.assetIdtoOuterPuzzlehash
+        .containsKey(assetId)) {
+      throw ArgumentError(
+        'Puzzlehashes for given Asset Id are not in keychain',
+      );
     }
     return unhardenedMap.values
-      .map((v) => v.assetIdtoOuterPuzzlehash[assetId]!).toList();
+        .map((v) => v.assetIdtoOuterPuzzlehash[assetId]!)
+        .toList();
   }
 
   void addOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
     final entriesToAdd = <Puzzlehash, UnhardenedWalletVector>{};
     for (final walletVector in unhardenedMap.values) {
-      final outerPuzzleHash = makeOuterPuzzleHash(walletVector.puzzlehash, assetId);
+      final outerPuzzleHash =
+          makeOuterPuzzleHash(walletVector.puzzlehash, assetId);
       walletVector.assetIdtoOuterPuzzlehash[assetId] = outerPuzzleHash;
       entriesToAdd[outerPuzzleHash] = walletVector;
     }
     unhardenedMap.addAll(entriesToAdd);
-    
   }
 
-  static Puzzlehash makeOuterPuzzleHash(Puzzlehash innerPuzzleHash, Puzzlehash assetId) {
-    final solution = Program.list([Program.fromBytes(catProgram.hash()), Program.fromBytes(assetId.toUint8List()), Program.fromBytes(innerPuzzleHash.toUint8List())]);
+  static Puzzlehash makeOuterPuzzleHash(
+    Puzzlehash innerPuzzleHash,
+    Puzzlehash assetId,
+  ) {
+    final solution = Program.list([
+      Program.fromBytes(catProgram.hash()),
+      Program.fromBytes(assetId.toBytes()),
+      Program.fromBytes(innerPuzzleHash.toBytes())
+    ]);
     final result = curryAndTreehashProgram.run(solution);
     return Puzzlehash(result.program.atom);
   }
 
   static List<String> generateMnemonic({int strength = 256}) {
-    return bip39.generateMnemonic(strength: strength).split(mnemonicWordSeperator);
+    return bip39
+        .generateMnemonic(strength: strength)
+        .split(mnemonicWordSeperator);
   }
 }

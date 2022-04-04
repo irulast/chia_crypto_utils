@@ -9,7 +9,7 @@ class Address {
   const Address(this.address);
 
   Address.fromPuzzlehash(Puzzlehash puzzlehash, String addressPrefix)
-      : address = segwit.encode(Segwit(addressPrefix, puzzlehash.toUint8List()));
+      : address = segwit.encode(Segwit(addressPrefix, puzzlehash.toBytes()));
 
   final String address;
 

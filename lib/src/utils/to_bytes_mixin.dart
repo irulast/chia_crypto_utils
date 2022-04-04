@@ -8,6 +8,6 @@ mixin ToBytesMixin {
   String toHex() => const HexEncoder().convert(toBytes());
 }
 
-extension ToBytesExtension on String {
+extension StringToBytesX on String {
   Uint8List toBytes() => const HexDecoder().convert(this) as Uint8List;
 }

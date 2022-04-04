@@ -54,7 +54,7 @@ Future<void> main() async {
   final assetId = Puzzlehash(curriedTail.hash());
   keychain.addOuterPuzzleHashesForAssetId(assetId);
   
-  final curriedGenesisByCoinIdPuzzle = genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id.toUint8List())]);
+  final curriedGenesisByCoinIdPuzzle = genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id.toBytes())]);
   final tailSolution = Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
 
   final signature = AugSchemeMPL.sign(senderWalletSet.childPrivateKey, curriedGenesisByCoinIdPuzzle.hash());

@@ -22,34 +22,33 @@ class CoinPrototype {
         amount = json['amount'] as int;
 
   Bytes get id {
-    return Bytes(sha256
-        .convert(
-            parentCoinInfo.toUint8List() +
-            puzzlehash.toUint8List() +
-            intToBytesStandard(amount, Endian.big),
+    return Bytes(
+      sha256
+          .convert(
+            parentCoinInfo.toBytes() +
+                puzzlehash.toBytes() +
+                intToBytesStandard(amount, Endian.big),
           )
-        .bytes,
-      );
+          .bytes,
+    );
   }
 
   Program toProgram() {
     return Program.list([
-      Program.fromBytes(parentCoinInfo.toUint8List()),
-      Program.fromBytes(puzzlehash.toUint8List()),
+      Program.fromBytes(parentCoinInfo.toBytes()),
+      Program.fromBytes(puzzlehash.toBytes()),
       Program.fromInt(amount),
     ]);
   }
 
-  Map<String, dynamic> toJson() => <String, dynamic> {
-      'parent_coin_info': parentCoinInfo.toHex(),
-      'puzzle_hash': puzzlehash.toHex(),
-      'amount': amount
-  };
-  
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'parent_coin_info': parentCoinInfo.toHex(),
+        'puzzle_hash': puzzlehash.toHex(),
+        'amount': amount
+      };
+
   @override
-  bool operator ==(Object other) =>
-      other is CoinPrototype &&
-      other.id == id;
+  bool operator ==(Object other) => other is CoinPrototype && other.id == id;
 
   @override
   int get hashCode => id.toHex().hashCode;
