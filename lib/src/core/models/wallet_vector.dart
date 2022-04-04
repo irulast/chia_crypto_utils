@@ -41,6 +41,24 @@ class WalletVector with ToBytesMixin {
     );
   }
 
+  factory WalletVector.fromPrivateKey(
+    PrivateKey masterPrivateKey,
+    int derivationIndex,
+  ) {
+    final childPrivateKeyHardened =
+        masterSkToWalletSk(masterPrivateKey, derivationIndex);
+    final childPublicKeyHardened = childPrivateKeyHardened.getG1();
+
+    final puzzleHardened = getPuzzleFromPk(childPublicKeyHardened);
+    final puzzlehashHardened = Puzzlehash(puzzleHardened.hash());
+
+    return WalletVector(
+      childPrivateKey: childPrivateKeyHardened,
+      childPublicKey: childPublicKeyHardened,
+      puzzlehash: puzzlehashHardened,
+    );
+  }
+
   final PrivateKey childPrivateKey;
   final JacobianPoint childPublicKey;
   final Puzzlehash puzzlehash;
@@ -93,6 +111,24 @@ class UnhardenedWalletVector extends WalletVector {
           childPublicKey: childPublicKey,
           puzzlehash: puzzlehash,
         );
+
+  factory UnhardenedWalletVector.fromPrivateKey(
+    PrivateKey masterPrivateKey,
+    int derivationIndex,
+  ) {
+    final childPrivateKeyUnhardened =
+        masterSkToWalletSkUnhardened(masterPrivateKey, derivationIndex);
+    final childPublicKeyUnhardened = childPrivateKeyUnhardened.getG1();
+
+    final puzzleUnhardened = getPuzzleFromPk(childPublicKeyUnhardened);
+    final puzzlehashUnhardened = Puzzlehash(puzzleUnhardened.hash());
+
+    return UnhardenedWalletVector(
+      childPrivateKey: childPrivateKeyUnhardened,
+      childPublicKey: childPublicKeyUnhardened,
+      puzzlehash: puzzlehashUnhardened,
+    );
+  }
 
   final Map<Puzzlehash, Puzzlehash> assetIdtoOuterPuzzlehash;
 }
