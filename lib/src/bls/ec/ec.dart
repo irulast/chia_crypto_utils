@@ -1,5 +1,4 @@
 // ignore_for_file: non_constant_identifier_names
-import 'dart:math' as math;
 
 import 'package:chia_utils/src/bls/bls12381.dart';
 import 'package:chia_utils/src/bls/ec/affine_point.dart';
@@ -61,16 +60,26 @@ bool signFq2(Fq2 element, {EC? ec}) {
 Field yForX(Field x, {EC? ec}) {
   ec ??= defaultEc;
   final u = x * x * x + ec.a * x + ec.b;
-  final y = (u as dynamic).modSqrt();
-  if (y == BigInt.zero || !AffinePoint(x, y, false, ec: ec).isOnCurve) {
+
+  final y = () {
+    if (u is Fq) {
+      return u.modSqrt();
+    } else if (u is Fq2) {
+      return u.modSqrt();
+    }
+    throw Exception(
+      'unsupported type ${u.runtimeType}. It must be or $Fq or $Fq2',
+    );
+  }();
+  if (y.equal(BigInt.zero) || !AffinePoint(x, y, false, ec: ec).isOnCurve) {
     throw ArgumentError('No y for point x.');
   }
   return y;
 }
 
-AffinePoint scalarMult(c, AffinePoint p1, {EC? ec}) {
+AffinePoint scalarMult(BigInt c, AffinePoint p1, {EC? ec}) {
   ec ??= defaultEc;
-  if (p1.infinity || c % ec.q == 0) {
+  if (p1.infinity || c % ec.q == BigInt.zero) {
     return AffinePoint(
       p1.isExtension ? Fq2.zero(ec.q) : Fq.zero(ec.q),
       p1.isExtension ? Fq2.zero(ec.q) : Fq.zero(ec.q),
@@ -85,12 +94,13 @@ AffinePoint scalarMult(c, AffinePoint p1, {EC? ec}) {
     ec: ec,
   );
   var addend = p1;
-  while (c > 0) {
-    if (c & 1) {
+  var _c = c;
+  while (_c > BigInt.zero) {
+    if (_c & BigInt.one == BigInt.one) {
       result += addend;
     }
     addend += addend;
-    c >>= 1;
+    _c >>= 1;
   }
   return result;
 }
@@ -130,29 +140,16 @@ JacobianPoint evalIso(JacobianPoint P, List<List<Fq2>> mapCoeffs, EC ec) {
   final x = P.x;
   final y = P.y;
   final z = P.z;
+
+  final maxOrd = mapCoeffs.maxLength;
+  final zPows = z.nPows(maxOrd);
+
   final mapVals = List<Fq2?>.filled(4, null);
-  var maxOrd = mapCoeffs[0].length;
-  for (final coeffs in mapCoeffs.sublist(1)) {
-    maxOrd = math.max(maxOrd, coeffs.length);
-  }
-  final zPows = List<Fq2?>.filled(maxOrd, null);
-  zPows[0] = z.pow(BigInt.zero) as Fq2;
-  zPows[1] = z.pow(BigInt.two) as Fq2;
-  for (final i in range(2, zPows.length)) {
-    assert(
-      zPows[i.toInt() - 1] != null,
-      'zPows[${i.toInt() - 1}] must be non-null',
-    );
-    assert(
-      zPows[1] != null,
-      'zPows[1] must be non-null',
-    );
-    zPows[i.toInt()] = zPows[i.toInt() - 1]! * zPows[1] as Fq2;
-  }
+
   for (final item in enumerate(mapCoeffs)) {
     final coeffsZ =
         zip([item.value.reversed.toList(), zPows.sublist(0, item.value.length)])
-            .map((item) => item[0]! * item[1])
+            .map((item) => item[0] * item[1])
             .toList();
     var tmp = coeffsZ[0];
     for (final coeff in coeffsZ.sublist(1, coeffsZ.length)) {
@@ -165,15 +162,38 @@ JacobianPoint evalIso(JacobianPoint P, List<List<Fq2>> mapCoeffs, EC ec) {
     mapCoeffs[1].length + 1 == mapCoeffs[0].length,
     'mapCoeffs[0] must have one element more than mapCoeffs[1]',
   );
-  assert(zPows[1] != null);
-  assert(mapVals[1] != null);
+  assert(mapVals[1] != null, 'mapVals[1] must be non-null');
   mapVals[1] = mapVals[1]! * zPows[1] as Fq2;
-  assert(mapVals[2] != null);
-  assert(mapVals[3] != null);
+  assert(mapVals[2] != null, 'mapVals[2] must be non-null');
+  assert(mapVals[3] != null, 'mapVals[3] must be non-null');
   mapVals[2] = mapVals[2]! * y as Fq2;
   mapVals[3] = mapVals[3]! * z.pow(BigInt.from(3)) as Fq2;
   final Z = mapVals[1]! * mapVals[3];
   final X = mapVals[0]! * mapVals[3] * Z;
   final Y = mapVals[2]! * mapVals[1] * Z * Z;
   return JacobianPoint(X, Y, Z, P.infinity, ec: ec);
+}
+
+extension MaxLength<T> on List<List<T>> {
+  int get maxLength {
+    var max = 0;
+    for (final item in this) {
+      if (item.length > max) max = item.length;
+    }
+    return max;
+  }
+}
+
+extension NFq2Pows on Field {
+  List<Fq2> nPows(int length) {
+    final zPows = List<Fq2?>.filled(length, null);
+    zPows[0] = pow(BigInt.zero) as Fq2;
+    zPows[1] = pow(BigInt.two) as Fq2;
+    for (var i = 2; i < zPows.length; i++) {
+      assert(zPows[i - 1] != null, 'zPows[${i - 1}] must be non-null');
+      assert(zPows[1] != null, 'zPows[1] must be non-null');
+      zPows[i] = zPows[i - 1]! * zPows[1] as Fq2;
+    }
+    return zPows.cast();
+  }
 }
