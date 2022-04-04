@@ -144,7 +144,7 @@ class CatWalletService extends BaseWalletService {
     final publicKey = privateKey.getG1();
     final curriedTail = delegatedTailProgram.curry([Program.fromBytes(publicKey.toBytes())]);
     
-    final curriedGenesisByCoinId = genesisByCoinIdProgram.curry([Program.fromBytes(genesisCoinId.toUint8List())]);
+    final curriedGenesisByCoinId = genesisByCoinIdProgram.curry([Program.fromBytes(genesisCoinId.toBytes())]);
     final tailSolution = Program.list([curriedGenesisByCoinId, Program.nil]);
 
     final signature = AugSchemeMPL.sign(privateKey, curriedGenesisByCoinId.hash());
@@ -185,9 +185,9 @@ class CatWalletService extends BaseWalletService {
         ]),
         Program.list([
           Program.fromInt(51),
-          Program.fromBytes(destinationPuzzlehash.toUint8List()),
+          Program.fromBytes(destinationPuzzlehash.toBytes()),
           Program.fromInt(amount),
-          Program.list([Program.fromBytes(destinationPuzzlehash.toUint8List()),])
+          Program.list([Program.fromBytes(destinationPuzzlehash.toBytes()),])
         ]),
       ]),
     );
@@ -301,7 +301,7 @@ class CatWalletService extends BaseWalletService {
     return Program.list([
       currentSpendableCat.innerSolution, 
       currentSpendableCat.coin.lineageProof,
-      Program.fromBytes(previousSpendableCat.coin.id.toUint8List()),
+      Program.fromBytes(previousSpendableCat.coin.id.toBytes()),
       currentSpendableCat.coin.toProgram(),
       nextSpendableCat.makeStandardCoinProgram(),
       Program.fromInt(currentSpendableCat.subtotal!),
@@ -312,7 +312,7 @@ class CatWalletService extends BaseWalletService {
   static Program makeCatPuzzle(SpendableCat spendableCat) {
     return catProgram.curry([
       Program.fromBytes(catProgram.hash()),
-      Program.fromBytes(spendableCat.coin.assetId.toUint8List()),
+      Program.fromBytes(spendableCat.coin.assetId.toBytes()),
       spendableCat.innerPuzzle
     ]);
   }

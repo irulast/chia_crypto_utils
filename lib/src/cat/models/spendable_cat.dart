@@ -20,7 +20,7 @@ class SpendableCat {
 
   Program makeStandardCoinProgram() {
     return Program.list([
-      Program.fromBytes(coin.parentCoinInfo.toUint8List()),
+      Program.fromBytes(coin.parentCoinInfo.toBytes()),
       Program.fromBytes(innerPuzzle.hash()),
       Program.fromInt(coin.amount),
     ]);
@@ -31,13 +31,18 @@ class SpendableCat {
     final deltasMap = <Bytes, int>{};
 
     // calculate deltas
-    for (final spendableCat in spendableCats)  {
-      final conditionPrograms = spendableCat.innerPuzzle.run(spendableCat.innerSolution).program.toList();
+    for (final spendableCat in spendableCats) {
+      final conditionPrograms = spendableCat.innerPuzzle
+          .run(spendableCat.innerSolution)
+          .program
+          .toList();
 
       var total = spendableCat.extraDelta * -1;
-      for (final createCoinConditionProgram in conditionPrograms.where(CreateCoinCondition.isThisCondition)) {
+      for (final createCoinConditionProgram
+          in conditionPrograms.where(CreateCoinCondition.isThisCondition)) {
         if (!createCoinConditionProgram.toSource().contains('-113')) {
-          final createCoinCondition = CreateCoinCondition.fromProgram(createCoinConditionProgram);
+          final createCoinCondition =
+              CreateCoinCondition.fromProgram(createCoinConditionProgram);
           total += createCoinCondition.amount;
         }
       }
@@ -48,17 +53,18 @@ class SpendableCat {
     //calculate subtotals
     final subtotalsMap = <Bytes, int>{};
     var subtotal = 0;
-    deltasMap.forEach((coinId, delta) { 
+    deltasMap.forEach((coinId, delta) {
       subtotalsMap[coinId] = subtotal;
       subtotal += delta;
     });
 
     final subtotalOffset = subtotalsMap.values.reduce(min);
-    final standardizedSubtotals = subtotalsMap.map((key, value) => MapEntry(key, value - subtotalOffset));
+    final standardizedSubtotals =
+        subtotalsMap.map((key, value) => MapEntry(key, value - subtotalOffset));
 
     // attach subtotals to their respective spendableCat
     // ignore: cascade_invocations
-    standardizedSubtotals.forEach((coinId, subtotal) { 
+    standardizedSubtotals.forEach((coinId, subtotal) {
       spendInfoMap[coinId]!.subtotal = subtotal;
     });
   }

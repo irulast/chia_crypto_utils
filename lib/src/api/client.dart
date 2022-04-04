@@ -9,14 +9,13 @@ import 'package:chia_utils/src/core/models/bytes.dart';
 
 class Client {
   Client(this.baseURL, {Bytes? certBytes, Bytes? keyBytes}) {
-    final context = (certBytes != null && keyBytes != null) ? 
-      (SecurityContext.defaultContext
-          ..usePrivateKeyBytes(keyBytes.toUint8List())
-          ..useCertificateChainBytes(certBytes.toUint8List()))
-      :
-      null;
+    final context = (certBytes != null && keyBytes != null)
+        ? (SecurityContext.defaultContext
+          ..usePrivateKeyBytes(keyBytes.toBytes())
+          ..useCertificateChainBytes(certBytes.toBytes()))
+        : null;
     final httpClient = HttpClient(context: context)
-    ..badCertificateCallback = (cert, host, port) => true;
+      ..badCertificateCallback = (cert, host, port) => true;
 
     this.httpClient = httpClient;
   }
@@ -29,7 +28,7 @@ class Client {
       final request = await httpClient.postUrl(Uri.parse('$baseURL/$url'));
 
       request.headers.contentType =
-        ContentType('application', 'json', charset: 'utf-8');
+          ContentType('application', 'json', charset: 'utf-8');
       request.write(jsonEncode(requestBody));
 
       final response = await request.close();
@@ -38,8 +37,10 @@ class Client {
       return Response(stringData, response.statusCode);
     } on SocketException {
       throw NotRunningException(baseURL);
-    } on HttpException catch(e) {
-      if(e.toString().contains('Connection closed before full header was received')) {
+    } on HttpException catch (e) {
+      if (e
+          .toString()
+          .contains('Connection closed before full header was received')) {
         throw BadAuthenticationException();
       }
       rethrow;
