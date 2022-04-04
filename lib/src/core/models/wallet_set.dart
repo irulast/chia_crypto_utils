@@ -2,13 +2,11 @@
 
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/core/models/wallet_vector.dart';
+import 'package:meta/meta.dart';
 
+@immutable
 class WalletSet {
-  WalletVector hardened;
-  UnhardenedWalletVector unhardened;
-  int derivationIndex;
-
-  WalletSet({
+  const WalletSet({
     required this.hardened,
     required this.unhardened,
     required this.derivationIndex,
@@ -50,4 +48,8 @@ class WalletSet {
       derivationIndex: derivationIndex,
     );
   }
+
+  final WalletVector hardened;
+  final UnhardenedWalletVector unhardened;
+  final int derivationIndex;
 }
