@@ -63,3 +63,8 @@ class CoinPrototype implements Serializable{
   @override
   String toString() => 'Coin(id: $id, parentCoinInfo: $parentCoinInfo puzzlehash: $puzzlehash, amount: $amount)';
 }
+
+int calculateTotalCoinValue(List<CoinPrototype> coins) {
+  final total = coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
+  return total;
+}

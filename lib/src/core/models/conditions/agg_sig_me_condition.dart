@@ -40,5 +40,5 @@ class AggSigMeCondition implements Condition {
   }
 
   @override
-  String toString() => 'AggSigCondition(code: $conditionCode,, publicKey: $publicKey, message: $message)';
+  String toString() => 'AggSigCondition(code: $conditionCode, publicKey: $publicKey, message: $message)';
 }

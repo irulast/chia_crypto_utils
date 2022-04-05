@@ -2,6 +2,7 @@
 
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/cat/exceptions/mixed_asset_ids_exception.dart';
+import 'package:chia_utils/src/cat/models/conditions/run_tail_condition.dart';
 import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/delegated_tail/delegated_tail.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/genesis_by_coin_id/genesis_by_coin_id.clvm.hex.dart';
@@ -170,6 +171,55 @@ class CatWalletService extends BaseWalletService {
     );
   }
 
+  SpendBundle makeMeltingSpendBundle({
+    required CatCoin catCoinToMelt,
+    required List<CoinPrototype> standardCoinsForXchClaimingSpendBundle,
+    required Puzzlehash puzzlehashToClaimXchTo,
+    required Program tail,
+    required Program tailSolution,
+    required WalletKeychain keychain,
+    required JacobianPoint issuanceSignature,
+    int fee = 0,
+    Puzzlehash? changePuzzlehash,
+    int? inputAmountToMelt,
+  }) {
+    final amountToMelt = inputAmountToMelt ?? catCoinToMelt.amount;
+    final change = catCoinToMelt.amount - amountToMelt;
+
+    if (changePuzzlehash == null && change > 0) {
+      throw ChangePuzzlehashNeededException();
+    }
+
+    final walletVector = keychain.getWalletVector(catCoinToMelt.puzzlehash);
+
+    final innerPuzzle = getPuzzleFromPk(walletVector!.childPublicKey);
+
+    final conditions = <Condition>[RunTailCondition(tail, tailSolution)];
+
+    if (change > 0) {
+      conditions.add(CreateCoinCondition(changePuzzlehash!, change));
+    }
+
+    final innerSolution = BaseWalletService.makeSolutionFromConditions(conditions);
+
+    final spendableCat = SpendableCat(
+      coin: catCoinToMelt, innerPuzzle: innerPuzzle, innerSolution: innerSolution, extraDelta: -amountToMelt,
+    );
+
+    final meltSpendBundle = makeCatSpendBundleFromSpendableCats([spendableCat], keychain);
+
+    final totalStandardCoinValue = calculateTotalCoinValue(standardCoinsForXchClaimingSpendBundle);
+
+    final xchClaimingSpendbundle = standardWalletService.createSpendBundle(
+      payments: [Payment(totalStandardCoinValue - fee + amountToMelt, puzzlehashToClaimXchTo)],
+      coinsInput: standardCoinsForXchClaimingSpendBundle,
+      keychain: keychain,
+      fee: fee,
+    );
+
+    return meltSpendBundle + xchClaimingSpendbundle + issuanceSignature;
+  }
+
   SpendBundle makeIssuanceSpendbundle({
     required Program tail,
     required Program solution, 
@@ -214,7 +264,7 @@ class CatWalletService extends BaseWalletService {
       coinsInput: standardCoins, 
       changePuzzlehash: changePuzzlehash, 
       keychain: keychain, 
-      originId: standardCoinOriginId
+      originId: standardCoinOriginId,
     );
 
     final eveParentSpend = standardSpendBundle.coinSpends.singleWhere((spend) => spend.coin.id == standardCoinOriginId);
@@ -237,7 +287,6 @@ class CatWalletService extends BaseWalletService {
 
 
     return standardSpendBundle + eveUnsignedSpendbundle + signature;
-;
   }
 
   SpendBundle makeCatSpendBundleFromSpendableCats(List<SpendableCat> spendableCats, WalletKeychain keychain, {bool signed = true}) {

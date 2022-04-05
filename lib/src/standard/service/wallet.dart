@@ -29,7 +29,7 @@ class StandardWalletService extends BaseWalletService{
     final totalPaymentAmount = payments.fold(0, (int previousValue, payment) => previousValue + payment.amount);
     final change = totalCoinValue - totalPaymentAmount - fee;
 
-    if (changePuzzlehash == null && change != 0) {
+    if (changePuzzlehash == null && change > 0) {
       throw ChangePuzzlehashNeededException();
     }
 
