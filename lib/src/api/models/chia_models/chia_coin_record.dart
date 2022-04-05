@@ -38,4 +38,7 @@ class ChiaCoinRecord {
       amount: coin.amount,
     );
   }
+
+  @override
+  String toString() => toCoin().toString();
 }
