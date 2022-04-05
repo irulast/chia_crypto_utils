@@ -3,7 +3,7 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/simulator_utils.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/delegated_tail/delegated_tail.clvm.hex.dart';
-import 'package:chia_utils/src/cat/puzzles/tails/meltable_genesis_by_coined/meltable_genesis_by_coin_id.clvm.dart';
+import 'package:chia_utils/src/cat/puzzles/tails/meltable_genesis_by_coined/meltable_genesis_by_coin_id.hex.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
