@@ -255,7 +255,7 @@ class JacobianPoint {
   int get hashCode => hash4(x, y, z, infinity);
 
   @override
-  String toString() => 'JacobianPoint(x=$x, y=$y, z=$z, i=$infinity)';
+  String toString() => 'JacobianPoint(0x$toHex())';
 
   JacobianPoint clone() =>
       JacobianPoint(x.clone(), y.clone(), z.clone(), infinity, ec: ec);

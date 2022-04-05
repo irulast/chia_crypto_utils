@@ -91,6 +91,9 @@ class WalletVector {
     : childPrivateKey = PrivateKey.fromHex(json['child_private_key'] as String),
       childPublicKey = JacobianPoint.fromHexG1(json['child_public_key'] as String),
       puzzlehash = Puzzlehash.fromHex(json['puzzlehash'] as String);
+
+  @override
+  String toString() => 'WalletVector(childPrivateKey: $childPrivateKey, childPublicKey: $childPublicKey, puzzlehash: $puzzlehash)';
 }
 
 class UnhardenedWalletVector extends WalletVector {

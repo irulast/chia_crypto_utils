@@ -90,7 +90,7 @@ class AffinePoint {
   AffinePoint clone() => AffinePoint(x.clone(), y.clone(), infinity, ec: ec);
 
   @override
-  String toString() => 'AffinePoint(x=$x, y=$y, i=$infinity)';
+  String toString() => 'AffinePoint(x: $x, y: $y, i: $infinity)';
 
   @override
   bool operator ==(Object other) =>

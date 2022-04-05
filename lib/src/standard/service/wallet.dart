@@ -155,7 +155,7 @@ class StandardWalletService extends BaseWalletService{
         originId = spend.coin.id;
       }
       for (final coinCreationCondition in coinCreationConditions) {
-        coinsToCreate.add(CoinPrototype(parentCoinInfo: spend.coin.id, puzzlehash: coinCreationCondition.destinationHash, amount: coinCreationCondition.amount));
+        coinsToCreate.add(CoinPrototype(parentCoinInfo: spend.coin.id, puzzlehash: coinCreationCondition.destinationPuzzlehash, amount: coinCreationCondition.amount));
       }
       coinsBeingSpent.add(spend.coin);
     }

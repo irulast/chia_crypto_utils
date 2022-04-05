@@ -45,5 +45,5 @@ class CatCoin extends CoinPrototype{
   super(parentCoinInfo: coin.parentCoinInfo, puzzlehash: coin.puzzlehash, amount: coin.amount);
   
   @override
-  String toString() => 'CatCoin(id: $id, parentCoinSpend: $parentCoinSpend, assetId: $assetId, lineageProof: $lineageProof)';
+  String toString() => 'CatCoin(id: $id, parentCoinInfo: $parentCoinInfo, puzzlehash: $puzzlehash, amount: $amount, assetId: $assetId)';
 }

@@ -46,6 +46,8 @@ class CoinSpend implements Serializable{
     }
     throw UnimplementedError('Unimplemented spend type');
   }
+  @override
+  String toString() => 'CoinSpend(coin: $coin, puzzleReveal: $puzzleReveal, solution: $solution)';
 }
 
 enum SpendType {

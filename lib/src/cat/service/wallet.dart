@@ -347,7 +347,7 @@ class CatWalletService extends BaseWalletService {
         .map((program) => CreateCoinCondition.fromProgram(program)).toList();
       
       for (final coinCreationCondition in coinCreationConditions) {
-        coinsToCreate.add(CoinPrototype(parentCoinInfo: catSpend.coin.id, puzzlehash: coinCreationCondition.destinationHash, amount: coinCreationCondition.amount));
+        coinsToCreate.add(CoinPrototype(parentCoinInfo: catSpend.coin.id, puzzlehash: coinCreationCondition.destinationPuzzlehash, amount: coinCreationCondition.amount));
       }
       coinsBeingSpent.add(catSpend.coin);
 

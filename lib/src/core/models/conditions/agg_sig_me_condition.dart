@@ -38,4 +38,7 @@ class AggSigMeCondition implements Condition {
     }
     return true;
   }
+
+  @override
+  String toString() => 'AggSigCondition(code: $conditionCode,, publicKey: $publicKey, message: $message)';
 }

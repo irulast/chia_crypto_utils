@@ -62,4 +62,7 @@ class SpendableCat {
       spendInfoMap[coinId]!.subtotal = subtotal;
     });
   }
+
+  @override
+  String toString() => 'SpendableCat(coin: $coin, innerPuzzle: $innerPuzzle, innerSolution: $innerSolution)';
 }

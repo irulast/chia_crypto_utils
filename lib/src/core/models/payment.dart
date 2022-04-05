@@ -27,4 +27,6 @@ class Payment {
   CreateCoinCondition toCreateCoinCondition() {
     return CreateCoinCondition(puzzlehash, amount, memos: memos);
   }
+  @override
+  String toString() => 'Payment(amount: $amount, puzzlehash: $puzzlehash, memos: $memos)';
 }

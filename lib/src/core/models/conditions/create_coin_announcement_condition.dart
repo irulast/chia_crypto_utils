@@ -14,4 +14,7 @@ class CreateCoinAnnouncementCondition implements Condition {
       Program.fromBytes(message.toUint8List()),
     ]);
   }
+
+  @override
+  String toString() => 'CreateCoinAnnouncementCondition(code: $conditionCode, message: $message)';
 }

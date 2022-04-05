@@ -58,4 +58,7 @@ class SpendBundle implements Serializable{
       print('result: ${spend.puzzleReveal.run(spend.solution).program}');
     }
   }
+
+  @override
+  String toString() => 'SpendBundle(coinSpends: $coinSpends, aggregatedSignature: $aggregatedSignature)';
 }

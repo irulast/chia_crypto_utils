@@ -59,4 +59,7 @@ class CoinPrototype implements Serializable{
 
   @override
   int get hashCode => id.toHex().hashCode;
+
+  @override
+  String toString() => 'Coin(id: $id, parentCoinInfo: $parentCoinInfo puzzlehash: $puzzlehash, amount: $amount)';
 }

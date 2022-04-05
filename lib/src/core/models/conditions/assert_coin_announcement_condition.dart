@@ -44,4 +44,7 @@ class AssertCoinAnnouncementCondition implements Condition {
     }
     return true;
   }
+
+  @override
+  String toString() => 'AssertCoinAnnouncementCondition(code: $conditionCode, coinId: $coinId, message: $message, morphBytes: $morphBytes)';
 }
