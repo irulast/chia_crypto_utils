@@ -130,5 +130,33 @@ class UnhardenedWalletVector extends WalletVector {
     );
   }
 
+  factory UnhardenedWalletVector.fromBytes(Uint8List bytes) {
+    var length = bytes[0];
+    var left = 1;
+    var right = left + length;
+
+    final childPrivateKey = PrivateKey.fromBytes(bytes.sublist(left, right));
+
+    length = bytes[right];
+    left = right + 1;
+    right = left + length;
+    final childPublicKey = JacobianPoint.fromBytes(
+      bytes.sublist(left, right),
+      bytes[right] == 1,
+    );
+
+    length = bytes[right + 1];
+    left = right + 2;
+    right = left + length;
+
+    final puzzlehash = Puzzlehash(bytes.sublist(left, right));
+
+    return UnhardenedWalletVector(
+      childPrivateKey: childPrivateKey,
+      childPublicKey: childPublicKey,
+      puzzlehash: puzzlehash,
+    );
+  }
+
   final Map<Puzzlehash, Puzzlehash> assetIdtoOuterPuzzlehash;
 }
