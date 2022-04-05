@@ -1,3 +1,5 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'package:chia_utils/src/api/models/chia_models/chia_coin_record.dart';
 import 'package:chia_utils/src/api/models/responses/chia_base_response.dart';
 import 'package:meta/meta.dart';

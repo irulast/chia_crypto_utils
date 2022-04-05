@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_positional_boolean_parameters
+// ignore_for_file: avoid_positional_boolean_parameters, lines_longer_than_80_chars
 // ignore_for_file: non_constant_identifier_names
 
 import 'dart:typed_data';

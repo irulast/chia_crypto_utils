@@ -87,7 +87,7 @@ Future<void> main() async {
     payments: payments, 
     catCoinsInput: senderCatCoins, 
     changePuzzlehash: senderPuzzlehash, 
-    keychain: keychain
+    keychain: keychain,
   );
 
   await fullNodeSimulator.pushTransaction(sendBundle);
@@ -205,7 +205,8 @@ Future<void> main() async {
       changePuzzlehash: senderPuzzlehash, 
       keychain: keychain,
       fee: fee, 
-      standardCoinsForFee: standardCoinsForTest);
+      standardCoinsForFee: standardCoinsForTest,
+    );
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 

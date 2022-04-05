@@ -1,7 +1,9 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 class InsufficientCoinsException implements Exception {
   InsufficientCoinsException({
     required this.attemptedSpendAmount, 
-    required this.coinTotalValue
+    required this.coinTotalValue,
   });
 
   final int coinTotalValue;

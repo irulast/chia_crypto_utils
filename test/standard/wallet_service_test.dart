@@ -1,4 +1,4 @@
-// ignore_for_file: lines_longer_than_80_chars
+// ignore_for_file: lines_longer_than_80_chars, unused_import
 
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/core/exceptions/change_puzzlehash_needed_exception.dart';
@@ -161,7 +161,7 @@ void main() {
         coinsInput: [...coins, coin0],
         keychain: walletKeychain,
     );
-    }, throwsA(isA<ChangePuzzlehashNeededException>()));
+    }, throwsA(isA<ChangePuzzlehashNeededException>()),);
   });
 
   
