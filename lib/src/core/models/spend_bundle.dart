@@ -1,8 +1,9 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:chia_utils/src/core/models/serializable.dart';
 
-class SpendBundle {
+class SpendBundle implements Serializable{
   List<CoinSpend> coinSpends;
   JacobianPoint? aggregatedSignature;
 
@@ -26,6 +27,9 @@ class SpendBundle {
       'coin_spends': coinSpends.map((e) => e.toJson()).toList(),
       'aggregated_signature': aggregatedSignature?.toHex(),
     };
+  SpendBundle.fromJson(Map<String, dynamic> json)
+    : coinSpends = (json['coin_solutions'] as Iterable).map((dynamic e) => CoinSpend.fromJson(e as Map<String, dynamic>)).toList(),
+      aggregatedSignature = JacobianPoint.fromHexG2(json['aggregated_signature'] as String); 
 
   factory SpendBundle.aggregate(List<SpendBundle> spendBundles) {
     final signatures = <JacobianPoint>[];
@@ -38,6 +42,11 @@ class SpendBundle {
     }
     final aggregatedSignature = AugSchemeMPL.aggregate(signatures);
     return SpendBundle(coinSpends: coinSpends, aggregatedSignature: aggregatedSignature);
+  }
+
+  @override
+  Bytes toBytes() {
+    return serializeList(coinSpends) + Bytes(aggregatedSignature?.toBytes() ?? []);
   }
 
   void debug() {

@@ -2,10 +2,11 @@
 
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
+import 'package:chia_utils/src/core/models/serializable.dart';
 import 'package:chia_utils/src/standard/puzzles/p2_delegated_puzzle_or_hidden_puzzle/p2_delegated_puzzle_or_hidden_puzzle.clvm.hex.dart';
 import 'package:hex/hex.dart';
 
-class CoinSpend {
+class CoinSpend implements Serializable{
   CoinPrototype coin;
   Program puzzleReveal;
   Program solution;
@@ -21,6 +22,11 @@ class CoinSpend {
       'puzzle_reveal': const HexEncoder().convert(puzzleReveal.serialize()),
       'solution': const HexEncoder().convert(solution.serialize())
     };
+
+  @override
+  Bytes toBytes() {
+    return coin.toBytes() + Bytes(puzzleReveal.serialize()) + Bytes(solution.serialize());
+  }
 
   factory CoinSpend.fromJson(Map<String, dynamic> json) {
     return CoinSpend(

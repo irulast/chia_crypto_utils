@@ -130,6 +130,10 @@ class JacobianPoint {
     return JacobianPoint.fromBytesG1(const HexDecoder().convert(hex), isExtension: isExtension);
   }
 
+  factory JacobianPoint.fromHexG2(String hex, {bool? isExtension}) {
+    return JacobianPoint.fromBytesG2(const HexDecoder().convert(hex), isExtension: isExtension);
+  }
+
   factory JacobianPoint.fromBytesG2(List<int> bytes, {bool? isExtension}) {
     isExtension ??= true;
     return JacobianPoint.fromBytes(bytes, isExtension, ec: defaultEcTwist);

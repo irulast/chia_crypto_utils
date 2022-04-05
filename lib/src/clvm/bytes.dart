@@ -32,6 +32,14 @@ Uint8List intToBytesStandard(int value, Endian endian, {bool signed = false}) {
   return intToBytes(value, (value.bitLength + 8) >> 3, endian, signed: signed);
 }
 
+Uint8List intTo64Bytes(int value) {
+  return intToBytes(value, 8, Endian.big);
+}
+
+Uint8List intTo32Bytes(int value) {
+  return intToBytes(value, 4, Endian.big);
+}
+
 Uint8List encodeInt(int value) {
   if (value == 0) {
     return Uint8List.fromList([]);

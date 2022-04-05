@@ -1,11 +1,12 @@
 import 'dart:typed_data';
 
 import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:chia_utils/src/core/models/serializable.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
 
 @immutable
-class CoinPrototype {
+class CoinPrototype implements Serializable{
   final Bytes parentCoinInfo;
   final Puzzlehash puzzlehash;
   final int amount;
@@ -45,6 +46,11 @@ class CoinPrototype {
       'puzzle_hash': puzzlehash.toHex(),
       'amount': amount
   };
+
+  @override
+  Bytes toBytes() {
+    return parentCoinInfo + puzzlehash + Bytes(intTo64Bytes(amount));
+  }
   
   @override
   bool operator ==(Object other) =>
