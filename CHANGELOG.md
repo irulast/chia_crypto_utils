@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.10
+
+- Refactor of Field, FieldExtBase, Fq, Fq2, Fq6 and Fq12
+- WalletSet is immutable
+- WalletVector and UnhardenedWalletVector are immutable
+- WalletVector and UnhardenedWalletVector can be serialized and deserialized to bytes and from bytes respectively
+
 ## 1.0.9
 
 - Bug fixes
