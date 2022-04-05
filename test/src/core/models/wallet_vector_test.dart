@@ -43,6 +43,7 @@ void main() {
       final wv2 = WalletVector.fromBytes(bytes);
 
       expect(wv, equals(wv2));
+      expect(bytes, equals(wv2.toBytes()));
     },
   );
 
@@ -60,6 +61,7 @@ void main() {
       final wv2 = UnhardenedWalletVector.fromBytes(bytes);
 
       expect(wv, equals(wv2));
+      expect(bytes, equals(wv2.toBytes()));
     },
   );
 }
