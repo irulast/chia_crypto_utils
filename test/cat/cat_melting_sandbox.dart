@@ -143,88 +143,10 @@ void main() async {
 
   final meltSpendBundle = catWalletService.makeCatSpendBundleFromSpendableCats([spendableCat], keychain);
 
-  // final spendableCats = [spendableCat];
-
-  // // key is coin id
-  // final spendInfoMap = <Bytes, SpendableCat>{};
-  // final deltasMap = <Bytes, int>{};
-
-  //   // calculate deltas
-  // for (final spendableCat in spendableCats)  {
-  //   final conditionPrograms = spendableCat.innerPuzzle.run(spendableCat.innerSolution).program.toList();
-
-  //   var total = spendableCat.extraDelta * -1;
-  //   for (final createCoinConditionProgram in conditionPrograms.where(CreateCoinCondition.isThisCondition)) {
-  //     if (!createCoinConditionProgram.toSource().contains('-113')) {
-  //       final createCoinCondition = CreateCoinCondition.fromProgram(createCoinConditionProgram);
-  //       total += createCoinCondition.amount;
-  //     }
-  //   }
-  //   spendInfoMap[spendableCat.coin.id] = spendableCat;
-  //   deltasMap[spendableCat.coin.id] = spendableCat.coin.amount - total;
-  // }
-
-  // //calculate subtotals
-  // final subtotalsMap = <Bytes, int>{};
-  // var subtotal = 0;
-  // deltasMap.forEach((coinId, delta) { 
-  //   subtotalsMap[coinId] = subtotal;
-  //   subtotal += delta;
-  // });
-
-  // final subtotalOffset = subtotalsMap.values.reduce(min);
-  // final standardizedSubtotals = subtotalsMap.map((key, value) => MapEntry(key, value - subtotalOffset));
-
-  // // attach subtotals to their respective spendableCat
-  // // ignore: cascade_invocations
-  // standardizedSubtotals.forEach((coinId, subtotal) { 
-  //   spendInfoMap[coinId]!.subtotal = subtotal;
-  // });
-
-  // final spends = <CoinSpend>[];
-  
-  // final n = spendableCats.length;
-  // for (var index = 0; index < n; index++) {
-  //   final previousIndex = (index - 1) % n;
-  //   final nextIndex = (index + 1) % n;
-
-  //   final previousSpendableCat = spendableCats[previousIndex];
-  //   final currentSpendableCat = spendableCats[index];
-  //   final nextSpendableCat = spendableCats[nextIndex];
-
-  //   final puzzleReveal = catProgram.curry([
-  //     Program.fromBytes(catProgram.hash()),
-  //     Program.fromBytes(currentSpendableCat.coin.assetId.toUint8List()),
-  //     currentSpendableCat.innerPuzzle
-  //   ]);
-
-  //   final solution = Program.list([
-  //     currentSpendableCat.innerSolution, 
-  //     currentSpendableCat.coin.lineageProof,
-  //     Program.fromBytes(previousSpendableCat.coin.id.toUint8List()),
-  //     currentSpendableCat.coin.toProgram(),
-  //     nextSpendableCat.makeStandardCoinProgram(),
-  //     Program.fromInt(currentSpendableCat.subtotal!),
-  //     Program.fromInt(currentSpendableCat.extraDelta),
-  //   ]);
-
-  //   spends.add(CoinSpend(coin: currentSpendableCat.coin, puzzleReveal: puzzleReveal, solution: solution));
-  // }
-
-  // final meltSpendBundle = SpendBundle(coinSpends: spends);
-
-  // final meltSpendBundle = catWalletService.makeCatSpendBundleFromSpendableCats([spendableCat], keychain, signed: false);
   coins = await fullNodeSimulator.getCoinsByPuzzleHashes([address.toPuzzlehash()]);
   final coin = coins[0];
   const fee = 0;
 
-  // final xchSpendbundle = catWalletService.standardWalletService.createSpendBundle(
-  //   [coin], 
-  //   coin.amount - fee + delta,  // amount
-  //   address.toPuzzlehash(), // destination puzzlehash
-  //   address.toPuzzlehash(), //change puzzlehash
-  //   keychain,
-  // );
   final xchSpendbundle = catWalletService.standardWalletService.createSpendBundle(
     payments: [Payment(coin.amount - fee + delta, address.toPuzzlehash())],
     coinsInput: [coin], // destination puzzlehash
@@ -232,11 +154,8 @@ void main() async {
     keychain: keychain,
   );
 
-  final finalSpendBundle = SpendBundle.aggregate([
-    meltSpendBundle,
-    xchSpendbundle,
-    SpendBundle(coinSpends: [], aggregatedSignature: mintSignature),
-  ]);
+  final finalSpendBundle = meltSpendBundle + xchSpendbundle + mintSignature;
+  
 
   // finalSpendBundle.debug();
   // return;

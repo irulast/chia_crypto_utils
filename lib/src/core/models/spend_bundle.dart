@@ -31,18 +31,36 @@ class SpendBundle implements Serializable{
     : coinSpends = (json['coin_solutions'] as Iterable).map((dynamic e) => CoinSpend.fromJson(e as Map<String, dynamic>)).toList(),
       aggregatedSignature = JacobianPoint.fromHexG2(json['aggregated_signature'] as String); 
 
-  factory SpendBundle.aggregate(List<SpendBundle> spendBundles) {
-    final signatures = <JacobianPoint>[];
-    var coinSpends = <CoinSpend>[];
-    for (final spendBundle in spendBundles) {
-      if(spendBundle.isSigned) {
-        signatures.add(spendBundle.aggregatedSignature!);
+  SpendBundle operator +(dynamic other) {
+    if (other is SpendBundle) {
+      final signatures = <JacobianPoint>[];
+      if(aggregatedSignature != null) {
+        signatures.add(aggregatedSignature!);
       }
-      coinSpends += spendBundle.coinSpends;
+      if (other.aggregatedSignature != null) {
+        signatures.add(other.aggregatedSignature!);
+      }
+      return SpendBundle(
+        coinSpends: coinSpends + other.coinSpends,
+        aggregatedSignature: (signatures.isNotEmpty) ? AugSchemeMPL.aggregate(signatures) : null,
+      );
     }
-    final aggregatedSignature = AugSchemeMPL.aggregate(signatures);
-    return SpendBundle(coinSpends: coinSpends, aggregatedSignature: aggregatedSignature);
+    if (other is JacobianPoint) {
+      if (!other.isG2) {
+        throw ArgumentError('Can only add JacobianPoint to SpendBundle if it is a signature (G2Element)');
+      }
+      final signatures = <JacobianPoint>[other];
+      if(aggregatedSignature != null) {
+        signatures.add(aggregatedSignature!);
+      }
+      return SpendBundle(
+        coinSpends: coinSpends,
+        aggregatedSignature: AugSchemeMPL.aggregate(signatures),
+      );
+    }
+    throw ArgumentError('Can only add SpendBundles with other SpendBundles or signatures (G2Element JacobianPoint)');
   }
+
 
   @override
   Bytes toBytes() {

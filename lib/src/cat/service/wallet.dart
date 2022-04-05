@@ -49,7 +49,7 @@ class CatWalletService extends BaseWalletService {
     }
     AssertCoinAnnouncementCondition? primaryAssertCoinAnnouncement;
 
-    final spendBundlesToAggregate = <SpendBundle>[];
+    SpendBundle? feeStandardSpendBundle;
 
     final spendableCats = <SpendableCat>[];
     var first = true;
@@ -104,14 +104,13 @@ class CatWalletService extends BaseWalletService {
         }
 
         if (fee > 0) {
-          spendBundlesToAggregate.add(
+          feeStandardSpendBundle =
             _makeStandardSpendBundleForFee(
               fee: fee,
               standardCoins: standardCoinsForFee,
               keychain: keychain,
               changePuzzlehash: changePuzzlehash,
-            ),
-          );
+            );
         }
 
         innerSolution = BaseWalletService.makeSolutionFromConditions(conditions);
@@ -134,9 +133,11 @@ class CatWalletService extends BaseWalletService {
 
     final catSpendBundle = makeCatSpendBundleFromSpendableCats(immutableSpendableCats, keychain);
 
-    spendBundlesToAggregate.add(catSpendBundle);
 
-    return SpendBundle.aggregate(spendBundlesToAggregate);
+    if (feeStandardSpendBundle != null) {
+      return catSpendBundle + feeStandardSpendBundle;
+    }
+    return catSpendBundle;
   }
 
   SpendBundle makeMultiIssuanceCatSpendBundle({
@@ -234,13 +235,9 @@ class CatWalletService extends BaseWalletService {
 
     final eveUnsignedSpendbundle = makeCatSpendBundleFromSpendableCats([spendableEve], keychain, signed: false);
 
-    final finalBundle = SpendBundle.aggregate([
-      standardSpendBundle,
-      eveUnsignedSpendbundle,
-      SpendBundle(coinSpends: [], aggregatedSignature: signature),
-    ]);
 
-    return finalBundle;
+    return standardSpendBundle + eveUnsignedSpendbundle + signature;
+;
   }
 
   SpendBundle makeCatSpendBundleFromSpendableCats(List<SpendableCat> spendableCats, WalletKeychain keychain, {bool signed = true}) {

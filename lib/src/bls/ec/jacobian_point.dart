@@ -146,6 +146,9 @@ class JacobianPoint {
   final EC ec;
   final bool isExtension;
 
+  bool get isG1 => toBytes().length == 48;
+  bool get isG2 => toBytes().length == 96;
+
   bool get isOnCurve => infinity || toAffine().isOnCurve;
   bool get isValid => isOnCurve && this * ec.n == JacobianPoint.infinityG2();
 
