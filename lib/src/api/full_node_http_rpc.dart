@@ -63,7 +63,7 @@ class FullNodeHttpRpc implements FullNode{
   }
 
   @override
-  Future<CoinRecordResponse> getCoinByName(Puzzlehash coinId) async {
+  Future<CoinRecordResponse> getCoinByName(Bytes coinId) async {
     final response = await client.sendRequest(Uri.parse('get_coin_record_by_name'), {
       'name': coinId.toHex(),
     });
@@ -73,7 +73,7 @@ class FullNodeHttpRpc implements FullNode{
   }
 
   @override
-  Future<CoinSpendResponse> getPuzzleAndSolution(Puzzlehash coinId, int height) async {
+  Future<CoinSpendResponse> getPuzzleAndSolution(Bytes coinId, int height) async {
     final response = await client.sendRequest(Uri.parse('get_puzzle_and_solution'), {
       'coin_id': coinId.toHex(),
       'height': height,

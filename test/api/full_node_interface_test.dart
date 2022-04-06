@@ -106,14 +106,14 @@ Future<void> main() async {
   });
 
   test('should return null when coin is not found', () async {
-    final coin = await fullNodeSimulator.getCoinById(Puzzlehash.fromHex('cd131985a09e31dc4f59353eabe1c977f508a649f3c09bb28823c060a497b3dc'));
+    final coin = await fullNodeSimulator.getCoinById(Bytes.fromHex('cd131985a09e31dc4f59353eabe1c977f508a649f3c09bb28823c060a497b3dc'));
     expect(coin, null);
   });
 
   test('should throw error when full node rejects invalid id', () async {
     var errorThrown = false;
     try {
-      await fullNodeSimulator.getCoinById(Puzzlehash.fromHex('1cd131985a09e31dc4f59353eabe1c977f508a649f3c09bb28823c060a497b3dc'));
+      await fullNodeSimulator.getCoinById(Bytes.fromHex('1cd131985a09e31dc4f59353eabe1c977f508a649f3c09bb28823c060a497b3dc'));
     } on BadCoinIdException {
       errorThrown = true;
     }

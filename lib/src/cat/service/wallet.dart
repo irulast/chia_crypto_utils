@@ -171,7 +171,7 @@ class CatWalletService extends BaseWalletService {
     required int amount,
     required JacobianPoint signature,
     required WalletKeychain keychain,
-    Puzzlehash? originId,
+    Bytes? originId,
   }) {
     final payToPuzzle = Program.cons(
       Program.fromInt(1),

@@ -6,7 +6,19 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 
-typedef Puzzlehash = Bytes;
+class Puzzlehash extends Bytes {
+  Puzzlehash(List<int> bytesList) : super(bytesList) {
+    if (bytesList.length != bytesLength) {
+      throw ArgumentError('Puzzlehash must have 32 bytes');
+    }
+  }
+
+  factory Puzzlehash.fromHex(String phHex) {
+    return Puzzlehash(Bytes.fromHex(phHex));
+  }
+
+  static const bytesLength = 32;
+}
 
 class Bytes implements List<int> {
   final Uint8List _byteList;
@@ -19,13 +31,13 @@ class Bytes implements List<int> {
 
   static Bytes get empty => Bytes([]);
 
-  factory Bytes.fromHex(String phHex) {
-    if (phHex.startsWith(bytesPrefix)) {
+  factory Bytes.fromHex(String hex) {
+    if (hex.startsWith(bytesPrefix)) {
       return Bytes(
-        const HexDecoder().convert(phHex.replaceFirst(bytesPrefix, '')),
+        const HexDecoder().convert(hex.replaceFirst(bytesPrefix, '')),
       );
     }
-    return Bytes(const HexDecoder().convert(phHex));
+    return Bytes(const HexDecoder().convert(hex));
   }
 
   @override

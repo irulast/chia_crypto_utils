@@ -19,9 +19,9 @@ abstract class FullNode {
 
   Future<ChiaBaseResponse> pushTransaction(SpendBundle spendBundle);
 
-  Future<CoinRecordResponse> getCoinByName(Puzzlehash coinId);
+  Future<CoinRecordResponse> getCoinByName(Bytes coinId);
 
-  Future<CoinSpendResponse> getPuzzleAndSolution(Puzzlehash coinId, int height);
+  Future<CoinSpendResponse> getPuzzleAndSolution(Bytes coinId, int height);
 
   Future<BlockchainStateResponse> getBlockchainState();
 }
