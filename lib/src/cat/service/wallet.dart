@@ -217,7 +217,10 @@ class CatWalletService extends BaseWalletService {
       fee: fee,
     );
 
-    return meltSpendBundle + xchClaimingSpendbundle + issuanceSignature;
+    final finalSpendbundle = (meltSpendBundle + xchClaimingSpendbundle)
+      ..addSignature(issuanceSignature);
+
+    return finalSpendbundle;
   }
 
   SpendBundle makeIssuanceSpendbundle({
@@ -285,8 +288,10 @@ class CatWalletService extends BaseWalletService {
 
     final eveUnsignedSpendbundle = makeCatSpendBundleFromSpendableCats([spendableEve], keychain, signed: false);
 
+    final finalSpendBundle = (standardSpendBundle + eveUnsignedSpendbundle)
+      ..addSignature(signature);
 
-    return standardSpendBundle + eveUnsignedSpendbundle + signature;
+    return finalSpendBundle;
   }
 
   SpendBundle makeCatSpendBundleFromSpendableCats(List<SpendableCat> spendableCats, WalletKeychain keychain, {bool signed = true}) {

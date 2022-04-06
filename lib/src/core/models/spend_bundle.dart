@@ -31,36 +31,27 @@ class SpendBundle implements Serializable{
     : coinSpends = (json['coin_solutions'] as Iterable).map((dynamic e) => CoinSpend.fromJson(e as Map<String, dynamic>)).toList(),
       aggregatedSignature = JacobianPoint.fromHexG2(json['aggregated_signature'] as String); 
 
-  SpendBundle operator +(dynamic other) {
-    if (other is SpendBundle) {
-      final signatures = <JacobianPoint>[];
-      if(aggregatedSignature != null) {
-        signatures.add(aggregatedSignature!);
-      }
-      if (other.aggregatedSignature != null) {
-        signatures.add(other.aggregatedSignature!);
-      }
-      return SpendBundle(
-        coinSpends: coinSpends + other.coinSpends,
-        aggregatedSignature: (signatures.isNotEmpty) ? AugSchemeMPL.aggregate(signatures) : null,
-      );
+  SpendBundle operator +(SpendBundle other) {
+    final signatures = <JacobianPoint>[];
+    if(aggregatedSignature != null) {
+      signatures.add(aggregatedSignature!);
     }
-    if (other is JacobianPoint) {
-      if (!other.isG2) {
-        throw ArgumentError('Can only add JacobianPoint to SpendBundle if it is a signature (G2Element)');
-      }
-      final signatures = <JacobianPoint>[other];
-      if(aggregatedSignature != null) {
-        signatures.add(aggregatedSignature!);
-      }
-      return SpendBundle(
-        coinSpends: coinSpends,
-        aggregatedSignature: AugSchemeMPL.aggregate(signatures),
-      );
+    if (other.aggregatedSignature != null) {
+      signatures.add(other.aggregatedSignature!);
     }
-    throw ArgumentError('Can only add SpendBundles with other SpendBundles or signatures (G2Element JacobianPoint)');
+    return SpendBundle(
+      coinSpends: coinSpends + other.coinSpends,
+      aggregatedSignature: (signatures.isNotEmpty) ? AugSchemeMPL.aggregate(signatures) : null,
+    );
   }
 
+  void addSignature(JacobianPoint signature) {
+    final signatures = <JacobianPoint>[signature];
+    if(aggregatedSignature != null) {
+      signatures.add(aggregatedSignature!);
+    }
+    aggregatedSignature = AugSchemeMPL.aggregate(signatures);
+  }
 
   @override
   Bytes toBytes() {
