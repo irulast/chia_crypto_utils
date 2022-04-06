@@ -26,8 +26,9 @@ jobs:
 
     - name: Add the flutter tool to the path
       run: |
-        echo "$GITHUB_WORKSPACE/flutter/bin" >> $GITHUB_PATH
-        echo "$GITHUB_WORKSPACE/flutter/bin/cache/dart-sdk/bin" >> $GITHUB_PATH
+        export PATH="$GITHUB_WORKSPACE/flutter/bin:$GITHUB_PATH"
+        export PATH="$GITHUB_WORKSPACE/flutter/bin/cache/dart-sdk/bin:$PATH"
+
     - name: Populate the Flutter tool's cache of binary artifacts
       run: |
         flutter config --no-analytics
