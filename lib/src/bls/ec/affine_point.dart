@@ -1,4 +1,5 @@
 import 'package:chia_utils/src/bls/ec/ec.dart';
+import 'package:chia_utils/src/bls/ec/helpers.dart';
 import 'package:chia_utils/src/bls/ec/jacobian_point.dart';
 import 'package:chia_utils/src/bls/field/extensions/fq12.dart';
 import 'package:chia_utils/src/bls/field/extensions/fq2.dart';
@@ -70,10 +71,11 @@ class AffinePoint {
   }
 
   AffinePoint operator *(Object other) {
-    if (other is! Fq && other is! BigInt) {
+    final c = other.extractBigInt();
+    if (c == null) {
       throw ArgumentError('Must multiply AffinePoint with BigInt or Fq.');
     }
-    return scalarMultJacobian(other, toJacobian(), ec: ec).toAffine();
+    return scalarMultJacobian(c, toJacobian(), ec: ec).toAffine();
   }
 
   AffinePoint operator -(AffinePoint other) => this + -other;

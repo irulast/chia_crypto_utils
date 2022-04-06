@@ -1,18 +1,19 @@
 import 'dart:typed_data';
 
+import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:crypto/crypto.dart';
 
 final hmacBlockSize = 64;
 
-Uint8List hash256(List<int> m) {
-  return Uint8List.fromList(sha256.convert(m).bytes);
+Bytes hash256(List<int> m) {
+  return Bytes(sha256.convert(m).bytes);
 }
 
-Uint8List hash512(List<int> m) {
-  return Uint8List.fromList(hash256(m + [0]) + hash256(m + [1]));
+Bytes hash512(List<int> m) {
+  return Bytes(hash256(m + [0]) + hash256(m + [1]));
 }
 
-Uint8List hmac256(List<int> m, List<int> k) {
+Bytes hmac256(List<int> m, List<int> k) {
   if (k.length > hmacBlockSize) {
     k = hash256(k);
   }

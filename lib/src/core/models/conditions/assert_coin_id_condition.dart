@@ -20,7 +20,7 @@ class AssertMyCoinIdCondition implements Condition {
   Program get program {
     return Program.list([
       Program.fromInt(conditionCode),
-      Program.fromBytes(coinId.toUint8List()),
+      Program.fromBytes(coinId),
     ]);
   }
 

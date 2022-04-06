@@ -4,32 +4,40 @@ import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/clvm/keywords.dart';
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/duplicate_coin_exception.dart';
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/failed_signature_verification.dart';
+
 class BaseWalletService {
   Context context;
 
   BaseWalletService(this.context);
 
-  BlockchainNetwork get blockchainNetwork {
-    return context.get<BlockchainNetwork>();
-  }
-   // TODO
-  JacobianPoint makeSignature(Program solution, Program puzzle, PrivateKey privateKey, CoinPrototype coin) {
+  BlockchainNetwork get blockchainNetwork => context.get<BlockchainNetwork>();
+
+  // TODO
+  JacobianPoint makeSignature(
+    Program solution,
+    Program puzzle,
+    PrivateKey privateKey,
+    CoinPrototype coin,
+  ) {
     final result = puzzle.run(solution);
 
     final addsigmessage = getAddSigMeMessageFromResult(result.program, coin);
 
     final synthSecretKey = calculateSyntheticPrivateKey(privateKey);
-    final signature = AugSchemeMPL.sign(synthSecretKey, addsigmessage.toUint8List());
+    final signature =
+        AugSchemeMPL.sign(synthSecretKey, addsigmessage);
 
     return signature;
   }
 
   Bytes getAddSigMeMessageFromResult(Program result, CoinPrototype coin) {
-    final aggSigMeCondition = result.toList().singleWhere(AggSigMeCondition.isThisCondition);
+    final aggSigMeCondition =
+        result.toList().singleWhere(AggSigMeCondition.isThisCondition);
     return Bytes(aggSigMeCondition.toList()[2].atom) +
-      coin.id +
-      Bytes.fromHex(blockchainNetwork.aggSigMeExtraData,
-    );
+        coin.id +
+        Bytes.fromHex(
+          blockchainNetwork.aggSigMeExtraData,
+        );
   }
 
   static Program makeSolutionFromConditions(List<Condition> conditions) {
@@ -47,26 +55,36 @@ class BaseWalletService {
     final publicKeys = <JacobianPoint>[];
     final messages = <List<int>>[];
     for (final spend in spendBundle.coinSpends) {
-      final outputConditions = spend.puzzleReveal.run(spend.solution).program.toList();
+      final outputConditions =
+          spend.puzzleReveal.run(spend.solution).program.toList();
 
       // look for assert agg sig me condition
-      final aggSigMeProgram = outputConditions.singleWhere(AggSigMeCondition.isThisCondition);
+      final aggSigMeProgram =
+          outputConditions.singleWhere(AggSigMeCondition.isThisCondition);
 
       final aggSigMeCondition = AggSigMeCondition.fromProgram(aggSigMeProgram);
       publicKeys.add(aggSigMeCondition.publicKey);
-      messages.add((aggSigMeCondition.message + spend.coin.id + Bytes.fromHex(blockchainNetwork.aggSigMeExtraData)).toUint8List());
+      messages.add(
+        aggSigMeCondition.message +
+                spend.coin.id +
+                Bytes.fromHex(blockchainNetwork.aggSigMeExtraData)
+            ,
+      );
     }
 
     // validate signature
-    if(!AugSchemeMPL.aggregateVerify(publicKeys, messages, spendBundle.aggregatedSignature!)) {
+    if (!AugSchemeMPL.aggregateVerify(
+      publicKeys,
+      messages,
+      spendBundle.aggregatedSignature!,
+    )) {
       throw FailedSignatureVerificationException();
     }
   }
 
-
   static void checkForDuplicateCoins(List<CoinPrototype> coins) {
     final idSet = <String>{};
-    for(final coin in coins) {
+    for (final coin in coins) {
       final coinIdHex = coin.id.toHex();
       if (idSet.contains(coinIdHex)) {
         throw DuplicateCoinException(coinIdHex);
@@ -78,8 +96,8 @@ class BaseWalletService {
 }
 
 class CoinSpendAndSignature {
-  CoinSpend coinSpend;
-  JacobianPoint signature;
+  const CoinSpendAndSignature(this.coinSpend, this.signature);
 
-  CoinSpendAndSignature(this.coinSpend, this.signature);
+  final CoinSpend coinSpend;
+  final JacobianPoint signature;
 }

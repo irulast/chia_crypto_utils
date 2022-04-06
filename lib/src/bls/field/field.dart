@@ -1,27 +1,28 @@
-import 'dart:typed_data';
-
 import 'package:chia_utils/src/bls/field/field_base.dart';
+import 'package:chia_utils/src/utils/to_bytes_mixin.dart';
+import 'package:meta/meta.dart';
 
-abstract class Field {
-  abstract BigInt Q;
-  abstract int extension;
+@immutable
+abstract class Field with ToBytesMixin {
+  const Field(this.Q, {required this.extension});
+
+  final BigInt Q;
+  final int extension;
 
   Field operator -();
   Field operator ~();
-  Field operator +(other);
-  Field operator -(other);
-  Field operator *(other);
-  Field operator ~/(other);
-  Field operator /(other);
-  bool operator <(covariant other);
-  bool operator >(covariant other);
+  Field operator +(dynamic other);
+  Field operator -(dynamic other);
+  Field operator *(dynamic other);
+  Field operator ~/(dynamic other);
+  Field operator /(dynamic other);
+  bool operator <(covariant dynamic other);
+  bool operator >(covariant dynamic other);
 
-  Field add(other);
-  Field multiply(other);
-  bool equal(other);
+  Field add(dynamic other);
+  Field multiply(dynamic other);
+  bool equal(dynamic other);
 
-  Uint8List toBytes();
-  String toHex();
   bool toBool();
   Field pow(BigInt exponent);
   Field myZero(BigInt Q);
