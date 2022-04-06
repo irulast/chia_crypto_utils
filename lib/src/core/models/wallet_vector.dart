@@ -136,7 +136,7 @@ class UnhardenedWalletVector extends WalletVector {
     final childPublicKeyBytes = childPublicKey.toBytes();
     final puzzlehashBytes = puzzlehash;
 
-    final assetIdMapBytes = Bytes.empty;
+    final assetIdMapBytes = <int>[];
     assetIdtoOuterPuzzlehash.forEach((assetId, outerPuzzlehash) {
       assetIdMapBytes
         ..addAll(assetId)
@@ -201,6 +201,36 @@ class UnhardenedWalletVector extends WalletVector {
       puzzlehash: puzzlehash,
       assetIdtoOuterPuzzlehash: assetIdToOuterPuzzlehashMap,
     );
+  }
+
+  @override
+  int get hashCode =>
+      super.hashCode ^
+      assetIdtoOuterPuzzlehash.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    final firstCheck = 
+      other is UnhardenedWalletVector &&
+        runtimeType == other.runtimeType &&
+        childPrivateKey == other.childPrivateKey &&
+        childPublicKey == other.childPublicKey &&
+        puzzlehash == other.puzzlehash;
+
+    if (!firstCheck) {
+      return false;
+    }
+    // ignore: test_types_in_equals
+    final otherAsUnhardenedWalletVector = other as UnhardenedWalletVector;
+    for (final assetId in assetIdtoOuterPuzzlehash.keys) {
+      if (otherAsUnhardenedWalletVector.assetIdtoOuterPuzzlehash[assetId] != assetIdtoOuterPuzzlehash[assetId]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   final Map<Puzzlehash, Puzzlehash> assetIdtoOuterPuzzlehash;
