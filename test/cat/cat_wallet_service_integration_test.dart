@@ -39,9 +39,7 @@ Future<void> main() async {
 
   final senderWalletSet = keychain.unhardenedMap.values.first;
   final senderPuzzlehash = senderWalletSet.puzzlehash;
-  print(senderPuzzlehash);
   final senderAddress = Address.fromPuzzlehash(senderPuzzlehash, catWalletService.blockchainNetwork.addressPrefix);
-  print(senderAddress);
   for (var i = 0; i < nTests; i++) {
     await fullNodeSimulator.farmCoins(senderAddress);
   }
