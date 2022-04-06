@@ -27,15 +27,6 @@ class CoinPrototype implements Serializable{
     return (parentCoinInfo +
                 puzzlehash +
                 intToBytesStandard(amount, Endian.big)).sha256Hash();
-    // return Bytes(
-    //   sha256
-    //       .convert(
-    //         parentCoinInfo +
-    //             puzzlehash +
-    //             intToBytesStandard(amount, Endian.big),
-    //       )
-    //       .bytes,
-    // );
   }
 
   Program toProgram() {

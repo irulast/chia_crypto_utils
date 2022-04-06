@@ -6,6 +6,9 @@
 - WalletSet is immutable
 - WalletVector and UnhardenedWalletVector are immutable
 - WalletVector and UnhardenedWalletVector can be serialized and deserialized to bytes and from bytes respectively
+- CAT melting
+- CAT clsp files for reference
+- Added method to serialize SpendBundle toHex for interoperability with Chia Dev Tools
 
 ## 1.0.9
 
