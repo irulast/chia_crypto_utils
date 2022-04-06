@@ -11,6 +11,8 @@ class WalletVector with ToBytesMixin {
     required this.puzzlehash,
   });
 
+  static const puzzlehashLength = 32;
+
   factory WalletVector.fromBytes(Bytes bytes) {
     var length = bytes[0];
     var left = 1;
@@ -128,6 +130,32 @@ class UnhardenedWalletVector extends WalletVector {
     );
   }
 
+  @override
+  Bytes toBytes() {
+    final childPrivateKeyBytes = childPrivateKey.toBytes();
+    final childPublicKeyBytes = childPublicKey.toBytes();
+    final puzzlehashBytes = puzzlehash;
+
+    final assetIdMapBytes = Bytes.empty;
+    assetIdtoOuterPuzzlehash.forEach((assetId, outerPuzzlehash) {
+      assetIdMapBytes
+        ..addAll(assetId)
+        ..addAll(outerPuzzlehash);
+    });
+
+    return Bytes([
+      childPrivateKeyBytes.length,
+      ...childPrivateKeyBytes,
+      childPublicKeyBytes.length,
+      ...childPublicKeyBytes,
+      if (childPublicKey.isExtension) 1 else 0,
+      puzzlehashBytes.length,
+      ...puzzlehashBytes,
+      assetIdtoOuterPuzzlehash.length,
+      ...assetIdMapBytes,
+    ]);
+  }
+
   factory UnhardenedWalletVector.fromBytes(Bytes bytes) {
     var length = bytes[0];
     var left = 1;
@@ -149,10 +177,29 @@ class UnhardenedWalletVector extends WalletVector {
 
     final puzzlehash = Puzzlehash(bytes.sublist(left, right));
 
+    length = bytes[right];
+    final assetIdToOuterPuzzlehashMap = <Puzzlehash, Puzzlehash>{};
+    
+    var assetIdLeft = right + 1;
+    var assetIdRight = assetIdLeft + WalletVector.puzzlehashLength;
+    var outerPuzzlehashLeft = assetIdRight;
+    var outerPuzzlehashRight = outerPuzzlehashLeft + WalletVector.puzzlehashLength;
+    for(var i = 0; i < length; i++) {
+      final assetId = bytes.sublist(assetIdLeft, assetIdRight);
+      final outerPuzzlehash = bytes.sublist(outerPuzzlehashLeft, outerPuzzlehashRight);
+      assetIdToOuterPuzzlehashMap[assetId] = outerPuzzlehash;
+
+      assetIdLeft = outerPuzzlehashRight;
+      assetIdRight = assetIdLeft + WalletVector.puzzlehashLength;
+      outerPuzzlehashLeft = assetIdRight;
+      outerPuzzlehashRight = outerPuzzlehashLeft + WalletVector.puzzlehashLength;
+    }
+
     return UnhardenedWalletVector(
       childPrivateKey: childPrivateKey,
       childPublicKey: childPublicKey,
       puzzlehash: puzzlehash,
+      assetIdtoOuterPuzzlehash: assetIdToOuterPuzzlehashMap,
     );
   }
 
