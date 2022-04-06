@@ -1,22 +1,24 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:chia_utils/src/api/simulator_utils.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
-
-import '../simulator/simulator_utils.dart';
 
 Future<void> main() async {
   const nTests = 4;
   
-  if(!(await SimulatorUtils.checkIfSimulatorIsRunning())) {
-    print(SimulatorUtils.simulatorNotRunningWarning);
+  final simulatorUtils = SimulatorUtils();
+  try {
+    await simulatorUtils.checkIsRunning();
+  } catch(e) {
+    print(e);
     return;
   }
 
-  final simulatorHttpRpc = SimulatorHttpRpc(SimulatorUtils.simulatorUrl,
-    certBytes: SimulatorUtils.certBytes,
-    keyBytes: SimulatorUtils.keyBytes,
+  final simulatorHttpRpc = SimulatorHttpRpc(simulatorUtils.url,
+    certBytes: simulatorUtils.certBytes,
+    keyBytes: simulatorUtils.keyBytes,
   );
   final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
 

@@ -61,7 +61,7 @@ Future<void> main() async {
 
   final outerPuzzlehash = WalletKeychain.makeOuterPuzzleHash(address.toPuzzlehash(), Puzzlehash(curriedTail.hash()));
   
-  final curriedMeltableGenesisByCoinIdPuzzle = meltableGenesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id.toUint8List())]);
+  final curriedMeltableGenesisByCoinIdPuzzle = meltableGenesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id)]);
   final tailSolution = Program.list([curriedMeltableGenesisByCoinIdPuzzle, Program.nil]);
 
   final issuanceSignature = AugSchemeMPL.sign(walletSet.childPrivateKey, curriedMeltableGenesisByCoinIdPuzzle.hash());

@@ -16,7 +16,7 @@ class AggSigMeCondition implements Condition {
     return Program.list([
       Program.fromInt(conditionCode),
       Program.fromBytes(publicKey.toBytes()),
-      Program.fromBytes(message.toUint8List()),
+      Program.fromBytes(message),
     ]);
   }
 
@@ -25,7 +25,8 @@ class AggSigMeCondition implements Condition {
     if (!isThisCondition(program)) {
       throw InvalidConditionCastException(AggSigMeCondition);
     }
-    return AggSigMeCondition(JacobianPoint.fromBytesG1(programList[1].atom), Bytes(programList[2].atom));
+    return AggSigMeCondition(JacobianPoint.fromBytesG1(programList[1].atom),
+        Bytes(programList[2].atom),);
   }
 
   static bool isThisCondition(Program condition) {

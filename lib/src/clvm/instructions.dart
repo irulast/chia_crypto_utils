@@ -1,4 +1,4 @@
-import 'package:chia_utils/src/clvm/bytes.dart';
+import 'package:chia_utils/src/clvm/bytes_utils.dart';
 import 'package:chia_utils/src/clvm/cost.dart';
 import 'package:chia_utils/src/clvm/environment.dart';
 import 'package:chia_utils/src/clvm/keywords.dart';

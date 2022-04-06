@@ -153,7 +153,7 @@ class CatWalletService extends BaseWalletService {
     final publicKey = privateKey.getG1();
     final curriedTail = delegatedTailProgram.curry([Program.fromBytes(publicKey.toBytes())]);
     
-    final curriedGenesisByCoinId = genesisByCoinIdProgram.curry([Program.fromBytes(genesisCoinId.toUint8List())]);
+    final curriedGenesisByCoinId = genesisByCoinIdProgram.curry([Program.fromBytes(genesisCoinId)]);
     final tailSolution = Program.list([curriedGenesisByCoinId, Program.nil]);
 
     final signature = AugSchemeMPL.sign(privateKey, curriedGenesisByCoinId.hash());
@@ -229,7 +229,7 @@ class CatWalletService extends BaseWalletService {
     required int amount,
     required JacobianPoint signature,
     required WalletKeychain keychain,
-    Puzzlehash? originId,
+    Bytes? originId,
   }) {
     final payToPuzzle = Program.cons(
       Program.fromInt(1),
@@ -243,9 +243,9 @@ class CatWalletService extends BaseWalletService {
         ]),
         Program.list([
           Program.fromInt(51),
-          Program.fromBytes(destinationPuzzlehash.toUint8List()),
+          Program.fromBytes(destinationPuzzlehash),
           Program.fromInt(amount),
-          Program.list([Program.fromBytes(destinationPuzzlehash.toUint8List()),])
+          Program.list([Program.fromBytes(destinationPuzzlehash),])
         ]),
       ]),
     );
@@ -360,7 +360,7 @@ class CatWalletService extends BaseWalletService {
     return Program.list([
       currentSpendableCat.innerSolution, 
       currentSpendableCat.coin.lineageProof,
-      Program.fromBytes(previousSpendableCat.coin.id.toUint8List()),
+      Program.fromBytes(previousSpendableCat.coin.id),
       currentSpendableCat.coin.toProgram(),
       nextSpendableCat.makeStandardCoinProgram(),
       Program.fromInt(currentSpendableCat.subtotal!),
@@ -371,7 +371,7 @@ class CatWalletService extends BaseWalletService {
   static Program makeCatPuzzle(SpendableCat spendableCat) {
     return catProgram.curry([
       Program.fromBytes(catProgram.hash()),
-      Program.fromBytes(spendableCat.coin.assetId.toUint8List()),
+      Program.fromBytes(spendableCat.coin.assetId),
       spendableCat.innerPuzzle
     ]);
   }

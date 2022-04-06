@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:chia_utils/src/bls/ec/jacobian_point.dart';
 import 'package:chia_utils/src/bls/private_key.dart';
-import 'package:chia_utils/src/clvm/bytes.dart';
+import 'package:chia_utils/src/clvm/bytes_utils.dart';
 import 'package:chia_utils/src/clvm/cost.dart';
 import 'package:chia_utils/src/clvm/keywords.dart';
 import 'package:chia_utils/src/clvm/program.dart';

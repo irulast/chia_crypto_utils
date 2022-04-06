@@ -13,7 +13,7 @@ class CreateCoinAnnouncementCondition implements Condition {
   Program get program {
     return Program.list([
       Program.fromInt(conditionCode),
-      Program.fromBytes(message.toUint8List()),
+      Program.fromBytes(message),
     ]);
   }
 

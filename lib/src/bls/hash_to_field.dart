@@ -2,14 +2,13 @@
 
 import 'dart:typed_data';
 
+import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/bls/bls12381.dart';
 import 'package:crypto/crypto.dart';
 import 'package:quiver/collection.dart';
 import 'package:quiver/iterables.dart';
 
-import '../clvm/bytes.dart';
-
-Uint8List I2OSP(BigInt val, int length) {
+List<int> I2OSP(BigInt val, int length) {
   if (val < BigInt.zero || val >= BigInt.one << 8 * length) {
     throw ArgumentError('Bad I2OSP call: val=$val, length=$length.');
   }
@@ -19,7 +18,7 @@ Uint8List I2OSP(BigInt val, int length) {
     bytes[i] = (tempVal & BigInt.from(0xFF)).toInt();
     tempVal >>= 8;
   }
-  var result = Uint8List.fromList(bytes);
+  var result = bytes;
   var toBytesVal = bigIntToBytes(val, length, Endian.big);
   assert(listsEqual(result, toBytesVal),
       'Expected $toBytesVal, but found $result');
@@ -36,12 +35,12 @@ BigInt OS2IP(List<int> octets) {
   return result;
 }
 
-Uint8List bytesXor(List<int> a, List<int> b) {
-  return Uint8List.fromList(
+Bytes bytesXor(List<int> a, List<int> b) {
+  return Bytes(
       zip([a, b]).map((element) => element[0] ^ element[1]).toList());
 }
 
-Uint8List expandMessageXmd(
+Bytes expandMessageXmd(
     List<int> msg, List<int> DST, int lenInBytes, Hash hash) {
   var bInBytes = hash.convert([]).bytes.length;
   var rInBytes = hash.blockSize;
@@ -68,14 +67,14 @@ Uint8List expandMessageXmd(
   for (var item in bVals) {
     pseudoRandomBytes.addAll(item);
   }
-  return Uint8List.fromList(pseudoRandomBytes.sublist(0, lenInBytes));
+  return Bytes(pseudoRandomBytes.sublist(0, lenInBytes));
 }
 
-Uint8List expandMessageXof(
+Bytes expandMessageXof(
     List<int> msg, List<int> DST, int lenInBytes, Hash hash) {
   var DST_prime = DST + I2OSP(BigInt.from(DST.length), 1);
   var msg_prime = msg + I2OSP(BigInt.from(lenInBytes), 2) + DST_prime;
-  return Uint8List.fromList(
+  return Bytes(
       hash.convert(msg_prime).bytes.sublist(0, lenInBytes));
 }
 
@@ -86,7 +85,7 @@ List<List<BigInt>> hashToField(
     BigInt modulus,
     int degree,
     int blen,
-    Uint8List Function(List<int>, List<int>, int, Hash) expand,
+    Bytes Function(List<int>, List<int>, int, Hash) expand,
     Hash hash) {
   var lenInBytes = count * degree * blen;
   List<int> pseudoRandomBytes = expand(msg, DST, lenInBytes, hash);

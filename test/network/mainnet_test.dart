@@ -1,5 +1,5 @@
 // ignore_for_file: lines_longer_than_80_chars
-@Skip('Certs dont work')
+
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/full_node_utils.dart';
 import 'package:test/test.dart';

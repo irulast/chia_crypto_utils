@@ -2,11 +2,11 @@
 
 This repository seeks to provide a working example of Chia Wallet fundamentals
 
-* Generating hardened and unhardened keys from a 24 word mnemonic seed
-* Standard transaction (XCH) coin spend with change back and fee
-* CAT
-* DID
-* NFT
+- Generating hardened and unhardened keys from a 24 word mnemonic seed
+- Standard transaction (XCH) coin spend with change back and fee
+- CAT
+- DID
+- NFT
 
 ## Dependencies
 
@@ -16,9 +16,9 @@ This repository is written in [Dart](https://dart.dev/get-dart) to enable mobile
 
 ```console
 Irulast-MacBook-Pro:chia-crypto-utils irulastdev$ dart test
-00:00 +0: test/wallet_service_test.dart: (suite)                                                                                                                                                                                       
+00:00 +0: test/wallet_service_test.dart: (suite)
   Skip: Integration test
-00:08 +223 ~1: test/utils_test/utils_test.dart: should generate correct puzzle hashes from mnemonic                                                                                                                                    
+00:08 +223 ~1: test/utils_test/utils_test.dart: should generate correct puzzle hashes from mnemonic
 Fingerprint: 3109357790
 Master public key (m): 901acd53bf61a63120f15442baf0f2a656267b08ba42c511b9bb543e31c32a9b49a0e0aa5e897bc81878d703fcd889f3
 Farmer public key (m/12381/8444/0/0): 8351d5afd1ab40bf37565d25600c9b147dcda344e19d413b2c468316d1efd312f61a1eca02a74f8d5f0d6e79911c23ca
@@ -27,8 +27,16 @@ First wallet address: txch1v8vergyvwugwv0tmxwnmeecuxh3tat5jaskkunnn79zjz0muds0ql
 01:02 +896 ~1: All tests passed!
 ```
 
+For integration test, run the following command:
+
+```bash
+dart test integration_test
+```
+
 ## Keychain
+
 ### Initializing keychain
+
 ```dart
 const mnemonic = ['elder', 'quality', 'this', ...];
 
@@ -40,18 +48,22 @@ final walletKeyAddressSet = WalletSet.fromPrivateKey(masterKeyPair.masterPrivate
 
 final keychain = WalletKeychain([walletKeyAddressSet])
 ```
+
 ### Adding CAT outer puzzle hashes for a given asset ID to your keychain
+
 ```dart
 keychain.addOuterPuzzleHashesForAssetId(assetId);
 ```
 
 ## Context
+
 ```dart
 // context that is passed into wallet services to give them knowledge of whatever blockchain is passed in
 Context context = NetworkContext.makeContext(Network.mainnet);
 ```
 
 ## Pushing a standard transaction
+
 ```dart
 // initializing WalletKeychain
 const mnemonic = ['elder', 'quality', 'this', ...];
@@ -99,6 +111,7 @@ await fullNode.pushTransaction(spendBundle);
 ```
 
 ## Pushing a CAT transact
+
 ```dart
 // initializing WalletKeychain
 const mnemonic = ['elder', 'quality', 'this', ...];

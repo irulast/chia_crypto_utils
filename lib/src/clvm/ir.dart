@@ -1,4 +1,4 @@
-import 'package:chia_utils/src/clvm/bytes.dart';
+import 'package:chia_utils/src/clvm/bytes_utils.dart';
 import 'package:chia_utils/src/clvm/program.dart';
 
 Program deserialize(Iterator<int> program) {

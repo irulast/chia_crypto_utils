@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/core/models/serializable.dart';
-import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
 
 @immutable
@@ -25,20 +24,24 @@ class CoinPrototype implements Serializable{
         amount = json['amount'] as int;
 
   Bytes get id {
-    return Bytes(sha256
-        .convert(
-            parentCoinInfo.toUint8List() +
-            puzzlehash.toUint8List() +
-            intToBytesStandard(amount, Endian.big),
-          )
-        .bytes,
-      );
+    return (parentCoinInfo +
+                puzzlehash +
+                intToBytesStandard(amount, Endian.big)).sha256Hash();
+    // return Bytes(
+    //   sha256
+    //       .convert(
+    //         parentCoinInfo +
+    //             puzzlehash +
+    //             intToBytesStandard(amount, Endian.big),
+    //       )
+    //       .bytes,
+    // );
   }
 
   Program toProgram() {
     return Program.list([
-      Program.fromBytes(parentCoinInfo.toUint8List()),
-      Program.fromBytes(puzzlehash.toUint8List()),
+      Program.fromBytes(parentCoinInfo),
+      Program.fromBytes(puzzlehash),
       Program.fromInt(amount),
     ]);
   }
@@ -55,9 +58,7 @@ class CoinPrototype implements Serializable{
   }
   
   @override
-  bool operator ==(Object other) =>
-      other is CoinPrototype &&
-      other.id == id;
+  bool operator ==(Object other) => other is CoinPrototype && other.id == id;
 
   @override
   int get hashCode => id.toHex().hashCode;

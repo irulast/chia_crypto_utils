@@ -1,23 +1,25 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:chia_utils/src/api/simulator_utils.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/delegated_tail/delegated_tail.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/genesis_by_coin_id/genesis_by_coin_id.clvm.hex.dart';
 import 'package:test/test.dart';
 
-import '../simulator/simulator_utils.dart';
-
 Future<void> main() async {
   const nTests = 3;
 
-  if(!(await SimulatorUtils.checkIfSimulatorIsRunning())) {
-    print(SimulatorUtils.simulatorNotRunningWarning);
+  final simulatorUtils = SimulatorUtils();
+  try {
+    await simulatorUtils.checkIsRunning();
+  } catch(e) {
+    print(e);
     return;
   }
 
-  final simulatorHttpRpc = SimulatorHttpRpc(SimulatorUtils.simulatorUrl,
-    certBytes: SimulatorUtils.certBytes,
-    keyBytes: SimulatorUtils.keyBytes,
+  final simulatorHttpRpc = SimulatorHttpRpc(simulatorUtils.url,
+    certBytes: simulatorUtils.certBytes,
+    keyBytes: simulatorUtils.keyBytes,
   );
   final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
 
@@ -37,12 +39,15 @@ Future<void> main() async {
 
   final senderWalletSet = keychain.unhardenedMap.values.first;
   final senderPuzzlehash = senderWalletSet.puzzlehash;
+  print(senderPuzzlehash);
   final senderAddress = Address.fromPuzzlehash(senderPuzzlehash, catWalletService.blockchainNetwork.addressPrefix);
-
+  print(senderAddress);
   for (var i = 0; i < nTests; i++) {
     await fullNodeSimulator.farmCoins(senderAddress);
   }
   await fullNodeSimulator.moveToNextBlock();
+
+  
 
   var senderStandardCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([senderPuzzlehash]);
   final originCoin = senderStandardCoins[0];
@@ -52,7 +57,7 @@ Future<void> main() async {
   final assetId = Puzzlehash(curriedTail.hash());
   keychain.addOuterPuzzleHashesForAssetId(assetId);
   
-  final curriedGenesisByCoinIdPuzzle = genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id.toUint8List())]);
+  final curriedGenesisByCoinIdPuzzle = genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id)]);
   final tailSolution = Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
 
   final signature = AugSchemeMPL.sign(senderWalletSet.childPrivateKey, curriedGenesisByCoinIdPuzzle.hash());

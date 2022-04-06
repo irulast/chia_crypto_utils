@@ -2,22 +2,24 @@
 
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/exceptions/bad_coin_id_exception.dart';
+import 'package:chia_utils/src/api/simulator_utils.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/delegated_tail/delegated_tail.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/genesis_by_coin_id/genesis_by_coin_id.clvm.hex.dart';
 import 'package:test/test.dart';
 
-import '../simulator/simulator_utils.dart';
-
 
 Future<void> main() async {
-  if(!(await SimulatorUtils.checkIfSimulatorIsRunning())) {
-    print(SimulatorUtils.simulatorNotRunningWarning);
+  final simulatorUtils = SimulatorUtils();
+  try {
+    await simulatorUtils.checkIsRunning();
+  } catch(e) {
+    print(e);
     return;
   }
 
-  final simulatorHttpRpc = SimulatorHttpRpc(SimulatorUtils.simulatorUrl,
-    certBytes: SimulatorUtils.certBytes,
-    keyBytes: SimulatorUtils.keyBytes,
+  final simulatorHttpRpc = SimulatorHttpRpc(simulatorUtils.url,
+    certBytes: simulatorUtils.certBytes,
+    keyBytes: simulatorUtils.keyBytes,
   );
   final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
   
@@ -54,7 +56,7 @@ Future<void> main() async {
   final assetId = Puzzlehash(curriedTail.hash());
   keychain.addOuterPuzzleHashesForAssetId(assetId);
   
-  final curriedGenesisByCoinIdPuzzle = genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id.toUint8List())]);
+  final curriedGenesisByCoinIdPuzzle = genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id)]);
   final tailSolution = Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
 
   final signature = AugSchemeMPL.sign(walletVector.childPrivateKey, curriedGenesisByCoinIdPuzzle.hash());
@@ -104,14 +106,14 @@ Future<void> main() async {
   });
 
   test('should return null when coin is not found', () async {
-    final coin = await fullNodeSimulator.getCoinById(Puzzlehash.fromHex('cd131985a09e31dc4f59353eabe1c977f508a649f3c09bb28823c060a497b3dc'));
+    final coin = await fullNodeSimulator.getCoinById(Bytes.fromHex('cd131985a09e31dc4f59353eabe1c977f508a649f3c09bb28823c060a497b3dc'));
     expect(coin, null);
   });
 
   test('should throw error when full node rejects invalid id', () async {
     var errorThrown = false;
     try {
-      await fullNodeSimulator.getCoinById(Puzzlehash.fromHex('1cd131985a09e31dc4f59353eabe1c977f508a649f3c09bb28823c060a497b3dc'));
+      await fullNodeSimulator.getCoinById(Bytes.fromHex('1cd131985a09e31dc4f59353eabe1c977f508a649f3c09bb28823c060a497b3dc'));
     } on BadCoinIdException {
       errorThrown = true;
     }
