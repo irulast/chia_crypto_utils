@@ -2,6 +2,7 @@
 
 ## 1.0.10
 
+- Separated integration tests from standard tests per Dart best practices
 - Refactor of Field, FieldExtBase, Fq, Fq2, Fq6 and Fq12
 - WalletSet is immutable
 - WalletVector and UnhardenedWalletVector are immutable
