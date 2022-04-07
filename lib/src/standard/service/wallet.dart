@@ -1,7 +1,9 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:chia_utils/src/core/exceptions/change_puzzlehash_needed_exception.dart';
 import 'package:chia_utils/src/core/service/base_wallet.dart';
+import 'package:chia_utils/src/standard/exceptions/origin_id_not_in_coins_exception.dart';
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/incorrect_announcement_id_exception.dart';
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/multiple_origin_coin_exception.dart';
 
@@ -9,11 +11,11 @@ class StandardWalletService extends BaseWalletService{
   StandardWalletService(Context context) : super(context);
 
   SpendBundle createSpendBundle(
-      List<Payment> payments, 
-      List<CoinPrototype> coinsInput,
-      Puzzlehash changePuzzlehash,
-      WalletKeychain keychain,
       {
+        required List<Payment> payments, 
+        required List<CoinPrototype> coinsInput,
+        required WalletKeychain keychain,
+        Puzzlehash? changePuzzlehash,
         int fee = 0,
         Bytes? originId,
         List<AssertCoinAnnouncementCondition>? coinAnnouncementsToAssert,
@@ -27,6 +29,10 @@ class StandardWalletService extends BaseWalletService{
     final totalPaymentAmount = payments.fold(0, (int previousValue, payment) => previousValue + payment.amount);
     final change = totalCoinValue - totalPaymentAmount - fee;
 
+    if (changePuzzlehash == null && change > 0) {
+      throw ChangePuzzlehashNeededException();
+    }
+
     final signatures = <JacobianPoint>[];
     final spends = <CoinSpend>[];
 
@@ -34,7 +40,7 @@ class StandardWalletService extends BaseWalletService{
     final originIndex = originId == null ? 0 : coins.indexWhere((coin) => coin.id == originId);
 
     if (originIndex == -1) {
-      throw Exception('Origin id not in coins');
+      throw OriginIdNotInCoinsException();
     }
 
     // origin coin should be processed first so move it to the front of the list
@@ -72,7 +78,7 @@ class StandardWalletService extends BaseWalletService{
     
 
         if (change > 0) {
-          conditions.add(CreateCoinCondition(changePuzzlehash, change));
+          conditions.add(CreateCoinCondition(changePuzzlehash!, change));
           createdCoins.add(
             CoinPrototype(
               parentCoinInfo: coin.id,
@@ -149,7 +155,7 @@ class StandardWalletService extends BaseWalletService{
         originId = spend.coin.id;
       }
       for (final coinCreationCondition in coinCreationConditions) {
-        coinsToCreate.add(CoinPrototype(parentCoinInfo: spend.coin.id, puzzlehash: coinCreationCondition.destinationHash, amount: coinCreationCondition.amount));
+        coinsToCreate.add(CoinPrototype(parentCoinInfo: spend.coin.id, puzzlehash: coinCreationCondition.destinationPuzzlehash, amount: coinCreationCondition.amount));
       }
       coinsBeingSpent.add(spend.coin);
     }
@@ -157,7 +163,7 @@ class StandardWalletService extends BaseWalletService{
     BaseWalletService.checkForDuplicateCoins(coinsToCreate);
     BaseWalletService.checkForDuplicateCoins(coinsBeingSpent);
 
-    if  (spendBundle.coinSpends.length > 1) {
+    if (spendBundle.coinSpends.length > 1) {
       assert(actualAssertCoinAnnouncementId != null, 'No assert_coin_announcement condition when multiple spends');
       assert(originId != null, 'No create_coin conditions');
       

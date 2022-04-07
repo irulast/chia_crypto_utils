@@ -19,10 +19,10 @@ class Coin extends CoinPrototype {
     required Puzzlehash puzzlehash,
     required int amount,
   }) : super(
-            puzzlehash: puzzlehash,
-            amount: amount,
-            parentCoinInfo: parentCoinInfo,
-    );
+    puzzlehash: puzzlehash,
+    amount: amount,
+    parentCoinInfo: parentCoinInfo,
+  );
 
   factory Coin.fromChiaCoinRecordJson(Map<String, dynamic> json) {
     final coinPrototype = CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>);
@@ -38,5 +38,5 @@ class Coin extends CoinPrototype {
   }
 
   @override
-  String toString() => 'Coin(id: $id)';
+  String toString() => 'Coin(id: $id, parentCoinInfo: $parentCoinInfo puzzlehash: $puzzlehash, amount: $amount, confirmedBlockIndex: $confirmedBlockIndex), spentBlockIndex: $spentBlockIndex, coinbase: $coinbase, timestamp: $timestamp';
 }

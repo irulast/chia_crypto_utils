@@ -14,11 +14,12 @@ Future<void> main() async {
     print(SimulatorUtils.simulatorNotRunningWarning);
     return;
   }
-
+  
   final simulatorHttpRpc = SimulatorHttpRpc(SimulatorUtils.simulatorUrl,
     certBytes: SimulatorUtils.certBytes,
     keyBytes: SimulatorUtils.keyBytes,
   );
+
   final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
   
   // generate wallet
@@ -30,6 +31,7 @@ Future<void> main() async {
   ];
   final masterKeyPair = MasterKeyPair.fromMnemonic(testMnemonic);
   final walletsSetList = <WalletSet>[];
+  
   for (var i = 0; i < 1; i++) {
     final set = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
     walletsSetList.add(set);
@@ -54,7 +56,7 @@ Future<void> main() async {
   final assetId = Puzzlehash(curriedTail.hash());
   keychain.addOuterPuzzleHashesForAssetId(assetId);
   
-  final curriedGenesisByCoinIdPuzzle = genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id.toUint8List())]);
+  final curriedGenesisByCoinIdPuzzle = genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id)]);
   final tailSolution = Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
 
   final signature = AugSchemeMPL.sign(walletVector.childPrivateKey, curriedGenesisByCoinIdPuzzle.hash());
@@ -104,14 +106,14 @@ Future<void> main() async {
   });
 
   test('should return null when coin is not found', () async {
-    final coin = await fullNodeSimulator.getCoinById(Puzzlehash.fromHex('cd131985a09e31dc4f59353eabe1c977f508a649f3c09bb28823c060a497b3dc'));
+    final coin = await fullNodeSimulator.getCoinById(Bytes.fromHex('cd131985a09e31dc4f59353eabe1c977f508a649f3c09bb28823c060a497b3dc'));
     expect(coin, null);
   });
 
   test('should throw error when full node rejects invalid id', () async {
     var errorThrown = false;
     try {
-      await fullNodeSimulator.getCoinById(Puzzlehash.fromHex('1cd131985a09e31dc4f59353eabe1c977f508a649f3c09bb28823c060a497b3dc'));
+      await fullNodeSimulator.getCoinById(Bytes.fromHex('1cd131985a09e31dc4f59353eabe1c977f508a649f3c09bb28823c060a497b3dc'));
     } on BadCoinIdException {
       errorThrown = true;
     }

@@ -1,3 +1,5 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/models/responses/chia_base_response.dart';
 import 'package:meta/meta.dart';
@@ -29,4 +31,7 @@ class CoinSpendResponse extends ChiaBaseResponse {
       error: chiaBaseResponse.error,
     );
   }
+
+  @override
+  String toString() => 'CoinSpendResponse(coinSpin: $coinSpend, success: $success, error: $error)';
 }

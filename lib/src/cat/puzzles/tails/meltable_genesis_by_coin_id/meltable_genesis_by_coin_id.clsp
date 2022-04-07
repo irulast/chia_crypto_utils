@@ -1,0 +1,25 @@
+(mod (
+      GENESIS_ID
+      Truths
+      parent_is_cat
+      lineage_proof
+      delta
+      inner_conditions
+      _
+    )
+
+    (include cat_truths.clib)
+
+    (if delta
+        ; if non issuance, fail if delta is greater than zero
+        (if (> delta 0)
+          (x)
+          ()
+        )
+        ; if issuance, check genesis
+        (if (= (my_parent_cat_truth Truths) GENESIS_ID)
+          ()
+          (x)
+        )
+    )
+)

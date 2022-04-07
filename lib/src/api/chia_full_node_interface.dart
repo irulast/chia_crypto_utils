@@ -44,7 +44,7 @@ class ChiaFullNodeInterface {
      mapResponseToError(response);
   }
 
-  Future<Coin?> getCoinById(Puzzlehash coinId) async {
+  Future<Coin?> getCoinById(Bytes coinId) async {
     final coinRecordResponse = await fullNode.getCoinByName(coinId);
     mapResponseToError(coinRecordResponse);
 

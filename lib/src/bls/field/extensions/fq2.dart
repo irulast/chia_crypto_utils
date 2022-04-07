@@ -2,21 +2,17 @@ import 'package:chia_utils/src/bls/field/field.dart';
 import 'package:chia_utils/src/bls/field/field_base.dart';
 import 'package:chia_utils/src/bls/field/field_ext.dart';
 
-class Fq2 extends FieldExtBase {
-  @override
-  int extension = 2;
-  @override
-  int embedding = 2;
-  @override
-  Field root;
+class Fq2 extends FieldExtBase<Fq2> {
+  Fq2(BigInt Q, List<Field> args, {Field? root})
+      : super(
+          Q,
+          args,
+          root: root ?? Fq(Q, -BigInt.one),
+          extension: 2,
+          embedding: 2,
+        );
 
-  Fq2(BigInt Q, List<Field> args)
-      : root = Fq(Q, -BigInt.one),
-        super(Q, args);
-
-  Fq2.nil()
-      : root = Fq.nil(),
-        super(BigInt.zero, [Fq.nil(), Fq.nil()]);
+  Fq2.nil() : this(BigInt.zero, [Fq.nil(), Fq.nil()], root: Fq.nil());
 
   @override
   Fq2 operator ~() {
@@ -36,7 +32,7 @@ class Fq2 extends FieldExtBase {
     final a0 = elements[0];
     final a1 = elements[1];
     if (a1 == basefield.myOne(Q)) {
-      return myFromFq(Q, (a0 as Fq).modSqrt()) as Fq2;
+      return myFromFq(Q, (a0 as Fq).modSqrt());
     }
     var alpha = a0.pow(BigInt.two) + a1.pow(BigInt.two);
     var gamma = alpha.pow((Q - BigInt.one) ~/ BigInt.two);
@@ -55,13 +51,14 @@ class Fq2 extends FieldExtBase {
   }
 
   @override
-  Fq2 construct(BigInt Q, List<Field> args) => Fq2(Q, args);
+  Fq2 construct(BigInt Q, List<Field> args, Field? root) =>
+      Fq2(Q, args, root: root);
 
-  factory Fq2.fromFq(BigInt Q, Fq fq) => Fq2.nil().myFromFq(Q, fq) as Fq2;
+  factory Fq2.fromFq(BigInt Q, Fq fq) => Fq2.nil().myFromFq(Q, fq);
   factory Fq2.fromBytes(List<int> bytes, BigInt Q) =>
       Fq2.nil().myFromBytes(bytes, Q) as Fq2;
   factory Fq2.fromHex(String hex, BigInt Q) =>
       Fq2.nil().myFromHex(hex, Q) as Fq2;
-  factory Fq2.zero(BigInt Q) => Fq2.nil().myZero(Q) as Fq2;
-  factory Fq2.one(BigInt Q) => Fq2.nil().myOne(Q) as Fq2;
+  factory Fq2.zero(BigInt Q) => Fq2.nil().myZero(Q);
+  factory Fq2.one(BigInt Q) => Fq2.nil().myOne(Q);
 }

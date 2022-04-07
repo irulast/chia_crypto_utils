@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/cat/exceptions/mixed_asset_ids_exception.dart';
+import 'package:chia_utils/src/core/exceptions/change_puzzlehash_needed_exception.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
@@ -101,31 +102,72 @@ Future<void> main() async {
   
   test('Produces valid spendbundle', () async {
     final payment = Payment(250, targetPuzzlehash);
-    final spendBundle = catWalletService.createSpendBundle([payment], catCoins, changePuzzlehash, walletKeychain);
+    final spendBundle = catWalletService.createSpendBundle(
+      payments: [payment], 
+      catCoinsInput: catCoins, 
+      changePuzzlehash: changePuzzlehash, 
+      keychain: walletKeychain,
+    );
     catWalletService.validateSpendBundle(spendBundle);
   });
 
   test('Produces valid spendbundle with fee', () async {
     final payment = Payment(250, targetPuzzlehash);
-    final spendBundle = catWalletService.createSpendBundle([payment], catCoins, changePuzzlehash, walletKeychain, fee: 1000, standardCoinsForFee: [standardCoin]);
+    final spendBundle = catWalletService.createSpendBundle(
+      payments: [payment], 
+      catCoinsInput: catCoins, 
+      changePuzzlehash: changePuzzlehash, 
+      keychain: walletKeychain,
+      fee: 1000, 
+      standardCoinsForFee: [standardCoin],
+    );
     catWalletService.validateSpendBundle(spendBundle);
   });
 
   test('Produces valid spendbundle with fee and multiple payments', () async {
     final payment = Payment(200, targetPuzzlehash, memos: <String>['Chia is really cool']);
     final payment1 = Payment(100, targetPuzzlehash, memos: <int>[1000]);
-    final spendBundle = catWalletService.createSpendBundle([payment, payment1], catCoins, changePuzzlehash, walletKeychain, fee: 1000, standardCoinsForFee: [standardCoin]);
+    final spendBundle = catWalletService.createSpendBundle(
+      payments: [payment, payment1], 
+      catCoinsInput: catCoins, 
+      changePuzzlehash: changePuzzlehash, 
+      keychain: walletKeychain,
+      fee: 1000, 
+      standardCoinsForFee: [standardCoin],
+    );
     catWalletService.validateSpendBundle(spendBundle);
   });
 
   test('Should throw error when mixing cat types', () {
     final payment = Payment(250, targetPuzzlehash);
-    var exceptionThrown = false;
-    try {
-      catWalletService.createSpendBundle([payment], catCoins + [otherCat], changePuzzlehash, walletKeychain);
-    } on MixedAssetIdsException {
-      exceptionThrown = true;
-    }
-    expect(exceptionThrown, true);
+    expect(() {
+      catWalletService.createSpendBundle(
+        payments: [payment], 
+        catCoinsInput: catCoins + [otherCat], 
+        changePuzzlehash: changePuzzlehash, 
+        keychain: walletKeychain,
+      );
+    }, throwsA(isA<MixedAssetIdsException>()),);
+  });
+
+  test('Should create valid spendbundle without change puzzlehash when there is no change', () {
+    final totalCoinsValue = catCoins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
+    final spendBundle = catWalletService.createSpendBundle(
+        payments: [Payment(totalCoinsValue, targetPuzzlehash)],
+        catCoinsInput: catCoins,
+        keychain: walletKeychain,
+    );
+
+    catWalletService.validateSpendBundle(spendBundle);
+  });
+
+  test('Should throw exception when change puzzlehash is not given and there is change', () {
+    expect(() {
+      catWalletService.createSpendBundle(
+        payments: [Payment(100, targetPuzzlehash)],
+        catCoinsInput: catCoins,
+        keychain: walletKeychain,
+    );
+    }, throwsA(isA<ChangePuzzlehashNeededException>()),);
   });
 }

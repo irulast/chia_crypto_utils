@@ -1,12 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:chia_utils/src/bls/ec/ec.dart';
-import 'package:chia_utils/src/bls/ec/jacobian_point.dart';
+import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/bls/hkdf.dart';
-import 'package:chia_utils/src/bls/private_key.dart';
 import 'package:chia_utils/src/bls/util.dart';
-import 'package:chia_utils/src/clvm/bytes.dart';
 
 PrivateKey keyGen(List<int> seed) {
   var L = 48;
@@ -15,11 +12,11 @@ PrivateKey keyGen(List<int> seed) {
   return PrivateKey(bytesToBigInt(okm, Endian.big) % defaultEc.n);
 }
 
-Uint8List ikmToLamportSk(List<int> ikm, List<int> salt) {
+Bytes ikmToLamportSk(List<int> ikm, List<int> salt) {
   return extractExpand(32 * 255, ikm, salt, []);
 }
 
-Uint8List parentSkToLamportPk(PrivateKey parentSk, int index) {
+Bytes parentSkToLamportPk(PrivateKey parentSk, int index) {
   var salt = intToBytes(index, 4, Endian.big);
   var ikm = parentSk.toBytes();
   var notIkm = ikm.map((e) => e ^ 0xFF).toList();

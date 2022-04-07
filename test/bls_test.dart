@@ -15,7 +15,7 @@ import 'package:chia_utils/src/bls/op_swu_g2.dart';
 import 'package:chia_utils/src/bls/pairing.dart';
 import 'package:chia_utils/src/bls/private_key.dart';
 import 'package:chia_utils/src/bls/schemes.dart';
-import 'package:chia_utils/src/clvm/bytes.dart';
+import 'package:chia_utils/src/clvm/bytes_utils.dart';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 import 'package:quiver/iterables.dart';

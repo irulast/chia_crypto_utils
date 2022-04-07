@@ -9,12 +9,12 @@ import '../simulator/simulator_utils.dart';
 
 Future<void> main() async {
   const nTests = 3;
-
+  
   if(!(await SimulatorUtils.checkIfSimulatorIsRunning())) {
     print(SimulatorUtils.simulatorNotRunningWarning);
     return;
   }
-
+  
   final simulatorHttpRpc = SimulatorHttpRpc(SimulatorUtils.simulatorUrl,
     certBytes: SimulatorUtils.certBytes,
     keyBytes: SimulatorUtils.keyBytes,
@@ -38,11 +38,12 @@ Future<void> main() async {
   final senderWalletSet = keychain.unhardenedMap.values.first;
   final senderPuzzlehash = senderWalletSet.puzzlehash;
   final senderAddress = Address.fromPuzzlehash(senderPuzzlehash, catWalletService.blockchainNetwork.addressPrefix);
-
   for (var i = 0; i < nTests; i++) {
     await fullNodeSimulator.farmCoins(senderAddress);
   }
   await fullNodeSimulator.moveToNextBlock();
+
+  
 
   var senderStandardCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([senderPuzzlehash]);
   final originCoin = senderStandardCoins[0];
@@ -52,7 +53,7 @@ Future<void> main() async {
   final assetId = Puzzlehash(curriedTail.hash());
   keychain.addOuterPuzzleHashesForAssetId(assetId);
   
-  final curriedGenesisByCoinIdPuzzle = genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id.toUint8List())]);
+  final curriedGenesisByCoinIdPuzzle = genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id)]);
   final tailSolution = Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
 
   final signature = AugSchemeMPL.sign(senderWalletSet.childPrivateKey, curriedGenesisByCoinIdPuzzle.hash());
@@ -81,7 +82,12 @@ Future<void> main() async {
     // to avoid duplicate coins amounts must differ
     payments.add(Payment(990 + i, senderPuzzlehash));
   }
-  final sendBundle = catWalletService.createSpendBundle(payments, senderCatCoins, senderPuzzlehash, keychain);
+  final sendBundle = catWalletService.createSpendBundle(
+    payments: payments, 
+    catCoinsInput: senderCatCoins, 
+    changePuzzlehash: senderPuzzlehash, 
+    keychain: keychain,
+  );
 
   await fullNodeSimulator.pushTransaction(sendBundle);
   await fullNodeSimulator.moveToNextBlock();
@@ -107,7 +113,12 @@ Future<void> main() async {
     final amountToSend = (totalNateCoinValue * 0.8).round();
     final payment = Payment(amountToSend, receiverPuzzlehash);
 
-    final spendBundle = catWalletService.createSpendBundle([payment], catCoinsForThisTest, senderPuzzlehash, keychain);
+    final spendBundle = catWalletService.createSpendBundle(
+      payments: [payment], 
+      catCoinsInput: catCoinsForThisTest, 
+      changePuzzlehash: senderPuzzlehash, 
+      keychain: keychain,
+    );
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
@@ -135,7 +146,14 @@ Future<void> main() async {
     const fee = 1000;
     final payment = Payment(amountToSend, receiverPuzzlehash);
 
-    final spendBundle = catWalletService.createSpendBundle([payment], catCoinsForThisTest, senderPuzzlehash, keychain, fee: fee, standardCoinsForFee: standardCoinsForTest);
+    final spendBundle = catWalletService.createSpendBundle(
+      payments: [payment], 
+      catCoinsInput: catCoinsForThisTest, 
+      changePuzzlehash: senderPuzzlehash, 
+      keychain: keychain,
+      fee: fee, 
+      standardCoinsForFee: standardCoinsForTest,
+    );
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
@@ -180,7 +198,14 @@ Future<void> main() async {
 
     const fee = 1000;
 
-    final spendBundle = catWalletService.createSpendBundle(payments, catCoinsForThisTest, senderPuzzlehash, keychain, fee: fee, standardCoinsForFee: standardCoinsForTest);
+    final spendBundle = catWalletService.createSpendBundle(
+      payments: payments, 
+      catCoinsInput: catCoinsForThisTest, 
+      changePuzzlehash: senderPuzzlehash, 
+      keychain: keychain,
+      fee: fee, 
+      standardCoinsForFee: standardCoinsForTest,
+    );
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 

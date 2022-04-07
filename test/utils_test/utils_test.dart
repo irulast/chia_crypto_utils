@@ -74,7 +74,7 @@ void main() async {
     print('Master public key (m): $masterPublicKeyHex');
     print('Farmer public key (m/$blsSpecNumber/$chiaBlockchanNumber/$farmerPathNumber/0): $farmerPublicKeyHex');
     print('Pool public key (m/$blsSpecNumber/$chiaBlockchanNumber/$poolPathNumber/0: $poolPublicKeyHex');
-    print('First wallet address: $firstAddress');
+    print('First wallet address: ${firstAddress.address}');
   });
 
    test('should generate a 24 word mnemonic', () {
