@@ -2,25 +2,24 @@
 
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/exceptions/bad_coin_id_exception.dart';
-import 'package:chia_utils/src/api/simulator_utils.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/delegated_tail/delegated_tail.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/genesis_by_coin_id/genesis_by_coin_id.clvm.hex.dart';
 import 'package:test/test.dart';
 
+import '../simulator/simulator_utils.dart';
+
 
 Future<void> main() async {
-  final simulatorUtils = SimulatorUtils();
-  try {
-    await simulatorUtils.checkIsRunning();
-  } catch(e) {
-    print(e);
+  if(!(await SimulatorUtils.checkIfSimulatorIsRunning())) {
+    print(SimulatorUtils.simulatorNotRunningWarning);
     return;
   }
-
-  final simulatorHttpRpc = SimulatorHttpRpc(simulatorUtils.url,
-    certBytes: simulatorUtils.certBytes,
-    keyBytes: simulatorUtils.keyBytes,
+  
+  final simulatorHttpRpc = SimulatorHttpRpc(SimulatorUtils.simulatorUrl,
+    certBytes: SimulatorUtils.certBytes,
+    keyBytes: SimulatorUtils.keyBytes,
   );
+
   final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
   
   // generate wallet
@@ -32,6 +31,7 @@ Future<void> main() async {
   ];
   final masterKeyPair = MasterKeyPair.fromMnemonic(testMnemonic);
   final walletsSetList = <WalletSet>[];
+  
   for (var i = 0; i < 1; i++) {
     final set = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
     walletsSetList.add(set);
