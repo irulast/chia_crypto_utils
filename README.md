@@ -12,10 +12,18 @@ This repository seeks to provide a working example of Chia Wallet fundamentals
 
 This repository is written in [Dart](https://dart.dev/get-dart) to enable mobile and web usage.
 
+## Installation
+
+```console
+dart pub global activate rps
+export PATH="$PATH":"$HOME/.pub-cache/bin"
+```
+
 ## Build and Test
 
 ```console
-Irulast-MacBook-Pro:chia-crypto-utils irulastdev$ dart test
+dart test
+
 00:00 +0: test/wallet_service_test.dart: (suite)
   Skip: Integration test
 00:08 +223 ~1: test/utils_test/utils_test.dart: should generate correct puzzle hashes from mnemonic
@@ -29,8 +37,17 @@ First wallet address: txch1v8vergyvwugwv0tmxwnmeecuxh3tat5jaskkunnn79zjz0muds0ql
 
 For integration test, run the following command:
 
-```bash
+```console
 rps integration_tests
+
+> integration_tests
+$ dart test integration_test/ --concurrency=1
+
+00:28 +6: integration_test/network/mainnet_test.dart(suite)
+  Skip: Test provided for reference, not nominally run
+00:28 +6 ~1: integration_test/network/testnet10_test.dart: (suite)
+  Skip: Test provided for reference, not nominally run
+00:47 +14 ~2: All tests passed!
 ```
 
 ## Keychain
@@ -110,7 +127,7 @@ final spendBundle = standardWalletService.createSpendBundle(
 await fullNode.pushTransaction(spendBundle);
 ```
 
-## Pushing a CAT transact
+## Pushing a CAT transaction
 
 ```dart
 // initializing WalletKeychain
