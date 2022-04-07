@@ -1,25 +1,24 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/api/simulator_utils.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/delegated_tail/delegated_tail.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/meltable_genesis_by_coin_id/meltable_genesis_by_coin_id.hex.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
+import '../simulator/simulator_utils.dart';
+
 Future<void> main() async {
   const nTests = 3;
-  final simulatorUtils = SimulatorUtils();
-  try {
-    await simulatorUtils.checkIsRunning();
-  } catch(e) {
-    print(e);
+
+  if(!(await SimulatorUtils.checkIfSimulatorIsRunning())) {
+    print(SimulatorUtils.simulatorNotRunningWarning);
     return;
   }
-
-  final simulatorHttpRpc = SimulatorHttpRpc(simulatorUtils.url,
-    certBytes: simulatorUtils.certBytes,
-    keyBytes: simulatorUtils.keyBytes,
+  
+  final simulatorHttpRpc = SimulatorHttpRpc(SimulatorUtils.simulatorUrl,
+    certBytes: SimulatorUtils.certBytes,
+    keyBytes: SimulatorUtils.keyBytes,
   );
 
   final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
