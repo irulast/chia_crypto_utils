@@ -21,11 +21,11 @@ class SimulatorUtils {
    'Full node simulator is not running at $simulatorUrl so this test was skipped.';
 
   static Bytes get certBytes {
-    return _getAuthFileBytes('test/simulator/temp/config/ssl/full_node/private_full_node.crt');
+    return _getAuthFileBytes('integration_test/simulator/temp/config/ssl/full_node/private_full_node.crt');
   }
 
   static Bytes get keyBytes {
-    return _getAuthFileBytes('test/simulator/temp/config/ssl/full_node/private_full_node.key');
+    return _getAuthFileBytes('integration_test/simulator/temp/config/ssl/full_node/private_full_node.key');
   }
 
   static Bytes _getAuthFileBytes(String pathToFile) {

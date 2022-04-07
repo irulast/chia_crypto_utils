@@ -30,7 +30,7 @@ First wallet address: txch1v8vergyvwugwv0tmxwnmeecuxh3tat5jaskkunnn79zjz0muds0ql
 For integration test, run the following command:
 
 ```bash
-dart test integration_test
+rps integration_tests
 ```
 
 ## Keychain
