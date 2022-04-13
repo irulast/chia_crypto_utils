@@ -1,7 +1,7 @@
 class BlockchainNetwork {
   String name;
   String? unit;
-  // TODO: logo https://pub.dev/packages/image
+  // TODO(nvjoshi2): logo https://pub.dev/packages/image
   String? ticker;
   String addressPrefix;
   String aggSigMeExtraData;
