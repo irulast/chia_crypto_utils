@@ -2,9 +2,8 @@
 
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:chia_utils/src/clvm/bytes.dart';
+import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/clvm/instructions.dart';
 import 'package:chia_utils/src/clvm/ir.dart';
 import 'package:chia_utils/src/clvm/keywords.dart';
@@ -31,7 +30,7 @@ typedef Validator = bool Function(Program);
 
 class Program {
   List<Program>? _cons;
-  Uint8List? _atom;
+  Bytes? _atom;
   Position? position;
 
   static int cost = 11000000000;
@@ -52,20 +51,20 @@ class Program {
   bool get isNull => isAtom && atom.isEmpty;
   bool get isAtom => _atom != null;
   bool get isCons => _cons != null;
-  Uint8List get atom => _atom!;
+  Bytes get atom => _atom!;
   List<Program> get cons => _cons!;
   String get positionSuffix => position == null ? '' : ' at $position';
 
   Program.cons(Program left, Program right) : _cons = [left, right];
-  Program.fromBytes(List<int> atom) : _atom = Uint8List.fromList(atom);
+  Program.fromBytes(List<int> atom) : _atom = Bytes(atom);
   Program.fromHex(String hex)
-      : _atom = Uint8List.fromList(const HexDecoder().convert(hex));
+      : _atom = Bytes(const HexDecoder().convert(hex));
   // ignore: avoid_positional_boolean_parameters
-  Program.fromBool(bool value) : _atom = Uint8List.fromList(value ? [1] : []);
+  Program.fromBool(bool value) : _atom = Bytes(value ? [1] : []);
   Program.fromInt(int number) : _atom = encodeInt(number);
   Program.fromBigInt(BigInt number) : _atom = encodeBigInt(number);
   Program.fromString(String text)
-      : _atom = Uint8List.fromList(utf8.encode(text));
+      : _atom = Bytes(utf8.encode(text));
 
   factory Program.list(List<Program> items) {
     var result = Program.nil;
@@ -229,11 +228,11 @@ class Program {
     return cons[1];
   }
 
-  Uint8List hash() {
+  Bytes hash() {
     if (isAtom) {
-      return Uint8List.fromList(sha256.convert([1] + atom.toList()).bytes);
+      return Bytes(sha256.convert([1] + atom.toList()).bytes);
     } else {
-      return Uint8List.fromList(
+      return Bytes(
         sha256
             .convert([2] + cons[0].hash().toList() + cons[1].hash().toList())
             .bytes,
@@ -243,12 +242,12 @@ class Program {
 
   String serializeHex() => const HexEncoder().convert(serialize());
 
-  Uint8List serialize() {
+  Bytes serialize() {
     if (isAtom) {
       if (atom.isEmpty) {
-        return Uint8List.fromList([0x80]);
+        return Bytes([0x80]);
       } else if (atom.length == 1 && atom[0] <= 0x7f) {
-        return Uint8List.fromList([atom[0]]);
+        return Bytes([atom[0]]);
       } else {
         final size = atom.length;
         final result = <int>[];
@@ -283,10 +282,10 @@ class Program {
           );
         }
         result.addAll(atom);
-        return Uint8List.fromList(result);
+        return Bytes(result);
       }
     } else {
-      return Uint8List.fromList([
+      return Bytes([
         0xff,
         ...cons[0].serialize(),
         ...cons[1].serialize(),

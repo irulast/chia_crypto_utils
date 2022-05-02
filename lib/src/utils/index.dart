@@ -116,8 +116,7 @@ Program getPuzzleFromPk(JacobianPoint publicKey) {
     ]),
   );
 
-  final curried =
-      p2DelegatedPuzzleOrHiddenPuzzleProgram.curry([syntheticPubKey.program]);
+  final curried = p2DelegatedPuzzleOrHiddenPuzzleProgram.curry([syntheticPubKey.program]);
 
   return curried;
 }
@@ -127,9 +126,8 @@ final groupOrder = BigInt.parse(
 );
 
 BigInt calculateSyntheticOffset(JacobianPoint publicKey) {
-  final blob = sha256
-      .convert(publicKey.toBytes() + defaultHiddenPuzzleProgram.hash())
-      .bytes;
+  final blob =
+      sha256.convert(publicKey.toBytes() + defaultHiddenPuzzleProgram.hash()).bytes;
 
   final offset = bytesToBigInt(blob, Endian.big, signed: true);
 
@@ -151,29 +149,4 @@ PrivateKey calculateSyntheticPrivateKey(PrivateKey privateKey) {
   final syntheticPrivateKey = PrivateKey.fromBytes(blob);
 
   return syntheticPrivateKey;
-}
-
-PrivateKey rootWalletSkToWalletSk(PrivateKey master, int index) {
-  final root = derivePath(PrivateKey.fromBytes(master.toBytes()), [index]);
-  return PrivateKey.fromBytes(root.toBytes());
-}
-
-PrivateKey masterSkToRootWalletSk(PrivateKey master) {
-  final root =
-      derivePath(PrivateKey.fromBytes(master.toBytes()), [12381, 8444, 2]);
-  //final r1 = DeriveKeys.masterSkToRootWalletSk(master);
-  return PrivateKey.fromBytes(root.toBytes());
-}
-
-PrivateKey rootWalletSkToWalletSkUnhardened(PrivateKey master, int index) {
-  final root =
-      derivePathUnhardened(PrivateKey.fromBytes(master.toBytes()), [index]);
-  return PrivateKey.fromBytes(root.toBytes());
-}
-
-PrivateKey masterSkToRootWalletSkUnhardened(PrivateKey master) {
-  final root = derivePathUnhardened(
-      PrivateKey.fromBytes(master.toBytes()), [12381, 8444, 2]);
-  //final r1 = DeriveKeys.masterSkToRootWalletSk(master);
-  return PrivateKey.fromBytes(root.toBytes());
 }

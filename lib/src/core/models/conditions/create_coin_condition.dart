@@ -6,11 +6,11 @@ import 'package:chia_utils/src/standard/exceptions/invalid_condition_cast_except
 class CreateCoinCondition implements Condition {
   static int conditionCode = 51;
 
-  Puzzlehash destinationHash;
+  Puzzlehash destinationPuzzlehash;
   int amount;
   List<Bytes>? memos;
 
-  CreateCoinCondition(this.destinationHash, this.amount, {this.memos});
+  CreateCoinCondition(this.destinationPuzzlehash, this.amount, {this.memos});
 
   factory CreateCoinCondition.fromProgram(Program program) {
     final programList = program.toList();
@@ -20,7 +20,9 @@ class CreateCoinCondition implements Condition {
     return CreateCoinCondition(
       Puzzlehash(programList[1].atom),
       programList[2].toInt(),
-      memos: programList.length > 3 ? programList[3].toList().map((memo) => Bytes(memo.atom)).toList() : null,
+      memos: programList.length > 3
+          ? programList[3].toList().map((memo) => Bytes(memo.atom)).toList()
+          : null,
     );
   }
 
@@ -28,19 +30,13 @@ class CreateCoinCondition implements Condition {
   Program get program {
     return Program.list([
       Program.fromInt(conditionCode),
-      Program.fromBytes(destinationHash.toUint8List()),
-      Program.fromInt(amount)
-    ] + (
-      memos != null ?
-        [
-          Program.list(
-            memos!.map((memo) => Program.fromBytes(memo.toUint8List())).toList(),
-          )
-        ]
-      :
-        []
-      ),
-    );
+      Program.fromBytes(destinationPuzzlehash),
+      Program.fromInt(amount),
+      if (memos != null)
+        Program.list(
+          memos!.map((memo) => Program.fromBytes(memo)).toList(),
+        )
+    ]);
   }
 
   static bool isThisCondition(Program condition) {
@@ -50,4 +46,7 @@ class CreateCoinCondition implements Condition {
     }
     return true;
   }
+
+  @override
+  String toString() => 'CreateCoinCondition(code: $conditionCode, destinationPuzzlehash: $destinationPuzzlehash, amount: $amount, memos: $memos)';
 }

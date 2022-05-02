@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.10
+
+- Separated integration tests from standard tests per Dart best practices
+- Refactor of Field, FieldExtBase, Fq, Fq2, Fq6 and Fq12
+- WalletSet is immutable
+- WalletVector and UnhardenedWalletVector are immutable
+- WalletVector and UnhardenedWalletVector can be serialized and deserialized to bytes and from bytes respectively
+- CAT melting
+- CAT clsp files for reference
+- Added method to serialize SpendBundle toHex for interoperability with Chia Dev Tools
+
 ## 1.0.9
 
 - Bug fixes

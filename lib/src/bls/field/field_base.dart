@@ -3,58 +3,52 @@ import 'dart:typed_data';
 import 'package:chia_utils/src/bls/failed_op.dart';
 import 'package:chia_utils/src/bls/field/field.dart';
 import 'package:chia_utils/src/clvm/bytes.dart';
-import 'package:hex/hex.dart';
+import 'package:chia_utils/src/clvm/bytes_utils.dart';
+import 'package:chia_utils/src/utils/to_bytes_mixin.dart';
 import 'package:quiver/core.dart';
 
-class Fq implements Field {
-  @override
-  BigInt Q;
+class Fq extends Field {
+  const Fq(BigInt Q, BigInt value) : this._(value % Q, Q);
 
-  @override
-  int extension = 1;
+  const Fq._(this.value, BigInt Q) : super(Q, extension: 1);
 
-  BigInt value;
+  Fq.nil() : this._(BigInt.zero, BigInt.zero);
 
-  Fq(this.Q, BigInt value) : value = value % Q;
-  Fq.nil()
-      : Q = BigInt.zero,
-        value = BigInt.zero;
+  Fq.zero(BigInt Q) : this(Q, BigInt.zero);
 
-  @override
-  Fq myFromBytes(List<int> bytes, BigInt Q) {
+  Fq.one(BigInt Q) : this(Q, BigInt.one);
+
+  factory Fq.fromBytes(List<int> bytes, BigInt Q) {
     assert(bytes.length == 48, 'There must be 48 bytes');
     return Fq(Q, bytesToBigInt(bytes, Endian.big));
   }
 
-  @override
-  Fq myFromHex(String hex, BigInt Q) =>
-      myFromBytes(const HexDecoder().convert(hex), Q);
+  final BigInt value;
 
-  factory Fq.zero(BigInt Q) => Fq(Q, BigInt.zero);
-
-  factory Fq.one(BigInt Q) => Fq(Q, BigInt.one);
-
-  factory Fq.fromFq(BigInt Q, Fq fq) => fq;
-
-  factory Fq.fromBytes(List<int> bytes, BigInt Q) =>
-      Fq.nil().myFromBytes(bytes, Q);
-
-  factory Fq.fromHex(String hex, BigInt Q) => Fq.nil().myFromHex(hex, Q);
+  factory Fq.fromHex(String hex, BigInt Q) => Fq.fromBytes(hex.toBytes(), Q);
 
   @override
-  Field operator +(other) {
+  Fq myFromBytes(List<int> bytes, BigInt Q) => Fq.fromBytes(bytes, Q);
+
+  @override
+  Fq myFromHex(String hex, BigInt Q) => Fq.fromHex(hex, Q);
+
+  @override
+  Field operator +(dynamic other) {
     try {
       return add(other);
     } on FailedOp {
+      if (other is! Field) rethrow;
       return other.add(this);
     }
   }
 
   @override
-  Field operator *(other) {
+  Field operator *(dynamic other) {
     try {
       return multiply(other);
     } on FailedOp {
+      if (other is! Field) rethrow;
       return other.multiply(this);
     }
   }
@@ -63,8 +57,12 @@ class Fq implements Field {
   Fq operator -() => Fq(Q, -value);
 
   @override
-  Field operator -(other) =>
-      other is Fq ? Fq(Q, value - other.value) : this + -other;
+  Field operator -(dynamic other) {
+    if (other is Fq) return Fq(Q, value - other.value);
+    if (other is BigInt) return this + -other;
+    if (other is Field) return this + -other;
+    throw FailedOp();
+  }
 
   @override
   bool operator ==(Object other) => equal(other);
@@ -83,7 +81,7 @@ class Fq implements Field {
   bool operator >=(Fq other) => value >= other.value;
 
   @override
-  Fq add(other) {
+  Fq add(dynamic other) {
     if (other is! Fq) {
       throw FailedOp();
     }
@@ -91,7 +89,7 @@ class Fq implements Field {
   }
 
   @override
-  Fq multiply(other) {
+  Fq multiply(dynamic other) {
     if (other is! Fq) {
       throw FailedOp();
     }
@@ -99,28 +97,31 @@ class Fq implements Field {
   }
 
   @override
-  bool equal(other) => other is Fq && value == other.value && Q == other.Q;
+  bool equal(dynamic other) =>
+      other is Fq && value == other.value && Q == other.Q;
 
   @override
   String toString() {
     final hex = value.toRadixString(16);
-    return 'Fq(0x${hex.length > 10 ? '${hex.substring(0, 5)}..${hex.substring(hex.length - 5, hex.length)}' : hex})';
+    var formatted = hex;
+    if (hex.length > 10) {
+      final n = hex.length;
+      formatted = '${hex.substring(0, 5)}..${hex.substring(n - 5, n)}';
+    }
+    return 'Fq(0x$formatted)';
   }
 
   @override
-  Uint8List toBytes() => bigIntToBytes(value, 48, Endian.big);
+  Bytes toBytes() => bigIntToBytes(value, 48, Endian.big);
 
   @override
-  String toHex() => const HexEncoder().convert(toBytes());
-
-  @override
-  Fq pow(BigInt other) => other == BigInt.zero
+  Fq pow(BigInt exponent) => exponent == BigInt.zero
       ? Fq(Q, BigInt.one)
-      : other == BigInt.one
+      : exponent == BigInt.one
           ? Fq(Q, value)
-          : other % BigInt.two == BigInt.zero
-              ? Fq(Q, value * value).pow(other ~/ BigInt.two)
-              : Fq(Q, value * value).pow(other ~/ BigInt.two) * this as Fq;
+          : exponent % BigInt.two == BigInt.zero
+              ? Fq(Q, value * value).pow(exponent ~/ BigInt.two)
+              : Fq(Q, value * value).pow(exponent ~/ BigInt.two) * this as Fq;
   @override
   Fq qiPower(int i) => this;
 
@@ -145,7 +146,7 @@ class Fq implements Field {
   }
 
   @override
-  Field operator ~/(other) {
+  Field operator ~/(dynamic other) {
     if (other is Fq) {
       return this * ~other;
     } else if (other is BigInt) {
@@ -155,7 +156,7 @@ class Fq implements Field {
   }
 
   @override
-  Field operator /(other) => this ~/ other;
+  Field operator /(dynamic other) => this ~/ other;
 
   Fq modSqrt() {
     if (value == BigInt.zero) {
@@ -209,10 +210,10 @@ class Fq implements Field {
   Fq clone() => Fq(Q, value);
 
   @override
-  Fq myZero(BigInt Q) => Fq(Q, BigInt.zero);
+  Fq myZero(BigInt Q) => Fq.zero(Q);
 
   @override
-  Fq myOne(BigInt Q) => Fq(Q, BigInt.one);
+  Fq myOne(BigInt Q) => Fq.one(Q);
 
   @override
   Fq myFromFq(BigInt Q, Fq fq) => fq;

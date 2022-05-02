@@ -1,3 +1,5 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'package:chia_utils/chia_crypto_utils.dart';
 
 class ReserveFeeCondition implements Condition {
@@ -14,4 +16,6 @@ class ReserveFeeCondition implements Condition {
       Program.fromInt(feeAmount)
     ]);
   }
+  @override
+  String toString() => 'ReserveFeeCondition(code: $conditionCode, feeAmount: $feeAmount)';
 }

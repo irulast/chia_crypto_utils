@@ -1,7 +1,7 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:bech32m/bech32m.dart';
-import 'package:chia_utils/src/core/models/bytes.dart';
+import 'package:chia_utils/src/clvm/bytes.dart';
 import 'package:meta/meta.dart';
 
 @immutable
@@ -9,7 +9,7 @@ class Address {
   const Address(this.address);
 
   Address.fromPuzzlehash(Puzzlehash puzzlehash, String addressPrefix)
-      : address = segwit.encode(Segwit(addressPrefix, puzzlehash.toUint8List()));
+      : address = segwit.encode(Segwit(addressPrefix, puzzlehash));
 
   final String address;
 

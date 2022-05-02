@@ -17,4 +17,7 @@ class ChiaBaseResponse {
       success: json['success'] as bool,
     );
   }
+
+  @override
+  String toString() => 'ChiaBaseResponse(success: $success, error: $error)';
 }
