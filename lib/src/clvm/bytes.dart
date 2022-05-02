@@ -22,12 +22,13 @@ class Puzzlehash extends Bytes {
 
 class Bytes implements List<int> {
   final Uint8List _byteList;
-  Bytes(List<int> bytesList)
-    : _byteList = Uint8List.fromList(bytesList);
+  Bytes(List<int> bytesList) : _byteList = Uint8List.fromList(bytesList);
 
   static String bytesPrefix = '0x';
 
   String toHex() => const HexEncoder().convert(_byteList);
+
+  Uint8List get uint8List => _byteList;
 
   static Bytes get empty => Bytes([]);
 
@@ -55,7 +56,6 @@ class Bytes implements List<int> {
   Bytes sha256Hash() {
     return Bytes(sha256.convert(_byteList).bytes);
   }
-
 
   String get hexWithBytesPrefix {
     return bytesPrefix + toHex();
@@ -103,7 +103,7 @@ class Bytes implements List<int> {
 
   @override
   void operator []=(int index, int value) {
-    _byteList[index]=value;
+    _byteList[index] = value;
   }
 
   @override
@@ -289,13 +289,14 @@ class Bytes implements List<int> {
   }
 
   @override
-  void setRange(int start, int end, Iterable<int> iterable, [int skipCount = 0]) {
+  void setRange(int start, int end, Iterable<int> iterable,
+      [int skipCount = 0]) {
     _byteList.setRange(start, end, iterable);
   }
 
   @override
   void shuffle([Random? random]) {
-   throw UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
