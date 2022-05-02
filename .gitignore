@@ -27,4 +27,4 @@ doc/api/
 .idea
 
 # Ignore generated plots
-test/simulator/temp
+integration_test/simulator/temp

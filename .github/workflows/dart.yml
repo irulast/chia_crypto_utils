@@ -1,0 +1,50 @@
+name: Analysis and Code Coverage
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clone the repository
+      uses: actions/checkout@v1
+    
+    - name: Install Tools
+      run: sudo apt update && sudo apt install lcov
+
+    - name: Clone the Flutter repository
+      uses: actions/checkout@v1
+      with:
+        repository: flutter/flutter
+        ref: 2.8.1
+        path: flutter
+
+    - name: Add the flutter tool to the path
+      run: |
+        ls -al "$GITHUB_WORKSPACE/../flutter/bin"
+        echo "$GITHUB_WORKSPACE/../flutter/bin" >> $GITHUB_PATH
+        echo "$GITHUB_WORKSPACE/../flutter/bin/cache/dart-sdk/bin" >> $GITHUB_PATH
+
+    - name: Populate the Flutter tool's cache of binary artifacts
+      run: |
+        flutter config --no-analytics
+        flutter precache
+    - name: Get Flutter packages
+      run: flutter pub get
+
+    - name: Run tests
+      run: flutter test --coverage 
+
+    - name: Generate coverate report 
+      run: genhtml coverage/lcov.info -o coverage
+
+    - name: Upload code coverage to GitHub
+      uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074
+      with:
+        name: code-coverage
+        path: coverage
