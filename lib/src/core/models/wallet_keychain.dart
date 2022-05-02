@@ -32,13 +32,14 @@ class WalletKeychain {
     hardenedMap = newHardenedMap;
     unhardenedMap = newUnhardenedMap;
   }
+  WalletKeychain._internal(
+      {required this.hardenedMap, required this.unhardenedMap});
 
   List<Puzzlehash> getOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
     if (!unhardenedMap.values.first.assetIdtoOuterPuzzlehash
         .containsKey(assetId)) {
       throw ArgumentError(
-        'Puzzlehashes for given Asset Id are not in keychain',
-      );
+          'Puzzlehashes for given Asset Id are not in keychain');
     }
     return unhardenedMap.values
         .map((v) => v.assetIdtoOuterPuzzlehash[assetId]!)
@@ -53,17 +54,28 @@ class WalletKeychain {
       walletVector.assetIdtoOuterPuzzlehash[assetId] = outerPuzzleHash;
       entriesToAdd[outerPuzzleHash] = walletVector;
     }
+
     unhardenedMap.addAll(entriesToAdd);
+
+    /**
+     * Add the hardened puzzlehashes for the assetId
+     */
+    final hardenedEntriesToAdd = <Puzzlehash, WalletVector>{};
+    for (final walletVector in hardenedMap.values) {
+      final outerPuzzleHash =
+          WalletKeychain.makeOuterPuzzleHash(walletVector.puzzlehash, assetId);
+      //walletVector.assetIdtoOuterPuzzlehash[assetId] = outerPuzzleHash;
+      hardenedEntriesToAdd[outerPuzzleHash] = walletVector;
+    }
+    hardenedMap.addAll(hardenedEntriesToAdd);
   }
 
   static Puzzlehash makeOuterPuzzleHash(
-    Puzzlehash innerPuzzleHash,
-    Puzzlehash assetId,
-  ) {
+      Puzzlehash innerPuzzleHash, Puzzlehash assetId) {
     final solution = Program.list([
       Program.fromBytes(catProgram.hash()),
-      Program.fromBytes(assetId),
-      Program.fromBytes(innerPuzzleHash)
+      Program.fromBytes(assetId.uint8List),
+      Program.fromBytes(innerPuzzleHash.uint8List)
     ]);
     final result = curryAndTreehashProgram.run(solution);
     return Puzzlehash(result.program.atom);
@@ -73,5 +85,39 @@ class WalletKeychain {
     return bip39
         .generateMnemonic(strength: strength)
         .split(mnemonicWordSeperator);
+  }
+
+  factory WalletKeychain.fromMap(Map<String, dynamic> json) {
+    final hardened = json['hardenedMap'] as Map<String, dynamic>;
+    final unhardened = json['unhardenedMap'] as Map<String, dynamic>;
+
+    final hardenedMap = <Puzzlehash, WalletVector>{};
+    final unhardenedMap = <Puzzlehash, UnhardenedWalletVector>{};
+
+    for (final key in hardened.keys) {
+      final value = hardened[key] as Map<String, dynamic>;
+      final puzzlehash = Puzzlehash.fromHex(key);
+      final walletVector = WalletVector.fromMap(value);
+      hardenedMap[puzzlehash] = walletVector;
+    }
+    for (final key in unhardened.keys) {
+      final value = unhardened[key] as Map<String, dynamic>;
+      final puzzlehash = Puzzlehash.fromHex(key);
+      final unhardenedWalletVector = UnhardenedWalletVector.fromMap(value);
+      unhardenedMap[puzzlehash] = unhardenedWalletVector;
+    }
+
+    return WalletKeychain._internal(
+      hardenedMap: hardenedMap,
+      unhardenedMap: unhardenedMap,
+    );
+  }
+  Map<String, dynamic> toMap() {
+    final map = <String, dynamic>{};
+    map['hardenedMap'] =
+        hardenedMap.map((k, v) => MapEntry(k.toHex(), v.toMap()));
+    map['unhardenedMap'] =
+        unhardenedMap.map((k, v) => MapEntry(k.toHex(), v.toMap()));
+    return map;
   }
 }
