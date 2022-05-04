@@ -27,7 +27,8 @@ class RunTailCondition implements Condition {
     if (conditionParts.length != 5) {
       return false;
     }
-    if (conditionParts[0].toInt() != conditionCode || conditionParts[2].toInt() != magicCatNumber) {
+    if (conditionParts[0].toInt() != conditionCode || 
+        conditionParts[2].toInt() != magicCatNumber) {
       return false;
     }
     return true;

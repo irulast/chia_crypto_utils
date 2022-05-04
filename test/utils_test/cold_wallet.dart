@@ -30,7 +30,7 @@ void main() async {
       walletSet.add(set);
 
       final address = Address.fromPuzzlehash(set.hardened.puzzlehash, 'xch').address;
-       print(' $address');
+      print(' $address');
     }
   });
 }

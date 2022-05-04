@@ -12,7 +12,9 @@ class BlockchainState {
   factory BlockchainState.fromJson(Map<String, dynamic> json) {
     return BlockchainState(
       difficulty: json['difficulty'] as int,
-      peak: json['peak'] != null ? Peak.fromJson(json['peak'] as Map<String, dynamic>) : null,
+      peak: json['peak'] != null ? 
+        Peak.fromJson(json['peak'] as Map<String, dynamic>) : 
+        null,
     );
   }
 }

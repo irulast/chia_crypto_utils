@@ -16,6 +16,7 @@ class ReserveFeeCondition implements Condition {
       Program.fromInt(feeAmount)
     ]);
   }
+
   @override
   String toString() => 'ReserveFeeCondition(code: $conditionCode, feeAmount: $feeAmount)';
 }

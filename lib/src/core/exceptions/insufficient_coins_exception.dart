@@ -2,7 +2,7 @@
 
 class InsufficientCoinsException implements Exception {
   InsufficientCoinsException({
-    required this.attemptedSpendAmount, 
+    required this.attemptedSpendAmount,
     required this.coinTotalValue,
   });
 

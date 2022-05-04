@@ -13,6 +13,8 @@ import 'package:quiver/core.dart';
 
 @immutable
 class JacobianPoint with ToBytesMixin {
+  static const g1BytesLength = 48;
+  static const g2BytesLength = 96;
   JacobianPoint(this.x, this.y, this.z, this.infinity, {EC? ec})
       : ec = ec ?? defaultEc,
         isExtension = x is! Fq {
@@ -26,11 +28,11 @@ class JacobianPoint with ToBytesMixin {
   factory JacobianPoint.fromBytes(List<int> bytes, bool isExtension, {EC? ec}) {
     ec ??= defaultEc;
     if (isExtension) {
-      if (bytes.length != 96) {
+      if (bytes.length != g2BytesLength) {
         throw ArgumentError('Expected 96 bytes.');
       }
     } else {
-      if (bytes.length != 48) {
+      if (bytes.length != g1BytesLength) {
         throw ArgumentError('Expected 48 bytes.');
       }
     }
@@ -60,8 +62,7 @@ class JacobianPoint with ToBytesMixin {
         ec: ec,
       ).toJacobian();
     }
-    final x =
-        isExtension ? Fq2.fromBytes(bytes, ec.q) : Fq.fromBytes(bytes, ec.q);
+    final x = isExtension ? Fq2.fromBytes(bytes, ec.q) : Fq.fromBytes(bytes, ec.q);
     final yValue = yForX(x, ec: ec);
     bool sign;
     if (isExtension) {
@@ -73,16 +74,14 @@ class JacobianPoint with ToBytesMixin {
     return AffinePoint(x, y, false, ec: ec).toJacobian();
   }
 
-  factory JacobianPoint.fromHex(String hex, bool isExtension, {EC? ec}) =>
-      JacobianPoint.fromBytes(
+  factory JacobianPoint.fromHex(String hex, bool isExtension, {EC? ec}) => JacobianPoint.fromBytes(
         const HexDecoder().convert(hex),
         isExtension,
         ec: ec,
       );
 
   factory JacobianPoint.generateG1() =>
-      AffinePoint(defaultEc.gx, defaultEc.gy, false, ec: defaultEc)
-          .toJacobian();
+      AffinePoint(defaultEc.gx, defaultEc.gy, false, ec: defaultEc).toJacobian();
 
   factory JacobianPoint.generateG2() => AffinePoint(
         defaultEcTwist.g2x,
@@ -138,8 +137,8 @@ class JacobianPoint with ToBytesMixin {
   final EC ec;
   final bool isExtension;
 
-  bool get isG1 => toBytes().length == 48;
-  bool get isG2 => toBytes().length == 96;
+  bool get isG1 => toBytes().length == g1BytesLength;
+  bool get isG2 => toBytes().length == g2BytesLength;
 
   bool get isOnCurve => infinity || toAffine().isOnCurve;
   bool get isValid => isOnCurve && this * ec.n == JacobianPoint.infinityG2();
@@ -196,8 +195,7 @@ class JacobianPoint with ToBytesMixin {
     return JacobianPoint(X_p, Y_p, Z_p, false, ec: ec);
   }
 
-  int getFingerprint() =>
-      bytesToInt(sha256.convert(toBytes()).bytes.sublist(0, 4), Endian.big);
+  int getFingerprint() => bytesToInt(sha256.convert(toBytes()).bytes.sublist(0, 4), Endian.big);
 
   JacobianPoint operator -() => (-toAffine()).toJacobian();
 
@@ -243,15 +241,13 @@ class JacobianPoint with ToBytesMixin {
   }
 
   @override
-  bool operator ==(Object other) =>
-      other is JacobianPoint && toAffine() == other.toAffine();
+  bool operator ==(Object other) => other is JacobianPoint && toAffine() == other.toAffine();
 
   @override
   int get hashCode => hash4(x, y, z, infinity);
 
   @override
-  String toString() => 'JacobianPoint(0x$toHex())';
+  String toString() => 'JacobianPoint(0x${toHex()})';
 
-  JacobianPoint clone() =>
-      JacobianPoint(x.clone(), y.clone(), z.clone(), infinity, ec: ec);
+  JacobianPoint clone() => JacobianPoint(x.clone(), y.clone(), z.clone(), infinity, ec: ec);
 }

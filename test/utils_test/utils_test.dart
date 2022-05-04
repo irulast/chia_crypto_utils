@@ -26,9 +26,7 @@ const chiaFingerprint = 3109357790;
 const chiaMasterPublicKeyHex = '901acd53bf61a63120f15442baf0f2a656267b08ba42c511b9bb543e31c32a9b49a0e0aa5e897bc81878d703fcd889f3';
 const chiaFarmerPublicKeyHex = '8351d5afd1ab40bf37565d25600c9b147dcda344e19d413b2c468316d1efd312f61a1eca02a74f8d5f0d6e79911c23ca';
 const chiaPoolPublicKeyHex = '926c9b71f4cfc3f8a595fc77d7edc509e2f426704489eaba6f86728bc391c628c402e00190ba3617931649d8c53b5520';
-const chiaFirstAddress = Address(
-  'txch1v8vergyvwugwv0tmxwnmeecuxh3tat5jaskkunnn79zjz0muds0qlg2szv',
-);
+const chiaFirstAddress = Address('txch1v8vergyvwugwv0tmxwnmeecuxh3tat5jaskkunnn79zjz0muds0qlg2szv',);
 
 void main() async {
   // get chia wallet sets generated from testMnemonic
@@ -36,9 +34,9 @@ void main() async {
   filePath = path.normalize(filePath);
   final input = File(filePath).openRead();
   final chiaWalletSetRows = await input
-      .transform(utf8.decoder)
-      .transform(const CsvToListConverter(eol: '\n'))
-      .toList();
+    .transform(utf8.decoder)
+    .transform(const CsvToListConverter(eol: '\n'))
+    .toList();
 
   test('should generate correct puzzle hashes from mnemonic', () {
     final masterKeyPair = MasterKeyPair.fromMnemonic(testMnemonic);
@@ -77,10 +75,10 @@ void main() async {
     print('First wallet address: ${firstAddress.address}');
   });
 
-   test('should generate a 24 word mnemonic', () {
-     final mnemonicPhrase = generateMnemonic(strength: 256);
-     print(mnemonicPhrase);
+  test('should generate a 24 word mnemonic', () {
+    final mnemonicPhrase = generateMnemonic(strength: 256);
+    print(mnemonicPhrase);
 
-     expect(24, mnemonicPhrase.split(' ').length);
-   });
+    expect(24, mnemonicPhrase.split(' ').length);
+  });
 }

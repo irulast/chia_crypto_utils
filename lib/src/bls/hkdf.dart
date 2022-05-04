@@ -1,23 +1,21 @@
-import 'dart:typed_data';
-
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:crypto/crypto.dart';
 
-final blockSize = 32;
+const blockSize = 32;
 
 Bytes extract(List<int> salt, List<int> ikm) {
-  var hmacSha256 = Hmac(sha256, salt);
-  var digest = hmacSha256.convert(ikm);
+  final hmacSha256 = Hmac(sha256, salt);
+  final digest = hmacSha256.convert(ikm);
   return Bytes(digest.bytes);
 }
 
 Bytes expand(int L, List<int> prk, List<int> info) {
-  var N = (L / blockSize).ceil();
+  final N = (L / blockSize).ceil();
   var bytesWritten = 0;
-  List<int> okm = [];
-  List<int> T = [];
+  var okm = <int>[];
+  var T = <int>[];
   for (var i = 1; i < N + 1; i++) {
-    var h = Hmac(sha256, prk);
+    final h = Hmac(sha256, prk);
     if (i == 1) {
       T = h.convert(info + [1]).bytes;
     } else {

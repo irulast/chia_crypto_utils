@@ -24,10 +24,10 @@ class MasterKeyPair {
   final JacobianPoint masterPublicKey;
 
   @override
-  int get hashCode =>
-      runtimeType.hashCode ^
-      masterPrivateKey.hashCode ^
-      masterPublicKey.hashCode;
+  int get hashCode => 
+    runtimeType.hashCode ^ 
+    masterPrivateKey.hashCode ^ 
+    masterPublicKey.hashCode;
 
   @override
   bool operator ==(Object other) {

@@ -12,57 +12,55 @@ typedef Operator = Output Function(Program args);
 
 Map<BigInt, Operator> operators = {
   keywords['i']!: (args) {
-    var list = args.toList(size: 3, suffix: 'in i');
+    final list = args.toList(size: 3, suffix: 'in i');
     return Output(list[0].isNull ? list[2] : list[1], Cost.ifCost);
   },
   keywords['c']!: (args) {
-    var list = args.toList(size: 2, suffix: 'in c');
+    final list = args.toList(size: 2, suffix: 'in c');
     return Output(Program.cons(list[0], list[1]), Cost.consCost);
   },
   keywords['f']!: (args) {
-    var list = args.toConsList(size: 1, suffix: 'in f');
+    final list = args.toConsList(size: 1, suffix: 'in f');
     return Output(list[0].first(), Cost.firstCost);
   },
   keywords['r']!: (args) {
-    var list = args.toConsList(size: 1, suffix: 'in r');
+    final list = args.toConsList(size: 1, suffix: 'in r');
     return Output(list[0].rest(), Cost.restCost);
   },
   keywords['l']!: (args) {
-    var list = args.toList(size: 1, suffix: 'in l');
+    final list = args.toList(size: 1, suffix: 'in l');
     return Output(Program.fromBool(list[0].isCons), Cost.listpCost);
   },
   keywords['x']!: (args) {
     throw StateError('$args${args.positionSuffix}.');
   },
   keywords['=']!: (args) {
-    var list = args.toAtomList(size: 2, suffix: 'in =');
+    final list = args.toAtomList(size: 2, suffix: 'in =');
     return Output(
         Program.fromBool(bytesEqual(list[0].atom, list[1].atom)),
         Cost.eqBaseCost +
-            (BigInt.from(list[0].atom.length) +
-                    BigInt.from(list[1].atom.length)) *
-                Cost.eqCostPerByte);
+            (BigInt.from(list[0].atom.length) + BigInt.from(list[1].atom.length)) *
+                Cost.eqCostPerByte,);
   },
   keywords['sha256']!: (args) {
-    var list = args.toAtomList(suffix: 'in sha256');
+    final list = args.toAtomList(suffix: 'in sha256');
     var cost = Cost.sha256BaseCost;
     var argLength = 0;
-    List<int> bytes = [];
-    for (var arg in list) {
+    final bytes = <int>[];
+    for (final arg in list) {
       bytes.addAll(arg.atom);
       argLength += arg.atom.length;
       cost += Cost.sha256CostPerArg;
     }
     cost += BigInt.from(argLength) * Cost.sha256CostPerByte;
-    return mallocCost(
-        Output(Program.fromBytes(sha256.convert(bytes).bytes), cost));
+    return mallocCost(Output(Program.fromBytes(sha256.convert(bytes).bytes), cost));
   },
   keywords['+']!: (args) {
-    var list = args.toAtomList(suffix: 'in +');
+    final list = args.toAtomList(suffix: 'in +');
     var total = BigInt.zero;
     var cost = Cost.arithBaseCost;
     var argSize = 0;
-    for (var arg in list) {
+    for (final arg in list) {
       total += arg.toBigInt();
       argSize += arg.atom.length;
       cost += Cost.arithCostPerArg;
@@ -75,11 +73,11 @@ Map<BigInt, Operator> operators = {
     if (args.isNull) {
       return mallocCost(Output(Program.fromInt(0), cost));
     }
-    var list = args.toAtomList(suffix: 'in -');
+    final list = args.toAtomList(suffix: 'in -');
     var total = BigInt.zero;
     var sign = BigInt.one;
     var argSize = 0;
-    for (var arg in list) {
+    for (final arg in list) {
       total += sign * arg.toBigInt();
       sign = -BigInt.one;
       argSize += arg.atom.length;
@@ -89,36 +87,33 @@ Map<BigInt, Operator> operators = {
     return mallocCost(Output(Program.fromBigInt(total), cost));
   },
   keywords['*']!: (args) {
-    var list = args.toAtomList(suffix: 'in *');
+    final list = args.toAtomList(suffix: 'in *');
     var cost = Cost.mulBaseCost;
     if (list.isEmpty) {
       return mallocCost(Output(Program.fromInt(1), cost));
     }
     var value = list[0].toBigInt();
     var size = list[0].atom.length;
-    for (var arg in list.sublist(1)) {
+    for (final arg in list.sublist(1)) {
       cost += Cost.mulCostPerOp +
-          (BigInt.from(arg.atom.length) + BigInt.from(size)) *
-              Cost.mulLinearCostPerByte +
-          (BigInt.from(arg.atom.length) * BigInt.from(size)) ~/
-              Cost.mulSquareCostPerByteDivider;
+          (BigInt.from(arg.atom.length) + BigInt.from(size)) * Cost.mulLinearCostPerByte +
+          (BigInt.from(arg.atom.length) * BigInt.from(size)) ~/ Cost.mulSquareCostPerByteDivider;
       value *= arg.toBigInt();
       size = limbsForInt(value);
     }
     return mallocCost(Output(Program.fromBigInt(value), cost));
   },
   keywords['divmod']!: (args) {
-    var list = args.toAtomList(size: 2, suffix: 'in divmod');
+    final list = args.toAtomList(size: 2, suffix: 'in divmod');
     var cost = Cost.divmodBaseCost;
-    var numerator = list[0].toBigInt();
-    var denominator = list[1].toBigInt();
+    final numerator = list[0].toBigInt();
+    final denominator = list[1].toBigInt();
     if (denominator == BigInt.zero) {
       throw UnsupportedError('Dividing by zero');
     }
-    cost +=
-        (BigInt.from(list[0].atom.length) + BigInt.from(list[1].atom.length)) *
-            Cost.divmodCostPerByte;
-    var positive = numerator.sign == denominator.sign;
+    cost += (BigInt.from(list[0].atom.length) + BigInt.from(list[1].atom.length)) *
+        Cost.divmodCostPerByte;
+    final positive = numerator.sign == denominator.sign;
     var quotientValue = numerator ~/ denominator;
     var remainderValue = numerator % denominator;
     if (!positive && remainderValue != BigInt.zero) {
@@ -127,86 +122,76 @@ Map<BigInt, Operator> operators = {
     if (denominator < BigInt.zero && remainderValue != BigInt.zero) {
       remainderValue += denominator;
     }
-    var quotient = Program.fromBigInt(quotientValue);
-    var remainder = Program.fromBigInt(remainderValue);
-    cost += (BigInt.from(quotient.atom.length) +
-            BigInt.from(remainder.atom.length)) *
+    final quotient = Program.fromBigInt(quotientValue);
+    final remainder = Program.fromBigInt(remainderValue);
+    cost += (BigInt.from(quotient.atom.length) + BigInt.from(remainder.atom.length)) *
         Cost.mallocCostPerByte;
     return Output(Program.cons(quotient, remainder), cost);
   },
   keywords['/']!: (args) {
-    var list = args.toAtomList(size: 2, suffix: 'in /');
+    final list = args.toAtomList(size: 2, suffix: 'in /');
     var cost = Cost.divBaseCost;
-    var numerator = list[0].toBigInt();
-    var denominator = list[1].toBigInt();
+    final numerator = list[0].toBigInt();
+    final denominator = list[1].toBigInt();
     if (denominator == BigInt.zero) {
       throw UnsupportedError('Dividing by zero');
     }
     cost +=
-        (BigInt.from(list[0].atom.length) + BigInt.from(list[1].atom.length)) *
-            Cost.divCostPerByte;
+        (BigInt.from(list[0].atom.length) + BigInt.from(list[1].atom.length)) * Cost.divCostPerByte;
     var quotientValue = numerator ~/ denominator;
-    var remainderValue = numerator % denominator;
+    final remainderValue = numerator % denominator;
     if (numerator.sign != denominator.sign && remainderValue != BigInt.zero) {
       quotientValue -= BigInt.one;
     }
-    var quotient = Program.fromBigInt(quotientValue);
+    final quotient = Program.fromBigInt(quotientValue);
     return mallocCost(Output(quotient, cost));
   },
   keywords['>']!: (args) {
-    var list = args.toAtomList(size: 2, suffix: 'in >');
+    final list = args.toAtomList(size: 2, suffix: 'in >');
     var cost = Cost.grBaseCost;
     cost +=
-        (BigInt.from(list[0].atom.length) + BigInt.from(list[1].atom.length)) *
-            Cost.grCostPerByte;
-    var result =
-        Output(Program.fromBool(list[0].toBigInt() > list[1].toBigInt()), cost);
+        (BigInt.from(list[0].atom.length) + BigInt.from(list[1].atom.length)) * Cost.grCostPerByte;
+    final result = Output(Program.fromBool(list[0].toBigInt() > list[1].toBigInt()), cost);
     return result;
   },
   keywords['>s']!: (args) {
-    var list = args.toAtomList(size: 2, suffix: 'in >s');
-    var cost = Cost.grsBaseCost +
-        (BigInt.from(list[0].atom.length) + BigInt.from(list[1].atom.length)) *
-            Cost.grsCostPerByte;
-    return Output(
-        Program.fromBool(list[0].toHex().compareTo(list[1].toHex()) == 1),
-        cost);
+    final list = args.toAtomList(size: 2, suffix: 'in >s');
+    final cost = Cost.grsBaseCost +
+        (BigInt.from(list[0].atom.length) + BigInt.from(list[1].atom.length)) * Cost.grsCostPerByte;
+    return Output(Program.fromBool(list[0].toHex().compareTo(list[1].toHex()) == 1), cost);
   },
   keywords['pubkey_for_exp']!: (args) {
-    var list = args.toAtomList(size: 1, suffix: 'in pubkey_for_exp');
-    var value = list[0].toBigInt() %
-        BigInt.parse(
-            '0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001');
-    var exponent = PrivateKey.fromBytes(bigIntToBytes(value, 32, Endian.big));
+    final list = args.toAtomList(size: 1, suffix: 'in pubkey_for_exp');
+    final value = list[0].toBigInt() %
+        BigInt.parse('0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001');
+    final exponent = PrivateKey.fromBytes(bigIntToBytes(value, 32, Endian.big));
     var cost = Cost.pubkeyBaseCost;
     cost += BigInt.from(list[0].atom.length) * Cost.pubkeyCostPerByte;
-    return mallocCost(
-        Output(Program.fromBytes(exponent.getG1().toBytes()), cost));
+    return mallocCost(Output(Program.fromBytes(exponent.getG1().toBytes()), cost));
   },
   keywords['point_add']!: (args) {
     var cost = Cost.pointAddBaseCost;
     var p = JacobianPoint.infinityG1();
-    for (var item in args.toAtomList(suffix: 'in point_add')) {
+    for (final item in args.toAtomList(suffix: 'in point_add')) {
       p += JacobianPoint.fromBytes(item.atom, false);
       cost += Cost.pointAddCostPerArg;
     }
     return mallocCost(Output(Program.fromBytes(p.toBytes()), cost));
   },
   keywords['strlen']!: (args) {
-    var list = args.toAtomList(size: 1, suffix: 'in strlen');
-    var size = list[0].atom.length;
-    var cost = Cost.strlenBaseCost + BigInt.from(size) * Cost.strlenCostPerByte;
+    final list = args.toAtomList(size: 1, suffix: 'in strlen');
+    final size = list[0].atom.length;
+    final cost = Cost.strlenBaseCost + BigInt.from(size) * Cost.strlenCostPerByte;
     return mallocCost(Output(Program.fromInt(size), cost));
   },
   keywords['substr']!: (args) {
-    var list = args.toAtomList(min: 2, max: 3, suffix: 'in substr');
-    var str = list[0].atom;
-    if (list[1].atom.length > 4 ||
-        (list.length == 3 && list[2].atom.length > 4)) {
+    final list = args.toAtomList(min: 2, max: 3, suffix: 'in substr');
+    final str = list[0].atom;
+    if (list[1].atom.length > 4 || (list.length == 3 && list[2].atom.length > 4)) {
       throw ArgumentError('Expected 4 byte indices for substr.');
     }
-    var from = list[1].toInt();
-    var to = list.length == 3 ? list[2].toInt() : str.length;
+    final from = list[1].toInt();
+    final to = list.length == 3 ? list[2].toInt() : str.length;
     if (to > str.length || to < from || to < 0 || from < 0) {
       throw ArgumentError('Invalid indices for substr.');
     }
@@ -214,8 +199,8 @@ Map<BigInt, Operator> operators = {
   },
   keywords['concat']!: (args) {
     var cost = Cost.concatBaseCost;
-    List<int> bytes = [];
-    for (var item in args.toAtomList(suffix: 'in concat')) {
+    final bytes = <int>[];
+    for (final item in args.toAtomList(suffix: 'in concat')) {
       bytes.addAll(item.atom);
       cost += Cost.concatCostPerArg;
     }
@@ -223,9 +208,9 @@ Map<BigInt, Operator> operators = {
     return mallocCost(Output(Program.fromBytes(bytes), cost));
   },
   keywords['ash']!: (args) {
-    var list = args.toAtomList(size: 2, suffix: 'in ash');
+    final list = args.toAtomList(size: 2, suffix: 'in ash');
     var value = list[0].toBigInt();
-    var shift = list[1].toInt();
+    final shift = list[1].toInt();
     if (list[1].atom.length > 4) {
       throw ArgumentError('Shift must be 32 bits.');
     }
@@ -237,54 +222,49 @@ Map<BigInt, Operator> operators = {
     } else {
       value >>= -shift;
     }
-    var cost = Cost.ashiftBaseCost +
+    final cost = Cost.ashiftBaseCost +
         (BigInt.from(list[0].atom.length) + BigInt.from(limbsForInt(value))) *
             Cost.ashiftCostPerByte;
     return mallocCost(Output(Program.fromBigInt(value), cost));
   },
   keywords['lsh']!: (args) {
-    var list = args.toAtomList(size: 2, suffix: 'in ash');
-    var shift = list[1].toInt();
+    final list = args.toAtomList(size: 2, suffix: 'in ash');
+    final shift = list[1].toInt();
     if (list[1].atom.length > 4) {
       throw ArgumentError('Shift must be 32 bits.');
     }
     if (shift.abs() > 65535) {
       throw ArgumentError('Shift too large.');
     }
-    var value = bytesToBigInt(list[0].atom, Endian.big, signed: false).abs();
+    var value = bytesToBigInt(list[0].atom, Endian.big).abs();
     if (shift >= 0) {
       value <<= shift;
     } else {
       value >>= -shift;
     }
-    var cost = Cost.lshiftBaseCost +
+    final cost = Cost.lshiftBaseCost +
         (BigInt.from(list[0].atom.length) + BigInt.from(limbsForInt(value))) *
             Cost.lshiftCostPerByte;
     return mallocCost(Output(Program.fromBigInt(value), cost));
   },
-  keywords['logand']!: (args) =>
-      binopReduction('logand', -BigInt.one, args, (a, b) => a & b),
-  keywords['logior']!: (args) =>
-      binopReduction('logior', BigInt.zero, args, (a, b) => a | b),
-  keywords['logxor']!: (args) =>
-      binopReduction('logxor', BigInt.zero, args, (a, b) => a ^ b),
+  keywords['logand']!: (args) => binopReduction('logand', -BigInt.one, args, (a, b) => a & b),
+  keywords['logior']!: (args) => binopReduction('logior', BigInt.zero, args, (a, b) => a | b),
+  keywords['logxor']!: (args) => binopReduction('logxor', BigInt.zero, args, (a, b) => a ^ b),
   keywords['lognot']!: (args) {
-    var items = args.toAtomList(size: 1, suffix: 'in lognot');
-    var cost = Cost.lognotBaseCost +
-        BigInt.from(items[0].atom.length) * Cost.lognotCostPerByte;
+    final items = args.toAtomList(size: 1, suffix: 'in lognot');
+    final cost = Cost.lognotBaseCost + BigInt.from(items[0].atom.length) * Cost.lognotCostPerByte;
     return mallocCost(Output(Program.fromBigInt(~items[0].toBigInt()), cost));
   },
   keywords['not']!: (args) {
-    var items = args.toList(size: 1, suffix: 'in not');
-    var cost = Cost.boolBaseCost;
+    final items = args.toList(size: 1, suffix: 'in not');
+    final cost = Cost.boolBaseCost;
     return Output(Program.fromBool(items[0].isNull), cost);
   },
   keywords['any']!: (args) {
-    var items = args.toList(suffix: 'in any');
-    var cost =
-        Cost.boolBaseCost + BigInt.from(items.length) * Cost.boolCostPerArg;
+    final items = args.toList(suffix: 'in any');
+    final cost = Cost.boolBaseCost + BigInt.from(items.length) * Cost.boolCostPerArg;
     var result = false;
-    for (var value in items) {
+    for (final value in items) {
       if (!value.isNull) {
         result = true;
         break;
@@ -293,11 +273,10 @@ Map<BigInt, Operator> operators = {
     return Output(Program.fromBool(result), cost);
   },
   keywords['all']!: (args) {
-    var items = args.toList(suffix: 'in all');
-    var cost =
-        Cost.boolBaseCost + BigInt.from(items.length) * Cost.boolCostPerArg;
+    final items = args.toList(suffix: 'in all');
+    final cost = Cost.boolBaseCost + BigInt.from(items.length) * Cost.boolCostPerArg;
     var result = true;
-    for (var value in items) {
+    for (final value in items) {
       if (value.isNull) {
         result = false;
         break;
@@ -306,11 +285,11 @@ Map<BigInt, Operator> operators = {
     return Output(Program.fromBool(result), cost);
   },
   keywords['softfork']!: (args) {
-    var list = args.toList(min: 1, suffix: 'in softfork');
+    final list = args.toList(min: 1, suffix: 'in softfork');
     if (list[0].isCons) {
       throw ArgumentError('Expected atom argument in softfork.');
     }
-    var cost = list[0].toBigInt();
+    final cost = list[0].toBigInt();
     if (cost < BigInt.one) {
       throw ArgumentError('Cost must be greater than zero.');
     }
@@ -318,12 +297,12 @@ Map<BigInt, Operator> operators = {
   }
 };
 
-Output binopReduction(String opName, BigInt initialValue, Program args,
-    BigInt Function(BigInt, BigInt) opFunction) {
+Output binopReduction(
+    String opName, BigInt initialValue, Program args, BigInt Function(BigInt, BigInt) opFunction,) {
   var total = initialValue;
   var argSize = 0;
   var cost = Cost.logBaseCost;
-  for (var item in args.toAtomList(suffix: 'in $opName')) {
+  for (final item in args.toAtomList(suffix: 'in $opName')) {
     total = opFunction(total, item.toBigInt());
     argSize += item.atom.length;
     cost += Cost.logCostPerArg;
@@ -333,10 +312,8 @@ Output binopReduction(String opName, BigInt initialValue, Program args,
 }
 
 Output mallocCost(Output output) {
-  return Output(
-      output.program,
-      output.cost +
-          BigInt.from(output.program.atom.length) * Cost.mallocCostPerByte);
+  return Output(output.program,
+      output.cost + BigInt.from(output.program.atom.length) * Cost.mallocCostPerByte,);
 }
 
 int limbsForInt(BigInt value) {
@@ -344,7 +321,7 @@ int limbsForInt(BigInt value) {
 }
 
 Output runOperator(Program op, Program args, RunOptions options) {
-  var value = op.toBigInt();
+  final value = op.toBigInt();
   if (operators.containsKey(value)) {
     return operators[value]!(args);
   }
@@ -357,16 +334,15 @@ Output runOperator(Program op, Program args, RunOptions options) {
   if (op.atom.length > 5) {
     throw StateError('Invalid operator.');
   }
-  var costFunction = (op.atom[op.atom.length - 1] & 0xc0) >> 6;
-  var costMultiplier =
-      bytesToInt(op.atom.sublist(0, op.atom.length - 1), Endian.big) + 1;
+  final costFunction = (op.atom[op.atom.length - 1] & 0xc0) >> 6;
+  final costMultiplier = bytesToInt(op.atom.sublist(0, op.atom.length - 1), Endian.big) + 1;
   BigInt cost;
   if (costFunction == 0) {
     cost = BigInt.one;
   } else if (costFunction == 1) {
     cost = Cost.arithBaseCost;
     var argSize = 0;
-    for (var arg in args.toList()) {
+    for (final arg in args.toList()) {
       if (arg.isCons) {
         throw StateError('Expected int arguments.');
       }
@@ -376,20 +352,19 @@ Output runOperator(Program op, Program args, RunOptions options) {
     cost += BigInt.from(argSize) * Cost.arithCostPerByte;
   } else if (costFunction == 2) {
     cost = Cost.mulBaseCost;
-    var argList = args.toList();
+    final argList = args.toList();
     if (argList.isNotEmpty) {
-      var first = argList[0];
+      final first = argList[0];
       if (first.isCons) {
         throw StateError('Expected int arguments.');
       }
       var current = first.atom.length;
-      for (var item in argList.sublist(1)) {
+      for (final item in argList.sublist(1)) {
         if (item.isCons) {
           throw StateError('Expected int arguments.');
         }
         cost += Cost.mulCostPerOp +
-            (BigInt.from(item.atom.length) + BigInt.from(current)) *
-                Cost.mulLinearCostPerByte +
+            (BigInt.from(item.atom.length) + BigInt.from(current)) * Cost.mulLinearCostPerByte +
             (BigInt.from(item.atom.length) * BigInt.from(current)) ~/
                 Cost.mulSquareCostPerByteDivider;
         current += item.atom.length;
@@ -398,7 +373,7 @@ Output runOperator(Program op, Program args, RunOptions options) {
   } else if (costFunction == 3) {
     cost = Cost.concatBaseCost;
     var length = 0;
-    for (var arg in args.toList()) {
+    for (final arg in args.toList()) {
       if (arg.isCons) {
         throw StateError('Unknown op on list.');
       }

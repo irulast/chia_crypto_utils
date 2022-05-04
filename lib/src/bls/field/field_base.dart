@@ -97,8 +97,7 @@ class Fq extends Field {
   }
 
   @override
-  bool equal(dynamic other) =>
-      other is Fq && value == other.value && Q == other.Q;
+  bool equal(dynamic other) => other is Fq && value == other.value && Q == other.Q;
 
   @override
   String toString() {

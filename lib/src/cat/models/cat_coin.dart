@@ -19,8 +19,7 @@ class CatCoin extends CoinPrototype {
                 parentCoinSpend.puzzleReveal.uncurry().arguments[1].atom,
               )
             : throw InvalidCatException(),
-        lineageProof = parentCoinSpend.puzzleReveal.uncurry().arguments.length >
-                2
+        lineageProof = parentCoinSpend.puzzleReveal.uncurry().arguments.length > 2
             ? Program.list([
                 Program.fromBytes(
                   parentCoinSpend.coin.parentCoinInfo,
@@ -38,10 +37,44 @@ class CatCoin extends CoinPrototype {
           amount: coin.amount,
         ) {
     final uncurriedParentPuzzleReveal = parentCoinSpend.puzzleReveal.uncurry();
-    if (uncurriedParentPuzzleReveal.program.toSource() !=
-        catProgram.toSource()) {
+    if (uncurriedParentPuzzleReveal.program.toSource() != catProgram.toSource()) {
       throw InvalidCatException();
     }
+  }
+
+  factory CatCoin.fromBytes(Bytes bytes) {
+    var length = decodeInt(bytes.sublist(0, 4));
+    var left = 4;
+    var right = left + length;
+
+    final parentCoinSpend = CoinSpend.fromBytes(bytes.sublist(left, right));
+
+    length = decodeInt(bytes.sublist(right, right + 4));
+    left = right + 4;
+    right = left + length;
+    final coinPrototype = CoinPrototype.fromBytes(bytes.sublist(left, right));
+
+    return CatCoin(parentCoinSpend: parentCoinSpend, coin: coinPrototype);
+  }
+
+  CoinPrototype toCoinPrototype() => CoinPrototype(parentCoinInfo: parentCoinInfo, puzzlehash: puzzlehash, amount: amount);
+
+  @override
+  Bytes toBytes() {
+    final coinSpendBytes = parentCoinSpend.toBytes();
+
+    final coinPrototypeBytes = CoinPrototype(
+      parentCoinInfo: parentCoinInfo,
+      puzzlehash: puzzlehash,
+      amount: amount,
+    ).toBytes();
+
+    return Bytes([
+      ...intTo32Bytes(coinSpendBytes.length),
+      ...coinSpendBytes,
+      ...intTo32Bytes(coinPrototypeBytes.length),
+      ...coinPrototypeBytes,
+    ]);
   }
 
   CatCoin.eve({

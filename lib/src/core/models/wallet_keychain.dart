@@ -1,14 +1,14 @@
-// ignore_for_file: lines_longer_than_80_chars
+// ignore_for_file: lines_longer_than_80_chars, avoid_equals_and_hash_code_on_mutable_classes
 
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/curry_and_treehash/curry_and_treehash.clvm.hex.dart';
+import 'package:chia_utils/src/utils/serialization.dart';
 
 class WalletKeychain {
   Map<Puzzlehash, WalletVector> hardenedMap = <Puzzlehash, WalletVector>{};
-  Map<Puzzlehash, UnhardenedWalletVector> unhardenedMap =
-      <Puzzlehash, UnhardenedWalletVector>{};
+  Map<Puzzlehash, UnhardenedWalletVector> unhardenedMap = <Puzzlehash, UnhardenedWalletVector>{};
   static const mnemonicWordSeperator = ' ';
 
   WalletVector? getWalletVector(Puzzlehash puzzlehash) {
@@ -33,23 +33,75 @@ class WalletKeychain {
     unhardenedMap = newUnhardenedMap;
   }
 
+  WalletKeychain.fromMaps(this.hardenedMap, this.unhardenedMap);
+
+  factory WalletKeychain.fromBytes(Bytes bytes) {
+    var byteIndex = 0;
+
+    final hardenedMapLength = decodeInt(bytes.sublist(byteIndex, byteIndex + 4));
+    byteIndex += 4;
+
+    final hardenedMap = <Puzzlehash, WalletVector>{};
+
+    for (var _i = 0; _i < hardenedMapLength; _i++) {
+      final keyLength = decodeInt(bytes.sublist(byteIndex, byteIndex + 4));
+      final keyLeft = byteIndex + 4;
+      final keyRight = keyLeft + keyLength;
+
+      final valueLength = decodeInt(bytes.sublist(keyRight, keyRight + 4));
+      final valueLeft = keyRight + 4;
+      final valueRight = valueLeft + valueLength;
+
+      final puzzlehash = Puzzlehash(bytes.sublist(keyLeft, keyRight));
+      final walletVector = WalletVector.fromBytes(bytes.sublist(valueLeft, valueRight));
+
+      hardenedMap[puzzlehash] = walletVector;
+
+      byteIndex = valueRight;
+    }
+
+    final unhardenedMapLength = decodeInt(bytes.sublist(byteIndex, byteIndex + 4));
+    byteIndex += 4;
+
+    final unhardenedMap = <Puzzlehash, UnhardenedWalletVector>{};
+
+    for (var _i = 0; _i < unhardenedMapLength; _i++) {
+      final keyLength = decodeInt(bytes.sublist(byteIndex, byteIndex + 4));
+      final keyLeft = byteIndex + 4;
+      final keyRight = keyLeft + keyLength;
+
+      final valueLength = decodeInt(bytes.sublist(keyRight, keyRight + 4));
+      final valueLeft = keyRight + 4;
+      final valueRight = valueLeft + valueLength;
+
+      final puzzlehash = Puzzlehash(bytes.sublist(keyLeft, keyRight));
+      final walletVector = UnhardenedWalletVector.fromBytes(bytes.sublist(valueLeft, valueRight));
+
+      unhardenedMap[puzzlehash] = walletVector;
+
+      byteIndex = valueRight;
+    }
+
+    return WalletKeychain.fromMaps(hardenedMap, unhardenedMap);
+  }
+
+  Bytes toBytes() {
+    return serializeList(<dynamic>[hardenedMap, unhardenedMap]);
+  }
+
   List<Puzzlehash> getOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
-    if (!unhardenedMap.values.first.assetIdtoOuterPuzzlehash
-        .containsKey(assetId)) {
+    if (!unhardenedMap.values.first.assetIdtoOuterPuzzlehash.containsKey(assetId)) {
       throw ArgumentError(
         'Puzzlehashes for given Asset Id are not in keychain',
       );
     }
-    return unhardenedMap.values
-        .map((v) => v.assetIdtoOuterPuzzlehash[assetId]!)
-        .toList();
+    return unhardenedMap.values.map((v) => v.assetIdtoOuterPuzzlehash[assetId]!).toList();
   }
 
   void addOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
     final entriesToAdd = <Puzzlehash, UnhardenedWalletVector>{};
     for (final walletVector in unhardenedMap.values) {
-      final outerPuzzleHash =
-          makeOuterPuzzleHash(walletVector.puzzlehash, assetId);
+      final outerPuzzleHash = makeOuterPuzzleHash(walletVector.puzzlehash, assetId);
       walletVector.assetIdtoOuterPuzzlehash[assetId] = outerPuzzleHash;
       entriesToAdd[outerPuzzleHash] = walletVector;
     }
@@ -70,8 +122,6 @@ class WalletKeychain {
   }
 
   static List<String> generateMnemonic({int strength = 256}) {
-    return bip39
-        .generateMnemonic(strength: strength)
-        .split(mnemonicWordSeperator);
+    return bip39.generateMnemonic(strength: strength).split(mnemonicWordSeperator);
   }
 }

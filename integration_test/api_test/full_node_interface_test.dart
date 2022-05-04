@@ -1,7 +1,6 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/api/exceptions/bad_coin_id_exception.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/delegated_tail/delegated_tail.clvm.hex.dart';
 import 'package:chia_utils/src/cat/puzzles/tails/genesis_by_coin_id/genesis_by_coin_id.clvm.hex.dart';
 import 'package:test/test.dart';
@@ -38,8 +37,8 @@ Future<void> main() async {
   }
   final keychain = WalletKeychain(walletsSetList);
 
-  final context = NetworkContext.makeContext(Network.mainnet);
-  final catWalletService = CatWalletService(context);
+  ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
+  final catWalletService = CatWalletService();
 
   final walletVector = keychain.unhardenedMap.values.first;
   final puzzlehash = walletVector.puzzlehash;

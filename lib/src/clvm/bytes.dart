@@ -1,8 +1,10 @@
 // ignore_for_file: avoid_equals_and_hash_code_on_mutable_classes, prefer_constructors_over_static_methods, lines_longer_than_80_chars
 
+import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:chia_utils/src/clvm/exceptions/unexpected_end_of_bytes_exception.dart';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 
@@ -17,19 +19,23 @@ class Puzzlehash extends Bytes {
     return Puzzlehash(Bytes.fromHex(phHex));
   }
 
+  Puzzlehash.zeros() : super(List.filled(bytesLength, 0));
+
   static const bytesLength = 32;
+
 }
 
-class Bytes implements List<int> {
+class Bytes extends Comparable<Bytes> implements List<int> {
   final Uint8List _byteList;
-  Bytes(List<int> bytesList)
-    : _byteList = Uint8List.fromList(bytesList);
+  Bytes(List<int> bytesList) : _byteList = Uint8List.fromList(bytesList);
 
   static String bytesPrefix = '0x';
 
   String toHex() => const HexEncoder().convert(_byteList);
 
   static Bytes get empty => Bytes([]);
+
+  Bytes.encodeFromString(String text) : _byteList = Uint8List.fromList(utf8.encode(text));
 
   factory Bytes.fromHex(String hex) {
     if (hex.startsWith(bytesPrefix)) {
@@ -41,10 +47,35 @@ class Bytes implements List<int> {
   }
 
   @override
-  bool operator ==(Object other) =>
-      other is Bytes &&
-      other.runtimeType == runtimeType &&
-      other.toHex() == toHex();
+  bool operator ==(Object other) => other is Bytes && other.toHex() == toHex();
+
+  bool operator >(Bytes other) {
+    final minLength = min(other.length, length);
+    if (minLength == 0) {
+      return other.length == minLength;
+    }
+
+    for (var i = 0; i < min(other.length, length); i++) {
+      if (!(this[i] == other[i])) {
+        return this[i] > other[i];
+      }
+    }
+    return false;
+  }
+
+  @override
+  int compareTo(Bytes other) {
+    if (this > other) {
+      return 1;
+    } 
+  // this warning is wrong
+    // ignore: invariant_booleans
+    if (other > this) {
+      return -1;
+    }
+    return 0;
+
+  }
 
   @override
   int get hashCode => toHex().hashCode;
@@ -55,7 +86,6 @@ class Bytes implements List<int> {
   Bytes sha256Hash() {
     return Bytes(sha256.convert(_byteList).bytes);
   }
-
 
   String get hexWithBytesPrefix {
     return bytesPrefix + toHex();
@@ -103,7 +133,7 @@ class Bytes implements List<int> {
 
   @override
   void operator []=(int index, int value) {
-    _byteList[index]=value;
+    _byteList[index] = value;
   }
 
   @override
@@ -295,7 +325,7 @@ class Bytes implements List<int> {
 
   @override
   void shuffle([Random? random]) {
-   throw UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
@@ -354,5 +384,19 @@ class Bytes implements List<int> {
   @override
   Iterable<T> whereType<T>() {
     throw UnimplementedError();
+  }
+}
+
+// TODO(nvjoshi): find a better home for this
+extension ExtractBytesFromIterator on Iterator<int> {
+  Bytes extractBytesAndAdvance(int nBytes) {
+    final extractedBytes = <int>[];
+    for (var i = 0; i < nBytes; i++) {
+      if (!moveNext()) {
+        throw UnexpectedEndOfBytesException();
+      }
+      extractedBytes.add(current);
+    }
+    return Bytes(extractedBytes);
   }
 }

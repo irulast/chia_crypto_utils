@@ -36,6 +36,7 @@ class AssertMyCoinIdCondition implements Condition {
     }
     return true;
   }
+
   @override
   String toString() => 'AssertMyCoinIdCondition(code: $conditionCode, coinId: $coinId)';
 }

@@ -9,16 +9,8 @@ import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
 void main() {
-  final configurationProvider = ConfigurationProvider()
-    ..setConfig(NetworkFactory.configId, {
-      'yaml_file_path': 'lib/src/networks/chia/testnet10/config.yaml'
-    }
-  );
-
-  final context = Context(configurationProvider);
-  final blockchainNetworkLoader = ChiaBlockchainNetworkLoader();
-  context.registerFactory(NetworkFactory(blockchainNetworkLoader.loadfromLocalFileSystem));
-  final walletService = StandardWalletService(context);
+  ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
+  final walletService = StandardWalletService();
 
   final destinationPuzzlehash = const Address('txch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jksxp6hy3').toPuzzlehash();
 

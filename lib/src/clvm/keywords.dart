@@ -1,4 +1,4 @@
-var keywords = {
+Map<String, BigInt> keywords = {
   'q': BigInt.from(0x01),
   'a': BigInt.from(0x02),
   'i': BigInt.from(0x03),
