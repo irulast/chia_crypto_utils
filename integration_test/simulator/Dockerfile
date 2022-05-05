@@ -3,7 +3,7 @@ EXPOSE 8555
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y upgrade && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends git tzdata sed && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends git tzdata sed curl procps && \
     DEBIAN_FRONTEND=noninteractive apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -11,7 +11,6 @@ ENV CHIA_ROOT=/root/.chia/mainnet
 
 RUN git clone https://github.com/Chia-Network/chia-blockchain.git
 WORKDIR /chia-blockchain
-RUN git checkout 5eb8cafe5d4fcf8dc85fd1fd208c3140ddd74efc
 
 RUN git submodule update --init mozilla-ca
 ENV VIRTUAL_ENV=/opt/venv

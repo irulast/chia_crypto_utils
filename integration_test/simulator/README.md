@@ -6,6 +6,19 @@ The Chia simulator can be used to write integration tests
 
 This starts the simulator running on port 5000 accessible from the host system.
 
+### Local Build and Run
+```bash
+docker build . -t chia-simulator
+```
+
+```bash
+docker run -e TARGET_UID="$(id -u)" -e TARGET_GID="$(id -g)" -e CLIENT_CONFIG_DIR="/temp/config/" \
+ -p 5000:8555 \
+ -v "$(pwd)/temp/test-plots":/root/.chia/test-plots \
+ -v "$(pwd)/temp/config:/temp/config" \
+ chia-simulator
+```
+
 ### Intel Mac
 ```bash
 docker run -e TARGET_UID="$(id -u)" -e TARGET_GID="$(id -g)" -e CLIENT_CONFIG_DIR="/temp/config/" \
