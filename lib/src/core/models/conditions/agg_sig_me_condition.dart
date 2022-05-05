@@ -25,8 +25,10 @@ class AggSigMeCondition implements Condition {
     if (!isThisCondition(program)) {
       throw InvalidConditionCastException(AggSigMeCondition);
     }
-    return AggSigMeCondition(JacobianPoint.fromBytesG1(programList[1].atom),
-        Bytes(programList[2].atom),);
+    return AggSigMeCondition(
+      JacobianPoint.fromBytesG1(programList[1].atom),
+      Bytes(programList[2].atom),
+    );
   }
 
   static bool isThisCondition(Program condition) {

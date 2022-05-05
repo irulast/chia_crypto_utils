@@ -4,34 +4,27 @@ import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/clvm/keywords.dart';
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/duplicate_coin_exception.dart';
 import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/failed_signature_verification.dart';
+import 'package:get_it/get_it.dart';
 
 class BaseWalletService {
-  Context context;
-
-  BaseWalletService(this.context);
-
-  BlockchainNetwork get blockchainNetwork => context.get<BlockchainNetwork>();
+  BlockchainNetwork get blockchainNetwork => GetIt.I.get<BlockchainNetwork>();
 
   JacobianPoint makeSignature(
-    Program solution,
-    Program puzzle,
     PrivateKey privateKey,
-    CoinPrototype coin,
+    CoinSpend coinSpend,
   ) {
-    final result = puzzle.run(solution);
+    final result = coinSpend.puzzleReveal.run(coinSpend.solution);
 
-    final addsigmessage = getAddSigMeMessageFromResult(result.program, coin);
+    final addsigmessage = getAddSigMeMessageFromResult(result.program, coinSpend.coin);
 
     final synthSecretKey = calculateSyntheticPrivateKey(privateKey);
-    final signature =
-        AugSchemeMPL.sign(synthSecretKey, addsigmessage);
+    final signature = AugSchemeMPL.sign(synthSecretKey, addsigmessage);
 
     return signature;
   }
 
   Bytes getAddSigMeMessageFromResult(Program result, CoinPrototype coin) {
-    final aggSigMeCondition =
-        result.toList().singleWhere(AggSigMeCondition.isThisCondition);
+    final aggSigMeCondition = result.toList().singleWhere(AggSigMeCondition.isThisCondition);
     return Bytes(aggSigMeCondition.toList()[2].atom) +
         coin.id +
         Bytes.fromHex(
@@ -40,13 +33,41 @@ class BaseWalletService {
   }
 
   static Program makeSolutionFromConditions(List<Condition> conditions) {
-    return Program.list([
-      Program.nil,
+    return makeSolutionFromProgram(
       Program.list([
         Program.fromBigInt(keywords['q']!),
         ...conditions.map((condition) => condition.program).toList()
       ]),
-      Program.nil
+    );
+  }
+
+  static List<T> extractConditionsFromSolution<T>(
+      Program solution,
+      ConditionChecker<T> conditionChecker,
+      ConditionFromProgramConstructor<T> conditionFromProgramConstructor,) {
+    return extractConditionsFromResult(
+      solution.toList()[1],
+      conditionChecker,
+      conditionFromProgramConstructor,
+    );
+  }
+
+  static List<T> extractConditionsFromResult<T>(
+      Program result,
+      ConditionChecker<T> conditionChecker,
+      ConditionFromProgramConstructor<T> conditionFromProgramConstructor,) {
+    return result
+        .toList()
+        .where(conditionChecker)
+        .map((p) => conditionFromProgramConstructor(p))
+        .toList();
+  }
+
+  static Program makeSolutionFromProgram(Program program) {
+    return Program.list([
+      Program.nil,
+      program,
+      Program.nil,
     ]);
   }
 
@@ -54,20 +75,17 @@ class BaseWalletService {
     final publicKeys = <JacobianPoint>[];
     final messages = <List<int>>[];
     for (final spend in spendBundle.coinSpends) {
-      final outputConditions =
-          spend.puzzleReveal.run(spend.solution).program.toList();
+      final outputConditions = spend.puzzleReveal.run(spend.solution).program.toList();
 
       // look for assert agg sig me condition
-      final aggSigMeProgram =
-          outputConditions.singleWhere(AggSigMeCondition.isThisCondition);
+      final aggSigMeProgram = outputConditions.singleWhere(AggSigMeCondition.isThisCondition);
 
       final aggSigMeCondition = AggSigMeCondition.fromProgram(aggSigMeProgram);
       publicKeys.add(aggSigMeCondition.publicKey);
       messages.add(
         aggSigMeCondition.message +
-                spend.coin.id +
-                Bytes.fromHex(blockchainNetwork.aggSigMeExtraData)
-            ,
+            spend.coin.id +
+            Bytes.fromHex(blockchainNetwork.aggSigMeExtraData),
       );
     }
 

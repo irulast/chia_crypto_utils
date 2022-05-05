@@ -5,27 +5,37 @@ import 'dart:convert';
 import 'package:chia_utils/chia_crypto_utils.dart';
 
 class Payment {
-  int amount;
-  Puzzlehash puzzlehash;
-  List<Bytes>? memos;
+  final int amount;
+  final Puzzlehash puzzlehash;
+  final List<Bytes>? memos;
 
-  Payment(this.amount, this.puzzlehash, {List<dynamic>? memos}) {
-    if (memos == null) {
-      return;
-    }
-    if (memos is List<String>) {
-      this.memos = memos.map((memo) => Bytes(utf8.encode(memo))).toList();
-    } else if (memos is List<int>) {
-      this.memos = memos.map((memo) => Bytes(utf8.encode(memo.toString()))).toList();
-    } else if (memos is List<Bytes>) {
-      this.memos = memos;
-    } else {
-      throw ArgumentError('Unsupported type for memos. Must be Bytes, String, or int');
-    }
-  }
+  Payment(this.amount, this.puzzlehash, {List<dynamic>? memos})
+  : memos = memos == null ? null : 
+    memos is List<String> ? memos.map((memo) => Bytes(utf8.encode(memo))).toList() : 
+    memos is List<int> ? memos.map((memo) => Bytes(utf8.encode(memo.toString()))).toList() :
+    memos is List<Bytes> ? memos : throw ArgumentError('Unsupported type for memos. Must be Bytes, String, or int');
 
   CreateCoinCondition toCreateCoinCondition() {
     return CreateCoinCondition(puzzlehash, amount, memos: memos);
+  }
+
+  Program toProgram() {
+    return Program.list([
+      Program.fromBytes(puzzlehash),
+      Program.fromInt(amount),
+      Program.list(
+        memos?.map(Program.fromBytes).toList() ?? [],
+      ),
+    ]);
+  }
+
+  factory Payment.fromProgram(Program program){
+    final programList = program.toList();
+    return Payment(
+      programList[1].toInt(), 
+      Puzzlehash(programList[0].atom),
+      memos: programList.length > 2 ? programList[2].toList().map((p) => p.atom).toList() : <Bytes>[],
+      );
   }
   @override
   String toString() => 'Payment(amount: $amount, puzzlehash: $puzzlehash, memos: $memos)';

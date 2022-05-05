@@ -8,13 +8,13 @@ Program deserialize(Iterator<int> program) {
   } else if (program.current <= 0xbf) {
     sizeBytes.add(program.current & 0x3f);
   } else if (program.current <= 0xdf) {
-    sizeBytes.add(0x1F);
+    sizeBytes.add(program.current & 0x1f);
     if (!program.moveNext()) {
       throw StateError('Expected next size byte in source.');
     }
     sizeBytes.add(program.current);
   } else if (program.current <= 0xef) {
-    sizeBytes.add(0x0F);
+    sizeBytes.add(program.current & 0x0f);
     for (var i = 0; i < 2; i++) {
       if (!program.moveNext()) {
         throw StateError('Expected next size byte in source.');
@@ -22,7 +22,7 @@ Program deserialize(Iterator<int> program) {
       sizeBytes.add(program.current);
     }
   } else if (program.current <= 0xf7) {
-    sizeBytes.add(0x07);
+    sizeBytes.add(program.current & 0x07);
     for (var i = 0; i < 3; i++) {
       if (!program.moveNext()) {
         throw StateError('Expected next size byte in source.');
@@ -30,7 +30,7 @@ Program deserialize(Iterator<int> program) {
       sizeBytes.add(program.current);
     }
   } else if (program.current <= 0xfb) {
-    sizeBytes.add(0x03);
+    sizeBytes.add(program.current & 0x03);
     for (var i = 0; i < 4; i++) {
       if (!program.moveNext()) {
         throw StateError('Expected next size byte in source.');

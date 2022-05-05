@@ -83,9 +83,9 @@ PrivateKey masterSkToSingletonOwnerSk(
   int poolWalletIndex,
 ) {
   return derivePath(masterSk, [
-    blsSpecNumber,
-    chiaBlockchanNumber,
-    singletonPathNumber,
+    blsSpecNumber, 
+    chiaBlockchanNumber, 
+    singletonPathNumber, 
     poolWalletIndex
   ]);
 }
@@ -126,8 +126,7 @@ final groupOrder = BigInt.parse(
 );
 
 BigInt calculateSyntheticOffset(JacobianPoint publicKey) {
-  final blob =
-      sha256.convert(publicKey.toBytes() + defaultHiddenPuzzleProgram.hash()).bytes;
+  final blob = sha256.convert(publicKey.toBytes() + defaultHiddenPuzzleProgram.hash()).bytes;
 
   final offset = bytesToBigInt(blob, Endian.big, signed: true);
 
@@ -142,8 +141,7 @@ PrivateKey calculateSyntheticPrivateKey(PrivateKey privateKey) {
 
   final syntheticOffset = calculateSyntheticOffset(publicKey);
 
-  final syntheticSecretExponent =
-      (secretExponent + syntheticOffset) % groupOrder;
+  final syntheticSecretExponent = (secretExponent + syntheticOffset) % groupOrder;
 
   final blob = bigIntToBytes(syntheticSecretExponent, 32, Endian.big);
   final syntheticPrivateKey = PrivateKey.fromBytes(blob);

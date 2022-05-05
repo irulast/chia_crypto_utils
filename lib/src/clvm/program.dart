@@ -28,7 +28,7 @@ class RunOptions {
 
 typedef Validator = bool Function(Program);
 
-class Program {
+class Program with ToBytesMixin {
   List<Program>? _cons;
   Bytes? _atom;
   Position? position;
@@ -45,8 +45,7 @@ class Program {
           : toBigInt() == other.toBigInt());
 
   @override
-  int get hashCode =>
-      isCons ? hash2(first().hashCode, rest().hashCode) : toBigInt().hashCode;
+  int get hashCode => isCons ? hash2(first().hashCode, rest().hashCode) : toBigInt().hashCode;
 
   bool get isNull => isAtom && atom.isEmpty;
   bool get isAtom => _atom != null;
@@ -57,14 +56,12 @@ class Program {
 
   Program.cons(Program left, Program right) : _cons = [left, right];
   Program.fromBytes(List<int> atom) : _atom = Bytes(atom);
-  Program.fromHex(String hex)
-      : _atom = Bytes(const HexDecoder().convert(hex));
+  Program.fromHex(String hex) : _atom = Bytes(const HexDecoder().convert(hex));
   // ignore: avoid_positional_boolean_parameters
   Program.fromBool(bool value) : _atom = Bytes(value ? [1] : []);
   Program.fromInt(int number) : _atom = encodeInt(number);
   Program.fromBigInt(BigInt number) : _atom = encodeBigInt(number);
-  Program.fromString(String text)
-      : _atom = Bytes(utf8.encode(text));
+  Program.fromString(String text) : _atom = Bytes(utf8.encode(text));
 
   factory Program.list(List<Program> items) {
     var result = Program.nil;
@@ -84,7 +81,7 @@ class Program {
     }
   }
 
-  // TODO: dont want to keep reloading this every time
+  // TODO(nvjoshi2): dont want to keep reloading this every time
   factory Program.deserializeHexFilePath(String pathToFile) {
     var filePath = path.join(path.current, pathToFile);
     filePath = path.normalize(filePath);
@@ -105,6 +102,14 @@ class Program {
 
   factory Program.deserialize(List<int> source) {
     final iterator = source.iterator;
+    if (iterator.moveNext()) {
+      return deserialize(iterator);
+    } else {
+      throw StateError('Unexpected end of source.');
+    }
+  }
+  // TODO(nvjoshi): test and remove code reuse
+  factory Program.fromStreamChia(Iterator<int> iterator){
     if (iterator.moveNext()) {
       return deserialize(iterator);
     } else {
@@ -228,20 +233,20 @@ class Program {
     return cons[1];
   }
 
-  Bytes hash() {
+  Puzzlehash hash() {
     if (isAtom) {
-      return Bytes(sha256.convert([1] + atom.toList()).bytes);
+      return Puzzlehash(sha256.convert([1] + atom.toList()).bytes);
     } else {
-      return Bytes(
-        sha256
-            .convert([2] + cons[0].hash().toList() + cons[1].hash().toList())
-            .bytes,
+      return Puzzlehash(
+        sha256.convert([2] + cons[0].hash().toList() + cons[1].hash().toList()).bytes,
       );
     }
   }
 
   String serializeHex() => const HexEncoder().convert(serialize());
 
+  @override
+  Bytes toBytes() => serialize();
   Bytes serialize() {
     if (isAtom) {
       if (atom.isEmpty) {
@@ -388,6 +393,7 @@ class Program {
     ).map((arg) => arg.toBigInt()).toList();
   }
 
+  @override
   String toHex() {
     if (isCons) {
       throw StateError(
@@ -460,8 +466,7 @@ class Program {
       if (showKeywords) {
         try {
           final value = cons[0].toBigInt();
-          buffer
-              .write(keywords.keys.firstWhere((key) => keywords[key] == value));
+          buffer.write(keywords.keys.firstWhere((key) => keywords[key] == value));
         } catch (e) {
           buffer.write(cons[0].toSource(showKeywords: showKeywords));
         }
@@ -470,8 +475,7 @@ class Program {
       }
       var current = cons[1];
       while (current.isCons) {
-        buffer
-            .write(' ${current.cons[0].toSource(showKeywords: showKeywords)}');
+        buffer.write(' ${current.cons[0].toSource(showKeywords: showKeywords)}');
         current = current.cons[1];
       }
       if (!current.isNull) {

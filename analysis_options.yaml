@@ -6,11 +6,11 @@ analyzer:
     - lib/src/bls
     - lib/src/clvm
     - test/bls_test.dart
-    - test/clvm_test.dart
-
+    - test/clvm/clvm_test.dart
 
 linter:
   rules:
+    lines_longer_than_80_chars: false
     avoid_print: false
     no_default_cases: false
     library_private_types_in_public_api: false
@@ -18,4 +18,3 @@ linter:
     public_member_api_docs: false
     use_decorated_box: true
     sort_constructors_first: false
-    

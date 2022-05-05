@@ -34,14 +34,14 @@ class CreateCoinCondition implements Condition {
       Program.fromInt(amount),
       if (memos != null)
         Program.list(
-          memos!.map((memo) => Program.fromBytes(memo)).toList(),
+          memos!.map(Program.fromBytes).toList(),
         )
     ]);
   }
 
   static bool isThisCondition(Program condition) {
     final conditionParts = condition.toList();
-    if (conditionParts[0].toInt() != conditionCode) {
+    if (conditionParts.length < 3 || conditionParts[0].toInt() != conditionCode) {
       return false;
     }
     return true;
