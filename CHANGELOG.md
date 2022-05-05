@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.11
+
+- Singleton support
+- Added ChiaEnthusiast for ease of testing
+- Integration with Taildatabase.com and Hash.green
+- Normalized usage of Bytes throughout the codebase
+- Serialization and deserialization mechanisms on primitives
+- Refactored IoC mechanism to use get_it
+- Additional logging controls
+- Static analysis warning resolutions
+- Bug fixes
+
 ## 1.0.10
 
 - Separated integration tests from standard tests per Dart best practices
