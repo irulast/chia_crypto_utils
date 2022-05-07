@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/clvm/exceptions/unexpected_end_of_bytes_exception.dart';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
@@ -17,6 +18,10 @@ class Puzzlehash extends Bytes {
 
   factory Puzzlehash.fromHex(String phHex) {
     return Puzzlehash(Bytes.fromHex(phHex));
+  }
+
+  factory Puzzlehash.fromStream(Iterator<int> iterator){
+    return Puzzlehash(iterator.extractBytesAndAdvance(bytesLength));
   }
 
   Puzzlehash.zeros() : super(List.filled(bytesLength, 0));
@@ -34,6 +39,12 @@ class Bytes extends Comparable<Bytes> implements List<int> {
   String toHex() => const HexEncoder().convert(_byteList);
 
   static Bytes get empty => Bytes([]);
+
+  factory Bytes.fromStream(Iterator<int> iterator){
+    final lengthBytes = iterator.extractBytesAndAdvance(4);
+    final length = bytesToInt(lengthBytes, Endian.big);
+    return iterator.extractBytesAndAdvance(length);
+  }
 
   Bytes.encodeFromString(String text) : _byteList = Uint8List.fromList(utf8.encode(text));
 

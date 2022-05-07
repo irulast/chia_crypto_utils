@@ -74,6 +74,16 @@ class JacobianPoint with ToBytesMixin {
     return AffinePoint(x, y, false, ec: ec).toJacobian();
   }
 
+  factory JacobianPoint.fromStreamG1(Iterator<int> iterator){
+    final publicKeyBytes = iterator.extractBytesAndAdvance(g1BytesLength);
+    return JacobianPoint.fromBytesG1(publicKeyBytes);
+  }
+
+  factory JacobianPoint.fromStreamG2(Iterator<int> iterator){
+    final signatureBytes = iterator.extractBytesAndAdvance(g2BytesLength);
+    return JacobianPoint.fromBytesG2(signatureBytes);
+  }
+
   factory JacobianPoint.fromHex(String hex, bool isExtension, {EC? ec}) => JacobianPoint.fromBytes(
         const HexDecoder().convert(hex),
         isExtension,
