@@ -182,4 +182,20 @@ class PoolWalletService extends BaseWalletService {
       delayedPuzzlehash: delayedPuzzlehash,
     ).hash();
   }
+
+  static PoolState? coinSpendToPoolState(CoinSpend coinSpend) {
+    final fullSolution = coinSpend.solution;
+
+    // check for launcher spend
+    if (coinSpend.coin.puzzlehash == singletonLauncherProgram.hash()) {
+      
+      try {
+        final extraData = fullSolution.rest().rest().first();
+        return PoolState.fromExtraData(extraData);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
 }

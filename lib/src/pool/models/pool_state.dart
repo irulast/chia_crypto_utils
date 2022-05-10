@@ -37,6 +37,11 @@ class PoolState with ToBytesChiaMixin {
     return Bytes(bytes);
   }
 
+  factory PoolState.fromExtraData(Program extraDataProgram){
+    final poolStateConsBox = extraDataProgram.toList().singleWhere((p) => String.fromCharCode(p.first().toInt()) == 'p');
+    return PoolState.fromBytesChia(poolStateConsBox.rest().atom);
+  }
+
   factory PoolState.fromBytesChia(Bytes bytes) {
     final iterator = bytes.toList().iterator;
     final versionBytes = iterator.extractBytesAndAdvance(1);
@@ -70,6 +75,11 @@ class PoolState with ToBytesChiaMixin {
       poolUrl: poolUrl,
       relativeLockHeight: relativeLockHeight,
     );
+  }
+
+  @override
+  String toString() {
+    return 'PoolState(version: $version, poolSingletonState: $poolSingletonState, targetPuzzlehash: $targetPuzzlehash, ownerPublicKey: $ownerPublicKey, poolUrl: $poolUrl, relativeLockHeight: $relativeLockHeight';
   }
 }
 

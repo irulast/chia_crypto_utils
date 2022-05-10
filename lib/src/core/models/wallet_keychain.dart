@@ -89,6 +89,8 @@ class WalletKeychain {
     return serializeList(<dynamic>[hardenedMap, unhardenedMap]);
   }
 
+  List<Puzzlehash> get puzzlehashes => unhardenedMap.values.toList().map((wv) => wv.puzzlehash).toList();
+
   List<Puzzlehash> getOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
     if (!unhardenedMap.values.first.assetIdtoOuterPuzzlehash.containsKey(assetId)) {
       throw ArgumentError(

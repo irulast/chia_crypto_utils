@@ -4,6 +4,7 @@ import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/api/full_node/full_node.dart';
 import 'package:chia_utils/src/api/full_node/models/responses/chia_base_response.dart';
 import 'package:chia_utils/src/core/models/blockchain_state.dart';
+import 'package:chia_utils/src/pool/models/plot_nft.dart';
 
 class ChiaFullNodeInterface {
   const ChiaFullNodeInterface(this.fullNode);
@@ -93,7 +94,11 @@ class ChiaFullNodeInterface {
     return catCoins;
   }
 
-  
+  // Future<PlotNft> getPlotNftByBaseCoinId(Bytes coinId) async {
+  //   final coin = await getCoinById(coinId);
+  //   final baseCoinSpend = await getCoinSpend(coin!);
+
+  // }
 
   Future<bool> checkForSpentCoins(List<CoinPrototype> coins) async {
     final ids = coins.map((c) => c.id).toList();
