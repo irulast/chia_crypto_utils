@@ -1,5 +1,8 @@
 // ignore_for_file: lines_longer_than_80_chars
 
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:chia_utils/chia_crypto_utils.dart';
 
 Bytes serializeListChia(List<ToBytesChiaMixin> items) {
@@ -13,7 +16,8 @@ Bytes serializeListChia(List<ToBytesChiaMixin> items) {
 }
 
 Bytes serializeList(List<dynamic> items) {
-  final bytes = items.fold(<int>[], (List<int> previousValue, dynamic item) => <int>[...previousValue, ...serializeItem(item)]);
+  final bytes = items.fold(<int>[],
+      (List<int> previousValue, dynamic item) => <int>[...previousValue, ...serializeItem(item)],);
   return Bytes(bytes);
 }
 
@@ -58,4 +62,11 @@ Bytes serializeItem(dynamic item) {
 
   final lengthBytes = intTo32Bytes(length);
   return Bytes([...lengthBytes, ...bytes]);
+}
+
+String stringfromStream(Iterator<int> iterator) {
+  final stringLengthBytes = iterator.extractBytesAndAdvance(4);
+  final stringLength = bytesToInt(stringLengthBytes, Endian.big);
+  final stringBytes = iterator.extractBytesAndAdvance(stringLength);
+  return utf8.decode(stringBytes);
 }

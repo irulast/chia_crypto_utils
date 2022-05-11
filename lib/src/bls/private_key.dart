@@ -32,6 +32,11 @@ class PrivateKey {
 
   PrivateKey.fromBigInt(BigInt n) : this(n % defaultEc.n);
 
+ factory PrivateKey.fromStream(Iterator<int> iterator){
+   final bytes = iterator.extractBytesAndAdvance(size);
+   return PrivateKey.fromBytes(bytes);
+ }
+
   PrivateKey.aggregate(List<PrivateKey> privateKeys)
       : this(
           privateKeys.fold<BigInt>(

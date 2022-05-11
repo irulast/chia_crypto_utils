@@ -34,9 +34,9 @@ void main() {
   test(
     'WalletVector serializarion and deserialization to bytes must work',
     () async {
-      final masterKeyPair = MasterKeyPair.fromMnemonic(testMnemonic);
+      final keychainSecret = KeychainCoreSecret.fromMnemonic(testMnemonic);
       final wv = WalletVector.fromPrivateKey(
-        masterKeyPair.masterPrivateKey,
+        keychainSecret.masterPrivateKey,
         0,
       );
 
@@ -52,11 +52,13 @@ void main() {
   test(
     'UnhardenedWalletWector serializarion and deserialization to bytes must work',
     () async {
-      final masterKeyPair = MasterKeyPair.fromMnemonic(testMnemonic);
-      final walletSet = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, 0);
+      final keychainSecret = KeychainCoreSecret.fromMnemonic(testMnemonic);
+      final walletSet = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, 0);
       final keychain = WalletKeychain([walletSet])
-        ..addOuterPuzzleHashesForAssetId(Puzzlehash.fromHex('0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad'))
-        ..addOuterPuzzleHashesForAssetId(Puzzlehash.fromHex('0b6a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad'));
+        ..addOuterPuzzleHashesForAssetId(
+            Puzzlehash.fromHex('0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad'),)
+        ..addOuterPuzzleHashesForAssetId(
+            Puzzlehash.fromHex('0b6a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad'),);
 
       final wv = keychain.unhardenedMap.values.first;
       final bytes = wv.toBytes();

@@ -26,13 +26,11 @@ Future<void> main() async {
   final catWalletService = CatWalletService();
 
   // set up keychain
-  final testMnemonic = WalletKeychain.generateMnemonic();
-
-  final masterKeyPair = MasterKeyPair.fromMnemonic(testMnemonic);
+  final keychainSecret = KeychainCoreSecret.generate();
 
   final walletsSetList = <WalletSet>[];
   for (var i = 0; i < 1; i++) {
-    final set = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
+    final set = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, i);
     walletsSetList.add(set);
   }
 
