@@ -1,5 +1,6 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/core/service/base_wallet.dart';
+import 'package:chia_utils/src/pool/models/extra_data.dart';
 import 'package:chia_utils/src/pool/models/pool_state.dart';
 import 'package:chia_utils/src/pool/puzzles/pool_member_inner_puz/pool_member_innerpuz.clvm.hex.dart';
 import 'package:chia_utils/src/pool/puzzles/pool_waitingroom_innerpuz/pool_waitingroom_innerpuz.clvm.hex.dart';
@@ -10,58 +11,30 @@ import 'package:chia_utils/src/singleton/service/singleton_service.dart';
 class PoolWalletService extends BaseWalletService {
   final standardWalletService = StandardWalletService();
 
+  static const int defaultLauncherCoinAmount = 1;
+  static const int defaultDelayTime = 604800;
+
   SpendBundle createPoolNftSpendBundle({
-    required PoolState initialTargetState,
-    required WalletKeychain keychain,
+    required Bytes genesisCoinId,
     required List<CoinPrototype> coins,
-    Bytes? originId,
     int fee = 0,
-    int p2SingletonDelayTime = 604800,
+    required PoolState initialTargetState,
+    int p2SingletonDelayTime = defaultDelayTime,
     required Puzzlehash p2SingletonDelayedPuzzlehash,
-    Puzzlehash? changePuzzlehash,
-  }) {
-    final launcherParentId = originId ?? coins[0].id;
-    final launcherSpendBundle = createLauncherSpendBundle(
-      originId: launcherParentId,
-      coins: coins,
-      amount: 1,
-      initialTargetState: initialTargetState,
-      delayTime: p2SingletonDelayTime,
-      delayPuzzlehash: p2SingletonDelayedPuzzlehash,
-      keychain: keychain,
-      changePuzzlehash: changePuzzlehash,
-      fee: fee,
-    );
-
-    return launcherSpendBundle;
-  }
-
-  SpendBundle createLauncherSpendBundle({
-    required Bytes originId,
-    required List<CoinPrototype> coins,
-    required int amount,
-    int fee = 0,
-    required PoolState initialTargetState,
-    required int delayTime,
-    required Puzzlehash delayPuzzlehash,
     required WalletKeychain keychain,
     Puzzlehash? changePuzzlehash,
   }) {
-    final launcherParent = coins.singleWhere((coin) => coin.id == originId);
+    final launcherParent = coins.singleWhere((coin) => coin.id == genesisCoinId);
     final genesisLauncherPuzzle = singletonLauncherProgram;
-    final launcherCoin = CoinPrototype(
-      parentCoinInfo: launcherParent.id,
-      puzzlehash: genesisLauncherPuzzle.hash(),
-      amount: amount,
-    );
+    final launcherCoin = makeLauncherCoin(launcherParent.id);
 
     final escapingInnerPuzzle = createWaitingRoomInnerPuzzle(
       targetPuzzlehash: initialTargetState.targetPuzzlehash,
       relativeLockHeight: initialTargetState.relativeLockHeight,
       ownerPublicKey: initialTargetState.ownerPublicKey,
       launcherId: launcherCoin.id,
-      delayTime: delayTime,
-      delayPuzzlehash: delayPuzzlehash,
+      delayTime: p2SingletonDelayTime,
+      delayPuzzlehash: p2SingletonDelayedPuzzlehash,
     );
     final escapingInnerPuzzlehash = escapingInnerPuzzle.hash();
 
@@ -70,8 +43,8 @@ class PoolWalletService extends BaseWalletService {
       poolWaitingRoomInnerHash: escapingInnerPuzzlehash,
       ownerPublicKey: initialTargetState.ownerPublicKey,
       launcherId: launcherCoin.id,
-      delayTime: delayTime,
-      delayPuzzlehash: delayPuzzlehash,
+      delayTime: p2SingletonDelayTime,
+      delayPuzzlehash: p2SingletonDelayedPuzzlehash,
     );
 
     late Program puzzle;
@@ -80,20 +53,25 @@ class PoolWalletService extends BaseWalletService {
     } else if (initialTargetState.poolSingletonState == PoolSingletonState.farmingToPool) {
       puzzle = selfPoolingInnerPuzzle;
     } else {
-      throw ArgumentError('invalid initial state');
+      throw ArgumentError('Invalid initial state: ${initialTargetState.poolSingletonState}');
     }
     final fullPoolingPuzzle = SingletonService.puzzleForSingleton(launcherCoin.id, puzzle);
     final puzzlehash = fullPoolingPuzzle.hash();
-    final poolStateBytes = makePoolExtraData(initialTargetState, delayTime, delayPuzzlehash);
+    final plotNftExtraData =
+        PlotNftExtraData(initialTargetState, p2SingletonDelayTime, p2SingletonDelayedPuzzlehash);
 
-    final announcementMessage =
-        Program.list([Program.fromBytes(puzzlehash), Program.fromInt(amount), poolStateBytes])
-            .hash();
+    final announcementMessage = Program.list(
+      [
+        Program.fromBytes(puzzlehash),
+        Program.fromInt(launcherCoin.amount),
+        plotNftExtraData.toProgram()
+      ],
+    ).hash();
     final assertCoinAnnouncement =
         AssertCoinAnnouncementCondition(launcherCoin.id, announcementMessage);
 
     final createLauncherSpendBundle = standardWalletService.createSpendBundle(
-      payments: [Payment(amount, genesisLauncherPuzzle.hash())],
+      payments: [Payment(launcherCoin.amount, genesisLauncherPuzzle.hash())],
       coinsInput: coins,
       keychain: keychain,
       changePuzzlehash: changePuzzlehash,
@@ -104,8 +82,8 @@ class PoolWalletService extends BaseWalletService {
 
     final genesisLauncherSolution = Program.list([
       Program.fromBytes(puzzlehash),
-      Program.fromInt(amount),
-      poolStateBytes,
+      Program.fromInt(launcherCoin.amount),
+      plotNftExtraData.toProgram(),
     ]);
 
     final launcherCoinSpend = CoinSpend(
@@ -175,18 +153,26 @@ class PoolWalletService extends BaseWalletService {
     ).hash();
   }
 
-  static PoolState? coinSpendToPoolState(CoinSpend coinSpend) {
+  static CoinPrototype makeLauncherCoin(Bytes genesisCoinId) => CoinPrototype(
+        parentCoinInfo: genesisCoinId,
+        puzzlehash: singletonLauncherProgram.hash(),
+        amount: defaultLauncherCoinAmount,
+      );
+
+  static PlotNftExtraData? coinSpendToExtraData(CoinSpend coinSpend) {
     final fullSolution = coinSpend.solution;
 
     // check for launcher spend
     if (coinSpend.coin.puzzlehash == singletonLauncherProgram.hash()) {
       try {
-        final extraData = fullSolution.rest().rest().first();
-        return PoolState.fromExtraData(extraData);
+        final extraDataProgram = fullSolution.rest().rest().first();
+        return PlotNftExtraData.fromProgram(extraDataProgram);
       } catch (e) {
         return null;
       }
     }
+
+    // logic for extracting extra data when plot nft has been updated will go here
     return null;
   }
 }

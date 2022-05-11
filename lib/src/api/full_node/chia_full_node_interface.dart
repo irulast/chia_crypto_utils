@@ -94,11 +94,18 @@ class ChiaFullNodeInterface {
     return catCoins;
   }
 
-  // Future<PlotNft> getPlotNftByBaseCoinId(Bytes coinId) async {
-  //   final coin = await getCoinById(coinId);
-  //   final baseCoinSpend = await getCoinSpend(coin!);
+  Future<PlotNft> getPlotNftByLauncherId(Bytes launcherId) async {
+    final launcherCoin = await getCoinById(launcherId);
+    final launcherCoinSpend = await getCoinSpend(launcherCoin!);
+    final plotNft = PlotNft.fromCoinSpend(launcherCoinSpend!, launcherId);
+    
+    final singletonCoin =  await getCoinById(plotNft.singletonCoin.id);
+    if (singletonCoin!.spentBlockIndex != 0) {
+      throw UnimplementedError('Does not support plot entities that have been modified since creation');
+    }
+    return plotNft;
 
-  // }
+  }
 
   Future<bool> checkForSpentCoins(List<CoinPrototype> coins) async {
     final ids = coins.map((c) => c.id).toList();

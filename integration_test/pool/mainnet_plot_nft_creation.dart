@@ -3,7 +3,6 @@ import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/pool/models/plot_nft.dart';
 import 'package:chia_utils/src/pool/models/pool_state.dart';
 import 'package:chia_utils/src/pool/service/wallet.dart';
-import 'package:chia_utils/src/singleton/puzzles/singleton_launcher/singleton_launcher.clvm.hex.dart';
 import 'package:test/scaffolding.dart';
 
 Future<void> main() async {
@@ -61,13 +60,10 @@ Future<void> main() async {
     coins: [genesisCoin],
     p2SingletonDelayedPuzzlehash: p2SingletonDelayedPuzzlehash,
     changePuzzlehash: keychain.puzzlehashes[0],
+    genesisCoinId: genesisCoin.id,
   );
   await fullNode.pushTransaction(plotNftSpendBundle);
-  final launcherCoinPrototype = CoinPrototype(
-    parentCoinInfo: genesisCoin.id,
-    puzzlehash: singletonLauncherProgram.hash(),
-    amount: 1,
-  );
+  final launcherCoinPrototype = PoolWalletService.makeLauncherCoin(genesisCoin.id);
 
   print('launcher_id: ${launcherCoinPrototype.id}');
   print('farmer_public_key: ${masterSkToFarmerSk(masterKeyPair.masterPrivateKey).getG1().toHex()}');
@@ -91,6 +87,6 @@ Future<void> main() async {
 
     print('singleton_puzzle_hash: ${launcherCoinSpend!.solution.first()}');
     print('pool_state:');
-    print(PlotNft.fromCoinSpend(launcherCoinSpend, launcherCoin.id).poolState);
+    print(PlotNft.fromCoinSpend(launcherCoinSpend, launcherCoin.id).extraData.poolState);
   }
 }

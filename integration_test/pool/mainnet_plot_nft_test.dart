@@ -23,18 +23,19 @@ Future<void> main() async {
     final launcherCoin = await fullNode.getCoinById(launcherCoinPrototype.id);
 
     final launcherCoinSpend = await fullNode.getCoinSpend(launcherCoin!);
-    print(launcherCoinSpend!.solution);
+    expect(
+      () {
+        PlotNft.fromCoinSpend(launcherCoinSpend!, launcherCoin.id);
+      },
+      throwsArgumentError,
+    );
   });
   test('good generated plot nft', () async {
     final launcherId =
         Bytes.fromHex('c36804a72e3037d2766d166fef7534f8ac21e40d24255d80ae872a748fb021bf');
 
-    final launcherCoin = await fullNode.getCoinById(launcherId);
+    final plotNft = await fullNode.getPlotNftByLauncherId(launcherId);
 
-    final launcherCoinSpend = await fullNode.getCoinSpend(launcherCoin!);
-    print(launcherCoinSpend!.solution);
-    final plotNft = PlotNft.fromCoinSpend(launcherCoinSpend, launcherId);
-    print(plotNft.poolState);
     final singletonCoin = await fullNode.getCoinById(plotNft.singletonCoin.id);
     expect(singletonCoin!.spentBlockIndex, equals(0));
   });
@@ -42,11 +43,9 @@ Future<void> main() async {
   test('chia plot nft', () async {
     final launcherId =
         Puzzlehash.fromHex('389cbcd14da65522ee28254a1c2123cc4fbf0001ad7c957876bab88e4828b222');
-    final launcherCoin = await fullNode.getCoinById(launcherId);
-    final launcherSpend = await fullNode.getCoinSpend(launcherCoin!);
-    final plotNft = PlotNft.fromCoinSpend(launcherSpend!, launcherId);
 
-    print(plotNft.poolState);
+    final plotNft = await fullNode.getPlotNftByLauncherId(launcherId);
+
     final singletonCoin = await fullNode.getCoinById(plotNft.singletonCoin.id);
     expect(singletonCoin!.spentBlockIndex, equals(0));
   });

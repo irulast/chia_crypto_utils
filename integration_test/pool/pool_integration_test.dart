@@ -1,8 +1,6 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/pool/models/plot_nft.dart';
 import 'package:chia_utils/src/pool/models/pool_state.dart';
 import 'package:chia_utils/src/pool/service/wallet.dart';
-import 'package:chia_utils/src/singleton/puzzles/singleton_launcher/singleton_launcher.clvm.hex.dart';
 import 'package:test/test.dart';
 
 import '../simulator/simulator_utils.dart';
@@ -31,6 +29,7 @@ Future<void> main() async {
 
   test('should create plot nft', () async {
     final genesisCoin = nathan.standardCoins[0];
+
     final initialTargetState = PoolState(
       poolSingletonState: PoolSingletonState.selfPooling,
       targetPuzzlehash: nathan.puzzlehashes[1],
@@ -41,26 +40,21 @@ Future<void> main() async {
       initialTargetState: initialTargetState,
       keychain: nathan.keychain,
       coins: nathan.standardCoins,
-      originId: genesisCoin.id,
+      genesisCoinId: genesisCoin.id,
       p2SingletonDelayedPuzzlehash: nathan.firstPuzzlehash,
       changePuzzlehash: nathan.firstPuzzlehash,
     );
 
     await fullNodeSimulator.pushTransaction(plotNftSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
-     await nathan.refreshCoins();
+    await nathan.refreshCoins();
 
-    final launcherCoinPrototype = CoinPrototype(
-      parentCoinInfo: genesisCoin.id,
-      puzzlehash: singletonLauncherProgram.hash(),
-      amount: 1,
-    );
-    final launcherCoin = await fullNodeSimulator.getCoinById(launcherCoinPrototype.id);
+    final launcherCoinPrototype = PoolWalletService.makeLauncherCoin(genesisCoin.id);
 
-    // print(launcherCoin);
-    final launcherCoinSpend = await fullNodeSimulator.getCoinSpend(launcherCoin!);
-    final plotNft = PlotNft.fromCoinSpend(launcherCoinSpend!, launcherCoin.id);
-    expect(plotNft.poolState.toHexChia(), equals(initialTargetState.toHexChia()));
+    final plotNft = await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id);
+    expect(plotNft.extraData.poolState.toHexChia(), equals(initialTargetState.toHexChia()));
+    expect(plotNft.extraData.delayTime, equals(PoolWalletService.defaultDelayTime));
+    expect(plotNft.extraData.delayPuzzlehash, equals(nathan.firstPuzzlehash));
   });
 
   test('should create plot nft with fee', () async {
@@ -75,7 +69,7 @@ Future<void> main() async {
       initialTargetState: initialTargetState,
       keychain: nathan.keychain,
       coins: nathan.standardCoins,
-      originId: genesisCoin.id,
+      genesisCoinId: genesisCoin.id,
       p2SingletonDelayedPuzzlehash: nathan.firstPuzzlehash,
       changePuzzlehash: nathan.firstPuzzlehash,
       fee: 1000,
@@ -84,16 +78,10 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(plotNftSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final launcherCoinPrototype = CoinPrototype(
-      parentCoinInfo: genesisCoin.id,
-      puzzlehash: singletonLauncherProgram.hash(),
-      amount: 1,
-    );
-    final launcherCoin = await fullNodeSimulator.getCoinById(launcherCoinPrototype.id);
+    final launcherCoinPrototype = PoolWalletService.makeLauncherCoin(genesisCoin.id);
 
-    // print(launcherCoin);
-    final launcherCoinSpend = await fullNodeSimulator.getCoinSpend(launcherCoin!);
-    final plotNft = PlotNft.fromCoinSpend(launcherCoinSpend!, launcherCoin.id);
-    expect(plotNft.poolState.toHexChia(), equals(initialTargetState.toHexChia()));
-  });
+    final plotNft = await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id);
+    expect(plotNft.extraData.poolState.toHexChia(), equals(initialTargetState.toHexChia()));
+    expect(plotNft.extraData.delayTime, equals(PoolWalletService.defaultDelayTime));
+    expect(plotNft.extraData.delayPuzzlehash, equals(nathan.firstPuzzlehash));  });
 }
