@@ -72,12 +72,17 @@ Future<void> main() async {
   print('launcher_id: ${launcherCoinPrototype.id}');
   print('farmer_public_key: ${masterSkToFarmerSk(masterKeyPair.masterPrivateKey).getG1().toHex()}');
   final poolPuzzlehash = poolWalletService.launcherIdToP2Puzzlehash(
-      launcherCoinPrototype.id, p2SingletonDelayedTime, p2SingletonDelayedPuzzlehash);
+    launcherCoinPrototype.id,
+    p2SingletonDelayedTime,
+    p2SingletonDelayedPuzzlehash,
+  );
   print('pool_puzzle_hash: $poolPuzzlehash');
   print(
-      'pool_address: ${Address.fromPuzzlehash(poolPuzzlehash, poolWalletService.blockchainNetwork.addressPrefix).address}');
+    'pool_address: ${Address.fromPuzzlehash(poolPuzzlehash, poolWalletService.blockchainNetwork.addressPrefix).address}',
+  );
   print(
-      'xch_payout_address: ${Address.fromPuzzlehash(keychain.hardenedMap.values.first.puzzlehash, poolWalletService.blockchainNetwork.addressPrefix).address}');
+    'xch_payout_address: ${Address.fromPuzzlehash(keychain.hardenedMap.values.first.puzzlehash, poolWalletService.blockchainNetwork.addressPrefix).address}',
+  );
 
   final launcherCoin = await fullNode.getCoinById(launcherCoinPrototype.id);
 
@@ -86,6 +91,6 @@ Future<void> main() async {
 
     print('singleton_puzzle_hash: ${launcherCoinSpend!.solution.first()}');
     print('pool_state:');
-    print(PlotNft.fromCoinSpend(launcherCoinSpend).poolState);
+    print(PlotNft.fromCoinSpend(launcherCoinSpend, launcherCoin.id).poolState);
   }
 }

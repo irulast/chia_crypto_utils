@@ -48,6 +48,7 @@ Future<void> main() async {
 
     await fullNodeSimulator.pushTransaction(plotNftSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
+     await nathan.refreshCoins();
 
     final launcherCoinPrototype = CoinPrototype(
       parentCoinInfo: genesisCoin.id,
@@ -58,7 +59,7 @@ Future<void> main() async {
 
     // print(launcherCoin);
     final launcherCoinSpend = await fullNodeSimulator.getCoinSpend(launcherCoin!);
-    final plotNft = PlotNft.fromCoinSpend(launcherCoinSpend!);
+    final plotNft = PlotNft.fromCoinSpend(launcherCoinSpend!, launcherCoin.id);
     expect(plotNft.poolState.toHexChia(), equals(initialTargetState.toHexChia()));
   });
 
@@ -92,7 +93,7 @@ Future<void> main() async {
 
     // print(launcherCoin);
     final launcherCoinSpend = await fullNodeSimulator.getCoinSpend(launcherCoin!);
-    final plotNft = PlotNft.fromCoinSpend(launcherCoinSpend!);
+    final plotNft = PlotNft.fromCoinSpend(launcherCoinSpend!, launcherCoin.id);
     expect(plotNft.poolState.toHexChia(), equals(initialTargetState.toHexChia()));
   });
 }
