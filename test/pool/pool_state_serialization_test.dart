@@ -1,5 +1,4 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/pool/models/pool_state.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -10,7 +9,6 @@ void main() {
     final ownerPublicKey = JacobianPoint.generateG1();
 
     final poolState = PoolState(
-      version: 1,
       poolSingletonState: PoolSingletonState.farmingToPool,
       targetPuzzlehash: targetPuzzlehash,
       ownerPublicKey: ownerPublicKey,
@@ -30,7 +28,6 @@ void main() {
     final ownerPublicKey = JacobianPoint.generateG1();
 
     final poolState = PoolState(
-      version: 1,
       poolSingletonState: PoolSingletonState.farmingToPool,
       targetPuzzlehash: targetPuzzlehash,
       ownerPublicKey: ownerPublicKey,

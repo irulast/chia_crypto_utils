@@ -1,6 +1,4 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/pool/models/pool_state.dart';
-import 'package:chia_utils/src/pool/service/wallet.dart';
 import 'package:test/test.dart';
 
 import '../simulator/simulator_utils.dart';
@@ -22,7 +20,7 @@ Future<void> main() async {
 
   // set up context, services
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
-  final poolWalletService = PoolWalletService();
+  final poolWalletService = PlotNftWalletService();
 
   final nathan = ChiaEnthusiast(fullNodeSimulator, derivations: 2);
   await nathan.farmCoins();
@@ -49,11 +47,11 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await nathan.refreshCoins();
 
-    final launcherCoinPrototype = PoolWalletService.makeLauncherCoin(genesisCoin.id);
+    final launcherCoinPrototype = PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
 
     final plotNft = await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id);
     expect(plotNft.extraData.poolState.toHexChia(), equals(initialTargetState.toHexChia()));
-    expect(plotNft.extraData.delayTime, equals(PoolWalletService.defaultDelayTime));
+    expect(plotNft.extraData.delayTime, equals(PlotNftWalletService.defaultDelayTime));
     expect(plotNft.extraData.delayPuzzlehash, equals(nathan.firstPuzzlehash));
   });
 
@@ -78,10 +76,11 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(plotNftSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final launcherCoinPrototype = PoolWalletService.makeLauncherCoin(genesisCoin.id);
+    final launcherCoinPrototype = PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
 
     final plotNft = await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id);
     expect(plotNft.extraData.poolState.toHexChia(), equals(initialTargetState.toHexChia()));
-    expect(plotNft.extraData.delayTime, equals(PoolWalletService.defaultDelayTime));
-    expect(plotNft.extraData.delayPuzzlehash, equals(nathan.firstPuzzlehash));  });
+    expect(plotNft.extraData.delayTime, equals(PlotNftWalletService.defaultDelayTime));
+    expect(plotNft.extraData.delayPuzzlehash, equals(nathan.firstPuzzlehash));
+  });
 }

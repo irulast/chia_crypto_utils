@@ -1,5 +1,4 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/pool/models/pool_state.dart';
 
 class PlotNftExtraData {
   PlotNftExtraData(this.poolState, this.delayTime, this.delayPuzzlehash);
@@ -33,9 +32,13 @@ class PlotNftExtraData {
 
   Program toProgram() => Program.list([
         Program.cons(
-            Program.fromString(poolStateIdentifier), Program.fromBytes(poolState.toBytesChia())),
+          Program.fromString(poolStateIdentifier),
+          Program.fromBytes(poolState.toBytesChia()),
+        ),
         Program.cons(Program.fromString(delayTimeIdentifier), Program.fromInt(delayTime)),
         Program.cons(
-            Program.fromString(delayPuzzlehashIdentifier), Program.fromBytes(delayPuzzlehash)),
+          Program.fromString(delayPuzzlehashIdentifier),
+          Program.fromBytes(delayPuzzlehash),
+        ),
       ]);
 }

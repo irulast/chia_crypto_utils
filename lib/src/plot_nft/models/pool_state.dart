@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/pool/models/extra_data.dart';
 import 'package:chia_utils/src/utils/serialization.dart';
 
 class PoolState with ToBytesChiaMixin {
@@ -40,7 +39,8 @@ class PoolState with ToBytesChiaMixin {
 
   factory PoolState.fromExtraDataProgram(Program extraDataProgram) {
     final poolStateConsBox = extraDataProgram.toList().singleWhere(
-        (p) => String.fromCharCode(p.first().toInt()) == PlotNftExtraData.poolStateIdentifier);
+          (p) => String.fromCharCode(p.first().toInt()) == PlotNftExtraData.poolStateIdentifier,
+        );
     return PoolState.fromBytesChia(poolStateConsBox.rest().atom);
   }
 

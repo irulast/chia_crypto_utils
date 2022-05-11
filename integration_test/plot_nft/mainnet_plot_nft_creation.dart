@@ -1,8 +1,5 @@
 @Skip('interacts with mainnet')
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/pool/models/plot_nft.dart';
-import 'package:chia_utils/src/pool/models/pool_state.dart';
-import 'package:chia_utils/src/pool/service/wallet.dart';
 import 'package:test/scaffolding.dart';
 
 Future<void> main() async {
@@ -39,7 +36,7 @@ Future<void> main() async {
     (a, b) => b.spentBlockIndex.compareTo(a.spentBlockIndex),
   );
 
-  final poolWalletService = PoolWalletService();
+  final poolWalletService = PlotNftWalletService();
 
   final p2SingletonDelayedPuzzlehash = keychain.puzzlehashes[2];
   const p2SingletonDelayedTime = 604800;
@@ -63,7 +60,7 @@ Future<void> main() async {
     genesisCoinId: genesisCoin.id,
   );
   await fullNode.pushTransaction(plotNftSpendBundle);
-  final launcherCoinPrototype = PoolWalletService.makeLauncherCoin(genesisCoin.id);
+  final launcherCoinPrototype = PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
 
   print('launcher_id: ${launcherCoinPrototype.id}');
   print('farmer_public_key: ${masterSkToFarmerSk(masterKeyPair.masterPrivateKey).getG1().toHex()}');

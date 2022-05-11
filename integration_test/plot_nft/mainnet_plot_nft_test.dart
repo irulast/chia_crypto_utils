@@ -1,6 +1,5 @@
 @Skip('interacts with mainnet')
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/pool/models/plot_nft.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
