@@ -3,7 +3,7 @@ description: Utilities for the Chia blockchain.
 version: 1.0.11
 
 environment:
-  sdk: '>=2.16.0 <3.0.0'
+  sdk: '>=2.15.0 <3.0.0'
 
 scripts:
   integration_tests: 'dart test integration_test/ --concurrency=1'
