@@ -3,9 +3,6 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/cat/exceptions/mixed_asset_ids_exception.dart';
 import 'package:chia_utils/src/cat/models/conditions/run_tail_condition.dart';
-import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
-import 'package:chia_utils/src/cat/puzzles/tails/delegated_tail/delegated_tail.clvm.hex.dart';
-import 'package:chia_utils/src/cat/puzzles/tails/genesis_by_coin_id/genesis_by_coin_id.clvm.hex.dart';
 import 'package:chia_utils/src/core/exceptions/change_puzzlehash_needed_exception.dart';
 import 'package:chia_utils/src/core/exceptions/insufficient_coins_exception.dart';
 import 'package:chia_utils/src/core/service/base_wallet.dart';
