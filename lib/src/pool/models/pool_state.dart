@@ -6,7 +6,7 @@ import 'package:chia_utils/src/utils/serialization.dart';
 
 class PoolState with ToBytesChiaMixin {
   PoolState({
-    required this.version,
+    this.version = 1,
     required this.poolSingletonState,
     required this.targetPuzzlehash,
     required this.ownerPublicKey,
@@ -37,8 +37,9 @@ class PoolState with ToBytesChiaMixin {
     return Bytes(bytes);
   }
 
-  factory PoolState.fromExtraData(Program extraDataProgram){
-    final poolStateConsBox = extraDataProgram.toList().singleWhere((p) => String.fromCharCode(p.first().toInt()) == 'p');
+  factory PoolState.fromExtraData(Program extraDataProgram) {
+    final poolStateConsBox =
+        extraDataProgram.toList().singleWhere((p) => String.fromCharCode(p.first().toInt()) == 'p');
     return PoolState.fromBytesChia(poolStateConsBox.rest().atom);
   }
 
@@ -79,7 +80,7 @@ class PoolState with ToBytesChiaMixin {
 
   @override
   String toString() {
-    return 'PoolState(version: $version, poolSingletonState: $poolSingletonState, targetPuzzlehash: $targetPuzzlehash, ownerPublicKey: $ownerPublicKey, poolUrl: $poolUrl, relativeLockHeight: $relativeLockHeight';
+    return 'PoolState(version: $version, poolSingletonState: $poolSingletonState, targetPuzzlehash: $targetPuzzlehash, ownerPublicKey: $ownerPublicKey, poolUrl: $poolUrl, relativeLockHeight: $relativeLockHeight)';
   }
 }
 

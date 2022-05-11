@@ -30,6 +30,7 @@ class PoolWalletService extends BaseWalletService {
       delayPuzzlehash: p2SingletonDelayedPuzzlehash,
       keychain: keychain,
       changePuzzlehash: changePuzzlehash,
+      fee: fee,
     );
 
     return launcherSpendBundle;
@@ -83,13 +84,14 @@ class PoolWalletService extends BaseWalletService {
     }
     final fullPoolingPuzzle = SingletonService.puzzleForSingleton(launcherCoin.id, puzzle);
     final puzzlehash = fullPoolingPuzzle.hash();
-    final poolStateBytes = Program.list([
-      Program.cons(Program.fromString('p'), Program.fromBytes(initialTargetState.toBytesChia())),
-      Program.cons(Program.fromString('t'), Program.fromInt(delayTime)),
-      Program.cons(Program.fromString('h'), Program.fromBytes(delayPuzzlehash)),
-    ]);
+    final poolStateBytes = makePoolExtraData(initialTargetState, delayTime, delayPuzzlehash);
 
-    // TODO(nvjoshi): add announcements here
+    final announcementMessage =
+        Program.list([Program.fromBytes(puzzlehash), Program.fromInt(amount), poolStateBytes])
+            .hash();
+    final assertCoinAnnouncement =
+        AssertCoinAnnouncementCondition(launcherCoin.id, announcementMessage);
+
     final createLauncherSpendBundle = standardWalletService.createSpendBundle(
       payments: [Payment(amount, genesisLauncherPuzzle.hash())],
       coinsInput: coins,
@@ -97,6 +99,7 @@ class PoolWalletService extends BaseWalletService {
       changePuzzlehash: changePuzzlehash,
       originId: launcherParent.id,
       fee: fee,
+      coinAnnouncementsToAssert: [assertCoinAnnouncement],
     );
 
     final genesisLauncherSolution = Program.list([
@@ -116,20 +119,13 @@ class PoolWalletService extends BaseWalletService {
     return createLauncherSpendBundle + launcherSpendBundle;
   }
 
-//   def create_waiting_room_inner_puzzle(
-//     target_puzzle_hash: bytes32,
-//     relative_lock_height: uint32,
-//     owner_pubkey: G1Element,
-//     launcher_id: bytes32,
-//     genesis_challenge: bytes32,
-//     delay_time: uint64,
-//     delay_ph: bytes32,
-// ) -> Program:
-//     pool_reward_prefix = bytes32(genesis_challenge[:16] + b"\x00" * 16)
-//     p2_singleton_puzzle_hash: bytes32 = launcher_id_to_p2_puzzle_hash(launcher_id, delay_time, delay_ph)
-//     return POOL_WAITING_ROOM_MOD.curry(
-//         target_puzzle_hash, p2_singleton_puzzle_hash, bytes(owner_pubkey), pool_reward_prefix, relative_lock_height
-//     )
+  Program makePoolExtraData(PoolState poolState, int delayTime, Puzzlehash delayPuzzlehash) =>
+      Program.list([
+        Program.cons(Program.fromString('p'), Program.fromBytes(poolState.toBytesChia())),
+        Program.cons(Program.fromString('t'), Program.fromInt(delayTime)),
+        Program.cons(Program.fromString('h'), Program.fromBytes(delayPuzzlehash)),
+      ]);
+
   Program createWaitingRoomInnerPuzzle({
     required Puzzlehash targetPuzzlehash,
     required int relativeLockHeight,
@@ -169,10 +165,6 @@ class PoolWalletService extends BaseWalletService {
   Bytes get poolRewardPrefix =>
       Bytes.fromHex(blockchainNetwork.aggSigMeExtraData).sublist(0, 16) + Bytes(List.filled(16, 0));
 
-// def launcher_id_to_p2_puzzle_hash(launcher_id: bytes32, seconds_delay: uint64, delayed_puzzle_hash: bytes32) -> bytes32:
-//     return create_p2_singleton_puzzle(
-//         SINGLETON_MOD_HASH, launcher_id, int_to_bytes(seconds_delay), delayed_puzzle_hash
-//     ).get_tree_hash()
   Puzzlehash launcherIdToP2Puzzlehash(
       Bytes launcherId, int secondsDelay, Puzzlehash delayedPuzzlehash) {
     return SingletonService.createP2SingletonPuzzle(
@@ -188,7 +180,6 @@ class PoolWalletService extends BaseWalletService {
 
     // check for launcher spend
     if (coinSpend.coin.puzzlehash == singletonLauncherProgram.hash()) {
-      
       try {
         final extraData = fullSolution.rest().rest().first();
         return PoolState.fromExtraData(extraData);

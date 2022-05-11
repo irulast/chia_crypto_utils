@@ -6,19 +6,21 @@ import 'package:chia_utils/src/api/full_node/full_node_utils.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
-  // final fullNodeUtils = FullNodeUtils(Network.mainnet);
-  // try {
-  //   await fullNodeUtils.checkIsRunning();
-  // } catch (e) {
-  //   print(e);
-  //   return;
-  // }
+  final fullNodeUtils = FullNodeUtils(Network.mainnet);
+  try {
+    await fullNodeUtils.checkIsRunning();
+  } catch (e) {
+    print(e);
+    return;
+  }
 
-  const fullNodeRpc = FullNodeHttpRpc(
-    'https://chia.irulast-prod.com',
+  final fullNodeRpc = FullNodeHttpRpc(
+    fullNodeUtils.url,
+    certBytes: fullNodeUtils.certBytes,
+    keyBytes: fullNodeUtils.keyBytes,
   );
 
-  const fullNode = ChiaFullNodeInterface(fullNodeRpc);
+  final fullNode = ChiaFullNodeInterface(fullNodeRpc);
 
   test('should get coins ', () async {
     final coins = await fullNode.getCoinsByPuzzleHashes(
