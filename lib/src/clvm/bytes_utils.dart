@@ -33,6 +33,10 @@ Bytes intTo32Bytes(int value) {
   return intToBytes(value, 4, Endian.big);
 }
 
+Bytes intTo8Bytes(int value) {
+  return intToBytes(value, 1, Endian.big);
+}
+
 Bytes intToBytesStandard(int value, Endian endian, {bool signed = false}) {
   return intToBytes(value, (value.bitLength + 8) >> 3, endian, signed: signed);
 }

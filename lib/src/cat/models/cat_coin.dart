@@ -2,7 +2,6 @@
 
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/cat/exceptions/invalid_cat_exception.dart';
-import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
 import 'package:meta/meta.dart';
 
 @immutable

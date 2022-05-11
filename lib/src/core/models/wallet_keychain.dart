@@ -2,8 +2,6 @@
 
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/cat/puzzles/cat/cat.clvm.hex.dart';
-import 'package:chia_utils/src/cat/puzzles/curry_and_treehash/curry_and_treehash.clvm.hex.dart';
 import 'package:chia_utils/src/utils/serialization.dart';
 
 class WalletKeychain {
@@ -88,6 +86,8 @@ class WalletKeychain {
   Bytes toBytes() {
     return serializeList(<dynamic>[hardenedMap, unhardenedMap]);
   }
+
+  List<Puzzlehash> get puzzlehashes => unhardenedMap.values.toList().map((wv) => wv.puzzlehash).toList();
 
   List<Puzzlehash> getOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
     if (!unhardenedMap.values.first.assetIdtoOuterPuzzlehash.containsKey(assetId)) {

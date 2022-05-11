@@ -22,13 +22,6 @@ Future<void> main() async {
 
   final fullNode = ChiaFullNodeInterface(fullNodeRpc);
 
-  final coinsMany = await fullNode.getCoinsByPuzzleHashes(
-    [Puzzlehash.fromHex('a7850a501d90821b517d0c921c1c480f45a3369c08ae8236e2618a7fc97be14f')],
-    startHeight: 1690666,
-    endHeight: 1691337,
-  );
-  print(coinsMany);
-
   test('should get coins ', () async {
     final coins = await fullNode.getCoinsByPuzzleHashes(
       [Puzzlehash.fromHex('51de5b7230cd32f245d5b577550294e070754ae1d9214e80c46f55c0ca914635')],
