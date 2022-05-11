@@ -21,30 +21,10 @@ Future<void> main() async {
 
   // generate wallet
   const testMnemonic = [
-    'elder',
-    'quality',
-    'this',
-    'chalk',
-    'crane',
-    'endless',
-    'machine',
-    'hotel',
-    'unfair',
-    'castle',
-    'expand',
-    'refuse',
-    'lizard',
-    'vacuum',
-    'embody',
-    'track',
-    'crash',
-    'truth',
-    'arrow',
-    'tree',
-    'poet',
-    'audit',
-    'grid',
-    'mesh',
+      'elder', 'quality', 'this', 'chalk', 'crane', 'endless',
+      'machine', 'hotel', 'unfair', 'castle', 'expand', 'refuse',
+      'lizard', 'vacuum', 'embody', 'track', 'crash', 'truth',
+      'arrow', 'tree', 'poet', 'audit', 'grid', 'mesh',
   ];
   final keychainSecret = KeychainCoreSecret.fromMnemonic(testMnemonic);
   final walletsSetList = <WalletSet>[];
@@ -99,27 +79,21 @@ Future<void> main() async {
 
   final testStandardCoins = [
     CoinPrototype(
-      parentCoinInfo:
-          Puzzlehash.fromHex('27ae41e4649b934ca495991b7852b85500000000000000000000000000000001'),
-      puzzlehash:
-          Puzzlehash.fromHex('0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad'),
+      parentCoinInfo: Puzzlehash.fromHex('27ae41e4649b934ca495991b7852b85500000000000000000000000000000001'),
+      puzzlehash: Puzzlehash.fromHex('0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad'),
       amount: 250000000000,
     ),
     CoinPrototype(
-      parentCoinInfo:
-          Puzzlehash.fromHex('e3b0c44298fc1c149afbf4c8996fb92400000000000000000000000000000001'),
-      puzzlehash:
-          Puzzlehash.fromHex('0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad'),
+      parentCoinInfo: Puzzlehash.fromHex('e3b0c44298fc1c149afbf4c8996fb92400000000000000000000000000000001'),
+      puzzlehash: Puzzlehash.fromHex('0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad'),
       amount: 1750000000000,
     ),
   ];
 
   final testCatCoins = [
     CoinPrototype(
-      parentCoinInfo:
-          Puzzlehash.fromHex('0fe40b1ec35f3472c8cf0f244c207c26e7a8678413dceb87cff38dc2c1c95093'),
-      puzzlehash:
-          Puzzlehash.fromHex('5db372b6e7577013035b4ee3fced2a7466d6ff1d3716b182afe520d83ee3427a'),
+      parentCoinInfo: Puzzlehash.fromHex('0fe40b1ec35f3472c8cf0f244c207c26e7a8678413dceb87cff38dc2c1c95093'),
+      puzzlehash: Puzzlehash.fromHex('5db372b6e7577013035b4ee3fced2a7466d6ff1d3716b182afe520d83ee3427a'),
       amount: 10000,
     ),
   ];

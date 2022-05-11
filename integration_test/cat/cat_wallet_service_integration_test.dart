@@ -144,13 +144,10 @@ Future<void> main() async {
     final standardCoinsForTest = senderStandardCoins.sublist(0, 2);
     senderStandardCoins.removeWhere(standardCoinsForTest.contains);
 
-    final senderStartingNateCoinBalance =
-        await fullNodeSimulator.getBalance([senderOuterPuzzlehash]);
-    final senderStartingStandardCoinBalance =
-        await fullNodeSimulator.getBalance([senderPuzzlehash]);
+    final senderStartingNateCoinBalance = await fullNodeSimulator.getBalance([senderOuterPuzzlehash]);
+    final senderStartingStandardCoinBalance = await fullNodeSimulator.getBalance([senderPuzzlehash]);
 
-    final receiverStartingNateCoinBalance =
-        await fullNodeSimulator.getBalance([receiverOuterPuzzlehash]);
+    final receiverStartingNateCoinBalance = await fullNodeSimulator.getBalance([receiverOuterPuzzlehash]);
 
     final totalNateCoinValue = catCoinsForThisTest.fold(
       0,
@@ -195,18 +192,15 @@ Future<void> main() async {
     final standardCoinsForTest = senderStandardCoins.sublist(0, 2);
     senderStandardCoins.removeWhere(standardCoinsForTest.contains);
 
-    final senderStartingNateCoinBalance =
-        await fullNodeSimulator.getBalance([senderOuterPuzzlehash]);
-    final senderStartingStandardCoinBalance =
-        await fullNodeSimulator.getBalance([senderPuzzlehash]);
+    final senderStartingNateCoinBalance = await fullNodeSimulator.getBalance([senderOuterPuzzlehash]);
+    final senderStartingStandardCoinBalance = await fullNodeSimulator.getBalance([senderPuzzlehash]);
 
     final receiverStartingCatCoins =
         await fullNodeSimulator.getCoinsByPuzzleHashes([receiverOuterPuzzlehash]);
     final receiverStartingNateCoinBalance =
         receiverStartingCatCoins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
 
-    final totalNateCoinValue =
-        catCoinsForThisTest.fold(0, (int previousValue, coin) => previousValue + coin.amount);
+    final totalNateCoinValue = catCoinsForThisTest.fold(0, (int previousValue, coin) => previousValue + coin.amount);
     final sendAmounts = [(totalNateCoinValue * 0.4).round(), (totalNateCoinValue * 0.3).round()];
     final totalAmountToSend = sendAmounts.fold(
       0,

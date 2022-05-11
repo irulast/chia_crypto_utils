@@ -4,31 +4,11 @@ import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:test/test.dart';
 
 const testMnemonic = [
-  'elder',
-  'quality',
-  'this',
-  'chalk',
-  'crane',
-  'endless',
-  'machine',
-  'hotel',
-  'unfair',
-  'castle',
-  'expand',
-  'refuse',
-  'lizard',
-  'vacuum',
-  'embody',
-  'track',
-  'crash',
-  'truth',
-  'arrow',
-  'tree',
-  'poet',
-  'audit',
-  'grid',
-  'mesh',
-];
+      'elder', 'quality', 'this', 'chalk', 'crane', 'endless',
+      'machine', 'hotel', 'unfair', 'castle', 'expand', 'refuse',
+      'lizard', 'vacuum', 'embody', 'track', 'crash', 'truth',
+      'arrow', 'tree', 'poet', 'audit', 'grid', 'mesh',
+  ];
 
 void main() {
   test(
@@ -55,10 +35,8 @@ void main() {
       final keychainSecret = KeychainCoreSecret.fromMnemonic(testMnemonic);
       final walletSet = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, 0);
       final keychain = WalletKeychain([walletSet])
-        ..addOuterPuzzleHashesForAssetId(
-            Puzzlehash.fromHex('0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad'),)
-        ..addOuterPuzzleHashesForAssetId(
-            Puzzlehash.fromHex('0b6a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad'),);
+        ..addOuterPuzzleHashesForAssetId(Puzzlehash.fromHex('0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad'),)
+        ..addOuterPuzzleHashesForAssetId(Puzzlehash.fromHex('0b6a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad'),);
 
       final wv = keychain.unhardenedMap.values.first;
       final bytes = wv.toBytes();
