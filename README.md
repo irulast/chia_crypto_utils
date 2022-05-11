@@ -58,10 +58,10 @@ $ dart test integration_test/ --concurrency=1
 const mnemonic = ['elder', 'quality', 'this', ...];
 
 // these should never be stored in memory, only in encrypted storage if at all
-final masterKeyPair = MasterKeyPair.fromMnemonic(mnemonic);
+final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
 
 // generate keys, addresses, puzzlehashes at desired derivation index (both hardened and unhardened)
-final walletKeyAddressSet = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, 0);
+final walletKeyAddressSet = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, 0);
 
 final keychain = WalletKeychain([walletKeyAddressSet])
 ```
@@ -84,11 +84,11 @@ Context context = NetworkContext.makeContext(Network.mainnet);
 ```dart
 // initializing WalletKeychain
 const mnemonic = ['elder', 'quality', 'this', ...];
-MasterKeyPair masterKeyPair = MasterKeyPair.fromMnemonic(testMnemonic);
+KeychainCoreSecret keychainSecret = KeychainCoreSecret.fromMnemonic(testMnemonic);
 
 L walletsSetList = <WalletSet>[];
 for (var i = 0; i < 10; i++) {
-  final set1 = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
+  final set1 = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, i);
   walletsSetList.add(set1);
 }
 final keychain = WalletKeychain(walletsSetList);
@@ -132,11 +132,11 @@ await fullNode.pushTransaction(spendBundle);
 ```dart
 // initializing WalletKeychain
 const mnemonic = ['elder', 'quality', 'this', ...];
-final masterKeyPair = MasterKeyPair.fromMnemonic(testMnemonic);
+final keychainSecret = KeychainCoreSecret.fromMnemonic(testMnemonic);
 
 final walletsSetList = <WalletSet>[];
 for (var i = 0; i < 10; i++) {
-  final set1 = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
+  final set1 = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, i);
   walletsSetList.add(set1);
 }
 

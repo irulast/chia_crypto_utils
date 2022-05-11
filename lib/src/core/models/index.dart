@@ -5,7 +5,8 @@ export './coin.dart';
 export './coin_prototype.dart';
 export './coin_spend.dart';
 export './conditions/index.dart';
-export './master_key_pair.dart';
+export './keychain_core_secret.dart';
+
 export './payment.dart';
 export './spend_bundle.dart';
 export './wallet_keychain.dart';

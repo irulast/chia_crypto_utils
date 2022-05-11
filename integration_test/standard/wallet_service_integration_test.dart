@@ -20,12 +20,11 @@ Future<void> main() async {
   );
   final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
 
-  final testMnemonic = WalletKeychain.generateMnemonic();
-  final masterKeyPair = MasterKeyPair.fromMnemonic(testMnemonic);
+  final keychainSecret = KeychainCoreSecret.generate();
 
   final walletsSetList = <WalletSet>[];
   for (var i = 0; i < 2; i++) {
-    final set1 = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
+    final set1 = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, i);
     walletsSetList.add(set1);
   }
 

@@ -1,13 +1,12 @@
 // ignore_for_file: lines_longer_than_80_chars, avoid_equals_and_hash_code_on_mutable_classes
 
-import 'package:bip39/bip39.dart' as bip39;
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/utils/serialization.dart';
 
 class WalletKeychain {
   Map<Puzzlehash, WalletVector> hardenedMap = <Puzzlehash, WalletVector>{};
   Map<Puzzlehash, UnhardenedWalletVector> unhardenedMap = <Puzzlehash, UnhardenedWalletVector>{};
-  static const mnemonicWordSeperator = ' ';
+  
 
   WalletVector? getWalletVector(Puzzlehash puzzlehash) {
     final walletVector = unhardenedMap[puzzlehash];
@@ -121,7 +120,5 @@ class WalletKeychain {
     return Puzzlehash(result.program.atom);
   }
 
-  static List<String> generateMnemonic({int strength = 256}) {
-    return bip39.generateMnemonic(strength: strength).split(mnemonicWordSeperator);
-  }
+  
 }

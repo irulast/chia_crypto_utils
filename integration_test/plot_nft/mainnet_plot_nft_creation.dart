@@ -14,11 +14,11 @@ Future<void> main() async {
       'leader fresh forest lady decline soup twin crime remember doll push hip fox future arctic easy rent roast ketchup skin hip crane dilemma whip'
           .split(' ');
   print('mnemonic: ${mnemonic.join(' ')}');
-  final masterKeyPair = MasterKeyPair.fromMnemonic(mnemonic);
+  final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
 
   final walletsSetList = <WalletSet>[];
   for (var i = 0; i < 3; i++) {
-    final set1 = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
+    final set1 = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, i);
     walletsSetList.add(set1);
   }
 
@@ -63,7 +63,8 @@ Future<void> main() async {
   final launcherCoinPrototype = PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
 
   print('launcher_id: ${launcherCoinPrototype.id}');
-  print('farmer_public_key: ${masterSkToFarmerSk(masterKeyPair.masterPrivateKey).getG1().toHex()}');
+  print(
+      'farmer_public_key: ${masterSkToFarmerSk(keychainSecret.masterPrivateKey).getG1().toHex()}',);
   final poolPuzzlehash = poolWalletService.launcherIdToP2Puzzlehash(
     launcherCoinPrototype.id,
     p2SingletonDelayedTime,

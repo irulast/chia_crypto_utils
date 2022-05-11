@@ -3,13 +3,13 @@ import 'package:get_it/get_it.dart';
 
 class ChiaEnthusiast {
   ChiaEnthusiast(this.fullNodeSimulator, {List<String>? mnemonic, int derivations = 1}) {
-    final enthusiastMnemonic = mnemonic ?? WalletKeychain.generateMnemonic();
+    final enthusiastMnemonic = mnemonic ?? KeychainCoreSecret.generateMnemonic();
 
-    final masterKeyPair = MasterKeyPair.fromMnemonic(enthusiastMnemonic);
+    final keychainSecret = KeychainCoreSecret.fromMnemonic(enthusiastMnemonic);
     final walletsSetList = <WalletSet>[];
 
     for (var i = 0; i < derivations; i++) {
-      final set = WalletSet.fromPrivateKey(masterKeyPair.masterPrivateKey, i);
+      final set = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, i);
       walletsSetList.add(set);
     }
     keychain = WalletKeychain(walletsSetList);
@@ -22,8 +22,10 @@ class ChiaEnthusiast {
   List<Puzzlehash> get puzzlehashes =>
       keychain.unhardenedMap.values.map((wv) => wv.puzzlehash).toList();
 
-  List<Puzzlehash> get outerPuzzlehashes => keychain.unhardenedMap.values.fold(<Puzzlehash>[],
-      (previousValue, wv) => previousValue + wv.assetIdtoOuterPuzzlehash.values.toList(),);
+  List<Puzzlehash> get outerPuzzlehashes => keychain.unhardenedMap.values.fold(
+        <Puzzlehash>[],
+        (previousValue, wv) => previousValue + wv.assetIdtoOuterPuzzlehash.values.toList(),
+      );
 
   UnhardenedWalletVector get firstWalletVector => keychain.unhardenedMap.values.first;
 
@@ -100,6 +102,4 @@ class ChiaEnthusiast {
     await fullNodeSimulator.moveToNextBlock();
     await refreshCoins();
   }
-
- 
 }
