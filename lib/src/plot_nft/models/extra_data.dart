@@ -1,6 +1,7 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
+import 'dart:typed_data';
 
-class PlotNftExtraData {
+class PlotNftExtraData with ToBytesMixin {
   PlotNftExtraData(this.poolState, this.delayTime, this.delayPuzzlehash);
 
   factory PlotNftExtraData.fromProgram(Program extraDataProgram) {
@@ -41,4 +42,20 @@ class PlotNftExtraData {
           Program.fromBytes(delayPuzzlehash),
         ),
       ]);
+  Bytes toBytes() {
+    return poolState.toBytesChia() + intTo32Bytes(delayTime) + delayPuzzlehash;
+  }
+
+  factory PlotNftExtraData.fromBytes(Bytes bytes) {
+    final iterator = bytes.iterator;
+    return PlotNftExtraData.fromStream(iterator);
+  }
+
+  factory PlotNftExtraData.fromStream(Iterator<int> iterator) {
+    final poolState = PoolState.fromStreamChia(iterator);
+    final delayTime = bytesToInt(iterator.extractBytesAndAdvance(4), Endian.big);
+    final delayPuzzlehash = Puzzlehash.fromStream(iterator);
+
+    return PlotNftExtraData(poolState, delayTime, delayPuzzlehash);
+  }
 }
