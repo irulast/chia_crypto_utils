@@ -1,6 +1,6 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 
-class PlotNft {
+class PlotNft with ToBytesMixin {
   PlotNft(this.singletonCoin, this.extraData, this.launcherId);
   final CoinPrototype singletonCoin;
   final PlotNftExtraData extraData;
@@ -17,4 +17,19 @@ class PlotNft {
 
     return PlotNft(singletonCoin, extraData, launcherId);
   }
+
+  factory PlotNft.fromBytes(Bytes bytes){
+    final iterator=bytes.iterator;
+    final singletonCoin = CoinPrototype.fromStreamChia(iterator);
+    final plotNftExtraData = PlotNftExtraData.fromStream(iterator);
+    final launcherId = Puzzlehash.fromStream(iterator);
+
+    return PlotNft(singletonCoin, plotNftExtraData, launcherId);
+  }
+
+  Bytes toBytes(){
+    return singletonCoin.toBytesChia() + extraData.toBytes() + launcherId;
+  }
+
+
 }

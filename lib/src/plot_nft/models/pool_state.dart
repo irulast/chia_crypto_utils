@@ -45,7 +45,11 @@ class PoolState with ToBytesChiaMixin {
   }
 
   factory PoolState.fromBytesChia(Bytes bytes) {
-    final iterator = bytes.toList().iterator;
+    final iterator = bytes.iterator;
+    return PoolState.fromStreamChia(iterator);
+  }
+
+  factory PoolState.fromStreamChia(Iterator<int> iterator) {
     final versionBytes = iterator.extractBytesAndAdvance(1);
     final version = bytesToInt(versionBytes, Endian.big);
 
