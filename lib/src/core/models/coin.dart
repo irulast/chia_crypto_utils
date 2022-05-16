@@ -11,6 +11,8 @@ class Coin extends CoinPrototype with ToBytesMixin {
   final bool coinbase;
   final int timestamp;
 
+  bool get isSpent => confirmedBlockIndex != 0;
+
   const Coin({
     required this.confirmedBlockIndex,
     required this.spentBlockIndex,

@@ -27,6 +27,7 @@ class Puzzlehash extends Bytes {
   Puzzlehash.zeros() : super(List.filled(bytesLength, 0));
 
   static const bytesLength = 32;
+  static const hexLength = 64;
 
 }
 
