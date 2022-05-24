@@ -20,7 +20,7 @@ class Puzzlehash extends Bytes {
     return Puzzlehash(Bytes.fromHex(phHex));
   }
 
-  factory Puzzlehash.fromStream(Iterator<int> iterator){
+  factory Puzzlehash.fromStream(Iterator<int> iterator) {
     return Puzzlehash(iterator.extractBytesAndAdvance(bytesLength));
   }
 
@@ -28,7 +28,6 @@ class Puzzlehash extends Bytes {
 
   static const bytesLength = 32;
   static const hexLength = 64;
-
 }
 
 class Bytes extends Comparable<Bytes> implements List<int> {
@@ -41,7 +40,9 @@ class Bytes extends Comparable<Bytes> implements List<int> {
 
   static Bytes get empty => Bytes([]);
 
-  factory Bytes.fromStream(Iterator<int> iterator){
+  Uint8List get byteList => _byteList;
+
+  factory Bytes.fromStream(Iterator<int> iterator) {
     final lengthBytes = iterator.extractBytesAndAdvance(4);
     final length = bytesToInt(lengthBytes, Endian.big);
     return iterator.extractBytesAndAdvance(length);
@@ -79,14 +80,13 @@ class Bytes extends Comparable<Bytes> implements List<int> {
   int compareTo(Bytes other) {
     if (this > other) {
       return 1;
-    } 
-  // this warning is wrong
+    }
+    // this warning is wrong
     // ignore: invariant_booleans
     if (other > this) {
       return -1;
     }
     return 0;
-
   }
 
   @override

@@ -6,7 +6,6 @@ import 'package:chia_utils/src/utils/serialization.dart';
 class WalletKeychain {
   Map<Puzzlehash, WalletVector> hardenedMap = <Puzzlehash, WalletVector>{};
   Map<Puzzlehash, UnhardenedWalletVector> unhardenedMap = <Puzzlehash, UnhardenedWalletVector>{};
-  
 
   WalletVector? getWalletVector(Puzzlehash puzzlehash) {
     final walletVector = unhardenedMap[puzzlehash];
@@ -31,6 +30,16 @@ class WalletKeychain {
   }
 
   WalletKeychain.fromMaps(this.hardenedMap, this.unhardenedMap);
+
+  factory WalletKeychain.fromCoreSecret(KeychainCoreSecret coreSecret, int nDerivations) {
+    final walletsSetList = <WalletSet>[];
+    for (var i = 0; i < nDerivations; i++) {
+      final set = WalletSet.fromPrivateKey(coreSecret.masterPrivateKey, i);
+      walletsSetList.add(set);
+    }
+
+    return WalletKeychain(walletsSetList);
+  }
 
   factory WalletKeychain.fromBytes(Bytes bytes) {
     var byteIndex = 0;
@@ -86,7 +95,8 @@ class WalletKeychain {
     return serializeList(<dynamic>[hardenedMap, unhardenedMap]);
   }
 
-  List<Puzzlehash> get puzzlehashes => unhardenedMap.values.toList().map((wv) => wv.puzzlehash).toList();
+  List<Puzzlehash> get puzzlehashes =>
+      unhardenedMap.values.toList().map((wv) => wv.puzzlehash).toList();
 
   List<Puzzlehash> getOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
     if (!unhardenedMap.values.first.assetIdtoOuterPuzzlehash.containsKey(assetId)) {
@@ -119,6 +129,4 @@ class WalletKeychain {
     final result = curryAndTreehashProgram.run(solution);
     return Puzzlehash(result.program.atom);
   }
-
-  
 }
