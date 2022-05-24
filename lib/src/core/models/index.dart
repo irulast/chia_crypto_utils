@@ -8,7 +8,6 @@ export './conditions/index.dart';
 export './keychain_core_secret.dart';
 export './payment.dart';
 export './spend_bundle.dart';
-export './spent_coin.dart';
 export './wallet_keychain.dart';
 export './wallet_set.dart';
 export './wallet_vector.dart';

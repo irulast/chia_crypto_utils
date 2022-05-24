@@ -3,7 +3,6 @@
 import 'dart:convert';
 
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/api/full_node/full_node.dart';
 import 'package:chia_utils/src/api/full_node/models/responses/blockchain_state_response.dart';
 import 'package:chia_utils/src/api/full_node/models/responses/chia_base_response.dart';
 import 'package:chia_utils/src/api/full_node/models/responses/coin_record_response.dart';

@@ -27,6 +27,7 @@ class PlotNft with ToBytesMixin {
     return PlotNft(singletonCoin, plotNftExtraData, launcherId);
   }
 
+  @override
   Bytes toBytes(){
     return singletonCoin.toBytesChia() + extraData.toBytes() + launcherId;
   }
