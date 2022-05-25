@@ -7,7 +7,7 @@ import 'package:chia_utils/src/utils/serialization.dart';
 import 'package:meta/meta.dart';
 
 @immutable
-class SpendBundle with ToBytesChiaMixin {
+class SpendBundle with ToBytesMixin {
   final List<CoinSpend> coinSpends;
   final JacobianPoint? aggregatedSignature;
 
@@ -92,11 +92,11 @@ class SpendBundle with ToBytesChiaMixin {
   }
 
   @override
-  Bytes toBytesChia() {
+  Bytes toBytes() {
     return serializeListChia(coinSpends) + Bytes(aggregatedSignature?.toBytes() ?? []);
   }
 
-  factory SpendBundle.fromBytesChia(Bytes bytes) {
+  factory SpendBundle.fromBytes(Bytes bytes) {
     final iterator = bytes.toList().iterator;
 
     // length of list is encoded with 32 bits
@@ -105,7 +105,7 @@ class SpendBundle with ToBytesChiaMixin {
 
     final coinSpends = <CoinSpend>[];
     for (var i = 0; i < coinSpendsLength; i++) {
-      coinSpends.add(CoinSpend.fromStreamChia(iterator));
+      coinSpends.add(CoinSpend.fromStream(iterator));
     }
 
     final signatureExists = iterator.moveNext();
@@ -142,6 +142,5 @@ class SpendBundle with ToBytesChiaMixin {
       hc = hc ^ aggregatedSignature.hashCode;
     }
     return hc;
-  } 
-
+  }
 }

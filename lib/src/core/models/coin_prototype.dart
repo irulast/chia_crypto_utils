@@ -3,11 +3,10 @@
 import 'dart:typed_data';
 
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/utils/serialization.dart';
 import 'package:meta/meta.dart';
 
 @immutable
-class CoinPrototype with ToBytesMixin, ToBytesChiaMixin {
+class CoinPrototype with ToBytesMixin {
   final Bytes parentCoinInfo;
   final Puzzlehash puzzlehash;
   final int amount;
@@ -42,31 +41,16 @@ class CoinPrototype with ToBytesMixin, ToBytesChiaMixin {
       };
 
   factory CoinPrototype.fromBytes(Bytes bytes) {
-    var length = decodeInt(bytes.sublist(0, 4));
-    var left = 4;
-    var right = left + length;
-
-    final parentCoinInfo = Bytes(bytes.sublist(left, right));
-
-    length = decodeInt(bytes.sublist(right, right + 4));
-    left = right + 4;
-    right = left + length;
-    final puzzlehash = Puzzlehash(bytes.sublist(left, right));
-
-    length = decodeInt(bytes.sublist(right, right + 4));
-    left = right + 4;
-    right = left + length;
-    final amount = decodeInt(bytes.sublist(left, right));
-
-    return CoinPrototype(parentCoinInfo: parentCoinInfo, puzzlehash: puzzlehash, amount: amount);
+    final iterator = bytes.iterator;
+    return CoinPrototype.fromStream(iterator);
   }
 
   @override
-  Bytes toBytesChia() {
+  Bytes toBytes() {
     return parentCoinInfo + puzzlehash + Bytes(intTo64Bytes(amount));
   }
 
-  factory CoinPrototype.fromStreamChia(Iterator<int> iterator) {
+  factory CoinPrototype.fromStream(Iterator<int> iterator) {
     final parentCoinInfoBytes = iterator.extractBytesAndAdvance(Puzzlehash.bytesLength);
     final parentCoinInfo = Bytes(parentCoinInfoBytes);
 
@@ -78,11 +62,6 @@ class CoinPrototype with ToBytesMixin, ToBytesChiaMixin {
     final amount = bytesToInt(amountBytes, Endian.big);
 
     return CoinPrototype(parentCoinInfo: parentCoinInfo, puzzlehash: puzzlehash, amount: amount);
-  }
-
-  @override
-  Bytes toBytes() {
-    return serializeList(<dynamic>[parentCoinInfo, puzzlehash, amount]);
   }
 
   @override

@@ -50,7 +50,7 @@ Future<void> main() async {
     final launcherCoinPrototype = PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
 
     final plotNft = await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id);
-    expect(plotNft.extraData.poolState.toHexChia(), equals(initialTargetState.toHexChia()));
+    expect(plotNft.extraData.poolState.toHex(), equals(initialTargetState.toHex()));
     expect(plotNft.extraData.delayTime, equals(PlotNftWalletService.defaultDelayTime));
     expect(plotNft.extraData.delayPuzzlehash, equals(nathan.firstPuzzlehash));
   });
@@ -79,7 +79,7 @@ Future<void> main() async {
     final launcherCoinPrototype = PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
 
     final plotNft = await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id);
-    expect(plotNft.extraData.poolState.toHexChia(), equals(initialTargetState.toHexChia()));
+    expect(plotNft.extraData.poolState.toHex(), equals(initialTargetState.toHex()));
     expect(plotNft.extraData.delayTime, equals(PlotNftWalletService.defaultDelayTime));
     expect(plotNft.extraData.delayPuzzlehash, equals(nathan.firstPuzzlehash));
   });

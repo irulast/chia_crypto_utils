@@ -35,7 +35,7 @@ class PlotNftExtraData with ToBytesMixin {
   Program toProgram() => Program.list([
         Program.cons(
           Program.fromString(poolStateIdentifier),
-          Program.fromBytes(poolState.toBytesChia()),
+          Program.fromBytes(poolState.toBytes()),
         ),
         Program.cons(Program.fromString(delayTimeIdentifier), Program.fromInt(delayTime)),
         Program.cons(
@@ -45,7 +45,7 @@ class PlotNftExtraData with ToBytesMixin {
       ]);
   @override
   Bytes toBytes() {
-    return poolState.toBytesChia() + intTo32Bytes(delayTime) + delayPuzzlehash;
+    return poolState.toBytes() + intTo32Bytes(delayTime) + delayPuzzlehash;
   }
 
   factory PlotNftExtraData.fromBytes(Bytes bytes) {
@@ -54,7 +54,7 @@ class PlotNftExtraData with ToBytesMixin {
   }
 
   factory PlotNftExtraData.fromStream(Iterator<int> iterator) {
-    final poolState = PoolState.fromStreamChia(iterator);
+    final poolState = PoolState.fromStream(iterator);
     final delayTime = bytesToInt(iterator.extractBytesAndAdvance(4), Endian.big);
     final delayPuzzlehash = Puzzlehash.fromStream(iterator);
 

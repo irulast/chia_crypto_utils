@@ -3,7 +3,7 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/utils/serialization.dart';
 
-class WalletKeychain {
+class WalletKeychain with ToBytesMixin {
   Map<Puzzlehash, WalletVector> hardenedMap = <Puzzlehash, WalletVector>{};
   Map<Puzzlehash, UnhardenedWalletVector> unhardenedMap = <Puzzlehash, UnhardenedWalletVector>{};
 
@@ -91,6 +91,7 @@ class WalletKeychain {
     return WalletKeychain.fromMaps(hardenedMap, unhardenedMap);
   }
 
+  @override
   Bytes toBytes() {
     return serializeList(<dynamic>[hardenedMap, unhardenedMap]);
   }

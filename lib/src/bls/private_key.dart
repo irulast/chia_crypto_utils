@@ -7,7 +7,7 @@ import 'package:hex/hex.dart';
 import 'package:meta/meta.dart';
 
 @immutable
-class PrivateKey {
+class PrivateKey with ToBytesMixin{
   PrivateKey(this.value)
       : assert(
           value < defaultEc.n,
@@ -52,9 +52,8 @@ class PrivateKey {
 
   JacobianPoint getG1() => JacobianPoint.generateG1() * value;
 
+  @override
   Bytes toBytes() => bigIntToBytes(value, size, Endian.big);
-
-  String toHex() => const HexEncoder().convert(toBytes());
 
   @override
   String toString() => 'PrivateKey(0x${toHex()})';
