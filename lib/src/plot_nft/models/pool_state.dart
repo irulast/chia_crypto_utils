@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/utils/serialization.dart';
 
-class PoolState with ToBytesChiaMixin {
+class PoolState with ToBytesMixin {
   PoolState({
     this.version = 1,
     required this.poolSingletonState,
@@ -22,7 +22,7 @@ class PoolState with ToBytesChiaMixin {
   final int relativeLockHeight;
 
   @override
-  Bytes toBytesChia() {
+  Bytes toBytes() {
     var bytes = <int>[];
     bytes += intTo8Bytes(version);
     bytes += intTo8Bytes(poolSingletonState.code);
@@ -41,15 +41,15 @@ class PoolState with ToBytesChiaMixin {
     final poolStateConsBox = extraDataProgram.toList().singleWhere(
           (p) => String.fromCharCode(p.first().toInt()) == PlotNftExtraData.poolStateIdentifier,
         );
-    return PoolState.fromBytesChia(poolStateConsBox.rest().atom);
+    return PoolState.fromBytes(poolStateConsBox.rest().atom);
   }
 
-  factory PoolState.fromBytesChia(Bytes bytes) {
+  factory PoolState.fromBytes(Bytes bytes) {
     final iterator = bytes.iterator;
-    return PoolState.fromStreamChia(iterator);
+    return PoolState.fromStream(iterator);
   }
 
-  factory PoolState.fromStreamChia(Iterator<int> iterator) {
+  factory PoolState.fromStream(Iterator<int> iterator) {
     final versionBytes = iterator.extractBytesAndAdvance(1);
     final version = bytesToInt(versionBytes, Endian.big);
 
