@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.13
+
+- Refactoring and code cleanup for publishing to pub.dev
+- Normalized Chia simulator usage to ease use in packages importing or using Chia Crypto Utils
+
 ## 1.0.12
 
 - Added PlotNFT pooling support
