@@ -4,8 +4,6 @@ import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
-import '../simulator/simulator_utils.dart';
-
 Future<void> main() async {
   const nTests = 4;
 
@@ -14,7 +12,8 @@ Future<void> main() async {
     return;
   }
 
-  final simulatorHttpRpc = SimulatorHttpRpc(SimulatorUtils.simulatorUrl,
+  final simulatorHttpRpc = SimulatorHttpRpc(
+    SimulatorUtils.simulatorUrl,
     certBytes: SimulatorUtils.certBytes,
     keyBytes: SimulatorUtils.keyBytes,
   );
@@ -34,7 +33,8 @@ Future<void> main() async {
   final walletService = StandardWalletService();
 
   final senderPuzzlehash = keychain.unhardenedMap.values.toList()[0].puzzlehash;
-  final senderAddress = Address.fromPuzzlehash(senderPuzzlehash, walletService.blockchainNetwork.addressPrefix);
+  final senderAddress =
+      Address.fromPuzzlehash(senderPuzzlehash, walletService.blockchainNetwork.addressPrefix);
   final receiverPuzzlehash = keychain.unhardenedMap.values.toList()[1].puzzlehash;
 
   for (var i = 0; i < nTests; i++) {
@@ -52,7 +52,8 @@ Future<void> main() async {
     final coinsToSend = coins.sublist(0, 2);
     coins.removeWhere(coinsToSend.contains);
 
-    final coinsValue = coinsToSend.fold(0, (int previousValue, element) => previousValue + element.amount);
+    final coinsValue =
+        coinsToSend.fold(0, (int previousValue, element) => previousValue + element.amount);
     final amountToSend = (coinsValue * 0.8).round();
     final fee = (coinsValue * 0.1).round();
 
@@ -82,7 +83,8 @@ Future<void> main() async {
     final coinsToSend = coins.sublist(0, 2);
     coins.removeWhere(coinsToSend.contains);
 
-    final coinsValue = coinsToSend.fold(0, (int previousValue, element) => previousValue + element.amount);
+    final coinsValue =
+        coinsToSend.fold(0, (int previousValue, element) => previousValue + element.amount);
     final amountToSend = (coinsValue * 0.8).round();
 
     final spendBundle = walletService.createSpendBundle(
@@ -105,13 +107,16 @@ Future<void> main() async {
   test('Should push transaction with multiple payments', () async {
     final startingSenderBalance = await fullNodeSimulator.getBalance([senderPuzzlehash]);
 
-    final startingReceiverCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([receiverPuzzlehash]);
-    final startingReceiverBalance = startingReceiverCoins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
+    final startingReceiverCoins =
+        await fullNodeSimulator.getCoinsByPuzzleHashes([receiverPuzzlehash]);
+    final startingReceiverBalance =
+        startingReceiverCoins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
 
     final coinsToSend = coins.sublist(0, 2);
     coins.removeWhere(coinsToSend.contains);
 
-    final coinsValue = coinsToSend.fold(0, (int previousValue, element) => previousValue + element.amount);
+    final coinsValue =
+        coinsToSend.fold(0, (int previousValue, element) => previousValue + element.amount);
     final amountsToSend = [(coinsValue * 0.2).round(), (coinsValue * 0.6).round()];
     final totalAmountToSend = amountsToSend.fold(0, (int previousValue, a) => previousValue + a);
 
@@ -130,10 +135,13 @@ Future<void> main() async {
     final endingSenderBalance = await fullNodeSimulator.getBalance([senderPuzzlehash]);
     expect(startingSenderBalance - endingSenderBalance, totalAmountToSend);
 
-    final endingReceiverCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([receiverPuzzlehash]);
-    final newReceiverCoins = endingReceiverCoins.where((coin) => !startingReceiverCoins.contains(coin));
+    final endingReceiverCoins =
+        await fullNodeSimulator.getCoinsByPuzzleHashes([receiverPuzzlehash]);
+    final newReceiverCoins =
+        endingReceiverCoins.where((coin) => !startingReceiverCoins.contains(coin));
     expect(newReceiverCoins.length == 2, true);
-    expect(() {
+    expect(
+      () {
         for (final newCoin in newReceiverCoins) {
           // throws exception if not found
           amountsToSend.singleWhere((a) => a == newCoin.amount);
@@ -142,7 +150,8 @@ Future<void> main() async {
       returnsNormally,
     );
 
-    final endingReceiverBalance = endingReceiverCoins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
+    final endingReceiverBalance =
+        endingReceiverCoins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
     expect(endingReceiverBalance - startingReceiverBalance, totalAmountToSend);
   });
 
@@ -154,7 +163,8 @@ Future<void> main() async {
     final coinsToSend = coins.sublist(0, 2);
     coins.removeWhere(coinsToSend.contains);
 
-    final coinsValue = coinsToSend.fold(0, (int previousValue, element) => previousValue + element.amount);
+    final coinsValue =
+        coinsToSend.fold(0, (int previousValue, element) => previousValue + element.amount);
     final amountToSend = (coinsValue * 0.8).round();
 
     final spendBundle = walletService.createSpendBundle(

@@ -5,4 +5,3 @@ export './bad_request_exception.dart';
 export './double_spend_exception.dart';
 export './internal_server_error.dart';
 export './not_running_exception.dart';
-export './simulator_auth_files_not_generated.dart';

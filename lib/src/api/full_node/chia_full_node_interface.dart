@@ -1,7 +1,6 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/api/full_node/models/responses/chia_base_response.dart';
 import 'package:chia_utils/src/core/models/blockchain_state.dart';
 
 class ChiaFullNodeInterface {
@@ -96,13 +95,14 @@ class ChiaFullNodeInterface {
     final launcherCoin = await getCoinById(launcherId);
     final launcherCoinSpend = await getCoinSpend(launcherCoin!);
     final plotNft = PlotNft.fromCoinSpend(launcherCoinSpend!, launcherId);
-    
-    final singletonCoin =  await getCoinById(plotNft.singletonCoin.id);
+
+    final singletonCoin = await getCoinById(plotNft.singletonCoin.id);
     if (singletonCoin!.spentBlockIndex != 0) {
-      throw UnimplementedError('Does not support plot entities that have been modified since creation');
+      throw UnimplementedError(
+        'Does not support plot entities that have been modified since creation',
+      );
     }
     return plotNft;
-
   }
 
   Future<bool> checkForSpentCoins(List<CoinPrototype> coins) async {
