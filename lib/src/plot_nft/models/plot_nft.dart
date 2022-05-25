@@ -18,9 +18,9 @@ class PlotNft with ToBytesMixin {
     return PlotNft(singletonCoin, extraData, launcherId);
   }
 
-  factory PlotNft.fromBytes(Bytes bytes){
-    final iterator=bytes.iterator;
-    final singletonCoin = CoinPrototype.fromStreamChia(iterator);
+  factory PlotNft.fromBytes(Bytes bytes) {
+    final iterator = bytes.iterator;
+    final singletonCoin = CoinPrototype.fromStream(iterator);
     final plotNftExtraData = PlotNftExtraData.fromStream(iterator);
     final launcherId = Puzzlehash.fromStream(iterator);
 
@@ -28,9 +28,7 @@ class PlotNft with ToBytesMixin {
   }
 
   @override
-  Bytes toBytes(){
-    return singletonCoin.toBytesChia() + extraData.toBytes() + launcherId;
+  Bytes toBytes() {
+    return singletonCoin.toBytes() + extraData.toBytes() + launcherId;
   }
-
-
 }

@@ -15,11 +15,11 @@ void main() {
       poolUrl: 'test_url',
       relativeLockHeight: 2342,
     );
-    final poolStateSerialized = poolState.toBytesChia();
+    final poolStateSerialized = poolState.toBytes();
     expect(poolStateSerialized.toHex(), equals(chiaPoolStateSerializedWithPoolUrl));
 
-    final poolStateDeserialize = PoolState.fromBytesChia(poolStateSerialized);
-    final poolStateReSerialized = poolStateDeserialize.toBytesChia();
+    final poolStateDeserialize = PoolState.fromBytes(poolStateSerialized);
+    final poolStateReSerialized = poolStateDeserialize.toBytes();
     expect(poolStateReSerialized.toHex(), equals(chiaPoolStateSerializedWithPoolUrl));
   });
 
@@ -33,11 +33,11 @@ void main() {
       ownerPublicKey: ownerPublicKey,
       relativeLockHeight: 2342,
     );
-    final poolStateSerialized = poolState.toBytesChia();
+    final poolStateSerialized = poolState.toBytes();
     expect(poolStateSerialized.toHex(), equals(chiaPoolStateSerializedWithoutPoolUrl));
 
-    final poolStateDeserialize = PoolState.fromBytesChia(poolStateSerialized);
-    final poolStateReSerialized = poolStateDeserialize.toBytesChia();
+    final poolStateDeserialize = PoolState.fromBytes(poolStateSerialized);
+    final poolStateReSerialized = poolStateDeserialize.toBytes();
     expect(poolStateReSerialized.toHex(), equals(chiaPoolStateSerializedWithoutPoolUrl));
   });
 }

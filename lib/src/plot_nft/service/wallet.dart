@@ -95,7 +95,7 @@ class PlotNftWalletService extends BaseWalletService {
 
   Program makePoolExtraData(PoolState poolState, int delayTime, Puzzlehash delayPuzzlehash) =>
       Program.list([
-        Program.cons(Program.fromString('p'), Program.fromBytes(poolState.toBytesChia())),
+        Program.cons(Program.fromString('p'), Program.fromBytes(poolState.toBytes())),
         Program.cons(Program.fromString('t'), Program.fromInt(delayTime)),
         Program.cons(Program.fromString('h'), Program.fromBytes(delayPuzzlehash)),
       ]);

@@ -3,10 +3,9 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:chia_utils/src/core/service/base_wallet.dart';
 import 'package:chia_utils/src/standard/puzzles/p2_delegated_puzzle_or_hidden_puzzle/p2_delegated_puzzle_or_hidden_puzzle.clvm.hex.dart';
-import 'package:chia_utils/src/utils/serialization.dart';
 import 'package:hex/hex.dart';
 
-class CoinSpend with ToBytesMixin, ToBytesChiaMixin {
+class CoinSpend with ToBytesMixin {
   CoinPrototype coin;
   Program puzzleReveal;
   Program solution;
@@ -20,7 +19,10 @@ class CoinSpend with ToBytesMixin, ToBytesChiaMixin {
   List<CoinPrototype> get additions {
     final result = puzzleReveal.run(solution).program;
     final createCoinConditions = BaseWalletService.extractConditionsFromResult(
-        result, CreateCoinCondition.isThisCondition, CreateCoinCondition.fromProgram,);
+      result,
+      CreateCoinCondition.isThisCondition,
+      CreateCoinCondition.fromProgram,
+    );
 
     return createCoinConditions
         .map(
@@ -40,42 +42,19 @@ class CoinSpend with ToBytesMixin, ToBytesChiaMixin {
       };
 
   factory CoinSpend.fromBytes(Bytes bytes) {
-    var length = decodeInt(bytes.sublist(0, 4));
-    var left = 4;
-    var right = left + length;
-
-    final coin = CoinPrototype.fromBytes(bytes.sublist(left, right));
-
-    length = decodeInt(bytes.sublist(right, right + 4));
-    left = right + 4;
-    right = left + length;
-    final puzzleReveal = Program.deserialize(bytes.sublist(left, right));
-
-    length = decodeInt(bytes.sublist(right, right + 4));
-    left = right + 4;
-    right = left + length;
-    final solution = Program.deserialize(bytes.sublist(left, right));
-
-    return CoinSpend(coin: coin, puzzleReveal: puzzleReveal, solution: solution);
+    final iterator = bytes.iterator;
+    return CoinSpend.fromStream(iterator);
   }
-
-  @override
-  Bytes toBytesChia() {
-    return coin.toBytesChia() + 
-      Bytes(puzzleReveal.serialize()) + 
-      Bytes(solution.serialize());
-  }
-
-  factory CoinSpend.fromStreamChia(Iterator<int> iterator){
-    final coin = CoinPrototype.fromStreamChia(iterator);
-    final puzzleReveal = Program.fromStreamChia(iterator);
-    final solution = Program.fromStreamChia(iterator);
+  factory CoinSpend.fromStream(Iterator<int> iterator) {
+    final coin = CoinPrototype.fromStream(iterator);
+    final puzzleReveal = Program.fromStream(iterator);
+    final solution = Program.fromStream(iterator);
     return CoinSpend(coin: coin, puzzleReveal: puzzleReveal, solution: solution);
   }
 
   @override
   Bytes toBytes() {
-    return serializeList(<dynamic>[coin, puzzleReveal, solution]);
+    return coin.toBytes() + Bytes(puzzleReveal.serialize()) + Bytes(solution.serialize());
   }
 
   factory CoinSpend.fromJson(Map<String, dynamic> json) {

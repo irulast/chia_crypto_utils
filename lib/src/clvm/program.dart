@@ -109,7 +109,7 @@ class Program with ToBytesMixin {
     }
   }
   // TODO(nvjoshi): test and remove code reuse
-  factory Program.fromStreamChia(Iterator<int> iterator){
+  factory Program.fromStream(Iterator<int> iterator) {
     if (iterator.moveNext()) {
       return deserialize(iterator);
     } else {
