@@ -5,7 +5,7 @@ import 'package:chia_utils/src/cat/exceptions/invalid_cat_exception.dart';
 import 'package:meta/meta.dart';
 
 @immutable
-class CatCoin extends CoinPrototype {
+class CatCoin extends CoinPrototype with ToBytesMixin{
   final CoinSpend parentCoinSpend;
   final Puzzlehash assetId;
   final Program lineageProof;
