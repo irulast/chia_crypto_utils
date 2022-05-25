@@ -4,7 +4,6 @@ import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
-import '../simulator/simulator_utils.dart';
 
 Future<void> main() async {
   const nTests = 3;

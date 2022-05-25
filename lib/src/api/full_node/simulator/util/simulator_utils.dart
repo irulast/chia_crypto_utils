@@ -2,16 +2,26 @@
 
 import 'dart:io';
 
+
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:path/path.dart' as path;
 
 class SimulatorUtils {
+  static String simulatorUrlEnvironmentVariableName = 'FULL_NODE_SIMULATOR_URL';
   static String defaultUrl = 'https://localhost:5000';
-  static String envVariableName = 'FULL_NODE_SIMULATOR_URL';
+
+  // if you are using this class outside of chia-crypto-utils you must set FULL_NODE_SIMULATOR_GEN_PATH
+  static String simulatorGeneratedFilesPathVariableName = 'FULL_NODE_SIMULATOR_GEN_PATH';
+  static String get defaultgeneratedFilesPath => path.join(path.current, 'lib/src/api/full_node/simulator/run');
+
+  static String get generatedFilesPath {
+    final env = Platform.environment;
+    return env[simulatorGeneratedFilesPathVariableName] ?? defaultgeneratedFilesPath;
+  }
 
   static String get simulatorUrl {
     final env = Platform.environment;
-    return env[envVariableName] ?? defaultUrl;
+    return env[simulatorUrlEnvironmentVariableName] ?? defaultUrl;
   }
 
   static String get simulatorNotRunningWarning =>
@@ -19,23 +29,23 @@ class SimulatorUtils {
 
   static Bytes get certBytes {
     return _getAuthFileBytes(
-        'integration_test/simulator/temp/config/ssl/full_node/private_full_node.crt',);
+      '$generatedFilesPath/temp/config/ssl/full_node/private_full_node.crt',
+    );
   }
 
   static Bytes get keyBytes {
     return _getAuthFileBytes(
-        'integration_test/simulator/temp/config/ssl/full_node/private_full_node.key',);
+      '$generatedFilesPath/temp/config/ssl/full_node/private_full_node.key',
+    );
   }
 
   static Bytes _getAuthFileBytes(String pathToFile) {
     try {
-      LoggingContext()
-        ..log(null, 'auth file loaded: $pathToFile')
-        ..log(null, 'file contents:')
-        ..log(null, File(path.join(path.current, pathToFile)).readAsStringSync());
-      return Bytes(File(path.join(path.current, pathToFile)).readAsBytesSync());
+      LoggingContext().log(null, 'auth file loaded: $pathToFile');
+
+      return Bytes(File(pathToFile).readAsBytesSync());
     } on FileSystemException {
-      throw SimulatorAuthFilesNotGeneratedException();
+      throw SimulatorAuthFilesNotFoundException();
     }
   }
 
@@ -47,7 +57,7 @@ class SimulatorUtils {
         certBytes: certBytes,
         keyBytes: keyBytes,
       );
-    } on SimulatorAuthFilesNotGeneratedException {
+    } on SimulatorAuthFilesNotFoundException {
       // if cert/keys havent been generated then the simulator can't be running
       return false;
     }

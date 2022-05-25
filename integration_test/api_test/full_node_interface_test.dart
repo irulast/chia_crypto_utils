@@ -3,7 +3,6 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 import 'package:test/test.dart';
 
-import '../simulator/simulator_utils.dart';
 
 Future<void> main() async {
   if (!(await SimulatorUtils.checkIfSimulatorIsRunning())) {

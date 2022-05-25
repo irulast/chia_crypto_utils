@@ -12,28 +12,31 @@ docker build . -t chia-simulator
 ```
 
 ```bash
+export FULL_NODE_SIMULATOR_GEN_PATH=$(pwd)
 docker run -e TARGET_UID="$(id -u)" -e TARGET_GID="$(id -g)" -e CLIENT_CONFIG_DIR="/temp/config/" \
  -p 5000:8555 \
- -v "$(pwd)/temp/test-plots":/root/.chia/test-plots \
- -v "$(pwd)/temp/config:/temp/config" \
+ -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/test-plots":/root/.chia/test-plots \
+ -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/config:/temp/config" \
  chia-simulator
 ```
 
 ### Intel Mac
 ```bash
+export FULL_NODE_SIMULATOR_GEN_PATH=$(pwd)
 docker run -e TARGET_UID="$(id -u)" -e TARGET_GID="$(id -g)" -e CLIENT_CONFIG_DIR="/temp/config/" \
  -p 5000:8555 \
- -v "$(pwd)/temp/test-plots":/root/.chia/mainnet/test-plots \
- -v "$(pwd)/temp/config:/temp/config" \
+ -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/test-plots":/root/.chia/mainnet/test-plots \
+ -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/config:/temp/config" \
  irulast/chia-simulator:latest
 ```
 
 ### M1 Mac
 ```bash
+export FULL_NODE_SIMULATOR_GEN_PATH=$(pwd)
 docker run -e TARGET_UID="$(id -u)" -e TARGET_GID="$(id -g)" -e CLIENT_CONFIG_DIR="/temp/config/" \
  -p 5000:8555 \
- -v "$(pwd)/temp/test-plots":/root/.chia/mainnet/test-plots \
- -v "$(pwd)/temp/config:/temp/config" \
+ -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/test-plots":/root/.chia/mainnet/test-plots \
+ -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/config:/temp/config" \
  irulast/chia-simulator:m1-latest
 ```
 

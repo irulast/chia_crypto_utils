@@ -1,7 +1,5 @@
 import 'package:chia_utils/chia_crypto_utils.dart';
 
-
-
 abstract class FullNode {
   const FullNode(this.baseURL);
 
