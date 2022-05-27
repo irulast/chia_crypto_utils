@@ -1,6 +1,6 @@
 name: chia_crypto_utils
 description: Chia Crypto Utils repository provides an object model for working with Chia primitives serving as a basis for a Chia client.
-version: 1.0.13
+version: 1.0.14
 repository: https://github.com/irulast/chia-crypto-utils
 
 environment:

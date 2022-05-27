@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.14
+
+- Fixes for pub.dev
+
 ## 1.0.13
 
 - Refactoring and code cleanup for publishing to pub.dev
