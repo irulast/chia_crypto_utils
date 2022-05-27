@@ -36,7 +36,7 @@ First wallet address: txch1v8vergyvwugwv0tmxwnmeecuxh3tat5jaskkunnn79zjz0muds0ql
 01:02 +896 ~1: All tests passed!
 ```
 
-For integration test, run the following command:
+For integration tests, run the following command:
 
 ```console
 rps integration_tests
