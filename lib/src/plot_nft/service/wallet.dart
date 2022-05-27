@@ -1,8 +1,8 @@
-import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/core/service/base_wallet.dart';
-import 'package:chia_utils/src/singleton/puzzles/singleton_launcher/singleton_launcher.clvm.hex.dart';
-import 'package:chia_utils/src/singleton/puzzles/singleton_top_layer/singleton_top_layer.clvm.hex.dart';
-import 'package:chia_utils/src/singleton/service/singleton_service.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/core/service/base_wallet.dart';
+import 'package:chia_crypto_utils/src/singleton/puzzles/singleton_launcher/singleton_launcher.clvm.hex.dart';
+import 'package:chia_crypto_utils/src/singleton/puzzles/singleton_top_layer/singleton_top_layer.clvm.hex.dart';
+import 'package:chia_crypto_utils/src/singleton/service/singleton_service.dart';
 
 class PlotNftWalletService extends BaseWalletService {
   final standardWalletService = StandardWalletService();

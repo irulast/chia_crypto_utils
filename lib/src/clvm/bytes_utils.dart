@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 String flip(String binary) {
   return binary.replaceAllMapped(RegExp('[01]'), (match) => match.group(0) == '1' ? '0' : '1');

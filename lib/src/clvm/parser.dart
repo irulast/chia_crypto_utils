@@ -1,5 +1,5 @@
-import 'package:chia_utils/src/clvm/keywords.dart';
-import 'package:chia_utils/src/clvm/program.dart';
+import 'package:chia_crypto_utils/src/clvm/keywords.dart';
+import 'package:chia_crypto_utils/src/clvm/program.dart';
 
 class Token {
   final String text;
@@ -32,8 +32,8 @@ class Position {
 
 bool isSpace(String char) {
   return RegExp(
-          r'^[\u0020\u202F\u205F\u2028\u2029\u3000\u0085\u1680\u00A0\u2000-\u200A\u0009-\u000D\u001C-\u001F]$',)
-      .hasMatch(char);
+    r'^[\u0020\u202F\u205F\u2028\u2029\u3000\u0085\u1680\u00A0\u2000-\u200A\u0009-\u000D\u001C-\u001F]$',
+  ).hasMatch(char);
 }
 
 int consumeWhitespace(String text, int index) {
@@ -180,7 +180,8 @@ Iterable<Token> tokenStream(String source) sync* {
         continue;
       } else {
         throw StateError(
-            'Unterminated string ${source.substring(start)} at ${Position(source, index)}.',);
+          'Unterminated string ${source.substring(start)} at ${Position(source, index)}.',
+        );
       }
     }
     final token = consumeUntilWhitespace(source, index);

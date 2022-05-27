@@ -1,7 +1,7 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:bech32m/bech32m.dart';
-import 'package:chia_utils/src/clvm/bytes.dart';
+import 'package:chia_crypto_utils/src/clvm/bytes.dart';
 import 'package:meta/meta.dart';
 
 @immutable

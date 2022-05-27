@@ -1,5 +1,5 @@
-import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/api/tail_database/tail_database_api.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/api/tail_database/tail_database_api.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {

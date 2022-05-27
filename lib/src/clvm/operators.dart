@@ -1,11 +1,11 @@
 import 'dart:typed_data';
 
-import 'package:chia_utils/src/bls/ec/jacobian_point.dart';
-import 'package:chia_utils/src/bls/private_key.dart';
-import 'package:chia_utils/src/clvm/bytes_utils.dart';
-import 'package:chia_utils/src/clvm/cost.dart';
-import 'package:chia_utils/src/clvm/keywords.dart';
-import 'package:chia_utils/src/clvm/program.dart';
+import 'package:chia_crypto_utils/src/bls/ec/jacobian_point.dart';
+import 'package:chia_crypto_utils/src/bls/private_key.dart';
+import 'package:chia_crypto_utils/src/clvm/bytes_utils.dart';
+import 'package:chia_crypto_utils/src/clvm/cost.dart';
+import 'package:chia_crypto_utils/src/clvm/keywords.dart';
+import 'package:chia_crypto_utils/src/clvm/program.dart';
 import 'package:crypto/crypto.dart';
 
 typedef Operator = Output Function(Program args);
@@ -37,10 +37,11 @@ Map<BigInt, Operator> operators = {
   keywords['=']!: (args) {
     final list = args.toAtomList(size: 2, suffix: 'in =');
     return Output(
-        Program.fromBool(bytesEqual(list[0].atom, list[1].atom)),
-        Cost.eqBaseCost +
-            (BigInt.from(list[0].atom.length) + BigInt.from(list[1].atom.length)) *
-                Cost.eqCostPerByte,);
+      Program.fromBool(bytesEqual(list[0].atom, list[1].atom)),
+      Cost.eqBaseCost +
+          (BigInt.from(list[0].atom.length) + BigInt.from(list[1].atom.length)) *
+              Cost.eqCostPerByte,
+    );
   },
   keywords['sha256']!: (args) {
     final list = args.toAtomList(suffix: 'in sha256');
@@ -298,7 +299,11 @@ Map<BigInt, Operator> operators = {
 };
 
 Output binopReduction(
-    String opName, BigInt initialValue, Program args, BigInt Function(BigInt, BigInt) opFunction,) {
+  String opName,
+  BigInt initialValue,
+  Program args,
+  BigInt Function(BigInt, BigInt) opFunction,
+) {
   var total = initialValue;
   var argSize = 0;
   var cost = Cost.logBaseCost;
@@ -312,8 +317,10 @@ Output binopReduction(
 }
 
 Output mallocCost(Output output) {
-  return Output(output.program,
-      output.cost + BigInt.from(output.program.atom.length) * Cost.mallocCostPerByte,);
+  return Output(
+    output.program,
+    output.cost + BigInt.from(output.program.atom.length) * Cost.mallocCostPerByte,
+  );
 }
 
 int limbsForInt(BigInt value) {

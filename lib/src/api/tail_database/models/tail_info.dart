@@ -1,4 +1,4 @@
-import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class TailInfo {
   TailInfo({
@@ -47,7 +47,7 @@ class HashgreenInfo {
     required this.marketcap,
   });
   HashgreenInfo.fromJson(Map<String, dynamic> json)
-      : price = (json['price'] as String?)  == null  ? null : double.parse(json['price'] as String),
+      : price = (json['price'] as String?) == null ? null : double.parse(json['price'] as String),
         marketcap = json['marketcap'] as num?;
   final double? price;
   final num? marketcap;

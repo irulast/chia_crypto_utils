@@ -1,6 +1,6 @@
-import 'package:chia_utils/src/bls/field/field.dart';
-import 'package:chia_utils/src/bls/field/field_base.dart';
-import 'package:chia_utils/src/bls/field/field_ext.dart';
+import 'package:chia_crypto_utils/src/bls/field/field.dart';
+import 'package:chia_crypto_utils/src/bls/field/field_base.dart';
+import 'package:chia_crypto_utils/src/bls/field/field_ext.dart';
 
 class Fq2 extends FieldExtBase<Fq2> {
   Fq2(BigInt Q, List<Field> args, {Field? root})

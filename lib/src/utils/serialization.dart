@@ -3,7 +3,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 Bytes serializeListChia(List<ToBytesMixin> items) {
   // 32 bytes indicating length of serialized list.
@@ -16,8 +16,10 @@ Bytes serializeListChia(List<ToBytesMixin> items) {
 }
 
 Bytes serializeList(List<dynamic> items) {
-  final bytes = items.fold(<int>[],
-      (List<int> previousValue, dynamic item) => <int>[...previousValue, ...serializeItem(item)],);
+  final bytes = items.fold(
+    <int>[],
+    (List<int> previousValue, dynamic item) => <int>[...previousValue, ...serializeItem(item)],
+  );
   return Bytes(bytes);
 }
 

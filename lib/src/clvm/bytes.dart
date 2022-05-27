@@ -4,8 +4,8 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/clvm/exceptions/unexpected_end_of_bytes_exception.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/clvm/exceptions/unexpected_end_of_bytes_exception.dart';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 

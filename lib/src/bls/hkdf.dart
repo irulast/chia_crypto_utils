@@ -1,4 +1,4 @@
-import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:crypto/crypto.dart';
 
 const blockSize = 32;

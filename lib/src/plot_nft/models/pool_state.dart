@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/utils/serialization.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/utils/serialization.dart';
 
 class PoolState with ToBytesMixin {
   PoolState({

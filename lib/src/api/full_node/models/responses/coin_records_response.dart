@@ -1,7 +1,7 @@
 // ignore_for_file: lines_longer_than_80_chars
 
-import 'package:chia_utils/src/api/full_node/models/chia_models/chia_coin_record.dart';
-import 'package:chia_utils/src/api/full_node/models/responses/chia_base_response.dart';
+import 'package:chia_crypto_utils/src/api/full_node/models/chia_models/chia_coin_record.dart';
+import 'package:chia_crypto_utils/src/api/full_node/models/responses/chia_base_response.dart';
 import 'package:meta/meta.dart';
 
 @immutable
@@ -36,5 +36,6 @@ class CoinRecordsResponse extends ChiaBaseResponse {
   }
 
   @override
-  String toString() => 'CoinRecordsResponse(coinRecords: $coinRecords, success: $success, error: $error)';
+  String toString() =>
+      'CoinRecordsResponse(coinRecords: $coinRecords, success: $success, error: $error)';
 }

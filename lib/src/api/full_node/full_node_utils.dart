@@ -2,7 +2,7 @@
 
 import 'dart:io';
 
-import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:path/path.dart' as path;
 
 class FullNodeUtils {

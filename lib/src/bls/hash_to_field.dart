@@ -2,8 +2,8 @@
 
 import 'dart:typed_data';
 
-import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/bls/bls12381.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/bls/bls12381.dart';
 import 'package:crypto/crypto.dart';
 import 'package:quiver/collection.dart';
 import 'package:quiver/iterables.dart';
@@ -53,7 +53,8 @@ Bytes expandMessageXmd(List<int> msg, List<int> DST, int lenInBytes, Hash hash) 
   bVals.add(hash.convert(b_0 + I2OSP(BigInt.one, 1) + DST_prime).bytes);
   for (var i = 1; i < ell; i++) {
     bVals.add(
-        hash.convert(bytesXor(b_0, bVals[i - 1]) + I2OSP(BigInt.from(i + 1), 1) + DST_prime).bytes,);
+      hash.convert(bytesXor(b_0, bVals[i - 1]) + I2OSP(BigInt.from(i + 1), 1) + DST_prime).bytes,
+    );
   }
   final pseudoRandomBytes = <int>[];
   for (final item in bVals) {
@@ -69,14 +70,15 @@ Bytes expandMessageXof(List<int> msg, List<int> DST, int lenInBytes, Hash hash) 
 }
 
 List<List<BigInt>> hashToField(
-  List<int> msg, 
-  int count, 
-  List<int> DST, 
-  BigInt modulus, 
+  List<int> msg,
+  int count,
+  List<int> DST,
+  BigInt modulus,
   int degree,
-  int blen, 
-  Bytes Function(List<int>, List<int>, int, Hash) expand, 
-  Hash hash,) {
+  int blen,
+  Bytes Function(List<int>, List<int>, int, Hash) expand,
+  Hash hash,
+) {
   final lenInBytes = count * degree * blen;
   final List<int> pseudoRandomBytes = expand(msg, DST, lenInBytes, hash);
   final uVals = <List<BigInt>>[];

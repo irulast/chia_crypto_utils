@@ -2,9 +2,9 @@
 
 import 'dart:typed_data';
 
-import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/standard/puzzles/default_hidden_puzzle/default_hidden_puzzle.clvm.hex.dart';
-import 'package:chia_utils/src/standard/puzzles/p2_delegated_puzzle_or_hidden_puzzle/p2_delegated_puzzle_or_hidden_puzzle.clvm.hex.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/standard/puzzles/default_hidden_puzzle/default_hidden_puzzle.clvm.hex.dart';
+import 'package:chia_crypto_utils/src/standard/puzzles/p2_delegated_puzzle_or_hidden_puzzle/p2_delegated_puzzle_or_hidden_puzzle.clvm.hex.dart';
 import 'package:crypto/crypto.dart';
 
 // cribbed from https://github.com/Chia-Network/chia-blockchain/blob/4bd5c53f48cb049eff36c87c00d21b1f2dd26b27/chia/wallet/derive_keys.py
@@ -81,12 +81,8 @@ PrivateKey masterSkToSingletonOwnerSk(
   PrivateKey masterSk,
   int poolWalletIndex,
 ) {
-  return derivePath(masterSk, [
-    blsSpecNumber, 
-    chiaBlockchanNumber, 
-    singletonPathNumber, 
-    poolWalletIndex
-  ]);
+  return derivePath(
+      masterSk, [blsSpecNumber, chiaBlockchanNumber, singletonPathNumber, poolWalletIndex]);
 }
 
 // This key is used for the farmer to authenticate

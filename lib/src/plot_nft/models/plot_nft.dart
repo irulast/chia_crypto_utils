@@ -1,4 +1,4 @@
-import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class PlotNft with ToBytesMixin {
   PlotNft(this.singletonCoin, this.extraData, this.launcherId);

@@ -3,9 +3,9 @@
 
 import 'dart:typed_data';
 
-import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/bls/ec/ec.dart';
-import 'package:chia_utils/src/bls/ec/helpers.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/bls/ec/ec.dart';
+import 'package:chia_crypto_utils/src/bls/ec/helpers.dart';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 import 'package:meta/meta.dart';
@@ -74,12 +74,12 @@ class JacobianPoint with ToBytesMixin {
     return AffinePoint(x, y, false, ec: ec).toJacobian();
   }
 
-  factory JacobianPoint.fromStreamG1(Iterator<int> iterator){
+  factory JacobianPoint.fromStreamG1(Iterator<int> iterator) {
     final publicKeyBytes = iterator.extractBytesAndAdvance(g1BytesLength);
     return JacobianPoint.fromBytesG1(publicKeyBytes);
   }
 
-  factory JacobianPoint.fromStreamG2(Iterator<int> iterator){
+  factory JacobianPoint.fromStreamG2(Iterator<int> iterator) {
     final signatureBytes = iterator.extractBytesAndAdvance(g2BytesLength);
     return JacobianPoint.fromBytesG2(signatureBytes);
   }

@@ -2,8 +2,7 @@
 
 import 'dart:io';
 
-
-import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:path/path.dart' as path;
 
 class SimulatorUtils {
@@ -12,7 +11,8 @@ class SimulatorUtils {
 
   // if you are using this class outside of chia-crypto-utils you must set FULL_NODE_SIMULATOR_GEN_PATH
   static String simulatorGeneratedFilesPathVariableName = 'FULL_NODE_SIMULATOR_GEN_PATH';
-  static String get defaultgeneratedFilesPath => path.join(path.current, 'lib/src/api/full_node/simulator/run');
+  static String get defaultgeneratedFilesPath =>
+      path.join(path.current, 'lib/src/api/full_node/simulator/run');
 
   static String get generatedFilesPath {
     final env = Platform.environment;

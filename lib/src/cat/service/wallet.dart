@@ -1,13 +1,13 @@
 // ignore_for_file: lines_longer_than_80_chars
 
-import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/cat/exceptions/mixed_asset_ids_exception.dart';
-import 'package:chia_utils/src/cat/models/conditions/run_tail_condition.dart';
-import 'package:chia_utils/src/core/exceptions/change_puzzlehash_needed_exception.dart';
-import 'package:chia_utils/src/core/exceptions/insufficient_coins_exception.dart';
-import 'package:chia_utils/src/core/service/base_wallet.dart';
-import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/incorrect_announcement_id_exception.dart';
-import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/multiple_origin_coin_exception.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/cat/exceptions/mixed_asset_ids_exception.dart';
+import 'package:chia_crypto_utils/src/cat/models/conditions/run_tail_condition.dart';
+import 'package:chia_crypto_utils/src/core/exceptions/change_puzzlehash_needed_exception.dart';
+import 'package:chia_crypto_utils/src/core/exceptions/insufficient_coins_exception.dart';
+import 'package:chia_crypto_utils/src/core/service/base_wallet.dart';
+import 'package:chia_crypto_utils/src/standard/exceptions/spend_bundle_validation/incorrect_announcement_id_exception.dart';
+import 'package:chia_crypto_utils/src/standard/exceptions/spend_bundle_validation/multiple_origin_coin_exception.dart';
 
 class CatWalletService extends BaseWalletService {
   final StandardWalletService standardWalletService = StandardWalletService();
@@ -392,7 +392,8 @@ class CatWalletService extends BaseWalletService {
       currentSpendableCat.coin.toProgram(),
       nextSpendableCat.makeStandardCoinProgram(),
       Program.fromInt(currentSpendableCat.subtotal!),
-      Program.fromInt(currentSpendableCat.extraDelta,
+      Program.fromInt(
+        currentSpendableCat.extraDelta,
       ), // limitations_program_reveal: unused since we're not handling any cat discrepancy
     ]);
   }
@@ -445,7 +446,8 @@ class CatWalletService extends BaseWalletService {
 
       // origin id doesn't contain its own assert coin announcement
       if (catSpend.coin.id != originId) {
-        final assertCoinAnnouncementPrograms = outputConditions.where(AssertCoinAnnouncementCondition.isThisCondition).toList();
+        final assertCoinAnnouncementPrograms =
+            outputConditions.where(AssertCoinAnnouncementCondition.isThisCondition).toList();
 
         // set actualAssertCoinAnnouncementIds only if it is null
         actualAssertCoinAnnouncementIds ??= assertCoinAnnouncementPrograms
@@ -460,15 +462,20 @@ class CatWalletService extends BaseWalletService {
     BaseWalletService.checkForDuplicateCoins(coinsBeingSpent);
 
     if (catSpends.length > 1) {
-      assert(actualAssertCoinAnnouncementIds != null, 'No assert_coin_announcement condition when multiple spends',);
+      assert(
+        actualAssertCoinAnnouncementIds != null,
+        'No assert_coin_announcement condition when multiple spends',
+      );
       assert(originId != null, 'No create_coin conditions');
 
       // construct assert_coin_announcement id from spendbundle, verify against output
-      final existingCoinsMessage = coinsBeingSpent.fold(Bytes.empty, (Bytes previousValue, coin) => previousValue + coin.id);
+      final existingCoinsMessage =
+          coinsBeingSpent.fold(Bytes.empty, (Bytes previousValue, coin) => previousValue + coin.id);
 
       final message = existingCoinsMessage.sha256Hash();
 
-      final constructedAnnouncement = AssertCoinAnnouncementCondition(originId!, message, morphBytes: Bytes.fromHex('ca'));
+      final constructedAnnouncement =
+          AssertCoinAnnouncementCondition(originId!, message, morphBytes: Bytes.fromHex('ca'));
 
       if (!actualAssertCoinAnnouncementIds!.contains(constructedAnnouncement.announcementId)) {
         throw IncorrectAnnouncementIdException();

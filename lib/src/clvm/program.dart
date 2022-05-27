@@ -3,12 +3,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/clvm/instructions.dart';
-import 'package:chia_utils/src/clvm/ir.dart';
-import 'package:chia_utils/src/clvm/keywords.dart';
-import 'package:chia_utils/src/clvm/parser.dart';
-import 'package:chia_utils/src/clvm/printable.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/clvm/instructions.dart';
+import 'package:chia_crypto_utils/src/clvm/ir.dart';
+import 'package:chia_crypto_utils/src/clvm/keywords.dart';
+import 'package:chia_crypto_utils/src/clvm/parser.dart';
+import 'package:chia_crypto_utils/src/clvm/printable.dart';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 import 'package:path/path.dart' as path;

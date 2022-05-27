@@ -1,11 +1,11 @@
 // ignore_for_file: non_constant_identifier_names
 
-import 'package:chia_utils/src/bls/bls12381.dart';
-import 'package:chia_utils/src/bls/ec/affine_point.dart';
-import 'package:chia_utils/src/bls/ec/jacobian_point.dart';
-import 'package:chia_utils/src/bls/field/extensions/fq2.dart';
-import 'package:chia_utils/src/bls/field/field.dart';
-import 'package:chia_utils/src/bls/field/field_base.dart';
+import 'package:chia_crypto_utils/src/bls/bls12381.dart';
+import 'package:chia_crypto_utils/src/bls/ec/affine_point.dart';
+import 'package:chia_crypto_utils/src/bls/ec/jacobian_point.dart';
+import 'package:chia_crypto_utils/src/bls/field/extensions/fq2.dart';
+import 'package:chia_crypto_utils/src/bls/field/field.dart';
+import 'package:chia_crypto_utils/src/bls/field/field_base.dart';
 import 'package:quiver/iterables.dart';
 
 class EC {

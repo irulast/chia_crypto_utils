@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/bls/hkdf.dart';
-import 'package:chia_utils/src/bls/util.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/bls/hkdf.dart';
+import 'package:chia_crypto_utils/src/bls/util.dart';
 
 PrivateKey keyGen(List<int> seed) {
   const L = 48;

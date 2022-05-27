@@ -1,4 +1,4 @@
-import 'package:chia_utils/src/bls.dart';
+import 'package:chia_crypto_utils/src/bls.dart';
 
 extension BigIntExtractor on Object {
   BigInt? extractBigInt() {

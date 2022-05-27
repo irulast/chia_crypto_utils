@@ -1,11 +1,11 @@
-import 'package:chia_utils/src/bls/ec/ec.dart';
-import 'package:chia_utils/src/bls/ec/helpers.dart';
-import 'package:chia_utils/src/bls/ec/jacobian_point.dart';
-import 'package:chia_utils/src/bls/field/extensions/fq12.dart';
-import 'package:chia_utils/src/bls/field/extensions/fq2.dart';
-import 'package:chia_utils/src/bls/field/extensions/fq6.dart';
-import 'package:chia_utils/src/bls/field/field.dart';
-import 'package:chia_utils/src/bls/field/field_base.dart';
+import 'package:chia_crypto_utils/src/bls/ec/ec.dart';
+import 'package:chia_crypto_utils/src/bls/ec/helpers.dart';
+import 'package:chia_crypto_utils/src/bls/ec/jacobian_point.dart';
+import 'package:chia_crypto_utils/src/bls/field/extensions/fq12.dart';
+import 'package:chia_crypto_utils/src/bls/field/extensions/fq2.dart';
+import 'package:chia_crypto_utils/src/bls/field/extensions/fq6.dart';
+import 'package:chia_crypto_utils/src/bls/field/field.dart';
+import 'package:chia_crypto_utils/src/bls/field/field_base.dart';
 import 'package:meta/meta.dart';
 import 'package:quiver/core.dart';
 

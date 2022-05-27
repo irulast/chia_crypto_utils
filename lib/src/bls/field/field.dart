@@ -1,5 +1,5 @@
-import 'package:chia_utils/src/bls/field/field_base.dart';
-import 'package:chia_utils/src/utils/to_bytes_mixin.dart';
+import 'package:chia_crypto_utils/src/bls/field/field_base.dart';
+import 'package:chia_crypto_utils/src/utils/to_bytes_mixin.dart';
 import 'package:meta/meta.dart';
 
 @immutable

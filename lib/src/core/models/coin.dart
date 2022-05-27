@@ -1,7 +1,7 @@
 // ignore_for_file: lines_longer_than_80_chars
 
-import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/utils/serialization.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/utils/serialization.dart';
 import 'package:meta/meta.dart';
 
 @immutable
@@ -79,7 +79,8 @@ class Coin extends CoinPrototype with ToBytesMixin {
     );
   }
 
-  CoinPrototype toCoinPrototype() => CoinPrototype(parentCoinInfo: parentCoinInfo, puzzlehash: puzzlehash, amount: amount);
+  CoinPrototype toCoinPrototype() =>
+      CoinPrototype(parentCoinInfo: parentCoinInfo, puzzlehash: puzzlehash, amount: amount);
 
   @override
   Bytes toBytes() {
@@ -95,5 +96,6 @@ class Coin extends CoinPrototype with ToBytesMixin {
   }
 
   @override
-  String toString() => 'Coin(id: $id, parentCoinInfo: $parentCoinInfo puzzlehash: $puzzlehash, amount: $amount, confirmedBlockIndex: $confirmedBlockIndex), spentBlockIndex: $spentBlockIndex, coinbase: $coinbase, timestamp: $timestamp';
+  String toString() =>
+      'Coin(id: $id, parentCoinInfo: $parentCoinInfo puzzlehash: $puzzlehash, amount: $amount, confirmedBlockIndex: $confirmedBlockIndex), spentBlockIndex: $spentBlockIndex, coinbase: $coinbase, timestamp: $timestamp';
 }

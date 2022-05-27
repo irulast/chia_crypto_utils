@@ -3,7 +3,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class Client {
   Client(this.baseURL, {Bytes? certBytes, Bytes? keyBytes}) {

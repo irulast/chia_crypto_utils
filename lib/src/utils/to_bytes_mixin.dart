@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:chia_utils/src/clvm/bytes.dart';
+import 'package:chia_crypto_utils/src/clvm/bytes.dart';
 import 'package:hex/hex.dart';
 
 mixin ToBytesMixin {

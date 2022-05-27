@@ -1,7 +1,7 @@
-import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/bls/bls12381.dart';
-import 'package:chia_utils/src/bls/failed_op.dart';
-import 'package:chia_utils/src/bls/field/field_constants.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/bls/bls12381.dart';
+import 'package:chia_crypto_utils/src/bls/failed_op.dart';
+import 'package:chia_crypto_utils/src/bls/field/field_constants.dart';
 import 'package:hex/hex.dart';
 import 'package:quiver/collection.dart';
 import 'package:quiver/core.dart';

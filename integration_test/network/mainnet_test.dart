@@ -1,7 +1,7 @@
 // ignore_for_file: lines_longer_than_80_chars
 @Skip('Test provided for reference, not nominally run')
-import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/api/full_node/full_node_utils.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/api/full_node/full_node_utils.dart';
 
 import 'package:test/test.dart';
 

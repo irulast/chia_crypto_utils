@@ -2,9 +2,9 @@
 
 import 'dart:convert';
 
-import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/cat/exceptions/mixed_asset_ids_exception.dart';
-import 'package:chia_utils/src/core/exceptions/change_puzzlehash_needed_exception.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/cat/exceptions/mixed_asset_ids_exception.dart';
+import 'package:chia_crypto_utils/src/core/exceptions/change_puzzlehash_needed_exception.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {

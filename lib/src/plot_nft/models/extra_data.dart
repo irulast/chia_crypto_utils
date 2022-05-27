@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class PlotNftExtraData with ToBytesMixin {
   PlotNftExtraData(this.poolState, this.delayTime, this.delayPuzzlehash);

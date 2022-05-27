@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/api/tail_database/models/tail_info.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/api/tail_database/models/tail_info.dart';
 
 class TailDatabaseApi {
   static const Map<String, String> additionalHeaders = {'x-api-version': '2'};

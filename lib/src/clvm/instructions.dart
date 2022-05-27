@@ -1,9 +1,9 @@
-import 'package:chia_utils/src/clvm/bytes_utils.dart';
-import 'package:chia_utils/src/clvm/cost.dart';
-import 'package:chia_utils/src/clvm/environment.dart';
-import 'package:chia_utils/src/clvm/keywords.dart';
-import 'package:chia_utils/src/clvm/operators.dart';
-import 'package:chia_utils/src/clvm/program.dart';
+import 'package:chia_crypto_utils/src/clvm/bytes_utils.dart';
+import 'package:chia_crypto_utils/src/clvm/cost.dart';
+import 'package:chia_crypto_utils/src/clvm/environment.dart';
+import 'package:chia_crypto_utils/src/clvm/keywords.dart';
+import 'package:chia_crypto_utils/src/clvm/operators.dart';
+import 'package:chia_crypto_utils/src/clvm/program.dart';
 
 /// An [Instruction] describe the interface for functions like:
 /// - [swap]

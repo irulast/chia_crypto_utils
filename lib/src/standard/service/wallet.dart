@@ -1,11 +1,11 @@
 // ignore_for_file: lines_longer_than_80_chars
 
-import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/core/exceptions/change_puzzlehash_needed_exception.dart';
-import 'package:chia_utils/src/core/service/base_wallet.dart';
-import 'package:chia_utils/src/standard/exceptions/origin_id_not_in_coins_exception.dart';
-import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/incorrect_announcement_id_exception.dart';
-import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/multiple_origin_coin_exception.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/core/exceptions/change_puzzlehash_needed_exception.dart';
+import 'package:chia_crypto_utils/src/core/service/base_wallet.dart';
+import 'package:chia_crypto_utils/src/standard/exceptions/origin_id_not_in_coins_exception.dart';
+import 'package:chia_crypto_utils/src/standard/exceptions/spend_bundle_validation/incorrect_announcement_id_exception.dart';
+import 'package:chia_crypto_utils/src/standard/exceptions/spend_bundle_validation/multiple_origin_coin_exception.dart';
 
 class StandardWalletService extends BaseWalletService {
   SpendBundle createSpendBundle({
@@ -139,7 +139,8 @@ class StandardWalletService extends BaseWalletService {
       if (assertCoinAnnouncementPrograms.length == 1 && actualAssertCoinAnnouncementId == null) {
         actualAssertCoinAnnouncementId =
             AssertCoinAnnouncementCondition.getAnnouncementIdFromProgram(
-                assertCoinAnnouncementPrograms[0],);
+          assertCoinAnnouncementPrograms[0],
+        );
       }
 
       // find create_coin conditions
@@ -156,11 +157,13 @@ class StandardWalletService extends BaseWalletService {
         originId = spend.coin.id;
       }
       for (final coinCreationCondition in coinCreationConditions) {
-        coinsToCreate.add(CoinPrototype(
+        coinsToCreate.add(
+          CoinPrototype(
             parentCoinInfo: spend.coin.id,
             puzzlehash: coinCreationCondition.destinationPuzzlehash,
             amount: coinCreationCondition.amount,
-        ),);
+          ),
+        );
       }
       coinsBeingSpent.add(spend.coin);
     }
@@ -169,8 +172,10 @@ class StandardWalletService extends BaseWalletService {
     BaseWalletService.checkForDuplicateCoins(coinsBeingSpent);
 
     if (spendBundle.coinSpends.length > 1) {
-      assert(actualAssertCoinAnnouncementId != null,
-          'No assert_coin_announcement condition when multiple spends',);
+      assert(
+        actualAssertCoinAnnouncementId != null,
+        'No assert_coin_announcement condition when multiple spends',
+      );
       assert(originId != null, 'No create_coin conditions');
 
       // construct assert_coin_announcement id from spendbundle, verify against output

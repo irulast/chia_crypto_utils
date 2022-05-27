@@ -1,5 +1,5 @@
-import 'package:chia_utils/src/clvm/cost.dart';
-import 'package:chia_utils/src/clvm/program.dart';
+import 'package:chia_crypto_utils/src/clvm/cost.dart';
+import 'package:chia_crypto_utils/src/clvm/program.dart';
 
 int msbMask(int byte) {
   byte |= byte >> 1;

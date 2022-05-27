@@ -1,9 +1,9 @@
 // ignore_for_file: lines_longer_than_80_chars
 
-import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/clvm/keywords.dart';
-import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/duplicate_coin_exception.dart';
-import 'package:chia_utils/src/standard/exceptions/spend_bundle_validation/failed_signature_verification.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/clvm/keywords.dart';
+import 'package:chia_crypto_utils/src/standard/exceptions/spend_bundle_validation/duplicate_coin_exception.dart';
+import 'package:chia_crypto_utils/src/standard/exceptions/spend_bundle_validation/failed_signature_verification.dart';
 import 'package:get_it/get_it.dart';
 
 class BaseWalletService {
@@ -42,9 +42,10 @@ class BaseWalletService {
   }
 
   static List<T> extractConditionsFromSolution<T>(
-      Program solution,
-      ConditionChecker<T> conditionChecker,
-      ConditionFromProgramConstructor<T> conditionFromProgramConstructor,) {
+    Program solution,
+    ConditionChecker<T> conditionChecker,
+    ConditionFromProgramConstructor<T> conditionFromProgramConstructor,
+  ) {
     return extractConditionsFromResult(
       solution.toList()[1],
       conditionChecker,
@@ -53,9 +54,10 @@ class BaseWalletService {
   }
 
   static List<T> extractConditionsFromResult<T>(
-      Program result,
-      ConditionChecker<T> conditionChecker,
-      ConditionFromProgramConstructor<T> conditionFromProgramConstructor,) {
+    Program result,
+    ConditionChecker<T> conditionChecker,
+    ConditionFromProgramConstructor<T> conditionFromProgramConstructor,
+  ) {
     return result
         .toList()
         .where(conditionChecker)

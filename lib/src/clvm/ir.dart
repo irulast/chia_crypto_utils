@@ -1,5 +1,5 @@
-import 'package:chia_utils/src/clvm/bytes_utils.dart';
-import 'package:chia_utils/src/clvm/program.dart';
+import 'package:chia_crypto_utils/src/clvm/bytes_utils.dart';
+import 'package:chia_crypto_utils/src/clvm/program.dart';
 
 Program deserialize(Iterator<int> program) {
   final sizeBytes = <int>[];

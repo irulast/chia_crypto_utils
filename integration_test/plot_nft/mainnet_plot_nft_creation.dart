@@ -1,5 +1,5 @@
 @Skip('interacts with mainnet')
-import 'package:chia_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:test/scaffolding.dart';
 
 Future<void> main() async {
@@ -64,7 +64,8 @@ Future<void> main() async {
 
   print('launcher_id: ${launcherCoinPrototype.id}');
   print(
-      'farmer_public_key: ${masterSkToFarmerSk(keychainSecret.masterPrivateKey).getG1().toHex()}',);
+    'farmer_public_key: ${masterSkToFarmerSk(keychainSecret.masterPrivateKey).getG1().toHex()}',
+  );
   final poolPuzzlehash = poolWalletService.launcherIdToP2Puzzlehash(
     launcherCoinPrototype.id,
     p2SingletonDelayedTime,

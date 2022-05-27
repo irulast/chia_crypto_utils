@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:chia_utils/chia_crypto_utils.dart';
-import 'package:chia_utils/src/bls/hkdf.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/bls/hkdf.dart';
 import 'package:hex/hex.dart';
 import 'package:meta/meta.dart';
 
 @immutable
-class PrivateKey with ToBytesMixin{
+class PrivateKey with ToBytesMixin {
   PrivateKey(this.value)
       : assert(
           value < defaultEc.n,
@@ -32,10 +32,10 @@ class PrivateKey with ToBytesMixin{
 
   PrivateKey.fromBigInt(BigInt n) : this(n % defaultEc.n);
 
- factory PrivateKey.fromStream(Iterator<int> iterator){
-   final bytes = iterator.extractBytesAndAdvance(size);
-   return PrivateKey.fromBytes(bytes);
- }
+  factory PrivateKey.fromStream(Iterator<int> iterator) {
+    final bytes = iterator.extractBytesAndAdvance(size);
+    return PrivateKey.fromBytes(bytes);
+  }
 
   PrivateKey.aggregate(List<PrivateKey> privateKeys)
       : this(
@@ -59,8 +59,7 @@ class PrivateKey with ToBytesMixin{
   String toString() => 'PrivateKey(0x${toHex()})';
 
   @override
-  bool operator ==(dynamic other) => 
-    other is PrivateKey && value == other.value;
+  bool operator ==(dynamic other) => other is PrivateKey && value == other.value;
 
   @override
   int get hashCode => runtimeType.hashCode ^ value.hashCode;

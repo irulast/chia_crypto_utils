@@ -1,6 +1,6 @@
 // ignore_for_file: lines_longer_than_80_chars
 
-import 'package:chia_utils/src/clvm/bytes.dart';
+import 'package:chia_crypto_utils/src/clvm/bytes.dart';
 
 class MixedAssetIdsException implements Exception {
   Iterable<Puzzlehash> mixedAssetIds;
