@@ -32,8 +32,11 @@ class ChiaFullNodeInterface {
     int? startHeight,
     int? endHeight,
   }) async {
-    final coins = await getCoinsByPuzzleHashes(puzzlehashes,
-        startHeight: startHeight, endHeight: endHeight);
+    final coins = await getCoinsByPuzzleHashes(
+      puzzlehashes,
+      startHeight: startHeight,
+      endHeight: endHeight,
+    );
     final balance =
         coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
     return balance;
@@ -79,7 +82,8 @@ class ChiaFullNodeInterface {
   }
 
   Future<List<CatCoin>> getCatCoinsByOuterPuzzleHashes(
-      List<Puzzlehash> puzzlehashes) async {
+    List<Puzzlehash> puzzlehashes,
+  ) async {
     final coins = await getCoinsByPuzzleHashes(puzzlehashes);
     final catCoins = <CatCoin>[];
     for (final coin in coins) {

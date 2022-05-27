@@ -2,8 +2,11 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:get_it/get_it.dart';
 
 class ChiaEnthusiast {
-  ChiaEnthusiast(this.fullNodeSimulator,
-      {List<String>? mnemonic, int derivations = 1}) {
+  ChiaEnthusiast(
+    this.fullNodeSimulator, {
+    List<String>? mnemonic,
+    int derivations = 1,
+  }) {
     final enthusiastMnemonic =
         mnemonic ?? KeychainCoreSecret.generateMnemonic();
 
@@ -92,7 +95,9 @@ class ChiaEnthusiast {
         Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
 
     final signature = AugSchemeMPL.sign(
-        privateKeyForCat, curriedGenesisByCoinIdPuzzle.hash());
+      privateKeyForCat,
+      curriedGenesisByCoinIdPuzzle.hash(),
+    );
 
     final spendBundle = catWalletService.makeIssuanceSpendbundle(
       tail: curriedTail,

@@ -31,7 +31,9 @@ class KeychainCoreSecret with ToBytesMixin {
     final masterPrivateKey = PrivateKey.fromStream(iterator);
 
     return KeychainCoreSecret(
-        mnemonicAsString.split(mnemonicWordSeperator), masterPrivateKey);
+      mnemonicAsString.split(mnemonicWordSeperator),
+      masterPrivateKey,
+    );
   }
 
   @override

@@ -27,7 +27,9 @@ Future<void> main() async {
   final targetPuzzleHash = keychain.unhardenedMap.values.first.puzzlehash;
 
   final targetAddress = Address.fromPuzzlehash(
-      targetPuzzleHash, NetworkContext().blockchainNetwork.addressPrefix);
+    targetPuzzleHash,
+    NetworkContext().blockchainNetwork.addressPrefix,
+  );
   print(targetAddress.address);
 
   final coins = await fullNode
@@ -46,7 +48,8 @@ Future<void> main() async {
   final initialTargetState = PoolState(
     poolSingletonState: PoolSingletonState.farmingToPool,
     targetPuzzlehash: Puzzlehash.fromHex(
-        '6bde1e0c6f9d3b93dc5e7e878723257ede573deeed59e3b4a90f5c86de1a0bd3'),
+      '6bde1e0c6f9d3b93dc5e7e878723257ede573deeed59e3b4a90f5c86de1a0bd3',
+    ),
     ownerPublicKey: keychain.unhardenedMap.values.first.childPublicKey,
     relativeLockHeight: 100,
     poolUrl: 'https://xch-us-west.flexpool.io',
@@ -88,8 +91,10 @@ Future<void> main() async {
 
     print('singleton_puzzle_hash: ${launcherCoinSpend!.solution.first()}');
     print('pool_state:');
-    print(PlotNft.fromCoinSpend(launcherCoinSpend, launcherCoin.id)
-        .extraData
-        .poolState);
+    print(
+      PlotNft.fromCoinSpend(launcherCoinSpend, launcherCoin.id)
+          .extraData
+          .poolState,
+    );
   }
 }

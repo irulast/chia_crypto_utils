@@ -13,8 +13,8 @@ void main() {
   final walletService = StandardWalletService();
 
   final destinationPuzzlehash = const Address(
-          'txch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jksxp6hy3')
-      .toPuzzlehash();
+    'txch1pdar6hnj8c9sgm74r72u40ed8cnpduzan5vr86qkvpftg0v52jksxp6hy3',
+  ).toPuzzlehash();
 
   const testMnemonic = [
     'elder',
@@ -160,29 +160,32 @@ void main() {
     6
   ]);
   final coin0 = Coin(
-      spentBlockIndex: 0,
-      confirmedBlockIndex: 100,
-      coinbase: false,
-      timestamp: 100177271,
-      parentCoinInfo: parentInfo0,
-      puzzlehash: coinPuzzlehash,
-      amount: 100000);
+    spentBlockIndex: 0,
+    confirmedBlockIndex: 100,
+    coinbase: false,
+    timestamp: 100177271,
+    parentCoinInfo: parentInfo0,
+    puzzlehash: coinPuzzlehash,
+    amount: 100000,
+  );
   final coin1 = Coin(
-      spentBlockIndex: 0,
-      confirmedBlockIndex: 1000,
-      coinbase: false,
-      timestamp: 100177372,
-      parentCoinInfo: parentInfo1,
-      puzzlehash: coinPuzzlehash,
-      amount: 500000);
+    spentBlockIndex: 0,
+    confirmedBlockIndex: 1000,
+    coinbase: false,
+    timestamp: 100177372,
+    parentCoinInfo: parentInfo1,
+    puzzlehash: coinPuzzlehash,
+    amount: 500000,
+  );
   final coin2 = Coin(
-      spentBlockIndex: 0,
-      confirmedBlockIndex: 2000,
-      coinbase: false,
-      timestamp: 100179373,
-      parentCoinInfo: parentInfo2,
-      puzzlehash: coinPuzzlehash,
-      amount: 200000);
+    spentBlockIndex: 0,
+    confirmedBlockIndex: 2000,
+    coinbase: false,
+    timestamp: 100179373,
+    parentCoinInfo: parentInfo2,
+    puzzlehash: coinPuzzlehash,
+    amount: 200000,
+  );
   final coins = [coin0, coin1, coin2];
 
   test('Should create valid spendbundle', () {

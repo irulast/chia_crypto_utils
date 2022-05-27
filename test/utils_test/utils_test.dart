@@ -86,12 +86,18 @@ void main() async {
       }
 
       expect(chiaSet.hardened.puzzlehashHex, set.hardened.puzzlehash.toHex());
-      expect(chiaSet.hardened.childPublicKeyHex,
-          set.hardened.childPublicKey.toHex());
       expect(
-          chiaSet.unhardened.puzzlehashHex, set.unhardened.puzzlehash.toHex());
-      expect(chiaSet.unhardened.childPublicKeyHex,
-          set.unhardened.childPublicKey.toHex());
+        chiaSet.hardened.childPublicKeyHex,
+        set.hardened.childPublicKey.toHex(),
+      );
+      expect(
+        chiaSet.unhardened.puzzlehashHex,
+        set.unhardened.puzzlehash.toHex(),
+      );
+      expect(
+        chiaSet.unhardened.childPublicKeyHex,
+        set.unhardened.childPublicKey.toHex(),
+      );
       expect(firstAddress, chiaFirstAddress);
     }
 

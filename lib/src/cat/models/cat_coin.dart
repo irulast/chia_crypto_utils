@@ -59,7 +59,10 @@ class CatCoin extends CoinPrototype with ToBytesMixin {
   }
 
   CoinPrototype toCoinPrototype() => CoinPrototype(
-      parentCoinInfo: parentCoinInfo, puzzlehash: puzzlehash, amount: amount);
+        parentCoinInfo: parentCoinInfo,
+        puzzlehash: puzzlehash,
+        amount: amount,
+      );
 
   @override
   Bytes toBytes() {

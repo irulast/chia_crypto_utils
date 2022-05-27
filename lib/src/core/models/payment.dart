@@ -21,7 +21,8 @@ class Payment {
                     : memos is List<Bytes>
                         ? memos
                         : throw ArgumentError(
-                            'Unsupported type for memos. Must be Bytes, String, or int');
+                            'Unsupported type for memos. Must be Bytes, String, or int',
+                          );
 
   CreateCoinCondition toCreateCoinCondition() {
     return CreateCoinCondition(puzzlehash, amount, memos: memos);

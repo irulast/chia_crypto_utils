@@ -50,7 +50,10 @@ class CoinSpend with ToBytesMixin {
     final puzzleReveal = Program.fromStream(iterator);
     final solution = Program.fromStream(iterator);
     return CoinSpend(
-        coin: coin, puzzleReveal: puzzleReveal, solution: solution);
+      coin: coin,
+      puzzleReveal: puzzleReveal,
+      solution: solution,
+    );
   }
 
   @override

@@ -33,7 +33,9 @@ class WalletKeychain with ToBytesMixin {
   WalletKeychain.fromMaps(this.hardenedMap, this.unhardenedMap);
 
   factory WalletKeychain.fromCoreSecret(
-      KeychainCoreSecret coreSecret, int nDerivations) {
+    KeychainCoreSecret coreSecret,
+    int nDerivations,
+  ) {
     final walletsSetList = <WalletSet>[];
     for (var i = 0; i < nDerivations; i++) {
       final set = WalletSet.fromPrivateKey(coreSecret.masterPrivateKey, i);
@@ -87,7 +89,8 @@ class WalletKeychain with ToBytesMixin {
 
       final puzzlehash = Puzzlehash(bytes.sublist(keyLeft, keyRight));
       final walletVector = UnhardenedWalletVector.fromBytes(
-          bytes.sublist(valueLeft, valueRight));
+        bytes.sublist(valueLeft, valueRight),
+      );
 
       unhardenedMap[puzzlehash] = walletVector;
 

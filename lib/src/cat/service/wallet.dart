@@ -28,12 +28,16 @@ class CatWalletService extends BaseWalletService {
     }
 
     final totalPaymentAmount = payments.fold(
-        0, (int previousValue, payment) => previousValue + payment.amount);
+      0,
+      (int previousValue, payment) => previousValue + payment.amount,
+    );
 
     final catCoins = List<CatCoin>.from(catCoinsInput);
 
     final totalCatCoinValue = catCoins.fold(
-        0, (int previousValue, coin) => previousValue + coin.amount);
+      0,
+      (int previousValue, coin) => previousValue + coin.amount,
+    );
 
     if (totalCatCoinValue < totalPaymentAmount) {
       throw InsufficientCoinsException(
@@ -80,8 +84,11 @@ class CatWalletService extends BaseWalletService {
         final createdCoins = <CoinPrototype>[];
 
         conditions
-          ..add(CreateCoinAnnouncementCondition(
-              primaryAssertCoinAnnouncement.message))
+          ..add(
+            CreateCoinAnnouncementCondition(
+              primaryAssertCoinAnnouncement.message,
+            ),
+          )
           ..addAll(puzzleAnnouncementsToAssert);
 
         for (final payment in payments) {
@@ -120,7 +127,8 @@ class CatWalletService extends BaseWalletService {
             BaseWalletService.makeSolutionFromConditions(conditions);
       } else {
         innerSolution = BaseWalletService.makeSolutionFromConditions(
-            [primaryAssertCoinAnnouncement!]);
+          [primaryAssertCoinAnnouncement!],
+        );
       }
 
       final innerPuzzle = getPuzzleFromPk(coinPublicKey);
@@ -227,7 +235,9 @@ class CatWalletService extends BaseWalletService {
     final xchClaimingSpendbundle = standardWalletService.createSpendBundle(
       payments: [
         Payment(
-            totalStandardCoinValue - fee + amountToMelt, puzzlehashToClaimXchTo)
+          totalStandardCoinValue - fee + amountToMelt,
+          puzzlehashToClaimXchTo,
+        )
       ],
       coinsInput: standardCoinsForXchClaimingSpendBundle,
       keychain: keychain,
@@ -307,7 +317,10 @@ class CatWalletService extends BaseWalletService {
     );
 
     final spendableEve = SpendableCat(
-        coin: eveCatCoin, innerPuzzle: payToPuzzle, innerSolution: Program.nil);
+      coin: eveCatCoin,
+      innerPuzzle: payToPuzzle,
+      innerSolution: Program.nil,
+    );
 
     final eveUnsignedSpendbundle =
         makeUnsignedSpendBundleForSpendableCats([spendableEve]);
@@ -341,7 +354,8 @@ class CatWalletService extends BaseWalletService {
   }
 
   static SpendBundle makeUnsignedSpendBundleForSpendableCats(
-      List<SpendableCat> spendableCats) {
+    List<SpendableCat> spendableCats,
+  ) {
     SpendableCat.calculateAndAttachSubtotals(spendableCats);
 
     final spends = <CoinSpend>[];
@@ -363,9 +377,10 @@ class CatWalletService extends BaseWalletService {
         nextSpendableCat: nextSpendableCat,
       );
       final coinSpend = CoinSpend(
-          coin: currentSpendableCat.coin,
-          puzzleReveal: puzzleReveal,
-          solution: solution);
+        coin: currentSpendableCat.coin,
+        puzzleReveal: puzzleReveal,
+        solution: solution,
+      );
       spends.add(coinSpend);
     }
     return SpendBundle(coinSpends: spends);
@@ -503,13 +518,17 @@ class CatWalletService extends BaseWalletService {
 
       // construct assert_coin_announcement id from spendbundle, verify against output
       final existingCoinsMessage = coinsBeingSpent.fold(
-          Bytes.empty, (Bytes previousValue, coin) => previousValue + coin.id);
+        Bytes.empty,
+        (Bytes previousValue, coin) => previousValue + coin.id,
+      );
 
       final message = existingCoinsMessage.sha256Hash();
 
       final constructedAnnouncement = AssertCoinAnnouncementCondition(
-          originId!, message,
-          morphBytes: Bytes.fromHex('ca'));
+        originId!,
+        message,
+        morphBytes: Bytes.fromHex('ca'),
+      );
 
       if (!actualAssertCoinAnnouncementIds!
           .contains(constructedAnnouncement.announcementId)) {

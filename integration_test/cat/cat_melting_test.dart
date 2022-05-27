@@ -38,7 +38,9 @@ Future<void> main() async {
   final walletSet = keychain.unhardenedMap.values.first;
 
   final address = Address.fromPuzzlehash(
-      walletSet.puzzlehash, catWalletService.blockchainNetwork.addressPrefix);
+    walletSet.puzzlehash,
+    catWalletService.blockchainNetwork.addressPrefix,
+  );
   final puzzlehash = address.toPuzzlehash();
 
   for (var i = 0; i < nTests; i++) {
@@ -57,7 +59,9 @@ Future<void> main() async {
   keychain.addOuterPuzzleHashesForAssetId(Puzzlehash(curriedTail.hash()));
 
   final outerPuzzlehash = WalletKeychain.makeOuterPuzzleHash(
-      address.toPuzzlehash(), Puzzlehash(curriedTail.hash()));
+    address.toPuzzlehash(),
+    Puzzlehash(curriedTail.hash()),
+  );
 
   final curriedMeltableGenesisByCoinIdPuzzle =
       meltableGenesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id)]);
@@ -65,7 +69,9 @@ Future<void> main() async {
       Program.list([curriedMeltableGenesisByCoinIdPuzzle, Program.nil]);
 
   final issuanceSignature = AugSchemeMPL.sign(
-      walletSet.childPrivateKey, curriedMeltableGenesisByCoinIdPuzzle.hash());
+    walletSet.childPrivateKey,
+    curriedMeltableGenesisByCoinIdPuzzle.hash(),
+  );
 
   final spendBundle = catWalletService.makeIssuanceSpendbundle(
     tail: curriedTail,

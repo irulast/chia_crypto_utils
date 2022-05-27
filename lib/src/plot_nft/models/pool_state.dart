@@ -57,7 +57,8 @@ class PoolState with ToBytesMixin {
 
     final poolSingletonStateBytes = iterator.extractBytesAndAdvance(1);
     final poolSingletonState = codeToPoolSingletonState(
-        bytesToInt(poolSingletonStateBytes, Endian.big));
+      bytesToInt(poolSingletonStateBytes, Endian.big),
+    );
 
     final targetPuzzlehash = Puzzlehash.fromStream(iterator);
     final ownerPublicKey = JacobianPoint.fromStreamG1(iterator);

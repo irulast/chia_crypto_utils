@@ -58,11 +58,13 @@ void main() {
       final keychain = WalletKeychain([walletSet])
         ..addOuterPuzzleHashesForAssetId(
           Puzzlehash.fromHex(
-              '0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad'),
+            '0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad',
+          ),
         )
         ..addOuterPuzzleHashesForAssetId(
           Puzzlehash.fromHex(
-              '0b6a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad'),
+            '0b6a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad',
+          ),
         );
 
       final wv = keychain.unhardenedMap.values.first;

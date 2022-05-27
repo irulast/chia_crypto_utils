@@ -14,7 +14,8 @@ void main() {
   }
 
   final assetId = Puzzlehash.fromHex(
-      '625c2184e97576f5df1be46c15b2b8771c79e4e6f0aa42d3bfecaebe733f4b8c');
+    '625c2184e97576f5df1be46c15b2b8771c79e4e6f0aa42d3bfecaebe733f4b8c',
+  );
 
   final walletKeychain = WalletKeychain(walletsSetList)
     ..addOuterPuzzleHashesForAssetId(assetId);
@@ -24,6 +25,8 @@ void main() {
     final walletKeychainDeserialized =
         WalletKeychain.fromBytes(walletKeychainSerialized);
     expect(
-        walletKeychainDeserialized.toBytes(), equals(walletKeychainSerialized));
+      walletKeychainDeserialized.toBytes(),
+      equals(walletKeychainSerialized),
+    );
   });
 }

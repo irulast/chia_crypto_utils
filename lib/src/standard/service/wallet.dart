@@ -25,7 +25,9 @@ class StandardWalletService extends BaseWalletService {
         coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
 
     final totalPaymentAmount = payments.fold(
-        0, (int previousValue, payment) => previousValue + payment.amount);
+      0,
+      (int previousValue, payment) => previousValue + payment.amount,
+    );
     final change = totalCoinValue - totalPaymentAmount - fee;
 
     if (changePuzzlehash == null && change > 0) {
@@ -98,10 +100,14 @@ class StandardWalletService extends BaseWalletService {
         // generate message for coin announcements by appending coin_ids
         // see https://github.com/Chia-Network/chia-blockchain/blob/4bd5c53f48cb049eff36c87c00d21b1f2dd26b27/chia/wallet/wallet.py#L383
         //   message: bytes32 = std_hash(b"".join(message_list))
-        final existingCoinsMessage = coins.fold(Bytes.empty,
-            (Bytes previousValue, coin) => previousValue + coin.id);
-        final createdCoinsMessage = createdCoins.fold(Bytes.empty,
-            (Bytes previousValue, coin) => previousValue + coin.id);
+        final existingCoinsMessage = coins.fold(
+          Bytes.empty,
+          (Bytes previousValue, coin) => previousValue + coin.id,
+        );
+        final createdCoinsMessage = createdCoins.fold(
+          Bytes.empty,
+          (Bytes previousValue, coin) => previousValue + coin.id,
+        );
         final message =
             (existingCoinsMessage + createdCoinsMessage).sha256Hash();
         conditions.add(CreateCoinAnnouncementCondition(message));
@@ -112,7 +118,8 @@ class StandardWalletService extends BaseWalletService {
         solution = BaseWalletService.makeSolutionFromConditions(conditions);
       } else {
         solution = BaseWalletService.makeSolutionFromConditions(
-            [primaryAssertCoinAnnouncement!]);
+          [primaryAssertCoinAnnouncement!],
+        );
       }
 
       final puzzle = getPuzzleFromPk(publicKey);
@@ -191,10 +198,14 @@ class StandardWalletService extends BaseWalletService {
       // construct assert_coin_announcement id from spendbundle, verify against output
 
       final existingCoinsMessage = coinsBeingSpent.fold(
-          Bytes.empty, (Bytes previousValue, coin) => previousValue + coin.id);
+        Bytes.empty,
+        (Bytes previousValue, coin) => previousValue + coin.id,
+      );
 
       final createdCoinsMessage = coinsToCreate.fold(
-          Bytes.empty, (Bytes previousValue, coin) => previousValue + coin.id);
+        Bytes.empty,
+        (Bytes previousValue, coin) => previousValue + coin.id,
+      );
 
       final message = (existingCoinsMessage + createdCoinsMessage).sha256Hash();
       final constructedAnnouncementId = (originId! + message).sha256Hash();

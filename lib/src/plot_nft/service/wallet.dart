@@ -53,13 +53,17 @@ class PlotNftWalletService extends BaseWalletService {
       puzzle = selfPoolingInnerPuzzle;
     } else {
       throw ArgumentError(
-          'Invalid initial state: ${initialTargetState.poolSingletonState}');
+        'Invalid initial state: ${initialTargetState.poolSingletonState}',
+      );
     }
     final fullPoolingPuzzle =
         SingletonService.puzzleForSingleton(launcherCoin.id, puzzle);
     final puzzlehash = fullPoolingPuzzle.hash();
     final plotNftExtraData = PlotNftExtraData(
-        initialTargetState, p2SingletonDelayTime, p2SingletonDelayedPuzzlehash);
+      initialTargetState,
+      p2SingletonDelayTime,
+      p2SingletonDelayedPuzzlehash,
+    );
 
     final announcementMessage = Program.list(
       [
@@ -99,13 +103,20 @@ class PlotNftWalletService extends BaseWalletService {
   }
 
   Program makePoolExtraData(
-          PoolState poolState, int delayTime, Puzzlehash delayPuzzlehash) =>
+    PoolState poolState,
+    int delayTime,
+    Puzzlehash delayPuzzlehash,
+  ) =>
       Program.list([
         Program.cons(
-            Program.fromString('p'), Program.fromBytes(poolState.toBytes())),
+          Program.fromString('p'),
+          Program.fromBytes(poolState.toBytes()),
+        ),
         Program.cons(Program.fromString('t'), Program.fromInt(delayTime)),
         Program.cons(
-            Program.fromString('h'), Program.fromBytes(delayPuzzlehash)),
+          Program.fromString('h'),
+          Program.fromBytes(delayPuzzlehash),
+        ),
       ]);
 
   Program createWaitingRoomInnerPuzzle({

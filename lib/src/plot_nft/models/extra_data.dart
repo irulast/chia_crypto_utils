@@ -11,15 +11,18 @@ class PlotNftExtraData with ToBytesMixin {
     final extraDataProgramList = extraDataProgram.toList();
 
     final delayTime = extraDataProgramList
-        .singleWhere((p) =>
-            String.fromCharCode(p.first().toInt()) == delayTimeIdentifier)
+        .singleWhere(
+          (p) => String.fromCharCode(p.first().toInt()) == delayTimeIdentifier,
+        )
         .rest()
         .toInt();
     final delayPuzzlehash = Puzzlehash(
       extraDataProgramList
-          .singleWhere((p) =>
-              String.fromCharCode(p.first().toInt()) ==
-              delayPuzzlehashIdentifier)
+          .singleWhere(
+            (p) =>
+                String.fromCharCode(p.first().toInt()) ==
+                delayPuzzlehashIdentifier,
+          )
           .rest()
           .atom,
     );
@@ -40,8 +43,10 @@ class PlotNftExtraData with ToBytesMixin {
           Program.fromString(poolStateIdentifier),
           Program.fromBytes(poolState.toBytes()),
         ),
-        Program.cons(Program.fromString(delayTimeIdentifier),
-            Program.fromInt(delayTime)),
+        Program.cons(
+          Program.fromString(delayTimeIdentifier),
+          Program.fromInt(delayTime),
+        ),
         Program.cons(
           Program.fromString(delayPuzzlehashIdentifier),
           Program.fromBytes(delayPuzzlehash),

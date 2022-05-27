@@ -198,8 +198,10 @@ Future<void> main() async {
 
     final receiverEndingNateCoinBalance =
         await fullNodeSimulator.getBalance([receiverOuterPuzzlehash]);
-    expect(receiverEndingNateCoinBalance,
-        receiverStartingNateCoinBalance + amountToSend);
+    expect(
+      receiverEndingNateCoinBalance,
+      receiverStartingNateCoinBalance + amountToSend,
+    );
   });
 
   test('Produces valid spendbundle with fee, multiple payments, and memos',
@@ -218,10 +220,14 @@ Future<void> main() async {
     final receiverStartingCatCoins = await fullNodeSimulator
         .getCoinsByPuzzleHashes([receiverOuterPuzzlehash]);
     final receiverStartingNateCoinBalance = receiverStartingCatCoins.fold(
-        0, (int previousValue, coin) => previousValue + coin.amount);
+      0,
+      (int previousValue, coin) => previousValue + coin.amount,
+    );
 
     final totalNateCoinValue = catCoinsForThisTest.fold(
-        0, (int previousValue, coin) => previousValue + coin.amount);
+      0,
+      (int previousValue, coin) => previousValue + coin.amount,
+    );
     final sendAmounts = [
       (totalNateCoinValue * 0.4).round(),
       (totalNateCoinValue * 0.3).round()
@@ -258,20 +264,28 @@ Future<void> main() async {
 
     final senderEndingStandardCoinBalance =
         await fullNodeSimulator.getBalance([senderPuzzlehash]);
-    expect(senderEndingStandardCoinBalance,
-        senderStartingStandardCoinBalance - fee);
+    expect(
+      senderEndingStandardCoinBalance,
+      senderStartingStandardCoinBalance - fee,
+    );
 
     final senderEndingNateCoinBalance =
         await fullNodeSimulator.getBalance([senderOuterPuzzlehash]);
-    expect(senderEndingNateCoinBalance,
-        senderStartingNateCoinBalance - totalAmountToSend);
+    expect(
+      senderEndingNateCoinBalance,
+      senderStartingNateCoinBalance - totalAmountToSend,
+    );
 
     final receiverEndingCatCoins = await fullNodeSimulator
         .getCoinsByPuzzleHashes([receiverOuterPuzzlehash]);
     final receiverEndingNateCoinBalance = receiverEndingCatCoins.fold(
-        0, (int previousValue, coin) => previousValue + coin.amount);
-    expect(receiverEndingNateCoinBalance,
-        receiverStartingNateCoinBalance + totalAmountToSend);
+      0,
+      (int previousValue, coin) => previousValue + coin.amount,
+    );
+    expect(
+      receiverEndingNateCoinBalance,
+      receiverStartingNateCoinBalance + totalAmountToSend,
+    );
 
     final newCoins = receiverEndingCatCoins
         .where((coin) => !receiverStartingCatCoins.contains(coin))

@@ -43,7 +43,8 @@ class FullNodeHttpRpc implements FullNode {
     mapResponseToError(response);
 
     return CoinRecordsResponse.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>);
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 
   @override
@@ -55,7 +56,8 @@ class FullNodeHttpRpc implements FullNode {
     mapResponseToError(response);
 
     return ChiaBaseResponse.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>);
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 
   @override
@@ -66,7 +68,8 @@ class FullNodeHttpRpc implements FullNode {
     mapResponseToError(response);
 
     return CoinRecordResponse.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>);
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 
   @override
@@ -91,12 +94,15 @@ class FullNodeHttpRpc implements FullNode {
     mapResponseToError(response);
 
     return CoinRecordsResponse.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>);
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 
   @override
   Future<CoinSpendResponse> getPuzzleAndSolution(
-      Bytes coinId, int height) async {
+    Bytes coinId,
+    int height,
+  ) async {
     final response = await client.post(Uri.parse('get_puzzle_and_solution'), {
       'coin_id': coinId.toHex(),
       'height': height,
@@ -104,7 +110,8 @@ class FullNodeHttpRpc implements FullNode {
     mapResponseToError(response);
 
     return CoinSpendResponse.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>);
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 
   @override
@@ -114,7 +121,8 @@ class FullNodeHttpRpc implements FullNode {
     mapResponseToError(response);
 
     return BlockchainStateResponse.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>);
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 
   static void mapResponseToError(Response response) {

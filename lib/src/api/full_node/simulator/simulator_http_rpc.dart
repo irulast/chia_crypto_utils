@@ -20,6 +20,7 @@ class SimulatorHttpRpc extends FullNodeHttpRpc {
     FullNodeHttpRpc.mapResponseToError(responseData);
 
     return ChiaBaseResponse.fromJson(
-        jsonDecode(responseData.body) as Map<String, dynamic>);
+      jsonDecode(responseData.body) as Map<String, dynamic>,
+    );
   }
 }

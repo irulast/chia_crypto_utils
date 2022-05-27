@@ -67,7 +67,10 @@ class CoinPrototype with ToBytesMixin {
     final amount = bytesToInt(amountBytes, Endian.big);
 
     return CoinPrototype(
-        parentCoinInfo: parentCoinInfo, puzzlehash: puzzlehash, amount: amount);
+      parentCoinInfo: parentCoinInfo,
+      puzzlehash: puzzlehash,
+      amount: amount,
+    );
   }
 
   @override

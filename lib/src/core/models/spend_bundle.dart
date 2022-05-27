@@ -23,8 +23,10 @@ class SpendBundle with ToBytesMixin {
   }
 
   List<CoinPrototype> get additions {
-    return coinSpends.fold(<CoinPrototype>[],
-        (previousValue, coinSpend) => previousValue + coinSpend.additions);
+    return coinSpends.fold(
+      <CoinPrototype>[],
+      (previousValue, coinSpend) => previousValue + coinSpend.additions,
+    );
   }
 
   List<CoinPrototype> get coins => coinSpends.map((cs) => cs.coin).toList();
@@ -92,7 +94,9 @@ class SpendBundle with ToBytesMixin {
     final newAggregatedSignature = AugSchemeMPL.aggregate(signatures);
 
     return SpendBundle(
-        coinSpends: coinSpends, aggregatedSignature: newAggregatedSignature);
+      coinSpends: coinSpends,
+      aggregatedSignature: newAggregatedSignature,
+    );
   }
 
   @override
@@ -123,7 +127,8 @@ class SpendBundle with ToBytesMixin {
         iterator.extractBytesAndAdvance(JacobianPoint.g2BytesLength - 1);
 
     final signature = JacobianPoint.fromBytesG2(
-        [firstSignatureByte, ...restOfSignatureBytes]);
+      [firstSignatureByte, ...restOfSignatureBytes],
+    );
 
     return SpendBundle(coinSpends: coinSpends, aggregatedSignature: signature);
   }
@@ -145,7 +150,9 @@ class SpendBundle with ToBytesMixin {
   @override
   int get hashCode {
     var hc = coinSpends.fold(
-        0, (int previousValue, cs) => previousValue ^ cs.hashCode);
+      0,
+      (int previousValue, cs) => previousValue ^ cs.hashCode,
+    );
     if (aggregatedSignature != null) {
       hc = hc ^ aggregatedSignature.hashCode;
     }

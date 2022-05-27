@@ -56,8 +56,10 @@ class Coin extends CoinPrototype with ToBytesMixin {
     length = decodeInt(bytes.sublist(right, right + 4));
     left = right + 4;
     right = left + length;
-    assert(bytes.sublist(left, right).length == 1,
-        'bool should have only one byte');
+    assert(
+      bytes.sublist(left, right).length == 1,
+      'bool should have only one byte',
+    );
     final coinbase = bytes.sublist(left, right)[0] == 1;
 
     length = decodeInt(bytes.sublist(right, right + 4));
@@ -82,7 +84,10 @@ class Coin extends CoinPrototype with ToBytesMixin {
   }
 
   CoinPrototype toCoinPrototype() => CoinPrototype(
-      parentCoinInfo: parentCoinInfo, puzzlehash: puzzlehash, amount: amount);
+        parentCoinInfo: parentCoinInfo,
+        puzzlehash: puzzlehash,
+        amount: amount,
+      );
 
   @override
   Bytes toBytes() {

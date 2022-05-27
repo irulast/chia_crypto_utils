@@ -23,7 +23,8 @@ class BlockchainStateResponse extends ChiaBaseResponse {
     return BlockchainStateResponse(
       blockchainState: json['blockchain_state'] != null
           ? BlockchainState.fromJson(
-              json['blockchain_state'] as Map<String, dynamic>)
+              json['blockchain_state'] as Map<String, dynamic>,
+            )
           : null,
       success: chiaBaseResponse.success,
       error: chiaBaseResponse.error,

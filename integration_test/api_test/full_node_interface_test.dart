@@ -59,7 +59,9 @@ Future<void> main() async {
   final walletVector = keychain.unhardenedMap.values.first;
   final puzzlehash = walletVector.puzzlehash;
   final address = Address.fromPuzzlehash(
-      puzzlehash, catWalletService.blockchainNetwork.addressPrefix);
+    puzzlehash,
+    catWalletService.blockchainNetwork.addressPrefix,
+  );
 
   await fullNodeSimulator.farmCoins(address);
   await fullNodeSimulator.moveToNextBlock();
@@ -80,7 +82,9 @@ Future<void> main() async {
       Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
 
   final signature = AugSchemeMPL.sign(
-      walletVector.childPrivateKey, curriedGenesisByCoinIdPuzzle.hash());
+    walletVector.childPrivateKey,
+    curriedGenesisByCoinIdPuzzle.hash(),
+  );
 
   final spendBundle = catWalletService.makeIssuanceSpendbundle(
     tail: curriedTail,
@@ -100,16 +104,20 @@ Future<void> main() async {
   final testStandardCoins = [
     CoinPrototype(
       parentCoinInfo: Puzzlehash.fromHex(
-          '27ae41e4649b934ca495991b7852b85500000000000000000000000000000001'),
+        '27ae41e4649b934ca495991b7852b85500000000000000000000000000000001',
+      ),
       puzzlehash: Puzzlehash.fromHex(
-          '0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad'),
+        '0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad',
+      ),
       amount: 250000000000,
     ),
     CoinPrototype(
       parentCoinInfo: Puzzlehash.fromHex(
-          'e3b0c44298fc1c149afbf4c8996fb92400000000000000000000000000000001'),
+        'e3b0c44298fc1c149afbf4c8996fb92400000000000000000000000000000001',
+      ),
       puzzlehash: Puzzlehash.fromHex(
-          '0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad'),
+        '0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad',
+      ),
       amount: 1750000000000,
     ),
   ];
@@ -117,9 +125,11 @@ Future<void> main() async {
   final testCatCoins = [
     CoinPrototype(
       parentCoinInfo: Puzzlehash.fromHex(
-          '0fe40b1ec35f3472c8cf0f244c207c26e7a8678413dceb87cff38dc2c1c95093'),
+        '0fe40b1ec35f3472c8cf0f244c207c26e7a8678413dceb87cff38dc2c1c95093',
+      ),
       puzzlehash: Puzzlehash.fromHex(
-          '5db372b6e7577013035b4ee3fced2a7466d6ff1d3716b182afe520d83ee3427a'),
+        '5db372b6e7577013035b4ee3fced2a7466d6ff1d3716b182afe520d83ee3427a',
+      ),
       amount: 10000,
     ),
   ];
@@ -134,8 +144,10 @@ Future<void> main() async {
       includeSpentCoins: true,
     );
     for (final testCoin in testStandardCoins) {
-      expect(() => coins.firstWhere((coin) => coin.amount == testCoin.amount),
-          returnsNormally);
+      expect(
+        () => coins.firstWhere((coin) => coin.amount == testCoin.amount),
+        returnsNormally,
+      );
       expect(
         () => coins
             .firstWhere((catCoin) => catCoin.puzzlehash == testCoin.puzzlehash),
@@ -147,7 +159,8 @@ Future<void> main() async {
   test('should return null when coin is not found', () async {
     final coin = await fullNodeSimulator.getCoinById(
       Bytes.fromHex(
-          'cd131985a09e31dc4f59353eabe1c977f508a649f3c09bb28823c060a497b3dc'),
+        'cd131985a09e31dc4f59353eabe1c977f508a649f3c09bb28823c060a497b3dc',
+      ),
     );
     expect(coin, null);
   });
@@ -157,7 +170,8 @@ Future<void> main() async {
     try {
       await fullNodeSimulator.getCoinById(
         Bytes.fromHex(
-            '1cd131985a09e31dc4f59353eabe1c977f508a649f3c09bb28823c060a497b3dc'),
+          '1cd131985a09e31dc4f59353eabe1c977f508a649f3c09bb28823c060a497b3dc',
+        ),
       );
     } on BadCoinIdException {
       errorThrown = true;
@@ -182,7 +196,8 @@ Future<void> main() async {
       );
       expect(
         () => catCoins.firstWhere(
-            (catCoin) => catCoin.puzzlehash == testCatCoin.puzzlehash),
+          (catCoin) => catCoin.puzzlehash == testCatCoin.puzzlehash,
+        ),
         returnsNormally,
       );
     }
