@@ -23,8 +23,10 @@ class SpendBundle with ToBytesMixin {
   }
 
   List<CoinPrototype> get additions {
-    return coinSpends
-        .fold(<CoinPrototype>[], (previousValue, coinSpend) => previousValue + coinSpend.additions);
+    return coinSpends.fold(
+      <CoinPrototype>[],
+      (previousValue, coinSpend) => previousValue + coinSpend.additions,
+    );
   }
 
   List<CoinPrototype> get coins => coinSpends.map((cs) => cs.coin).toList();
@@ -45,7 +47,8 @@ class SpendBundle with ToBytesMixin {
       : coinSpends = (json['coin_solutions'] as Iterable)
             .map((dynamic e) => CoinSpend.fromJson(e as Map<String, dynamic>))
             .toList(),
-        aggregatedSignature = JacobianPoint.fromHexG2(json['aggregated_signature'] as String);
+        aggregatedSignature =
+            JacobianPoint.fromHexG2(json['aggregated_signature'] as String);
 
   SpendBundle operator +(SpendBundle other) {
     final signatures = <JacobianPoint>[];
@@ -57,7 +60,8 @@ class SpendBundle with ToBytesMixin {
     }
     return SpendBundle(
       coinSpends: coinSpends + other.coinSpends,
-      aggregatedSignature: (signatures.isNotEmpty) ? AugSchemeMPL.aggregate(signatures) : null,
+      aggregatedSignature:
+          (signatures.isNotEmpty) ? AugSchemeMPL.aggregate(signatures) : null,
     );
   }
 
@@ -69,7 +73,8 @@ class SpendBundle with ToBytesMixin {
     if (other.coinSpends.length != coinSpends.length) {
       return false;
     }
-    final otherHexCoinSpends = other.coinSpends.map((cs) => cs.toHex()).toList();
+    final otherHexCoinSpends =
+        other.coinSpends.map((cs) => cs.toHex()).toList();
     for (final coinSpend in coinSpends) {
       if (!otherHexCoinSpends.contains(coinSpend.toHex())) {
         return false;
@@ -88,12 +93,16 @@ class SpendBundle with ToBytesMixin {
     }
     final newAggregatedSignature = AugSchemeMPL.aggregate(signatures);
 
-    return SpendBundle(coinSpends: coinSpends, aggregatedSignature: newAggregatedSignature);
+    return SpendBundle(
+      coinSpends: coinSpends,
+      aggregatedSignature: newAggregatedSignature,
+    );
   }
 
   @override
   Bytes toBytes() {
-    return serializeListChia(coinSpends) + Bytes(aggregatedSignature?.toBytes() ?? []);
+    return serializeListChia(coinSpends) +
+        Bytes(aggregatedSignature?.toBytes() ?? []);
   }
 
   factory SpendBundle.fromBytes(Bytes bytes) {
@@ -114,9 +123,12 @@ class SpendBundle with ToBytesMixin {
     }
 
     final firstSignatureByte = iterator.current;
-    final restOfSignatureBytes = iterator.extractBytesAndAdvance(JacobianPoint.g2BytesLength - 1);
+    final restOfSignatureBytes =
+        iterator.extractBytesAndAdvance(JacobianPoint.g2BytesLength - 1);
 
-    final signature = JacobianPoint.fromBytesG2([firstSignatureByte, ...restOfSignatureBytes]);
+    final signature = JacobianPoint.fromBytesG2(
+      [firstSignatureByte, ...restOfSignatureBytes],
+    );
 
     return SpendBundle(coinSpends: coinSpends, aggregatedSignature: signature);
   }
@@ -137,7 +149,10 @@ class SpendBundle with ToBytesMixin {
 
   @override
   int get hashCode {
-    var hc = coinSpends.fold(0, (int previousValue, cs) => previousValue ^ cs.hashCode);
+    var hc = coinSpends.fold(
+      0,
+      (int previousValue, cs) => previousValue ^ cs.hashCode,
+    );
     if (aggregatedSignature != null) {
       hc = hc ^ aggregatedSignature.hashCode;
     }

@@ -38,7 +38,9 @@ Future<void> main() async {
   final walletSet = keychain.unhardenedMap.values.first;
 
   final address = Address.fromPuzzlehash(
-      walletSet.puzzlehash, catWalletService.blockchainNetwork.addressPrefix);
+    walletSet.puzzlehash,
+    catWalletService.blockchainNetwork.addressPrefix,
+  );
   final puzzlehash = address.toPuzzlehash();
 
   for (var i = 0; i < nTests; i++) {
@@ -51,25 +53,32 @@ Future<void> main() async {
   final originCoin = initialStandardCoins[0];
 
   // issue cat
-  final curriedTail =
-      delegatedTailProgram.curry([Program.fromBytes(walletSet.childPublicKey.toBytes())]);
+  final curriedTail = delegatedTailProgram
+      .curry([Program.fromBytes(walletSet.childPublicKey.toBytes())]);
 
   keychain.addOuterPuzzleHashesForAssetId(Puzzlehash(curriedTail.hash()));
 
-  final outerPuzzlehash =
-      WalletKeychain.makeOuterPuzzleHash(address.toPuzzlehash(), Puzzlehash(curriedTail.hash()));
+  final outerPuzzlehash = WalletKeychain.makeOuterPuzzleHash(
+    address.toPuzzlehash(),
+    Puzzlehash(curriedTail.hash()),
+  );
 
   final curriedMeltableGenesisByCoinIdPuzzle =
       meltableGenesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id)]);
-  final tailSolution = Program.list([curriedMeltableGenesisByCoinIdPuzzle, Program.nil]);
+  final tailSolution =
+      Program.list([curriedMeltableGenesisByCoinIdPuzzle, Program.nil]);
 
-  final issuanceSignature =
-      AugSchemeMPL.sign(walletSet.childPrivateKey, curriedMeltableGenesisByCoinIdPuzzle.hash());
+  final issuanceSignature = AugSchemeMPL.sign(
+    walletSet.childPrivateKey,
+    curriedMeltableGenesisByCoinIdPuzzle.hash(),
+  );
 
   final spendBundle = catWalletService.makeIssuanceSpendbundle(
     tail: curriedTail,
     solution: tailSolution,
-    standardCoins: [initialStandardCoins.firstWhere((coin) => coin.amount >= 10000)],
+    standardCoins: [
+      initialStandardCoins.firstWhere((coin) => coin.amount >= 10000)
+    ],
     destinationPuzzlehash: puzzlehash,
     changePuzzlehash: puzzlehash,
     amount: 10000,
@@ -81,7 +90,8 @@ Future<void> main() async {
   await fullNodeSimulator.pushTransaction(spendBundle);
   await fullNodeSimulator.moveToNextBlock();
 
-  final initialCats = await fullNodeSimulator.getCatCoinsByOuterPuzzleHashes([outerPuzzlehash]);
+  final initialCats =
+      await fullNodeSimulator.getCatCoinsByOuterPuzzleHashes([outerPuzzlehash]);
 
   // split issued cat up for tests
   final payments = <Payment>[];
@@ -100,8 +110,10 @@ Future<void> main() async {
   await fullNodeSimulator.pushTransaction(sendBundle);
   await fullNodeSimulator.moveToNextBlock();
 
-  final catCoins = await fullNodeSimulator.getCatCoinsByOuterPuzzleHashes([outerPuzzlehash]);
-  final standardCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([puzzlehash]);
+  final catCoins =
+      await fullNodeSimulator.getCatCoinsByOuterPuzzleHashes([outerPuzzlehash]);
+  final standardCoins =
+      await fullNodeSimulator.getCoinsByPuzzleHashes([puzzlehash]);
 
   test('should completely melt cat coin', () async {
     final standardCoinsForTest = standardCoins.sublist(0, 2);
@@ -110,7 +122,8 @@ Future<void> main() async {
     final catCoinForTest = catCoins.removeAt(0);
 
     final initialXchBalance = await fullNodeSimulator.getBalance([puzzlehash]);
-    final initialCatBalance = await fullNodeSimulator.getBalance([outerPuzzlehash]);
+    final initialCatBalance =
+        await fullNodeSimulator.getBalance([outerPuzzlehash]);
 
     final meltSpendBundle = catWalletService.makeMeltingSpendBundle(
       catCoinToMelt: catCoinForTest,
@@ -128,7 +141,8 @@ Future<void> main() async {
     final finalXchBalance = await fullNodeSimulator.getBalance([puzzlehash]);
     expect(finalXchBalance - initialXchBalance, equals(catCoinForTest.amount));
 
-    final finalCatBalance = await fullNodeSimulator.getBalance([outerPuzzlehash]);
+    final finalCatBalance =
+        await fullNodeSimulator.getBalance([outerPuzzlehash]);
     expect(finalCatBalance, equals(initialCatBalance - catCoinForTest.amount));
   });
 
@@ -140,7 +154,8 @@ Future<void> main() async {
     final amountToMelt = (catCoinForTest.amount / 2).round();
 
     final initialXchBalance = await fullNodeSimulator.getBalance([puzzlehash]);
-    final initialCatBalance = await fullNodeSimulator.getBalance([outerPuzzlehash]);
+    final initialCatBalance =
+        await fullNodeSimulator.getBalance([outerPuzzlehash]);
 
     final meltSpendBundle = catWalletService.makeMeltingSpendBundle(
       catCoinToMelt: catCoinForTest,
@@ -160,7 +175,8 @@ Future<void> main() async {
     final finalXchBalance = await fullNodeSimulator.getBalance([puzzlehash]);
     expect(finalXchBalance, equals(amountToMelt + initialXchBalance));
 
-    final finalCatBalance = await fullNodeSimulator.getBalance([outerPuzzlehash]);
+    final finalCatBalance =
+        await fullNodeSimulator.getBalance([outerPuzzlehash]);
     expect(finalCatBalance, equals(initialCatBalance - amountToMelt));
   });
 
@@ -173,7 +189,8 @@ Future<void> main() async {
     final fee = (amountToMelt * 0.2).round();
 
     final initialXchBalance = await fullNodeSimulator.getBalance([puzzlehash]);
-    final initialCatBalance = await fullNodeSimulator.getBalance([outerPuzzlehash]);
+    final initialCatBalance =
+        await fullNodeSimulator.getBalance([outerPuzzlehash]);
 
     final meltSpendBundle = catWalletService.makeMeltingSpendBundle(
       catCoinToMelt: catCoinForTest,
@@ -194,7 +211,8 @@ Future<void> main() async {
     final finalXchBalance = await fullNodeSimulator.getBalance([puzzlehash]);
     expect(finalXchBalance, equals(amountToMelt + initialXchBalance - fee));
 
-    final finalCatBalance = await fullNodeSimulator.getBalance([outerPuzzlehash]);
+    final finalCatBalance =
+        await fullNodeSimulator.getBalance([outerPuzzlehash]);
     expect(finalCatBalance, equals(initialCatBalance - amountToMelt));
   });
 }

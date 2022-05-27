@@ -32,7 +32,11 @@ class SingletonService extends BaseWalletService {
         ),
       );
 
-  static Program makeSingletonLauncherSolution(int amount, Puzzlehash puzzlehash) => Program.list([
+  static Program makeSingletonLauncherSolution(
+    int amount,
+    Puzzlehash puzzlehash,
+  ) =>
+      Program.list([
         Program.fromBytes(puzzlehash),
         Program.fromInt(amount),
         Program.fromBytes(List.filled(128, 0)),

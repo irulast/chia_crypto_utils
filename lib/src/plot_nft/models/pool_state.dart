@@ -39,7 +39,9 @@ class PoolState with ToBytesMixin {
 
   factory PoolState.fromExtraDataProgram(Program extraDataProgram) {
     final poolStateConsBox = extraDataProgram.toList().singleWhere(
-          (p) => String.fromCharCode(p.first().toInt()) == PlotNftExtraData.poolStateIdentifier,
+          (p) =>
+              String.fromCharCode(p.first().toInt()) ==
+              PlotNftExtraData.poolStateIdentifier,
         );
     return PoolState.fromBytes(poolStateConsBox.rest().atom);
   }
@@ -54,8 +56,9 @@ class PoolState with ToBytesMixin {
     final version = bytesToInt(versionBytes, Endian.big);
 
     final poolSingletonStateBytes = iterator.extractBytesAndAdvance(1);
-    final poolSingletonState =
-        codeToPoolSingletonState(bytesToInt(poolSingletonStateBytes, Endian.big));
+    final poolSingletonState = codeToPoolSingletonState(
+      bytesToInt(poolSingletonStateBytes, Endian.big),
+    );
 
     final targetPuzzlehash = Puzzlehash.fromStream(iterator);
     final ownerPublicKey = JacobianPoint.fromStreamG1(iterator);
@@ -65,7 +68,8 @@ class PoolState with ToBytesMixin {
     final poolUrlIsPresentBytes = iterator.extractBytesAndAdvance(1);
     if (poolUrlIsPresentBytes[0] == 1) {
       final lengthBytes = iterator.extractBytesAndAdvance(4);
-      final poolUrlBytes = iterator.extractBytesAndAdvance(bytesToInt(lengthBytes, Endian.big));
+      final poolUrlBytes =
+          iterator.extractBytesAndAdvance(bytesToInt(lengthBytes, Endian.big));
       poolUrl = utf8.decode(poolUrlBytes);
     } else if (poolUrlIsPresentBytes[0] != 0) {
       throw ArgumentError('invalid isPresent bytes');

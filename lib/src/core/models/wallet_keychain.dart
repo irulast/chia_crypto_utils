@@ -5,7 +5,8 @@ import 'package:chia_crypto_utils/src/utils/serialization.dart';
 
 class WalletKeychain with ToBytesMixin {
   Map<Puzzlehash, WalletVector> hardenedMap = <Puzzlehash, WalletVector>{};
-  Map<Puzzlehash, UnhardenedWalletVector> unhardenedMap = <Puzzlehash, UnhardenedWalletVector>{};
+  Map<Puzzlehash, UnhardenedWalletVector> unhardenedMap =
+      <Puzzlehash, UnhardenedWalletVector>{};
 
   WalletVector? getWalletVector(Puzzlehash puzzlehash) {
     final walletVector = unhardenedMap[puzzlehash];
@@ -31,7 +32,10 @@ class WalletKeychain with ToBytesMixin {
 
   WalletKeychain.fromMaps(this.hardenedMap, this.unhardenedMap);
 
-  factory WalletKeychain.fromCoreSecret(KeychainCoreSecret coreSecret, int nDerivations) {
+  factory WalletKeychain.fromCoreSecret(
+    KeychainCoreSecret coreSecret,
+    int nDerivations,
+  ) {
     final walletsSetList = <WalletSet>[];
     for (var i = 0; i < nDerivations; i++) {
       final set = WalletSet.fromPrivateKey(coreSecret.masterPrivateKey, i);
@@ -44,7 +48,8 @@ class WalletKeychain with ToBytesMixin {
   factory WalletKeychain.fromBytes(Bytes bytes) {
     var byteIndex = 0;
 
-    final hardenedMapLength = decodeInt(bytes.sublist(byteIndex, byteIndex + 4));
+    final hardenedMapLength =
+        decodeInt(bytes.sublist(byteIndex, byteIndex + 4));
     byteIndex += 4;
 
     final hardenedMap = <Puzzlehash, WalletVector>{};
@@ -59,14 +64,16 @@ class WalletKeychain with ToBytesMixin {
       final valueRight = valueLeft + valueLength;
 
       final puzzlehash = Puzzlehash(bytes.sublist(keyLeft, keyRight));
-      final walletVector = WalletVector.fromBytes(bytes.sublist(valueLeft, valueRight));
+      final walletVector =
+          WalletVector.fromBytes(bytes.sublist(valueLeft, valueRight));
 
       hardenedMap[puzzlehash] = walletVector;
 
       byteIndex = valueRight;
     }
 
-    final unhardenedMapLength = decodeInt(bytes.sublist(byteIndex, byteIndex + 4));
+    final unhardenedMapLength =
+        decodeInt(bytes.sublist(byteIndex, byteIndex + 4));
     byteIndex += 4;
 
     final unhardenedMap = <Puzzlehash, UnhardenedWalletVector>{};
@@ -81,7 +88,9 @@ class WalletKeychain with ToBytesMixin {
       final valueRight = valueLeft + valueLength;
 
       final puzzlehash = Puzzlehash(bytes.sublist(keyLeft, keyRight));
-      final walletVector = UnhardenedWalletVector.fromBytes(bytes.sublist(valueLeft, valueRight));
+      final walletVector = UnhardenedWalletVector.fromBytes(
+        bytes.sublist(valueLeft, valueRight),
+      );
 
       unhardenedMap[puzzlehash] = walletVector;
 
@@ -100,18 +109,22 @@ class WalletKeychain with ToBytesMixin {
       unhardenedMap.values.toList().map((wv) => wv.puzzlehash).toList();
 
   List<Puzzlehash> getOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
-    if (!unhardenedMap.values.first.assetIdtoOuterPuzzlehash.containsKey(assetId)) {
+    if (!unhardenedMap.values.first.assetIdtoOuterPuzzlehash
+        .containsKey(assetId)) {
       throw ArgumentError(
         'Puzzlehashes for given Asset Id are not in keychain',
       );
     }
-    return unhardenedMap.values.map((v) => v.assetIdtoOuterPuzzlehash[assetId]!).toList();
+    return unhardenedMap.values
+        .map((v) => v.assetIdtoOuterPuzzlehash[assetId]!)
+        .toList();
   }
 
   void addOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
     final entriesToAdd = <Puzzlehash, UnhardenedWalletVector>{};
     for (final walletVector in unhardenedMap.values) {
-      final outerPuzzleHash = makeOuterPuzzleHash(walletVector.puzzlehash, assetId);
+      final outerPuzzleHash =
+          makeOuterPuzzleHash(walletVector.puzzlehash, assetId);
       walletVector.assetIdtoOuterPuzzlehash[assetId] = outerPuzzleHash;
       entriesToAdd[outerPuzzleHash] = walletVector;
     }

@@ -15,11 +15,14 @@ class Payment {
             : memos is List<String>
                 ? memos.map((memo) => Bytes(utf8.encode(memo))).toList()
                 : memos is List<int>
-                    ? memos.map((memo) => Bytes(utf8.encode(memo.toString()))).toList()
+                    ? memos
+                        .map((memo) => Bytes(utf8.encode(memo.toString())))
+                        .toList()
                     : memos is List<Bytes>
                         ? memos
                         : throw ArgumentError(
-                            'Unsupported type for memos. Must be Bytes, String, or int');
+                            'Unsupported type for memos. Must be Bytes, String, or int',
+                          );
 
   CreateCoinCondition toCreateCoinCondition() {
     return CreateCoinCondition(puzzlehash, amount, memos: memos);
@@ -40,10 +43,12 @@ class Payment {
     return Payment(
       programList[1].toInt(),
       Puzzlehash(programList[0].atom),
-      memos:
-          programList.length > 2 ? programList[2].toList().map((p) => p.atom).toList() : <Bytes>[],
+      memos: programList.length > 2
+          ? programList[2].toList().map((p) => p.atom).toList()
+          : <Bytes>[],
     );
   }
   @override
-  String toString() => 'Payment(amount: $amount, puzzlehash: $puzzlehash, memos: $memos)';
+  String toString() =>
+      'Payment(amount: $amount, puzzlehash: $puzzlehash, memos: $memos)';
 }

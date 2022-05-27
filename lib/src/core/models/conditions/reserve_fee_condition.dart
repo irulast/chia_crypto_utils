@@ -11,9 +11,12 @@ class ReserveFeeCondition implements Condition {
 
   @override
   Program get program {
-    return Program.list([Program.fromInt(conditionCode), Program.fromInt(feeAmount)]);
+    return Program.list(
+      [Program.fromInt(conditionCode), Program.fromInt(feeAmount)],
+    );
   }
 
   @override
-  String toString() => 'ReserveFeeCondition(code: $conditionCode, feeAmount: $feeAmount)';
+  String toString() =>
+      'ReserveFeeCondition(code: $conditionCode, feeAmount: $feeAmount)';
 }

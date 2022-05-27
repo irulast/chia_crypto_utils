@@ -17,7 +17,8 @@ class PrivateKey with ToBytesMixin {
   factory PrivateKey.fromBytes(List<int> bytes) =>
       PrivateKey(bytesToBigInt(bytes, Endian.big) % defaultEc.n);
 
-  factory PrivateKey.fromHex(String hex) => PrivateKey.fromBytes(const HexDecoder().convert(hex));
+  factory PrivateKey.fromHex(String hex) =>
+      PrivateKey.fromBytes(const HexDecoder().convert(hex));
 
   factory PrivateKey.fromSeed(List<int> seed) {
     const L = 48;
@@ -59,7 +60,8 @@ class PrivateKey with ToBytesMixin {
   String toString() => 'PrivateKey(0x${toHex()})';
 
   @override
-  bool operator ==(dynamic other) => other is PrivateKey && value == other.value;
+  bool operator ==(dynamic other) =>
+      other is PrivateKey && value == other.value;
 
   @override
   int get hashCode => runtimeType.hashCode ^ value.hashCode;

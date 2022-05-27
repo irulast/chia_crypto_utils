@@ -5,7 +5,10 @@ import 'dart:async';
 import 'package:chia_crypto_utils/src/api/full_node/full_node.dart';
 
 class BlockchainAwaitUtil {
-  BlockchainAwaitUtil(this.fullNode, {this.timeoutMilliseconds = defaultTimeout});
+  BlockchainAwaitUtil(
+    this.fullNode, {
+    this.timeoutMilliseconds = defaultTimeout,
+  });
 
   static const int defaultTimeout = 10000;
 

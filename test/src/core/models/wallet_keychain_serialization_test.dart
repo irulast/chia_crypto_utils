@@ -13,14 +13,20 @@ void main() {
     walletsSetList.add(set1);
   }
 
-  final assetId =
-      Puzzlehash.fromHex('625c2184e97576f5df1be46c15b2b8771c79e4e6f0aa42d3bfecaebe733f4b8c');
+  final assetId = Puzzlehash.fromHex(
+    '625c2184e97576f5df1be46c15b2b8771c79e4e6f0aa42d3bfecaebe733f4b8c',
+  );
 
-  final walletKeychain = WalletKeychain(walletsSetList)..addOuterPuzzleHashesForAssetId(assetId);
+  final walletKeychain = WalletKeychain(walletsSetList)
+    ..addOuterPuzzleHashesForAssetId(assetId);
 
   test('should correctly serialize and deserialize a WalletKeychain', () {
     final walletKeychainSerialized = walletKeychain.toBytes();
-    final walletKeychainDeserialized = WalletKeychain.fromBytes(walletKeychainSerialized);
-    expect(walletKeychainDeserialized.toBytes(), equals(walletKeychainSerialized));
+    final walletKeychainDeserialized =
+        WalletKeychain.fromBytes(walletKeychainSerialized);
+    expect(
+      walletKeychainDeserialized.toBytes(),
+      equals(walletKeychainSerialized),
+    );
   });
 }

@@ -20,7 +20,8 @@ class PlotNftWalletService extends BaseWalletService {
     required WalletKeychain keychain,
     Puzzlehash? changePuzzlehash,
   }) {
-    final launcherParent = coins.singleWhere((coin) => coin.id == genesisCoinId);
+    final launcherParent =
+        coins.singleWhere((coin) => coin.id == genesisCoinId);
     final genesisLauncherPuzzle = singletonLauncherProgram;
     final launcherCoin = makeLauncherCoin(launcherParent.id);
 
@@ -44,17 +45,25 @@ class PlotNftWalletService extends BaseWalletService {
     );
 
     late Program puzzle;
-    if (initialTargetState.poolSingletonState == PoolSingletonState.selfPooling) {
+    if (initialTargetState.poolSingletonState ==
+        PoolSingletonState.selfPooling) {
       puzzle = escapingInnerPuzzle;
-    } else if (initialTargetState.poolSingletonState == PoolSingletonState.farmingToPool) {
+    } else if (initialTargetState.poolSingletonState ==
+        PoolSingletonState.farmingToPool) {
       puzzle = selfPoolingInnerPuzzle;
     } else {
-      throw ArgumentError('Invalid initial state: ${initialTargetState.poolSingletonState}');
+      throw ArgumentError(
+        'Invalid initial state: ${initialTargetState.poolSingletonState}',
+      );
     }
-    final fullPoolingPuzzle = SingletonService.puzzleForSingleton(launcherCoin.id, puzzle);
+    final fullPoolingPuzzle =
+        SingletonService.puzzleForSingleton(launcherCoin.id, puzzle);
     final puzzlehash = fullPoolingPuzzle.hash();
-    final plotNftExtraData =
-        PlotNftExtraData(initialTargetState, p2SingletonDelayTime, p2SingletonDelayedPuzzlehash);
+    final plotNftExtraData = PlotNftExtraData(
+      initialTargetState,
+      p2SingletonDelayTime,
+      p2SingletonDelayedPuzzlehash,
+    );
 
     final announcementMessage = Program.list(
       [
@@ -93,11 +102,21 @@ class PlotNftWalletService extends BaseWalletService {
     return createLauncherSpendBundle + launcherSpendBundle;
   }
 
-  Program makePoolExtraData(PoolState poolState, int delayTime, Puzzlehash delayPuzzlehash) =>
+  Program makePoolExtraData(
+    PoolState poolState,
+    int delayTime,
+    Puzzlehash delayPuzzlehash,
+  ) =>
       Program.list([
-        Program.cons(Program.fromString('p'), Program.fromBytes(poolState.toBytes())),
+        Program.cons(
+          Program.fromString('p'),
+          Program.fromBytes(poolState.toBytes()),
+        ),
         Program.cons(Program.fromString('t'), Program.fromInt(delayTime)),
-        Program.cons(Program.fromString('h'), Program.fromBytes(delayPuzzlehash)),
+        Program.cons(
+          Program.fromString('h'),
+          Program.fromBytes(delayPuzzlehash),
+        ),
       ]);
 
   Program createWaitingRoomInnerPuzzle({
@@ -108,7 +127,8 @@ class PlotNftWalletService extends BaseWalletService {
     required int delayTime,
     required Puzzlehash delayPuzzlehash,
   }) {
-    final p2SingletonPuzzlehash = launcherIdToP2Puzzlehash(launcherId, delayTime, delayPuzzlehash);
+    final p2SingletonPuzzlehash =
+        launcherIdToP2Puzzlehash(launcherId, delayTime, delayPuzzlehash);
     return poolWaitingRoomInnerpuzProgram.curry([
       Program.fromBytes(targetPuzzlehash),
       Program.fromBytes(p2SingletonPuzzlehash),
@@ -126,7 +146,8 @@ class PlotNftWalletService extends BaseWalletService {
     required int delayTime,
     required Puzzlehash delayPuzzlehash,
   }) {
-    final p2SingletonPuzzlehash = launcherIdToP2Puzzlehash(launcherId, delayTime, delayPuzzlehash);
+    final p2SingletonPuzzlehash =
+        launcherIdToP2Puzzlehash(launcherId, delayTime, delayPuzzlehash);
     return poolMemberInnerpuzProgram.curry([
       Program.fromBytes(targetPuzzlehash),
       Program.fromBytes(p2SingletonPuzzlehash),
@@ -137,7 +158,8 @@ class PlotNftWalletService extends BaseWalletService {
   }
 
   Bytes get poolRewardPrefix =>
-      Bytes.fromHex(blockchainNetwork.aggSigMeExtraData).sublist(0, 16) + Bytes(List.filled(16, 0));
+      Bytes.fromHex(blockchainNetwork.aggSigMeExtraData).sublist(0, 16) +
+      Bytes(List.filled(16, 0));
 
   Puzzlehash launcherIdToP2Puzzlehash(
     Bytes launcherId,
