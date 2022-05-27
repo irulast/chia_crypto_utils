@@ -30,12 +30,14 @@ class KeychainCoreSecret with ToBytesMixin {
     final mnemonicAsString = stringfromStream(iterator);
     final masterPrivateKey = PrivateKey.fromStream(iterator);
 
-    return KeychainCoreSecret(mnemonicAsString.split(mnemonicWordSeperator), masterPrivateKey);
+    return KeychainCoreSecret(
+        mnemonicAsString.split(mnemonicWordSeperator), masterPrivateKey);
   }
 
   @override
   Bytes toBytes() {
-    return serializeItem(mnemonic.join(mnemonicWordSeperator)) + masterPrivateKey.toBytes();
+    return serializeItem(mnemonic.join(mnemonicWordSeperator)) +
+        masterPrivateKey.toBytes();
   }
 
   static const mnemonicWordSeperator = ' ';
@@ -46,6 +48,8 @@ class KeychainCoreSecret with ToBytesMixin {
   int get fingerprint => masterPublicKey.getFingerprint();
 
   static List<String> generateMnemonic({int strength = 256}) {
-    return bip39.generateMnemonic(strength: strength).split(mnemonicWordSeperator);
+    return bip39
+        .generateMnemonic(strength: strength)
+        .split(mnemonicWordSeperator);
   }
 }

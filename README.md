@@ -1,12 +1,13 @@
 # Chia Crypto Utils
 
-This repository seeks to provide a working example of Chia Wallet fundamentals
+This repository provides an object model for working with Chia primitives serving as a basis for a Chia client.
 
 - Generating hardened and unhardened keys from a 24 word mnemonic seed
-- Standard transaction (XCH) coin spend with change back and fee
+- Standard transaction (XCH) coin spend
 - CAT
-- DID
-- NFT
+- PlotNFT
+- Integration tests using the Chia simulator
+- Serialization and deserialization to and from Bytes for easy integration into secure storage
 
 ## Dependencies
 
@@ -86,7 +87,7 @@ Context context = NetworkContext.makeContext(Network.mainnet);
 const mnemonic = ['elder', 'quality', 'this', ...];
 KeychainCoreSecret keychainSecret = KeychainCoreSecret.fromMnemonic(testMnemonic);
 
-L walletsSetList = <WalletSet>[];
+final walletsSetList = <WalletSet>[];
 for (var i = 0; i < 10; i++) {
   final set1 = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, i);
   walletsSetList.add(set1);

@@ -81,8 +81,12 @@ PrivateKey masterSkToSingletonOwnerSk(
   PrivateKey masterSk,
   int poolWalletIndex,
 ) {
-  return derivePath(
-      masterSk, [blsSpecNumber, chiaBlockchanNumber, singletonPathNumber, poolWalletIndex]);
+  return derivePath(masterSk, [
+    blsSpecNumber,
+    chiaBlockchanNumber,
+    singletonPathNumber,
+    poolWalletIndex
+  ]);
 }
 
 // This key is used for the farmer to authenticate
@@ -111,7 +115,8 @@ Program getPuzzleFromPk(JacobianPoint publicKey) {
     ]),
   );
 
-  final curried = p2DelegatedPuzzleOrHiddenPuzzleProgram.curry([syntheticPubKey.program]);
+  final curried =
+      p2DelegatedPuzzleOrHiddenPuzzleProgram.curry([syntheticPubKey.program]);
 
   return curried;
 }
@@ -121,7 +126,9 @@ final groupOrder = BigInt.parse(
 );
 
 BigInt calculateSyntheticOffset(JacobianPoint publicKey) {
-  final blob = sha256.convert(publicKey.toBytes() + defaultHiddenPuzzleProgram.hash()).bytes;
+  final blob = sha256
+      .convert(publicKey.toBytes() + defaultHiddenPuzzleProgram.hash())
+      .bytes;
 
   final offset = bytesToBigInt(blob, Endian.big, signed: true);
 
@@ -136,7 +143,8 @@ PrivateKey calculateSyntheticPrivateKey(PrivateKey privateKey) {
 
   final syntheticOffset = calculateSyntheticOffset(publicKey);
 
-  final syntheticSecretExponent = (secretExponent + syntheticOffset) % groupOrder;
+  final syntheticSecretExponent =
+      (secretExponent + syntheticOffset) % groupOrder;
 
   final blob = bigIntToBytes(syntheticSecretExponent, 32, Endian.big);
   final syntheticPrivateKey = PrivateKey.fromBytes(blob);

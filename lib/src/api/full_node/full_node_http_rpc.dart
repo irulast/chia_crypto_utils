@@ -15,7 +15,8 @@ class FullNodeHttpRpc implements FullNode {
   final Bytes? certBytes;
   final Bytes? keyBytes;
 
-  Client get client => Client(baseURL, certBytes: certBytes, keyBytes: keyBytes);
+  Client get client =>
+      Client(baseURL, certBytes: certBytes, keyBytes: keyBytes);
 
   @override
   Future<CoinRecordsResponse> getCoinRecordsByPuzzleHashes(
@@ -41,7 +42,8 @@ class FullNodeHttpRpc implements FullNode {
     );
     mapResponseToError(response);
 
-    return CoinRecordsResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return CoinRecordsResponse.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   @override
@@ -52,7 +54,8 @@ class FullNodeHttpRpc implements FullNode {
     );
     mapResponseToError(response);
 
-    return ChiaBaseResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return ChiaBaseResponse.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   @override
@@ -62,7 +65,8 @@ class FullNodeHttpRpc implements FullNode {
     });
     mapResponseToError(response);
 
-    return CoinRecordResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return CoinRecordResponse.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   @override
@@ -82,29 +86,35 @@ class FullNodeHttpRpc implements FullNode {
       body['end_height'] = endHeight;
     }
     body['include_spent_coins'] = includeSpentCoins;
-    final response = await client.post(Uri.parse('get_coin_records_by_names'), body);
+    final response =
+        await client.post(Uri.parse('get_coin_records_by_names'), body);
     mapResponseToError(response);
 
-    return CoinRecordsResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return CoinRecordsResponse.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   @override
-  Future<CoinSpendResponse> getPuzzleAndSolution(Bytes coinId, int height) async {
+  Future<CoinSpendResponse> getPuzzleAndSolution(
+      Bytes coinId, int height) async {
     final response = await client.post(Uri.parse('get_puzzle_and_solution'), {
       'coin_id': coinId.toHex(),
       'height': height,
     });
     mapResponseToError(response);
 
-    return CoinSpendResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return CoinSpendResponse.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   @override
   Future<BlockchainStateResponse> getBlockchainState() async {
-    final response = await client.post(Uri.parse('get_blockchain_state'), <dynamic, dynamic>{});
+    final response = await client
+        .post(Uri.parse('get_blockchain_state'), <dynamic, dynamic>{});
     mapResponseToError(response);
 
-    return BlockchainStateResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return BlockchainStateResponse.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   static void mapResponseToError(Response response) {
@@ -120,7 +130,9 @@ class FullNodeHttpRpc implements FullNode {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is FullNodeHttpRpc && runtimeType == other.runtimeType && baseURL == other.baseURL;
+      other is FullNodeHttpRpc &&
+          runtimeType == other.runtimeType &&
+          baseURL == other.baseURL;
 
   @override
   int get hashCode => runtimeType.hashCode ^ baseURL.hashCode;

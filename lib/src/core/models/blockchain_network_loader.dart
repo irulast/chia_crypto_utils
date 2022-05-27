@@ -7,4 +7,5 @@ abstract class BlockchainNetworkLoader {
   BlockchainNetwork loadfromApplicationLib(String path);
 }
 
-typedef BlockchainNetworkLoaderFunction = BlockchainNetwork Function(String path);
+typedef BlockchainNetworkLoaderFunction = BlockchainNetwork Function(
+    String path);

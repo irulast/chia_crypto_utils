@@ -50,7 +50,8 @@ void main() {
     LoggingContext().setLogger(fileLogger);
 
     const lowLogLevelTextToLog = 'Howdy partner';
-    const highLogLevelTextToLog = 'Howdy partner, hows the weather in Guadalajara?';
+    const highLogLevelTextToLog =
+        'Howdy partner, hows the weather in Guadalajara?';
 
     LoggingContext().log(lowLogLevelTextToLog, highLogLevelTextToLog);
 

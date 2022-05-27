@@ -45,7 +45,8 @@ class Program with ToBytesMixin {
           : toBigInt() == other.toBigInt());
 
   @override
-  int get hashCode => isCons ? hash2(first().hashCode, rest().hashCode) : toBigInt().hashCode;
+  int get hashCode =>
+      isCons ? hash2(first().hashCode, rest().hashCode) : toBigInt().hashCode;
 
   bool get isNull => isAtom && atom.isEmpty;
   bool get isAtom => _atom != null;
@@ -238,7 +239,9 @@ class Program with ToBytesMixin {
       return Puzzlehash(sha256.convert([1] + atom.toList()).bytes);
     } else {
       return Puzzlehash(
-        sha256.convert([2] + cons[0].hash().toList() + cons[1].hash().toList()).bytes,
+        sha256
+            .convert([2] + cons[0].hash().toList() + cons[1].hash().toList())
+            .bytes,
       );
     }
   }
@@ -466,7 +469,8 @@ class Program with ToBytesMixin {
       if (showKeywords) {
         try {
           final value = cons[0].toBigInt();
-          buffer.write(keywords.keys.firstWhere((key) => keywords[key] == value));
+          buffer
+              .write(keywords.keys.firstWhere((key) => keywords[key] == value));
         } catch (e) {
           buffer.write(cons[0].toSource(showKeywords: showKeywords));
         }
@@ -475,7 +479,8 @@ class Program with ToBytesMixin {
       }
       var current = cons[1];
       while (current.isCons) {
-        buffer.write(' ${current.cons[0].toSource(showKeywords: showKeywords)}');
+        buffer
+            .write(' ${current.cons[0].toSource(showKeywords: showKeywords)}');
         current = current.cons[1];
       }
       if (!current.isNull) {

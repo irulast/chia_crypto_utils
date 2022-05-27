@@ -5,7 +5,8 @@ import 'package:chia_crypto_utils/src/core/models/blockchain_network_loader.dart
 import 'package:chia_crypto_utils/src/networks/chia/chia_blockchain_network_loader.dart';
 
 class ChiaNetworkContextWrapper extends NetworkContext {
-  void registerNetworkContext(Network network, [Environment environment = Environment.pureDart]) {
+  void registerNetworkContext(Network network,
+      [Environment environment = Environment.pureDart]) {
     final chiaBlockchainNetworkLoader = ChiaBlockchainNetworkLoader();
 
     BlockchainNetworkLoaderFunction loader;

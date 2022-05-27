@@ -13,7 +13,8 @@ class NetworkContext {
   }
 
   void setLoader(BlockchainNetworkLoaderFunction loader) {
-    BlockchainNetwork blockchainNetworkFactory() => loader(getIt.get<BlockchainNetworkPath>());
+    BlockchainNetwork blockchainNetworkFactory() =>
+        loader(getIt.get<BlockchainNetworkPath>());
     getIt
       ..registerLazySingleton<BlockchainNetwork>(blockchainNetworkFactory)
       ..allowReassignment = true;

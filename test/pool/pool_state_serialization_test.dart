@@ -18,11 +18,13 @@ void main() {
       relativeLockHeight: 2342,
     );
     final poolStateSerialized = poolState.toBytes();
-    expect(poolStateSerialized.toHex(), equals(chiaPoolStateSerializedWithPoolUrl));
+    expect(poolStateSerialized.toHex(),
+        equals(chiaPoolStateSerializedWithPoolUrl));
 
     final poolStateDeserialize = PoolState.fromBytes(poolStateSerialized);
     final poolStateReSerialized = poolStateDeserialize.toBytes();
-    expect(poolStateReSerialized.toHex(), equals(chiaPoolStateSerializedWithPoolUrl));
+    expect(poolStateReSerialized.toHex(),
+        equals(chiaPoolStateSerializedWithPoolUrl));
   });
 
   test('should serialize pool state just like chia does without pool url', () {
@@ -36,10 +38,12 @@ void main() {
       relativeLockHeight: 2342,
     );
     final poolStateSerialized = poolState.toBytes();
-    expect(poolStateSerialized.toHex(), equals(chiaPoolStateSerializedWithoutPoolUrl));
+    expect(poolStateSerialized.toHex(),
+        equals(chiaPoolStateSerializedWithoutPoolUrl));
 
     final poolStateDeserialize = PoolState.fromBytes(poolStateSerialized);
     final poolStateReSerialized = poolStateDeserialize.toBytes();
-    expect(poolStateReSerialized.toHex(), equals(chiaPoolStateSerializedWithoutPoolUrl));
+    expect(poolStateReSerialized.toHex(),
+        equals(chiaPoolStateSerializedWithoutPoolUrl));
   });
 }

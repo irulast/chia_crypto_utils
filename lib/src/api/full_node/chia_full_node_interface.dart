@@ -22,7 +22,9 @@ class ChiaFullNodeInterface {
     );
     mapResponseToError(recordsResponse);
 
-    return recordsResponse.coinRecords.map((record) => record.toCoin()).toList();
+    return recordsResponse.coinRecords
+        .map((record) => record.toCoin())
+        .toList();
   }
 
   Future<int> getBalance(
@@ -30,9 +32,10 @@ class ChiaFullNodeInterface {
     int? startHeight,
     int? endHeight,
   }) async {
-    final coins =
-        await getCoinsByPuzzleHashes(puzzlehashes, startHeight: startHeight, endHeight: endHeight);
-    final balance = coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
+    final coins = await getCoinsByPuzzleHashes(puzzlehashes,
+        startHeight: startHeight, endHeight: endHeight);
+    final balance =
+        coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
     return balance;
   }
 
@@ -62,17 +65,21 @@ class ChiaFullNodeInterface {
     );
     mapResponseToError(coinRecordsResponse);
 
-    return coinRecordsResponse.coinRecords.map((record) => record.toCoin()).toList();
+    return coinRecordsResponse.coinRecords
+        .map((record) => record.toCoin())
+        .toList();
   }
 
   Future<CoinSpend?> getCoinSpend(Coin coin) async {
-    final coinSpendResponse = await fullNode.getPuzzleAndSolution(coin.id, coin.spentBlockIndex);
+    final coinSpendResponse =
+        await fullNode.getPuzzleAndSolution(coin.id, coin.spentBlockIndex);
     mapResponseToError(coinSpendResponse);
 
     return coinSpendResponse.coinSpend;
   }
 
-  Future<List<CatCoin>> getCatCoinsByOuterPuzzleHashes(List<Puzzlehash> puzzlehashes) async {
+  Future<List<CatCoin>> getCatCoinsByOuterPuzzleHashes(
+      List<Puzzlehash> puzzlehashes) async {
     final coins = await getCoinsByPuzzleHashes(puzzlehashes);
     final catCoins = <CatCoin>[];
     for (final coin in coins) {

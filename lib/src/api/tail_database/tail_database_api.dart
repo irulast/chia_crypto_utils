@@ -10,8 +10,8 @@ class TailDatabaseApi {
   Client get client => Client(baseURL);
 
   Future<TailInfo> getTailInfo(Puzzlehash assetId) async {
-    final response =
-        await client.get(Uri.parse(assetId.toHex()), additionalHeaders: additionalHeaders);
+    final response = await client.get(Uri.parse(assetId.toHex()),
+        additionalHeaders: additionalHeaders);
     return TailInfo.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 }

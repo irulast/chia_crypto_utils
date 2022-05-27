@@ -18,7 +18,8 @@ Bytes serializeListChia(List<ToBytesMixin> items) {
 Bytes serializeList(List<dynamic> items) {
   final bytes = items.fold(
     <int>[],
-    (List<int> previousValue, dynamic item) => <int>[...previousValue, ...serializeItem(item)],
+    (List<int> previousValue, dynamic item) =>
+        <int>[...previousValue, ...serializeItem(item)],
   );
   return Bytes(bytes);
 }
