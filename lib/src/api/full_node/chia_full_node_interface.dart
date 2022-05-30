@@ -107,12 +107,12 @@ class ChiaFullNodeInterface {
     final launcherCoinSpend = await getCoinSpend(launcherCoin!);
     final plotNft = PlotNft.fromCoinSpend(launcherCoinSpend!, launcherId);
 
-    final singletonCoin = await getCoinById(plotNft.singletonCoin.id);
-    if (singletonCoin!.spentBlockIndex != 0) {
-      throw UnimplementedError(
-        'Does not support plot entities that have been modified since creation',
-      );
-    }
+    // final singletonCoin = await getCoinById(plotNft.singletonCoin.id);
+    // if (singletonCoin!.spentBlockIndex != 0) {
+    //   throw UnimplementedError(
+    //     'Does not support plot entities that have been modified since creation',
+    //   );
+    // }
     return plotNft;
   }
 

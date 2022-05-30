@@ -52,6 +52,7 @@ class PlotNftExtraData with ToBytesMixin {
           Program.fromBytes(delayPuzzlehash),
         ),
       ]);
+
   @override
   Bytes toBytes() {
     return poolState.toBytes() + intTo32Bytes(delayTime) + delayPuzzlehash;
@@ -70,4 +71,8 @@ class PlotNftExtraData with ToBytesMixin {
 
     return PlotNftExtraData(poolState, delayTime, delayPuzzlehash);
   }
+
+  @override
+  String toString() =>
+      'PlotNftExtraData(poolState: $poolState, delayTime: $delayTime, delayPuzzlehash: $delayPuzzlehash)';
 }

@@ -10,8 +10,7 @@ class PlotNft with ToBytesMixin {
     CoinSpend singletonCoinSpend,
     Bytes launcherId,
   ) {
-    final extraData =
-        PlotNftWalletService.coinSpendToExtraData(singletonCoinSpend);
+    final extraData = PlotNftWalletService.coinSpendToExtraData(singletonCoinSpend);
     if (extraData == null) {
       throw ArgumentError(
         'Provided coin spend is not a valid plot nft coin spend',
@@ -37,4 +36,8 @@ class PlotNft with ToBytesMixin {
   Bytes toBytes() {
     return singletonCoin.toBytes() + extraData.toBytes() + launcherId;
   }
+
+  @override
+  String toString() =>
+      'PlotNft(launcherId: $launcherId, plotNftExtraData: $extraData, singletonCoin: $singletonCoin)';
 }
