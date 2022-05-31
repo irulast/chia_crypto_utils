@@ -37,6 +37,7 @@ class Bytes extends Comparable<Bytes> implements List<int> {
   static String bytesPrefix = '0x';
 
   String toHex() => const HexEncoder().convert(_byteList);
+  String toHexWithPrefix() => bytesPrefix + toHex();
 
   static Bytes get empty => Bytes([]);
 
