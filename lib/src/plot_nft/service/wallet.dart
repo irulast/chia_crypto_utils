@@ -20,8 +20,7 @@ class PlotNftWalletService extends BaseWalletService {
     required WalletKeychain keychain,
     Puzzlehash? changePuzzlehash,
   }) {
-    final launcherParent =
-        coins.singleWhere((coin) => coin.id == genesisCoinId);
+    final launcherParent = coins.singleWhere((coin) => coin.id == genesisCoinId);
     final genesisLauncherPuzzle = singletonLauncherProgram;
     final launcherCoin = makeLauncherCoin(launcherParent.id);
 
@@ -45,19 +44,16 @@ class PlotNftWalletService extends BaseWalletService {
     );
 
     late Program puzzle;
-    if (initialTargetState.poolSingletonState ==
-        PoolSingletonState.selfPooling) {
+    if (initialTargetState.poolSingletonState == PoolSingletonState.selfPooling) {
       puzzle = escapingInnerPuzzle;
-    } else if (initialTargetState.poolSingletonState ==
-        PoolSingletonState.farmingToPool) {
+    } else if (initialTargetState.poolSingletonState == PoolSingletonState.farmingToPool) {
       puzzle = selfPoolingInnerPuzzle;
     } else {
       throw ArgumentError(
         'Invalid initial state: ${initialTargetState.poolSingletonState}',
       );
     }
-    final fullPoolingPuzzle =
-        SingletonService.puzzleForSingleton(launcherCoin.id, puzzle);
+    final fullPoolingPuzzle = SingletonService.puzzleForSingleton(launcherCoin.id, puzzle);
     final puzzlehash = fullPoolingPuzzle.hash();
     final plotNftExtraData = PlotNftExtraData(
       initialTargetState,
@@ -85,6 +81,12 @@ class PlotNftWalletService extends BaseWalletService {
       coinAnnouncementsToAssert: [assertCoinAnnouncement],
     );
 
+    print('my genesis spend:');
+    print(createLauncherSpendBundle.coinSpends[0]);
+    print(' ');
+    print('-----------');
+    print(' ');
+
     final genesisLauncherSolution = Program.list([
       Program.fromBytes(puzzlehash),
       Program.fromInt(launcherCoin.amount),
@@ -96,6 +98,12 @@ class PlotNftWalletService extends BaseWalletService {
       puzzleReveal: genesisLauncherPuzzle,
       solution: genesisLauncherSolution,
     );
+
+    print('my launcher spend:');
+    print(launcherCoinSpend);
+    print(' ');
+    print('-----------');
+    print(' ');
 
     final launcherSpendBundle = SpendBundle(coinSpends: [launcherCoinSpend]);
 
@@ -127,14 +135,13 @@ class PlotNftWalletService extends BaseWalletService {
     required int delayTime,
     required Puzzlehash delayPuzzlehash,
   }) {
-    final p2SingletonPuzzlehash =
-        launcherIdToP2Puzzlehash(launcherId, delayTime, delayPuzzlehash);
+    final p2SingletonPuzzlehash = launcherIdToP2Puzzlehash(launcherId, delayTime, delayPuzzlehash);
     return poolWaitingRoomInnerpuzProgram.curry([
       Program.fromBytes(targetPuzzlehash),
       Program.fromBytes(p2SingletonPuzzlehash),
       Program.fromBytes(ownerPublicKey.toBytes()),
       Program.fromBytes(poolRewardPrefix),
-      Program.fromInt(delayTime),
+      Program.fromInt(relativeLockHeight),
     ]);
   }
 
@@ -146,8 +153,7 @@ class PlotNftWalletService extends BaseWalletService {
     required int delayTime,
     required Puzzlehash delayPuzzlehash,
   }) {
-    final p2SingletonPuzzlehash =
-        launcherIdToP2Puzzlehash(launcherId, delayTime, delayPuzzlehash);
+    final p2SingletonPuzzlehash = launcherIdToP2Puzzlehash(launcherId, delayTime, delayPuzzlehash);
     return poolMemberInnerpuzProgram.curry([
       Program.fromBytes(targetPuzzlehash),
       Program.fromBytes(p2SingletonPuzzlehash),
@@ -158,8 +164,7 @@ class PlotNftWalletService extends BaseWalletService {
   }
 
   Bytes get poolRewardPrefix =>
-      Bytes.fromHex(blockchainNetwork.aggSigMeExtraData).sublist(0, 16) +
-      Bytes(List.filled(16, 0));
+      Bytes.fromHex(blockchainNetwork.aggSigMeExtraData).sublist(0, 16) + Bytes(List.filled(16, 0));
 
   Puzzlehash launcherIdToP2Puzzlehash(
     Bytes launcherId,

@@ -6,11 +6,10 @@ class ChiaEnthusiast {
     this.fullNodeSimulator, {
     List<String>? mnemonic,
     int derivations = 1,
-  }) {
-    final enthusiastMnemonic =
-        mnemonic ?? KeychainCoreSecret.generateMnemonic();
+  }): keychainSecret = (mnemonic != null)
+        ? KeychainCoreSecret.fromMnemonic(mnemonic)
+        : KeychainCoreSecret.generate(){
 
-    final keychainSecret = KeychainCoreSecret.fromMnemonic(enthusiastMnemonic);
     final walletsSetList = <WalletSet>[];
 
     for (var i = 0; i < derivations; i++) {
@@ -21,6 +20,7 @@ class ChiaEnthusiast {
   }
   final SimulatorFullNodeInterface fullNodeSimulator;
   late WalletKeychain keychain;
+  final KeychainCoreSecret keychainSecret;
 
   final CatWalletService catWalletService = CatWalletService();
 
@@ -29,12 +29,10 @@ class ChiaEnthusiast {
 
   List<Puzzlehash> get outerPuzzlehashes => keychain.unhardenedMap.values.fold(
         <Puzzlehash>[],
-        (previousValue, wv) =>
-            previousValue + wv.assetIdtoOuterPuzzlehash.values.toList(),
+        (previousValue, wv) => previousValue + wv.assetIdtoOuterPuzzlehash.values.toList(),
       );
 
-  UnhardenedWalletVector get firstWalletVector =>
-      keychain.unhardenedMap.values.first;
+  UnhardenedWalletVector get firstWalletVector => keychain.unhardenedMap.values.first;
 
   Puzzlehash get firstPuzzlehash => firstWalletVector.puzzlehash;
 
@@ -64,10 +62,8 @@ class ChiaEnthusiast {
   }
 
   Future<void> refreshCoins() async {
-    standardCoins =
-        await fullNodeSimulator.getCoinsByPuzzleHashes(puzzlehashes);
-    catCoins = await fullNodeSimulator
-        .getCatCoinsByOuterPuzzleHashes(outerPuzzlehashes);
+    standardCoins = await fullNodeSimulator.getCoinsByPuzzleHashes(puzzlehashes);
+    catCoins = await fullNodeSimulator.getCatCoinsByOuterPuzzleHashes(outerPuzzlehashes);
   }
 
   Future<void> farmCoins([int nFarms = 1]) async {
@@ -82,8 +78,8 @@ class ChiaEnthusiast {
     await refreshCoins();
     final privateKeyForCat = privateKey ?? firstWalletVector.childPrivateKey;
 
-    final curriedTail = delegatedTailProgram
-        .curry([Program.fromBytes(privateKeyForCat.getG1().toBytes())]);
+    final curriedTail =
+        delegatedTailProgram.curry([Program.fromBytes(privateKeyForCat.getG1().toBytes())]);
     final assetId = Puzzlehash(curriedTail.hash());
     addAssetIdToKeychain(assetId);
 
@@ -91,8 +87,7 @@ class ChiaEnthusiast {
 
     final curriedGenesisByCoinIdPuzzle =
         genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id)]);
-    final tailSolution =
-        Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
+    final tailSolution = Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
 
     final signature = AugSchemeMPL.sign(
       privateKeyForCat,

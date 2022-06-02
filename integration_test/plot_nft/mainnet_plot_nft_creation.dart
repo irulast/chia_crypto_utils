@@ -4,7 +4,7 @@ import 'package:test/scaffolding.dart';
 
 Future<void> main() async {
   const fullNodeRpc = FullNodeHttpRpc(
-    'FULL_NODE_URL',
+    'https://chia.irulast-prod.com',
   );
 
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
@@ -33,7 +33,8 @@ Future<void> main() async {
   print(targetAddress.address);
 
   final coins = await fullNode
-      .getCoinsByPuzzleHashes([targetPuzzleHash], includeSpentCoins: true);
+      .getCoinsByPuzzleHashes([targetPuzzleHash]);
+  print(coins);
 
   coins.sort(
     (a, b) => b.spentBlockIndex.compareTo(a.spentBlockIndex),
@@ -55,46 +56,45 @@ Future<void> main() async {
     poolUrl: 'https://xch-us-west.flexpool.io',
   );
 
-  final plotNftSpendBundle = poolWalletService.createPoolNftSpendBundle(
-    initialTargetState: initialTargetState,
-    keychain: keychain,
-    coins: [genesisCoin],
-    p2SingletonDelayedPuzzlehash: p2SingletonDelayedPuzzlehash,
-    changePuzzlehash: keychain.puzzlehashes[0],
-    genesisCoinId: genesisCoin.id,
-  );
-  await fullNode.pushTransaction(plotNftSpendBundle);
-  final launcherCoinPrototype =
-      PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
+  // final plotNftSpendBundle = poolWalletService.createPoolNftSpendBundle(
+  //   initialTargetState: initialTargetState,
+  //   keychain: keychain,
+  //   coins: [genesisCoin],
+  //   p2SingletonDelayedPuzzlehash: p2SingletonDelayedPuzzlehash,
+  //   changePuzzlehash: keychain.puzzlehashes[0],
+  //   genesisCoinId: genesisCoin.id,
+  // );
+  // await fullNode.pushTransaction(plotNftSpendBundle);
 
-  print('launcher_id: ${launcherCoinPrototype.id}');
-  print(
-    'farmer_public_key: ${masterSkToFarmerSk(keychainSecret.masterPrivateKey).getG1().toHex()}',
-  );
+  // final launcherCoinPrototype =
+  //     PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
+  final launcherId =
+      Bytes.fromHex('9204dfdc12a9b896a7c143bd905fabf5a4910f4ea844ea7e9540c662a40dd594');
+
+  // print('launcher_id: ${launcherId}');
+
+      final plotNft = await fullNode.getPlotNftByLauncherId(launcherId);
+      print('plot NFT: ');
+      print(plotNft);
+
+
+    print('singleton_puzzle_hash: ${plotNft.singletonCoin.puzzlehash}');
+    print('pool_state:');
+    print(
+      plotNft.extraData.poolState
+    );
+
   final poolPuzzlehash = poolWalletService.launcherIdToP2Puzzlehash(
-    launcherCoinPrototype.id,
+    launcherId,
     p2SingletonDelayedTime,
     p2SingletonDelayedPuzzlehash,
   );
-  print('pool_puzzle_hash: $poolPuzzlehash');
-  print(
-    'pool_address: ${Address.fromPuzzlehash(poolPuzzlehash, poolWalletService.blockchainNetwork.addressPrefix).address}',
-  );
-  print(
-    'xch_payout_address: ${Address.fromPuzzlehash(keychain.hardenedMap.values.first.puzzlehash, poolWalletService.blockchainNetwork.addressPrefix).address}',
-  );
+  // print('pool_puzzle_hash: $poolPuzzlehash');
+  // print(
+  //   'pool_address: ${Address.fromPuzzlehash(poolPuzzlehash, poolWalletService.blockchainNetwork.addressPrefix).address}',
+  // );
+  // print(
+  //   'xch_payout_address: ${Address.fromPuzzlehash(keychain.hardenedMap.values.first.puzzlehash, poolWalletService.blockchainNetwork.addressPrefix).address}',
+  // );
 
-  final launcherCoin = await fullNode.getCoinById(launcherCoinPrototype.id);
-
-  if (launcherCoin != null) {
-    final launcherCoinSpend = await fullNode.getCoinSpend(launcherCoin);
-
-    print('singleton_puzzle_hash: ${launcherCoinSpend!.solution.first()}');
-    print('pool_state:');
-    print(
-      PlotNft.fromCoinSpend(launcherCoinSpend, launcherCoin.id)
-          .extraData
-          .poolState,
-    );
-  }
 }

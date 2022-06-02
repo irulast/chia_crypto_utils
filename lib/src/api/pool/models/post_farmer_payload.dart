@@ -6,13 +6,13 @@ class PostFarmerPayload with ToBytesMixin{
     required this.launcherId,
     required this.authenticationToken,
     required this.authenticationPublicKey,
-    required this.payoutInstructions,
+    required this.payoutPuzzlehash,
     this.suggestedDifficulty,
   });
   final Bytes launcherId;
   final int authenticationToken;
   final JacobianPoint authenticationPublicKey;
-  final Address payoutInstructions;
+  final Puzzlehash payoutPuzzlehash;
   final int? suggestedDifficulty;
 
   @override
@@ -21,7 +21,7 @@ class PostFarmerPayload with ToBytesMixin{
     bytes += launcherId;
     bytes += intTo64Bytes(authenticationToken);
     bytes += authenticationPublicKey.toBytes();
-    bytes += serializeItem(payoutInstructions.address);
+    bytes += serializeItem(payoutPuzzlehash.toHexWithPrefix());
     if (suggestedDifficulty != null) {
       bytes += [1, ...intTo64Bytes(suggestedDifficulty!)];
     } else {
@@ -34,7 +34,8 @@ class PostFarmerPayload with ToBytesMixin{
     return <String, dynamic>{
       'launcher_id': launcherId.toHexWithPrefix(),
       'authentication_token': authenticationToken,
-      'payout_instructions': payoutInstructions.address,
+      'authentication_public_key':authenticationPublicKey.toHexWithPrefix(),
+      'payout_instructions': payoutPuzzlehash.toHexWithPrefix(),
       'suggested_difficulty': suggestedDifficulty,
     };
   }
