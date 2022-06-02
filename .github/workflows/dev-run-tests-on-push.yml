@@ -1,0 +1,32 @@
+---
+name: Run Tests On Push
+
+# This on defines that this runs on all pushes.  Note: We clarify this further below in 'if' statements
+on:
+  push:
+    branches-ignore: [master]
+
+jobs:
+
+  # Run a deployment to dev (dynamic dev urls)
+  run-tests:
+    # Use our local runner, for faster runs and docker layer caching
+    runs-on: [self-hosted, chia-dev]
+
+    steps:
+      - name: Checkout code and branch
+        uses: actions/checkout@v2
+      # Does a helm diff then helm upgrade install
+      - name: Helm Diff and Install
+        run: |
+          # Setup
+          python3 /chia-blockchain/chia/simulator/start_simulator.py &
+
+          # Waiting for simulator to startup
+          echo "Waiting for simulator to startup..."
+          until $(curl --output /dev/null --silent --fail --insecure --cert /root/.chia/mainnet/config/ssl/full_node/private_full_node.crt --key /root/.chia/mainnet/config/ssl/full_node/private_full_node.key -d '{}' -H "Content-Type: application/json" -X POST https://127.0.0.1:8555/get_blockchain_state); do
+              printf '.'
+              sleep 1
+          done
+
+          echo "Todo run tests here or whatever"
