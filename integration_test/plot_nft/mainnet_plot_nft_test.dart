@@ -51,4 +51,8 @@ Future<void> main() async {
     final singletonCoin = await fullNode.getCoinById(plotNft.singletonCoin.id);
     expect(singletonCoin!.spentBlockIndex, equals(0));
   });
+
+  test('should get fermer info fom pool', () {
+
+  });
 }

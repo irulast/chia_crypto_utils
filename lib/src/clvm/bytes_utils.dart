@@ -37,6 +37,10 @@ Bytes intTo32Bytes(int value) {
   return intToBytes(value, 4, Endian.big);
 }
 
+int intFrom32ByteStream(Iterator<int> iterator) {
+  return bytesToInt(iterator.extractBytesAndAdvance(4), Endian.big);
+}
+
 Bytes intTo8Bytes(int value) {
   return intToBytes(value, 1, Endian.big);
 }
