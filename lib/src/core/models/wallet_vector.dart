@@ -43,8 +43,7 @@ class WalletVector with ToBytesMixin {
     PrivateKey masterPrivateKey,
     int derivationIndex,
   ) {
-    final childPrivateKeyHardened =
-        masterSkToWalletSk(masterPrivateKey, derivationIndex);
+    final childPrivateKeyHardened = masterSkToWalletSk(masterPrivateKey, derivationIndex);
     final childPublicKeyHardened = childPrivateKeyHardened.getG1();
 
     final puzzleHardened = getPuzzleFromPk(childPublicKeyHardened);
@@ -85,12 +84,12 @@ class WalletVector with ToBytesMixin {
     final puzzlehashBytes = puzzlehash;
 
     return Bytes([
-      ...intTo32Bytes(childPrivateKeyBytes.length),
+      ...intTo32Bits(childPrivateKeyBytes.length),
       ...childPrivateKeyBytes,
-      ...intTo32Bytes(childPublicKeyBytes.length),
+      ...intTo32Bits(childPublicKeyBytes.length),
       ...childPublicKeyBytes,
       if (childPublicKey.isExtension) 1 else 0,
-      ...intTo32Bytes(puzzlehashBytes.length),
+      ...intTo32Bits(puzzlehashBytes.length),
       ...puzzlehashBytes,
     ]);
   }
@@ -102,8 +101,7 @@ class UnhardenedWalletVector extends WalletVector {
     required JacobianPoint childPublicKey,
     required Puzzlehash puzzlehash,
     Map<Puzzlehash, Puzzlehash>? assetIdtoOuterPuzzlehash,
-  })  : assetIdtoOuterPuzzlehash =
-            assetIdtoOuterPuzzlehash ?? <Puzzlehash, Puzzlehash>{},
+  })  : assetIdtoOuterPuzzlehash = assetIdtoOuterPuzzlehash ?? <Puzzlehash, Puzzlehash>{},
         super(
           childPrivateKey: childPrivateKey,
           childPublicKey: childPublicKey,
@@ -142,14 +140,14 @@ class UnhardenedWalletVector extends WalletVector {
     });
 
     return Bytes([
-      ...intTo32Bytes(childPrivateKeyBytes.length),
+      ...intTo32Bits(childPrivateKeyBytes.length),
       ...childPrivateKeyBytes,
-      ...intTo32Bytes(childPublicKeyBytes.length),
+      ...intTo32Bits(childPublicKeyBytes.length),
       ...childPublicKeyBytes,
       if (childPublicKey.isExtension) 1 else 0,
-      ...intTo32Bytes(puzzlehashBytes.length),
+      ...intTo32Bits(puzzlehashBytes.length),
       ...puzzlehashBytes,
-      ...intTo32Bytes(assetIdtoOuterPuzzlehash.length),
+      ...intTo32Bits(assetIdtoOuterPuzzlehash.length),
       ...assetIdMapBytes,
     ]);
   }
@@ -184,8 +182,7 @@ class UnhardenedWalletVector extends WalletVector {
     var outerPuzzlehashRight = outerPuzzlehashLeft + Puzzlehash.bytesLength;
     for (var i = 0; i < length; i++) {
       final assetId = Puzzlehash(bytes.sublist(assetIdLeft, assetIdRight));
-      final outerPuzzlehash =
-          Puzzlehash(bytes.sublist(outerPuzzlehashLeft, outerPuzzlehashRight));
+      final outerPuzzlehash = Puzzlehash(bytes.sublist(outerPuzzlehashLeft, outerPuzzlehashRight));
       assetIdToOuterPuzzlehashMap[assetId] = outerPuzzlehash;
 
       assetIdLeft = outerPuzzlehashRight;
@@ -221,8 +218,7 @@ class UnhardenedWalletVector extends WalletVector {
     }
 
     for (final assetId in assetIdtoOuterPuzzlehash.keys) {
-      if (other.assetIdtoOuterPuzzlehash[assetId] !=
-          assetIdtoOuterPuzzlehash[assetId]) {
+      if (other.assetIdtoOuterPuzzlehash[assetId] != assetIdtoOuterPuzzlehash[assetId]) {
         return false;
       }
     }

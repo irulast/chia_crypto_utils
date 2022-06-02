@@ -18,8 +18,7 @@ class CatCoin extends CoinPrototype with ToBytesMixin {
                 parentCoinSpend.puzzleReveal.uncurry().arguments[1].atom,
               )
             : throw InvalidCatException(),
-        lineageProof = parentCoinSpend.puzzleReveal.uncurry().arguments.length >
-                2
+        lineageProof = parentCoinSpend.puzzleReveal.uncurry().arguments.length > 2
             ? Program.list([
                 Program.fromBytes(
                   parentCoinSpend.coin.parentCoinInfo,
@@ -37,8 +36,7 @@ class CatCoin extends CoinPrototype with ToBytesMixin {
           amount: coin.amount,
         ) {
     final uncurriedParentPuzzleReveal = parentCoinSpend.puzzleReveal.uncurry();
-    if (uncurriedParentPuzzleReveal.program.toSource() !=
-        catProgram.toSource()) {
+    if (uncurriedParentPuzzleReveal.program.toSource() != catProgram.toSource()) {
       throw InvalidCatException();
     }
   }
@@ -75,9 +73,9 @@ class CatCoin extends CoinPrototype with ToBytesMixin {
     ).toBytes();
 
     return Bytes([
-      ...intTo32Bytes(coinSpendBytes.length),
+      ...intTo32Bits(coinSpendBytes.length),
       ...coinSpendBytes,
-      ...intTo32Bytes(coinPrototypeBytes.length),
+      ...intTo32Bits(coinPrototypeBytes.length),
       ...coinPrototypeBytes,
     ]);
   }

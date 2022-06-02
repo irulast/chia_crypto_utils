@@ -14,7 +14,7 @@ class AuthenticationPayload {
     required this.targetPuzzlehash,
     required this.authenticationToken,
   });
-  
+
   final String methodName;
   final Bytes launcherId;
   final Puzzlehash targetPuzzlehash;
@@ -24,6 +24,6 @@ class AuthenticationPayload {
     return serializeItem(methodName) +
         launcherId +
         targetPuzzlehash +
-        intTo64Bytes(authenticationToken);
+        intTo64Bits(authenticationToken);
   }
 }

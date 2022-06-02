@@ -15,7 +15,7 @@ class SingletonWalletVector with ToBytesMixin {
   factory SingletonWalletVector.fromStream(Iterator<int> iterator) {
     final singletonOwnerPrivateKey = PrivateKey.fromStream(iterator);
     final poolingAuthenticationPrivateKey = PrivateKey.fromStream(iterator);
-    final derivationIndex = intFrom32ByteStream(iterator);
+    final derivationIndex = intFrom32BitsStream(iterator);
 
     return SingletonWalletVector(
       singletonOwnerPrivateKey: singletonOwnerPrivateKey,
@@ -35,6 +35,6 @@ class SingletonWalletVector with ToBytesMixin {
   Bytes toBytes() {
     return singletonOwnerPrivateKey.toBytes() +
         poolingAuthenticationPrivateKey.toBytes() +
-        intTo32Bytes(derivationIndex);
+        intTo32Bits(derivationIndex);
   }
 }
