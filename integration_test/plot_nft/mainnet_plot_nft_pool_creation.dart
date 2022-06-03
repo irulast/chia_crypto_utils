@@ -111,8 +111,8 @@ Future<void> main() async {
     launcherId: launcherId,
     masterPrivateKey: keychainSecret.masterPrivateKey,
     singletonOwnerPrivateKeyDerivationIndex: 3,
-);
-  // await poolService.registerPlotNftWithPool(
+  );
+  // await poolService.registerAsFarmerWithPool(
   //   plotNft: plotNft,
   //   masterPrivateKey: keychainSecret.masterPrivateKey,
   //   singletonOwnerPrivateKeyDerivationIndex: 3,

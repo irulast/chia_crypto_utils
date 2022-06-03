@@ -1,7 +1,6 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/pool/models/authentication_payload.dart';
-import 'package:chia_crypto_utils/src/api/pool/models/post_farmer_payload.dart';
 import 'package:chia_crypto_utils/src/api/pool/pool_interface.dart';
+import 'package:chia_crypto_utils/src/core/models/singleton_wallet_vector.dart';
 
 class PoolService {
   const PoolService(this.pool, this.fullNode);
@@ -12,24 +11,18 @@ class PoolService {
 
   Future<Bytes> createPlotNftForPool({
     required Puzzlehash p2SingletonDelayedPuzzlehash,
-    required PrivateKey masterPrivateKey,
-    required int singletonOwnerPrivateKeyDerivationIndex,
+    required SingletonWalletVector singletonWalletVector,
     required List<CoinPrototype> coins,
     Bytes? genesisCoinId,
     required WalletKeychain keychain,
     Puzzlehash? changePuzzlehash,
   }) async {
-    final singletonOwnerSecretKey = masterSkToSingletonOwnerSk(
-      masterPrivateKey,
-      singletonOwnerPrivateKeyDerivationIndex,
-    );
-
     final poolInfo = await pool.getPoolInfo();
 
     final initialTargetState = PoolState(
       poolSingletonState: PoolSingletonState.farmingToPool,
       targetPuzzlehash: poolInfo.targetPuzzlehash,
-      ownerPublicKey: singletonOwnerSecretKey.getG1(),
+      ownerPublicKey: singletonWalletVector.singletonOwnerPublicKey,
       relativeLockHeight: poolInfo.relativeLockHeight,
       poolUrl: pool.poolUrl,
     );
@@ -51,76 +44,45 @@ class PoolService {
     return PlotNftWalletService.makeLauncherCoin(genesisCoin.id).id;
   }
 
-  Future<void> registerPlotNftWithPool({
+  Future<void> registerAsFarmerWithPool({
     required PlotNft plotNft,
-    required PrivateKey masterPrivateKey,
-    required int singletonOwnerPrivateKeyDerivationIndex,
+    required SingletonWalletVector singletonWalletVector,
     required Puzzlehash payoutPuzzlehash,
   }) async {
-    // will probably need SingletonWalletVector(index, singletonOwnerSecretKey, authenticationSecretKey)
-    final authenticationSecretKey = masterSkToPoolingAuthenticationSk(
-      masterPrivateKey,
-      singletonOwnerPrivateKeyDerivationIndex,
-      0,
-    );
-
-    final singletonOwnerSecretKey = masterSkToSingletonOwnerSk(
-      masterPrivateKey,
-      singletonOwnerPrivateKeyDerivationIndex,
-    );
-
-    if (singletonOwnerSecretKey.getG1() != plotNft.extraData.poolState.ownerPublicKey) {
+    if (singletonWalletVector.singletonOwnerPublicKey !=
+        plotNft.extraData.poolState.ownerPublicKey) {
       throw ArgumentError(
-          'Provided singleton owner secret key does not match plotNft owner public key');
+        'Provided SingletonWalletVector  does not match plotNft owner public key',
+      );
     }
 
     final poolInfo = await pool.getPoolInfo();
 
-    final payload = PostFarmerPayload(
+    await pool.addFarmer(
       launcherId: plotNft.launcherId,
       authenticationToken: getCurrentAuthenticationToken(poolInfo.authenticationTokenTimeout),
-      authenticationPublicKey: authenticationSecretKey.getG1(),
+      authenticationPublicKey: singletonWalletVector.poolingAuthenticationPublicKey,
       payoutPuzzlehash: payoutPuzzlehash,
+      singletonOwnerPrivateKey: singletonWalletVector.poolingAuthenticationPrivateKey,
     );
-
-    final signature = AugSchemeMPL.sign(
-      singletonOwnerSecretKey,
-      payload.toBytes().sha256Hash(),
-    );
-
-    await pool.addFarmer(payload, signature);
   }
 
-  Future<void> getFarmer({
+  Future<void> getFarmerInfo({
     required Bytes launcherId,
-    required PrivateKey masterPrivateKey,
-    required int singletonOwnerPrivateKeyDerivationIndex,
+    required PrivateKey authenticationPrivateKey,
   }) async {
-    final authenticationSecretKey = masterSkToPoolingAuthenticationSk(
-      masterPrivateKey,
-      singletonOwnerPrivateKeyDerivationIndex,
-      0,
-    );
-
     final poolInfo = await pool.getPoolInfo();
 
     final authenticationToken = getCurrentAuthenticationToken(poolInfo.authenticationTokenTimeout);
 
-    final authenticationPayload = AuthenticationPayload(
-      endpoint: AuthenticationEndpoint.getFarmer,
+    await pool.getFarmer(
       launcherId: launcherId,
       targetPuzzlehash: poolInfo.targetPuzzlehash,
       authenticationToken: authenticationToken,
+      authenticationSecretKey: authenticationPrivateKey,
     );
-
-    final message = authenticationPayload.toBytes().sha256Hash();
-
-    final signature = AugSchemeMPL.sign(authenticationSecretKey, message);
-    await pool.getFarmer(launcherId, authenticationToken, signature);
   }
 
-  // def get_current_authentication_token(timeout: uint8) -> uint64:
-  //   return uint64(int(int(time.time() / 60) / timeout))
   static int getCurrentAuthenticationToken(int timeout) {
     final secondsSinceEpoch = DateTime.now().millisecondsSinceEpoch / 1000;
     return ((secondsSinceEpoch / 60).floor() / timeout).floor();
