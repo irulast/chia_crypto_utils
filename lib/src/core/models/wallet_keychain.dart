@@ -99,14 +99,33 @@ class WalletKeychain with ToBytesMixin {
   factory WalletKeychain.fromBytes(Bytes bytes) {
     final iterator = bytes.iterator;
 
-    final hardenedWalletVectors = <WalletVector>[];
+    final hardenedWalletVectorMap = <Puzzlehash, WalletVector>{};
+    final unhardenedWalletVectorMap = <Puzzlehash, UnhardenedWalletVector>{};
+    final singletonWalletVectorMap = <JacobianPoint, SingletonWalletVector>{};
 
     final nHardenedWalletVectors = intFrom32BitsStream(iterator);
-    for(var _ = 0; _ < nHardenedWalletVectors; _++) {
-      hardenedWalletVectors.add(Wa)
+    for (var _ = 0; _ < nHardenedWalletVectors; _++) {
+      final wv = WalletVector.fromStream(iterator);
+      hardenedWalletVectorMap[wv.puzzlehash] = wv;
     }
-    final unhardenedWalletVectors = <UnhardenedWalletVector>[];
-    final singletonWalletVectors = <SingletonWalletVector>[];
+
+    final nUnhardenedWalletVectors = intFrom32BitsStream(iterator);
+    for (var _ = 0; _ < nUnhardenedWalletVectors; _++) {
+      final wv = UnhardenedWalletVector.fromStream(iterator);
+      unhardenedWalletVectorMap[wv.puzzlehash] = wv;
+    }
+
+    final nSingletonWalletVectors = intFrom32BitsStream(iterator);
+    for (var _ = 0; _ < nSingletonWalletVectors; _++) {
+      final wv = SingletonWalletVector.fromStream(iterator);
+      singletonWalletVectorMap[wv.singletonOwnerPublicKey] = wv;
+    }
+
+    return WalletKeychain(
+      hardenedMap: hardenedWalletVectorMap,
+      unhardenedMap: unhardenedWalletVectorMap,
+      singletonWalletVectorsMap: singletonWalletVectorMap,
+    );
   }
 
   @override

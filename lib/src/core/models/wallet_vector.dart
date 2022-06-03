@@ -10,8 +10,7 @@ class WalletVector with ToBytesMixin {
     required this.puzzlehash,
   });
 
-  factory WalletVector.fromBytes(Bytes bytes) {
-    final iterator = bytes.iterator;
+  factory WalletVector.fromStream(Iterator<int> iterator) {
     final childPrivateKey = PrivateKey.fromStream(iterator);
     final puzzlehash = Puzzlehash.fromStream(iterator);
 
@@ -19,6 +18,11 @@ class WalletVector with ToBytesMixin {
       childPrivateKey: childPrivateKey,
       puzzlehash: puzzlehash,
     );
+  }
+
+  factory WalletVector.fromBytes(Bytes bytes) {
+    final iterator = bytes.iterator;
+    return WalletVector.fromStream(iterator);
   }
 
   factory WalletVector.fromPrivateKey(
@@ -111,11 +115,6 @@ class UnhardenedWalletVector extends WalletVector {
   }
 
   factory UnhardenedWalletVector.fromStream(Iterator<int> iterator) {
-    
-  }
-
-  factory UnhardenedWalletVector.fromBytes(Bytes bytes) {
-    final iterator = bytes.iterator;
     final childPrivateKey = PrivateKey.fromStream(iterator);
     final puzzlehash = Puzzlehash.fromStream(iterator);
 
@@ -134,6 +133,11 @@ class UnhardenedWalletVector extends WalletVector {
       puzzlehash: puzzlehash,
       assetIdtoOuterPuzzlehash: assetIdToOuterPuzzlehashMap,
     );
+  }
+
+  factory UnhardenedWalletVector.fromBytes(Bytes bytes) {
+    final iterator = bytes.iterator;
+    return UnhardenedWalletVector.fromStream(iterator);
   }
 
   @override
