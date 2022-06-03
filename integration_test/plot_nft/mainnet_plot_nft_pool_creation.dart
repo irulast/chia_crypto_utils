@@ -2,8 +2,10 @@
 import 'dart:io';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/api/pool/pool_http_rest.dart';
 import 'package:chia_crypto_utils/src/api/pool/pool_interface.dart';
 import 'package:chia_crypto_utils/src/api/pool/service/pool_service.dart';
+import 'package:chia_crypto_utils/src/core/models/singleton_wallet_vector.dart';
 import 'package:test/scaffolding.dart';
 
 Future<void> main() async {
@@ -19,7 +21,8 @@ Future<void> main() async {
 
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
   const fullNode = ChiaFullNodeInterface(fullNodeRpc);
-  final poolInterface = PoolInterface(poolUrl, certBytes: certificateBytes);
+  final poolHttpRest = PoolHttpREST(poolUrl, certBytes: certificateBytes);
+  final poolInterface = PoolInterface(poolHttpRest);
 
   final poolService = PoolService(poolInterface, fullNode);
 
@@ -30,94 +33,59 @@ Future<void> main() async {
   final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
   print(keychainSecret.fingerprint);
   final walletsSetList = <WalletSet>[];
-  for (var i = 0; i < 6; i++) {
+  for (var i = 0; i < 11; i++) {
     final set1 = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, i);
     walletsSetList.add(set1);
   }
 
   final keychain = WalletKeychain.fromWalletSets(walletsSetList);
-  print('masterPublicKey: ${keychainSecret.masterPublicKey}');
 
-  // print('owner keys at index: ');
-  // for (var i = 0; i < 10; i++) {
-  //   final ownerPk = masterSkToSingletonOwnerSk(keychainSecret.masterPrivateKey, i).getG1();
-  //   print('$i -> $ownerPk');
-  // }
+  print('MASTER_PRIVATE_KEY');
+    print(keychainSecret.masterPrivateKey);
 
-  // print('unhardenedPuzzlehashes at index:');
-  // for (var i = 0; i < 5; i++) {
-  //   final ph = keychain.puzzlehashes[i];
-  //   print('$i -> $ph');
-  // }
+  final singletonWalletVector = SingletonWalletVector.fromMasterPrivateKey(keychainSecret.masterPrivateKey, 7);
+print(singletonWalletVector.singletonOwnerPrivateKey);
+
 
   final coins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
-  print(coins);
-  // return;
+  
+  
 
-  final chiaLauncherId =
-      Bytes.fromHex('876adf3ef717d4a7735d6e3fcdc582811a1be11656aec5e6dcd868f6ee69457c');
-  final lauchercoin = await fullNode.getCoinById(chiaLauncherId);
-  final genesisCoin = await fullNode.getCoinById(lauchercoin!.parentCoinInfo);
-
-  final chiaPayoutAddress =
-      Address('xch1z630wrqdz5976xfnpeq9lgy2yuk3zqhga2s6xpfjqk0y8zmugwlqymglyr');
-
-  final chiaPayoutPuzzlehash = chiaPayoutAddress.toPuzzlehash();
-  // print('chia payout ph: $chiaPayoutPuzzlehash');
-
-  // final genesisSpend = await fullNode.getCoinSpend(genesisCoin!);
-  // print('chia genesis spend:');
-  // print(genesisSpend);
-  // print(' ');
-  // print('-----------');
-  // print(' ');
-
-  // final launcherSpend = await fullNode.getCoinSpend(lauchercoin);
-  // print('chia launcher spend:');
-  // print(launcherSpend);
-  // print(' ');
-  // print('-----------');
-  // print(' ');
-
-  final delayPh = keychain.puzzlehashes[4];
-  print('delayPh: $delayPh');
-  final ownerSk = masterSkToSingletonOwnerSk(
-    keychainSecret.masterPrivateKey,
-    3,
-  );
-  final ownerPk = ownerSk.getG1();
-  print('ownerPk: $ownerPk');
-
-  LoggingContext().setLogLevel(LogLevel.low);
+  final delayPh = keychain.puzzlehashes[9];
+  
 
   // final launcherId = await poolService.createPlotNftForPool(
   //   p2SingletonDelayedPuzzlehash: delayPh,
-  //   masterPrivateKey: keychainSecret.masterPrivateKey,
-  //   singletonOwnerPrivateKeyDerivationIndex: 3,
+  //   singletonWalletVector: singletonWalletVector,
   //   coins: [coins[0]],
   //   keychain: keychain,
   //   changePuzzlehash: keychain.puzzlehashes[3],
   // );
   // print(launcherId);
   final launcherId =
-      Bytes.fromHex('9204dfdc12a9b896a7c143bd905fabf5a4910f4ea844ea7e9540c662a40dd594');
-  // final launcherCoin = await fullNode.getCoinById(launcherId);
-  // // print(launcherCoin);
-  // final plotNft = await fullNode.getPlotNftByLauncherId(launcherId);
+      Bytes.fromHex('b69e2ce46ccf60dd04e54f2517c67a6d311221cf12b1e790ff4b9eb7740f9c0b');
+  final launcherCoin = await fullNode.getCoinById(launcherId);
+  print(launcherCoin);
+  final plotNft = await fullNode.getPlotNftByLauncherId(launcherId);
   // print(plotNft);
   // print('payout_address: ${chiaPayoutAddress.address}');
 
-  await poolService.getFarmer(
-    launcherId: launcherId,
-    masterPrivateKey: keychainSecret.masterPrivateKey,
-    singletonOwnerPrivateKeyDerivationIndex: 3,
-  );
-  // await poolService.registerAsFarmerWithPool(
-  //   plotNft: plotNft,
+  // await poolService.getFarmer(
+  //   launcherId: launcherId,
   //   masterPrivateKey: keychainSecret.masterPrivateKey,
   //   singletonOwnerPrivateKeyDerivationIndex: 3,
-  //   payoutPuzzlehash: chiaPayoutAddress.toPuzzlehash(),
   // );
+
+  final chiaPayoutAddress =
+      Address('xch1z630wrqdz5976xfnpeq9lgy2yuk3zqhga2s6xpfjqk0y8zmugwlqymglyr');
+
+  final chiaPayoutPuzzlehash = chiaPayoutAddress.toPuzzlehash();
+  LoggingContext().setLogLevel(LogLevel.low);
+  await poolService.registerAsFarmerWithPool(
+    plotNft: plotNft,
+    singletonWalletVector: singletonWalletVector,
+    payoutPuzzlehash: chiaPayoutPuzzlehash,
+  );
 
   // test('get chia plot nft', () async {
   //   // final chiaLauncherId =

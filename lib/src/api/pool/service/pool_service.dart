@@ -63,7 +63,7 @@ class PoolService {
       authenticationToken: getCurrentAuthenticationToken(poolInfo.authenticationTokenTimeout),
       authenticationPublicKey: singletonWalletVector.poolingAuthenticationPublicKey,
       payoutPuzzlehash: payoutPuzzlehash,
-      singletonOwnerPrivateKey: singletonWalletVector.poolingAuthenticationPrivateKey,
+      singletonOwnerPrivateKey: singletonWalletVector.singletonOwnerPrivateKey,
     );
   }
 
