@@ -13,7 +13,7 @@ final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
 // generate keys, addresses, puzzlehashes at desired derivation index (both hardened and unhardened)
 final walletKeyAddressSet = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, 0);
 
-final keychain = WalletKeychain([walletKeyAddressSet])
+final keychain = WalletKeychain.fromWalletSets([walletKeyAddressSet])
 ```
 
 ### Adding CAT outer puzzle hashes for a given asset ID to your keychain
@@ -41,7 +41,7 @@ for (var i = 0; i < 10; i++) {
   final set1 = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, i);
   walletsSetList.add(set1);
 }
-final keychain = WalletKeychain(walletsSetList);
+final keychain = WalletKeychain.fromWalletSets(walletsSetList);
 
 // initializing FullNodeInterface
 final fullNodeRpc  = FullNodeHttpRpc(
@@ -91,7 +91,7 @@ for (var i = 0; i < 10; i++) {
 }
 
 // outer puzzle hashes must be added to keychain so it can look up the correct keys, used when creating a spendbundle
-final keychain = WalletKeychain(walletsSetList)
+final keychain = WalletKeychain.fromWalletSets(walletsSetList)
   ..addOuterPuzzleHashesForAssetId(assetId);
 
 // initializing FullNodeInterface

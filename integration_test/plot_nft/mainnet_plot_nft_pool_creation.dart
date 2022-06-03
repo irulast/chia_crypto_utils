@@ -35,7 +35,7 @@ Future<void> main() async {
     walletsSetList.add(set1);
   }
 
-  final keychain = WalletKeychain(walletsSetList);
+  final keychain = WalletKeychain.fromWalletSets(walletsSetList);
   print('masterPublicKey: ${keychainSecret.masterPublicKey}');
 
   // print('owner keys at index: ');
@@ -88,8 +88,7 @@ Future<void> main() async {
   final ownerPk = ownerSk.getG1();
   print('ownerPk: $ownerPk');
 
-    LoggingContext().setLogLevel(LogLevel.low);
-
+  LoggingContext().setLogLevel(LogLevel.low);
 
   // final launcherId = await poolService.createPlotNftForPool(
   //   p2SingletonDelayedPuzzlehash: delayPh,

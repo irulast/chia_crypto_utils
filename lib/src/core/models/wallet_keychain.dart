@@ -5,12 +5,13 @@ import 'package:chia_crypto_utils/src/core/models/singleton_wallet_vector.dart';
 import 'package:chia_crypto_utils/src/utils/serialization.dart';
 
 class WalletKeychain with ToBytesMixin {
-  Map<Puzzlehash, WalletVector> hardenedMap = <Puzzlehash, WalletVector>{};
+  final Map<Puzzlehash, WalletVector> hardenedMap;
+  List<WalletVector> get hardenedWalletVectors => hardenedMap.values.toList();
 
-  Map<Puzzlehash, UnhardenedWalletVector> unhardenedMap = <Puzzlehash, UnhardenedWalletVector>{};
+  final Map<Puzzlehash, UnhardenedWalletVector> unhardenedMap;
+  List<UnhardenedWalletVector> get unhardenedWalletVectors => unhardenedMap.values.toList();
 
-  Map<JacobianPoint, SingletonWalletVector> singletonWalletVectorsMap =
-      <JacobianPoint, SingletonWalletVector>{};
+  final Map<JacobianPoint, SingletonWalletVector> singletonWalletVectorsMap;
 
   List<SingletonWalletVector> get singletonWalletVectors =>
       singletonWalletVectorsMap.values.toList();
@@ -32,12 +33,14 @@ class WalletKeychain with ToBytesMixin {
     return newSingletonWalletVector;
   }
 
-  SingletonWalletVector addSingletonWalletVectorForSingletonOwnerPublicKey(JacobianPoint singletonOwnerPublicKey, PrivateKey masterPrivateKey) {
+  SingletonWalletVector addSingletonWalletVectorForSingletonOwnerPublicKey(
+      JacobianPoint singletonOwnerPublicKey, PrivateKey masterPrivateKey) {
     const maxIndexToCheck = 1000;
-    for(var i = 0; i < maxIndexToCheck; i++) {
+    for (var i = 0; i < maxIndexToCheck; i++) {
       final singletonOwnerSecretKey = masterSkToSingletonOwnerSk(masterPrivateKey, i);
-      if (singletonOwnerSecretKey.getG1()==singletonOwnerPublicKey){
-        final newSingletonWalletVector = SingletonWalletVector.fromMasterPrivateKey(masterPrivateKey, i);
+      if (singletonOwnerSecretKey.getG1() == singletonOwnerPublicKey) {
+        final newSingletonWalletVector =
+            SingletonWalletVector.fromMasterPrivateKey(masterPrivateKey, i);
         singletonWalletVectorsMap[singletonOwnerPublicKey] = newSingletonWalletVector;
         return newSingletonWalletVector;
       }
@@ -59,7 +62,13 @@ class WalletKeychain with ToBytesMixin {
     return hardenedMap[puzzlehash];
   }
 
-  WalletKeychain(List<WalletSet> walletSets) {
+  const WalletKeychain({
+    this.hardenedMap = const {},
+    this.unhardenedMap = const {},
+    this.singletonWalletVectorsMap = const {},
+  });
+
+  factory WalletKeychain.fromWalletSets(List<WalletSet> walletSets) {
     final newHardenedMap = <Puzzlehash, WalletVector>{};
     final newUnhardenedMap = <Puzzlehash, UnhardenedWalletVector>{};
 
@@ -67,11 +76,12 @@ class WalletKeychain with ToBytesMixin {
       newHardenedMap[walletSet.hardened.puzzlehash] = walletSet.hardened;
       newUnhardenedMap[walletSet.unhardened.puzzlehash] = walletSet.unhardened;
     }
-    hardenedMap = newHardenedMap;
-    unhardenedMap = newUnhardenedMap;
-  }
 
-  WalletKeychain.fromMaps(this.hardenedMap, this.unhardenedMap);
+    return WalletKeychain(
+      hardenedMap: newHardenedMap,
+      unhardenedMap: newUnhardenedMap,
+    );
+  }
 
   factory WalletKeychain.fromCoreSecret(
     KeychainCoreSecret coreSecret,
@@ -83,64 +93,27 @@ class WalletKeychain with ToBytesMixin {
       walletsSetList.add(set);
     }
 
-    return WalletKeychain(walletsSetList);
+    return WalletKeychain.fromWalletSets(walletsSetList);
   }
 
   factory WalletKeychain.fromBytes(Bytes bytes) {
-    var byteIndex = 0;
+    final iterator = bytes.iterator;
 
-    final hardenedMapLength = decodeInt(bytes.sublist(byteIndex, byteIndex + 4));
-    byteIndex += 4;
+    final hardenedWalletVectors = <WalletVector>[];
 
-    final hardenedMap = <Puzzlehash, WalletVector>{};
-
-    for (var _i = 0; _i < hardenedMapLength; _i++) {
-      final keyLength = decodeInt(bytes.sublist(byteIndex, byteIndex + 4));
-      final keyLeft = byteIndex + 4;
-      final keyRight = keyLeft + keyLength;
-
-      final valueLength = decodeInt(bytes.sublist(keyRight, keyRight + 4));
-      final valueLeft = keyRight + 4;
-      final valueRight = valueLeft + valueLength;
-
-      final puzzlehash = Puzzlehash(bytes.sublist(keyLeft, keyRight));
-      final walletVector = WalletVector.fromBytes(bytes.sublist(valueLeft, valueRight));
-
-      hardenedMap[puzzlehash] = walletVector;
-
-      byteIndex = valueRight;
+    final nHardenedWalletVectors = intFrom32BitsStream(iterator);
+    for(var _ = 0; _ < nHardenedWalletVectors; _++) {
+      hardenedWalletVectors.add(Wa)
     }
-
-    final unhardenedMapLength = decodeInt(bytes.sublist(byteIndex, byteIndex + 4));
-    byteIndex += 4;
-
-    final unhardenedMap = <Puzzlehash, UnhardenedWalletVector>{};
-
-    for (var _i = 0; _i < unhardenedMapLength; _i++) {
-      final keyLength = decodeInt(bytes.sublist(byteIndex, byteIndex + 4));
-      final keyLeft = byteIndex + 4;
-      final keyRight = keyLeft + keyLength;
-
-      final valueLength = decodeInt(bytes.sublist(keyRight, keyRight + 4));
-      final valueLeft = keyRight + 4;
-      final valueRight = valueLeft + valueLength;
-
-      final puzzlehash = Puzzlehash(bytes.sublist(keyLeft, keyRight));
-      final walletVector = UnhardenedWalletVector.fromBytes(
-        bytes.sublist(valueLeft, valueRight),
-      );
-
-      unhardenedMap[puzzlehash] = walletVector;
-
-      byteIndex = valueRight;
-    }
-
-    return WalletKeychain.fromMaps(hardenedMap, unhardenedMap);
+    final unhardenedWalletVectors = <UnhardenedWalletVector>[];
+    final singletonWalletVectors = <SingletonWalletVector>[];
   }
 
   @override
   Bytes toBytes() {
-    return serializeList(<dynamic>[hardenedMap, unhardenedMap]);
+    return serializeListChia(hardenedWalletVectors) +
+        serializeList(unhardenedWalletVectors) +
+        serializeList(singletonWalletVectors);
   }
 
   List<Puzzlehash> get puzzlehashes =>

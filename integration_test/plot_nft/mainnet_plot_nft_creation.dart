@@ -22,7 +22,7 @@ Future<void> main() async {
     walletsSetList.add(set1);
   }
 
-  final keychain = WalletKeychain(walletsSetList);
+  final keychain = WalletKeychain.fromWalletSets(walletsSetList);
 
   final targetPuzzleHash = keychain.unhardenedMap.values.first.puzzlehash;
 
@@ -32,8 +32,7 @@ Future<void> main() async {
   );
   print(targetAddress.address);
 
-  final coins = await fullNode
-      .getCoinsByPuzzleHashes([targetPuzzleHash]);
+  final coins = await fullNode.getCoinsByPuzzleHashes([targetPuzzleHash]);
   print(coins);
 
   coins.sort(
@@ -73,16 +72,13 @@ Future<void> main() async {
 
   // print('launcher_id: ${launcherId}');
 
-      final plotNft = await fullNode.getPlotNftByLauncherId(launcherId);
-      print('plot NFT: ');
-      print(plotNft);
+  final plotNft = await fullNode.getPlotNftByLauncherId(launcherId);
+  print('plot NFT: ');
+  print(plotNft);
 
-
-    print('singleton_puzzle_hash: ${plotNft.singletonCoin.puzzlehash}');
-    print('pool_state:');
-    print(
-      plotNft.extraData.poolState
-    );
+  print('singleton_puzzle_hash: ${plotNft.singletonCoin.puzzlehash}');
+  print('pool_state:');
+  print(plotNft.extraData.poolState);
 
   final poolPuzzlehash = poolWalletService.launcherIdToP2Puzzlehash(
     launcherId,
@@ -96,5 +92,4 @@ Future<void> main() async {
   // print(
   //   'xch_payout_address: ${Address.fromPuzzlehash(keychain.hardenedMap.values.first.puzzlehash, poolWalletService.blockchainNetwork.addressPrefix).address}',
   // );
-
 }
