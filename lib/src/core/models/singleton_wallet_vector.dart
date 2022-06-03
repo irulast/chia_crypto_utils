@@ -1,5 +1,7 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:meta/meta.dart';
 
+@immutable
 class SingletonWalletVector with ToBytesMixin {
   const SingletonWalletVector({
     required this.singletonOwnerPrivateKey,
@@ -24,6 +26,11 @@ class SingletonWalletVector with ToBytesMixin {
     );
   }
 
+  factory SingletonWalletVector.fromBytes(Bytes bytes){
+    final iterator = bytes.iterator;
+    return SingletonWalletVector.fromStream(iterator);
+  }
+
   final PrivateKey singletonOwnerPrivateKey;
   final PrivateKey poolingAuthenticationPrivateKey;
   final int derivationIndex;
@@ -36,5 +43,23 @@ class SingletonWalletVector with ToBytesMixin {
     return singletonOwnerPrivateKey.toBytes() +
         poolingAuthenticationPrivateKey.toBytes() +
         intTo32Bits(derivationIndex);
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^
+      singletonOwnerPrivateKey.hashCode ^
+      poolingAuthenticationPrivateKey.hashCode ^
+      derivationIndex.hashCode;
+
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is SingletonWalletVector &&
+            runtimeType == other.runtimeType &&
+            singletonOwnerPrivateKey == other.singletonOwnerPrivateKey &&
+            poolingAuthenticationPrivateKey == other.poolingAuthenticationPrivateKey &&
+            derivationIndex == other.derivationIndex;
   }
 }

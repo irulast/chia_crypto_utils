@@ -62,10 +62,10 @@ class WalletKeychain with ToBytesMixin {
     return hardenedMap[puzzlehash];
   }
 
-  const WalletKeychain({
-    this.hardenedMap = const {},
-    this.unhardenedMap = const {},
-    this.singletonWalletVectorsMap = const {},
+   WalletKeychain({
+    required this.hardenedMap,
+    required this.unhardenedMap,
+    required this.singletonWalletVectorsMap,
   });
 
   factory WalletKeychain.fromWalletSets(List<WalletSet> walletSets) {
@@ -80,6 +80,7 @@ class WalletKeychain with ToBytesMixin {
     return WalletKeychain(
       hardenedMap: newHardenedMap,
       unhardenedMap: newUnhardenedMap,
+      singletonWalletVectorsMap: {}
     );
   }
 
@@ -113,6 +114,9 @@ class WalletKeychain with ToBytesMixin {
     for (var _ = 0; _ < nUnhardenedWalletVectors; _++) {
       final wv = UnhardenedWalletVector.fromStream(iterator);
       unhardenedWalletVectorMap[wv.puzzlehash] = wv;
+      for (final outerPuzzlehash in wv.assetIdtoOuterPuzzlehash.values) {
+        unhardenedWalletVectorMap[outerPuzzlehash] = wv;
+      }
     }
 
     final nSingletonWalletVectors = intFrom32BitsStream(iterator);
@@ -131,8 +135,8 @@ class WalletKeychain with ToBytesMixin {
   @override
   Bytes toBytes() {
     return serializeListChia(hardenedWalletVectors) +
-        serializeList(unhardenedWalletVectors) +
-        serializeList(singletonWalletVectors);
+        serializeListChia(unhardenedWalletVectors) +
+        serializeListChia(singletonWalletVectors);
   }
 
   List<Puzzlehash> get puzzlehashes =>

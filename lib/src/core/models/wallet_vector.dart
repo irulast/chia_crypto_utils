@@ -104,9 +104,8 @@ class UnhardenedWalletVector extends WalletVector {
 
     bytesList += intTo32Bits(assetIdtoOuterPuzzlehash.length);
 
-    final assetIdMapBytes = <int>[];
     assetIdtoOuterPuzzlehash.forEach((assetId, outerPuzzlehash) {
-      assetIdMapBytes
+      bytesList
         ..addAll(assetId)
         ..addAll(outerPuzzlehash);
     });
