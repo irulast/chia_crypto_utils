@@ -150,3 +150,12 @@ List<int> randomBytes(int length) {
   }
   return result;
 }
+
+extension StripByItsPrefix on String {
+  String stripBytesPrefix() {
+    if (startsWith(Bytes.bytesPrefix)) {
+      return replaceFirst(Bytes.bytesPrefix, '');
+    }
+    return this;
+  }
+}

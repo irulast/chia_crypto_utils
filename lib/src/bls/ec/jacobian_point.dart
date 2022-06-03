@@ -131,12 +131,12 @@ class JacobianPoint with ToBytesMixin {
   }
 
   factory JacobianPoint.fromHexG1(String hex, {bool? isExtension}) {
-    return JacobianPoint.fromBytesG1(const HexDecoder().convert(hex),
+    return JacobianPoint.fromBytesG1(const HexDecoder().convert(hex.stripBytesPrefix()),
         isExtension: isExtension);
   }
 
   factory JacobianPoint.fromHexG2(String hex, {bool? isExtension}) {
-    return JacobianPoint.fromBytesG2(const HexDecoder().convert(hex),
+    return JacobianPoint.fromBytesG2(const HexDecoder().convert(hex.stripBytesPrefix()),
         isExtension: isExtension);
   }
 

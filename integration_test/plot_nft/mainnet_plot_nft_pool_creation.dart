@@ -69,23 +69,23 @@ print(singletonWalletVector.singletonOwnerPrivateKey);
   final plotNft = await fullNode.getPlotNftByLauncherId(launcherId);
   // print(plotNft);
   // print('payout_address: ${chiaPayoutAddress.address}');
+    LoggingContext().setLogLevel(LogLevel.low);
 
-  // await poolService.getFarmer(
-  //   launcherId: launcherId,
-  //   masterPrivateKey: keychainSecret.masterPrivateKey,
-  //   singletonOwnerPrivateKeyDerivationIndex: 3,
-  // );
+
+  await poolService.getFarmerInfo(
+    launcherId: launcherId,
+    authenticationPrivateKey: singletonWalletVector.poolingAuthenticationPrivateKey,
+  );
 
   final chiaPayoutAddress =
       Address('xch1z630wrqdz5976xfnpeq9lgy2yuk3zqhga2s6xpfjqk0y8zmugwlqymglyr');
 
   final chiaPayoutPuzzlehash = chiaPayoutAddress.toPuzzlehash();
-  LoggingContext().setLogLevel(LogLevel.low);
-  await poolService.registerAsFarmerWithPool(
-    plotNft: plotNft,
-    singletonWalletVector: singletonWalletVector,
-    payoutPuzzlehash: chiaPayoutPuzzlehash,
-  );
+  // await poolService.registerAsFarmerWithPool(
+  //   plotNft: plotNft,
+  //   singletonWalletVector: singletonWalletVector,
+  //   payoutPuzzlehash: chiaPayoutPuzzlehash,
+  // );
 
   // test('get chia plot nft', () async {
   //   // final chiaLauncherId =
