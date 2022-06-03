@@ -5,64 +5,7 @@ import 'package:chia_crypto_utils/src/core/models/singleton_wallet_vector.dart';
 import 'package:chia_crypto_utils/src/utils/serialization.dart';
 
 class WalletKeychain with ToBytesMixin {
-  final Map<Puzzlehash, WalletVector> hardenedMap;
-  List<WalletVector> get hardenedWalletVectors => hardenedMap.values.toList();
-
-  final Map<Puzzlehash, UnhardenedWalletVector> unhardenedMap;
-  List<UnhardenedWalletVector> get unhardenedWalletVectors => unhardenedMap.values.toList();
-
-  final Map<JacobianPoint, SingletonWalletVector> singletonWalletVectorsMap;
-
-  List<SingletonWalletVector> get singletonWalletVectors =>
-      singletonWalletVectorsMap.values.toList();
-
-  SingletonWalletVector addNewSingletonWalletVector(PrivateKey masterPrivateKey) {
-    final usedDerivationIndices = singletonWalletVectors.map((wv) => wv.derivationIndex).toList();
-
-    var newDerivationIndex = 0;
-    while (usedDerivationIndices.contains(newDerivationIndex)) {
-      newDerivationIndex++;
-    }
-
-    final newSingletonWalletVector =
-        SingletonWalletVector.fromMasterPrivateKey(masterPrivateKey, newDerivationIndex);
-
-    singletonWalletVectorsMap[newSingletonWalletVector.singletonOwnerPublicKey] =
-        newSingletonWalletVector;
-
-    return newSingletonWalletVector;
-  }
-
-  SingletonWalletVector addSingletonWalletVectorForSingletonOwnerPublicKey(
-      JacobianPoint singletonOwnerPublicKey, PrivateKey masterPrivateKey) {
-    const maxIndexToCheck = 1000;
-    for (var i = 0; i < maxIndexToCheck; i++) {
-      final singletonOwnerSecretKey = masterSkToSingletonOwnerSk(masterPrivateKey, i);
-      if (singletonOwnerSecretKey.getG1() == singletonOwnerPublicKey) {
-        final newSingletonWalletVector =
-            SingletonWalletVector.fromMasterPrivateKey(masterPrivateKey, i);
-        singletonWalletVectorsMap[singletonOwnerPublicKey] = newSingletonWalletVector;
-        return newSingletonWalletVector;
-      }
-    }
-    throw ArgumentError('Given singletonOwnerPublicKey does not match mnemonic');
-  }
-
-  SingletonWalletVector? getSingletonWalletVector(JacobianPoint ownerPublicKey) {
-    return singletonWalletVectorsMap[ownerPublicKey];
-  }
-
-  WalletVector? getWalletVector(Puzzlehash puzzlehash) {
-    final walletVector = unhardenedMap[puzzlehash];
-
-    if (walletVector != null) {
-      return walletVector;
-    }
-
-    return hardenedMap[puzzlehash];
-  }
-
-   WalletKeychain({
+  WalletKeychain({
     required this.hardenedMap,
     required this.unhardenedMap,
     required this.singletonWalletVectorsMap,
@@ -80,7 +23,7 @@ class WalletKeychain with ToBytesMixin {
     return WalletKeychain(
       hardenedMap: newHardenedMap,
       unhardenedMap: newUnhardenedMap,
-      singletonWalletVectorsMap: {}
+      singletonWalletVectorsMap: {},
     );
   }
 
@@ -137,6 +80,66 @@ class WalletKeychain with ToBytesMixin {
     return serializeListChia(hardenedWalletVectors) +
         serializeListChia(unhardenedWalletVectors) +
         serializeListChia(singletonWalletVectors);
+  }
+
+  final Map<Puzzlehash, WalletVector> hardenedMap;
+  List<WalletVector> get hardenedWalletVectors => hardenedMap.values.toList();
+
+  final Map<Puzzlehash, UnhardenedWalletVector> unhardenedMap;
+  List<UnhardenedWalletVector> get unhardenedWalletVectors => unhardenedMap.values.toList();
+
+  final Map<JacobianPoint, SingletonWalletVector> singletonWalletVectorsMap;
+
+  List<SingletonWalletVector> get singletonWalletVectors =>
+      singletonWalletVectorsMap.values.toList();
+
+  SingletonWalletVector addNewSingletonWalletVector(PrivateKey masterPrivateKey) {
+    final usedDerivationIndices = singletonWalletVectors.map((wv) => wv.derivationIndex).toList();
+
+    var newDerivationIndex = 0;
+    while (usedDerivationIndices.contains(newDerivationIndex)) {
+      newDerivationIndex++;
+    }
+
+    final newSingletonWalletVector =
+        SingletonWalletVector.fromMasterPrivateKey(masterPrivateKey, newDerivationIndex);
+
+    singletonWalletVectorsMap[newSingletonWalletVector.singletonOwnerPublicKey] =
+        newSingletonWalletVector;
+
+    return newSingletonWalletVector;
+  }
+
+  SingletonWalletVector addSingletonWalletVectorForSingletonOwnerPublicKey(
+    JacobianPoint singletonOwnerPublicKey,
+    PrivateKey masterPrivateKey,
+  ) {
+    const maxIndexToCheck = 1000;
+    for (var i = 0; i < maxIndexToCheck; i++) {
+      final singletonOwnerSecretKey = masterSkToSingletonOwnerSk(masterPrivateKey, i);
+      if (singletonOwnerSecretKey.getG1() == singletonOwnerPublicKey) {
+        final newSingletonWalletVector =
+            SingletonWalletVector.fromMasterPrivateKey(masterPrivateKey, i);
+        singletonWalletVectorsMap[singletonOwnerPublicKey] = newSingletonWalletVector;
+        return newSingletonWalletVector;
+      }
+    }
+    throw ArgumentError(
+        'Given singletonOwnerPublicKey does not match mnemonic up to derivation index $maxIndexToCheck');
+  }
+
+  SingletonWalletVector? getSingletonWalletVector(JacobianPoint ownerPublicKey) {
+    return singletonWalletVectorsMap[ownerPublicKey];
+  }
+
+  WalletVector? getWalletVector(Puzzlehash puzzlehash) {
+    final walletVector = unhardenedMap[puzzlehash];
+
+    if (walletVector != null) {
+      return walletVector;
+    }
+
+    return hardenedMap[puzzlehash];
   }
 
   List<Puzzlehash> get puzzlehashes =>
