@@ -1,50 +1,62 @@
-import 'dart:convert';
-
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/api/pool/models/authentication_payload.dart';
 import 'package:chia_crypto_utils/src/api/pool/models/get_farmer_response.dart';
 import 'package:chia_crypto_utils/src/api/pool/models/pool_info.dart';
 import 'package:chia_crypto_utils/src/api/pool/models/post_farmer_payload.dart';
+import 'package:chia_crypto_utils/src/api/pool/pool_http_rest.dart';
 
-class PoolHttpREST {
-  const PoolHttpREST(this.poolUrl, {this.certBytes});
+class PoolInterface {
+  PoolInterface(this.pool);
+  final PoolHttpREST pool;
 
-  final String poolUrl;
-  final Bytes? certBytes;
-
-  Client get client => Client(poolUrl, certBytes: certBytes);
+  String get poolUrl => pool.poolUrl;
 
   Future<PoolInfo> getPoolInfo() async {
-    final response = await client.get(Uri.parse('pool_info'));
-    return PoolInfo.fromJson(
-      jsonDecode(response.body) as Map<String, dynamic>,
+    return pool.getPoolInfo();
+  }
+
+  Future<void> addFarmer({
+    required Bytes launcherId,
+    required int authenticationToken,
+    required JacobianPoint authenticationPublicKey,
+    required Puzzlehash payoutPuzzlehash,
+    required PrivateKey singletonOwnerPrivateKey,
+    int? suggestedDifficulty,
+  }) async {
+    final payload = PostFarmerPayload(
+      launcherId: launcherId,
+      authenticationToken: authenticationToken,
+      authenticationPublicKey: authenticationPublicKey,
+      payoutPuzzlehash: payoutPuzzlehash,
+      suggestedDifficulty: suggestedDifficulty,
     );
-  }
 
-  Future<void> addFarmer(PostFarmerPayload payload, JacobianPoint signature) async {
-    final response = await client.post(Uri.parse('farmer'), <String, dynamic>{
-      'payload': payload.toJson(),
-      'signature': signature.toHexWithPrefix(),
-    });
-    print(response.body);
-  }
-
-  Future<GetFarmerResponse> getFarmer(Bytes launcherId, int authenticationToken, JacobianPoint signature) async {
-    final response = await client.get(
-      Uri.parse('farmer'),
-      queryParameters: <String, dynamic>{
-        'launcher_id': launcherId.hexWithBytesPrefix,
-        'authentication_token': authenticationToken.toString(),
-        'signature': signature.toHexWithPrefix(),
-      },
+    final signature = AugSchemeMPL.sign(
+      singletonOwnerPrivateKey,
+      payload.toBytes().sha256Hash(),
     );
-    return GetFarmerResponse.fromJson(jsonDecode(response.body)as Map<String, dynamic>);
+
+    await pool.addFarmer(payload, signature);
   }
 
-  static void mapResponseToError(Response response) {
-    switch (response.statusCode) {
-      case 500:
-        throw InternalServeErrorException(message: response.body);
-    }
+  Future<Farmer> getFarmer({
+    required Bytes launcherId,
+    required Puzzlehash targetPuzzlehash,
+    required int authenticationToken,
+    required PrivateKey authenticationSecretKey,
+  }) async {
+    final authenticationPayload = AuthenticationPayload(
+      endpoint: AuthenticationEndpoint.getFarmer,
+      launcherId: launcherId,
+      targetPuzzlehash: targetPuzzlehash,
+      authenticationToken: authenticationToken,
+    );
+
+    final signature = AugSchemeMPL.sign(
+      authenticationSecretKey,
+      authenticationPayload.toBytes().sha256Hash(),
+    );
+
+    return pool.getFarmer(launcherId, authenticationToken, signature);
   }
 }

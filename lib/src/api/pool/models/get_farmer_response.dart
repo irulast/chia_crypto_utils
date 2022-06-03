@@ -20,3 +20,5 @@ class GetFarmerResponse {
   final int currentDifficulty;
   final int currentPoints;
 }
+
+typedef Farmer = GetFarmerResponse;

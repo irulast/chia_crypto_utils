@@ -4,8 +4,8 @@ import 'package:chia_crypto_utils/src/api/pool/models/post_farmer_payload.dart';
 import 'package:chia_crypto_utils/src/api/pool/pool_interface.dart';
 
 class PoolService {
-  const PoolService(this.poolInterface, this.fullNode);
-  final PoolInterface poolInterface;
+  const PoolService(this.pool, this.fullNode);
+  final PoolInterface pool;
   final ChiaFullNodeInterface fullNode;
 
   PlotNftWalletService get plotNftWalletService => PlotNftWalletService();
@@ -24,14 +24,14 @@ class PoolService {
       singletonOwnerPrivateKeyDerivationIndex,
     );
 
-    final poolInfo = await poolInterface.getPoolInfo();
+    final poolInfo = await pool.getPoolInfo();
 
     final initialTargetState = PoolState(
       poolSingletonState: PoolSingletonState.farmingToPool,
       targetPuzzlehash: poolInfo.targetPuzzlehash,
       ownerPublicKey: singletonOwnerSecretKey.getG1(),
       relativeLockHeight: poolInfo.relativeLockHeight,
-      poolUrl: poolInterface.poolUrl,
+      poolUrl: pool.poolUrl,
     );
 
     final genesisCoin =
@@ -74,7 +74,7 @@ class PoolService {
           'Provided singleton owner secret key does not match plotNft owner public key');
     }
 
-    final poolInfo = await poolInterface.getPoolInfo();
+    final poolInfo = await pool.getPoolInfo();
 
     final payload = PostFarmerPayload(
       launcherId: plotNft.launcherId,
@@ -88,7 +88,7 @@ class PoolService {
       payload.toBytes().sha256Hash(),
     );
 
-    await poolInterface.addFarmer(payload, signature);
+    await pool.addFarmer(payload, signature);
   }
 
   Future<void> getFarmer({
@@ -102,7 +102,7 @@ class PoolService {
       0,
     );
 
-    final poolInfo = await poolInterface.getPoolInfo();
+    final poolInfo = await pool.getPoolInfo();
 
     final authenticationToken = getCurrentAuthenticationToken(poolInfo.authenticationTokenTimeout);
 
@@ -116,7 +116,7 @@ class PoolService {
     final message = authenticationPayload.toBytes().sha256Hash();
 
     final signature = AugSchemeMPL.sign(authenticationSecretKey, message);
-    await poolInterface.getFarmer(launcherId, authenticationToken, signature);
+    await pool.getFarmer(launcherId, authenticationToken, signature);
   }
 
   // def get_current_authentication_token(timeout: uint8) -> uint64:
