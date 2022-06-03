@@ -101,23 +101,23 @@ Future<void> main() async {
   // print(launcherId);
   final launcherId =
       Bytes.fromHex('9204dfdc12a9b896a7c143bd905fabf5a4910f4ea844ea7e9540c662a40dd594');
-  final launcherCoin = await fullNode.getCoinById(launcherId);
-  // print(launcherCoin);
-  final plotNft = await fullNode.getPlotNftByLauncherId(launcherId);
-  print(plotNft);
-  print('payout_address: ${chiaPayoutAddress.address}');
+  // final launcherCoin = await fullNode.getCoinById(launcherId);
+  // // print(launcherCoin);
+  // final plotNft = await fullNode.getPlotNftByLauncherId(launcherId);
+  // print(plotNft);
+  // print('payout_address: ${chiaPayoutAddress.address}');
 
-//   await poolService.getFarmer(
-//     launcherId: launcherId,
-//     masterPrivateKey: keychainSecret.masterPrivateKey,
-//     singletonOwnerPrivateKeyDerivationIndex: 1,
-// );
-  await poolService.registerPlotNftWithPool(
-    plotNft: plotNft,
+  await poolService.getFarmer(
+    launcherId: launcherId,
     masterPrivateKey: keychainSecret.masterPrivateKey,
     singletonOwnerPrivateKeyDerivationIndex: 3,
-    payoutPuzzlehash: chiaPayoutAddress.toPuzzlehash(),
-  );
+);
+  // await poolService.registerPlotNftWithPool(
+  //   plotNft: plotNft,
+  //   masterPrivateKey: keychainSecret.masterPrivateKey,
+  //   singletonOwnerPrivateKeyDerivationIndex: 3,
+  //   payoutPuzzlehash: chiaPayoutAddress.toPuzzlehash(),
+  // );
 
   // test('get chia plot nft', () async {
   //   // final chiaLauncherId =

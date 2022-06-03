@@ -6,8 +6,8 @@ import 'package:chia_crypto_utils/src/api/pool/models/get_farmer_response.dart';
 import 'package:chia_crypto_utils/src/api/pool/models/pool_info.dart';
 import 'package:chia_crypto_utils/src/api/pool/models/post_farmer_payload.dart';
 
-class PoolInterface {
-  const PoolInterface(this.poolUrl, {this.certBytes});
+class PoolHttpREST {
+  const PoolHttpREST(this.poolUrl, {this.certBytes});
 
   final String poolUrl;
   final Bytes? certBytes;
@@ -39,5 +39,12 @@ class PoolInterface {
       },
     );
     return GetFarmerResponse.fromJson(jsonDecode(response.body)as Map<String, dynamic>);
+  }
+
+  static void mapResponseToError(Response response) {
+    switch (response.statusCode) {
+      case 500:
+        throw InternalServeErrorException(message: response.body);
+    }
   }
 }

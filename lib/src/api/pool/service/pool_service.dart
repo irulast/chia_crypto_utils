@@ -107,7 +107,7 @@ class PoolService {
     final authenticationToken = getCurrentAuthenticationToken(poolInfo.authenticationTokenTimeout);
 
     final authenticationPayload = AuthenticationPayload(
-      methodName: 'get_farmer',
+      endpoint: AuthenticationEndpoint.getFarmer,
       launcherId: launcherId,
       targetPuzzlehash: poolInfo.targetPuzzlehash,
       authenticationToken: authenticationToken,
