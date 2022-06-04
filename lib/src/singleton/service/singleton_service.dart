@@ -56,4 +56,10 @@ class SingletonService extends BaseWalletService {
       Program.fromBytes(delayedPuzzlehash),
     ]);
   }
+
+  static CoinPrototype getMostRecentSingletonCoinFromCoinSpend(CoinSpend coinSpend){
+      final additions = coinSpend.additions;
+      // TODO(nvjoshi): add chia crib link
+      return additions.singleWhere((coin) => coin.amount.isOdd);
+    }
 }

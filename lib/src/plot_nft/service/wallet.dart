@@ -185,20 +185,56 @@ class PlotNftWalletService extends BaseWalletService {
         amount: defaultLauncherCoinAmount,
       );
 
-  static PlotNftExtraData? coinSpendToExtraData(CoinSpend coinSpend) {
+  static PlotNftExtraData launcherCoinSpendToExtraData(CoinSpend coinSpend) {
+    final fullSolution = coinSpend.solution;
+
+    if (coinSpend.coin.puzzlehash != singletonLauncherProgram.hash()) {
+      throw ArgumentError('Provided coin spend is not launcher coin spend');
+    }
+    final extraDataProgram = fullSolution.rest().rest().first();
+    return PlotNftExtraData.fromProgram(extraDataProgram);
+  }
+
+  static PoolState? coinSpendToPoolState(CoinSpend coinSpend) {
     final fullSolution = coinSpend.solution;
 
     // check for launcher spend
     if (coinSpend.coin.puzzlehash == singletonLauncherProgram.hash()) {
       try {
         final extraDataProgram = fullSolution.rest().rest().first();
-        return PlotNftExtraData.fromProgram(extraDataProgram);
+        return PoolState.fromExtraDataProgram(extraDataProgram);
       } catch (e) {
         return null;
       }
     }
+    final innerSolution = fullSolution.rest().rest().first();
+    final numberOfArguments = innerSolution.toList().length;
 
-    // logic for extracting extra data when plot nft has been updated will go here
-    return null;
+    switch (numberOfArguments) {
+      case 2:
+        // pool member
+        if (innerSolution.rest().first().toInt() != 0) {
+          return null;
+        }
+
+        final extraDataProgram = innerSolution.first();
+        if (extraDataProgram.isAtom) {
+          // absorbing
+          return null;
+        }
+
+        return PoolState.fromExtraDataProgram(extraDataProgram);
+
+      case 3:
+        // pool waiting room
+        if (innerSolution.first().toInt() == 0) {
+          return null;
+        }
+
+        final extraDataProgram = innerSolution.rest().first();
+        return PoolState.fromExtraDataProgram(extraDataProgram);
+      default:
+        throw Exception('unexpected number of program arguments');
+    }
   }
 }
