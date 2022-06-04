@@ -50,7 +50,7 @@ class PoolService {
     required Puzzlehash payoutPuzzlehash,
   }) async {
     if (singletonWalletVector.singletonOwnerPublicKey !=
-        plotNft.extraData.poolState.ownerPublicKey) {
+        plotNft.poolState.ownerPublicKey) {
       throw ArgumentError(
         'Provided SingletonWalletVector  does not match plotNft owner public key',
       );

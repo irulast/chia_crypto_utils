@@ -24,37 +24,17 @@ class PlotNftWalletService extends BaseWalletService {
     final genesisLauncherPuzzle = singletonLauncherProgram;
     final launcherCoin = makeLauncherCoin(launcherParent.id);
 
-    final escapingInnerPuzzle = createWaitingRoomInnerPuzzle(
-      targetPuzzlehash: initialTargetState.targetPuzzlehash,
-      relativeLockHeight: initialTargetState.relativeLockHeight,
-      ownerPublicKey: initialTargetState.ownerPublicKey,
+    final innerPuzzle = poolStateToInnerPuzzle(
+      poolState: initialTargetState,
       launcherId: launcherCoin.id,
-      delayTime: p2SingletonDelayTime,
       delayPuzzlehash: p2SingletonDelayedPuzzlehash,
-    );
-    final escapingInnerPuzzlehash = escapingInnerPuzzle.hash();
-
-    final selfPoolingInnerPuzzle = createPoolingInnerPuzzle(
-      targetPuzzlehash: initialTargetState.targetPuzzlehash,
-      poolWaitingRoomInnerHash: escapingInnerPuzzlehash,
-      ownerPublicKey: initialTargetState.ownerPublicKey,
-      launcherId: launcherCoin.id,
       delayTime: p2SingletonDelayTime,
-      delayPuzzlehash: p2SingletonDelayedPuzzlehash,
+      isInitialState: true,
     );
 
-    late Program puzzle;
-    if (initialTargetState.poolSingletonState == PoolSingletonState.selfPooling) {
-      puzzle = escapingInnerPuzzle;
-    } else if (initialTargetState.poolSingletonState == PoolSingletonState.farmingToPool) {
-      puzzle = selfPoolingInnerPuzzle;
-    } else {
-      throw ArgumentError(
-        'Invalid initial state: ${initialTargetState.poolSingletonState}',
-      );
-    }
-    final fullPoolingPuzzle = SingletonService.puzzleForSingleton(launcherCoin.id, puzzle);
+    final fullPoolingPuzzle = SingletonService.puzzleForSingleton(launcherCoin.id, innerPuzzle);
     final puzzlehash = fullPoolingPuzzle.hash();
+
     final plotNftExtraData = PlotNftExtraData(
       initialTargetState,
       p2SingletonDelayTime,
@@ -81,12 +61,6 @@ class PlotNftWalletService extends BaseWalletService {
       coinAnnouncementsToAssert: [assertCoinAnnouncement],
     );
 
-    print('my genesis spend:');
-    print(createLauncherSpendBundle.coinSpends[0]);
-    print(' ');
-    print('-----------');
-    print(' ');
-
     final genesisLauncherSolution = Program.list([
       Program.fromBytes(puzzlehash),
       Program.fromInt(launcherCoin.amount),
@@ -99,15 +73,52 @@ class PlotNftWalletService extends BaseWalletService {
       solution: genesisLauncherSolution,
     );
 
-    print('my launcher spend:');
-    print(launcherCoinSpend);
-    print(' ');
-    print('-----------');
-    print(' ');
-
     final launcherSpendBundle = SpendBundle(coinSpends: [launcherCoinSpend]);
 
     return createLauncherSpendBundle + launcherSpendBundle;
+  }
+
+  Program poolStateToInnerPuzzle({
+    required PoolState poolState,
+    required Bytes launcherId,
+    required Puzzlehash delayPuzzlehash,
+    required int delayTime,
+    bool isInitialState = false,
+  }) {
+    final escapingInnerPuzzle = createWaitingRoomInnerPuzzle(
+      targetPuzzlehash: poolState.targetPuzzlehash,
+      relativeLockHeight: poolState.relativeLockHeight,
+      ownerPublicKey: poolState.ownerPublicKey,
+      launcherId: launcherId,
+      delayTime: delayTime,
+      delayPuzzlehash: delayPuzzlehash,
+    );
+    final escapingInnerPuzzlehash = escapingInnerPuzzle.hash();
+
+    final poolingInnerPuzzle = createPoolingInnerPuzzle(
+      targetPuzzlehash: poolState.targetPuzzlehash,
+      poolWaitingRoomInnerHash: escapingInnerPuzzlehash,
+      ownerPublicKey: poolState.ownerPublicKey,
+      launcherId: launcherId,
+      delayTime: delayTime,
+      delayPuzzlehash: delayPuzzlehash,
+    );
+
+    switch (poolState.poolSingletonState) {
+      case PoolSingletonState.selfPooling:
+        return escapingInnerPuzzle;
+
+      case PoolSingletonState.farmingToPool:
+        return poolingInnerPuzzle;
+
+      case PoolSingletonState.leavingPool:
+        if (isInitialState) {
+          throw ArgumentError(
+            'Invalid initial state: ${poolState.poolSingletonState}',
+          );
+        }
+        return escapingInnerPuzzle;
+    }
   }
 
   Program makePoolExtraData(
@@ -237,4 +248,12 @@ class PlotNftWalletService extends BaseWalletService {
         throw Exception('unexpected number of program arguments');
     }
   }
+
+   void validateSingletonPuzzlehash({
+    required Puzzlehash singletonPuzzlehash,
+    required Bytes launcherId,
+    required PoolState poolState,
+    required Puzzlehash delayPuzzlehash,
+    required int delayTime,
+  }) {}
 }

@@ -121,13 +121,11 @@ class ChiaFullNodeInterface {
     }
 
     return PlotNft(
-      singletonCoin,
-      PlotNftExtraData(
-        lastNotNullPoolState,
-        initialExtraData.delayTime,
-        initialExtraData.delayPuzzlehash,
-      ),
-      launcherId,
+      launcherId: launcherId,
+      singletonCoin: singletonCoin,
+      poolState: lastNotNullPoolState,
+      delayPuzzlehash: initialExtraData.delayPuzzlehash,
+      delayTime: initialExtraData.delayTime,
     );
   }
 

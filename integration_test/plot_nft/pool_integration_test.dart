@@ -52,14 +52,14 @@ Future<void> main() async {
 
     final plotNft = await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id);
     expect(
-      plotNft.extraData.poolState.toHex(),
+      plotNft.poolState.toHex(),
       equals(initialTargetState.toHex()),
     );
     expect(
-      plotNft.extraData.delayTime,
+      plotNft.delayTime,
       equals(PlotNftWalletService.defaultDelayTime),
     );
-    expect(plotNft.extraData.delayPuzzlehash, equals(nathan.firstPuzzlehash));
+    expect(plotNft.delayPuzzlehash, equals(nathan.firstPuzzlehash));
   });
 
   test('should create plot nft with fee', () async {
@@ -87,13 +87,13 @@ Future<void> main() async {
 
     final plotNft = await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id);
     expect(
-      plotNft.extraData.poolState.toHex(),
+      plotNft.poolState.toHex(),
       equals(initialTargetState.toHex()),
     );
     expect(
-      plotNft.extraData.delayTime,
+      plotNft.delayTime,
       equals(PlotNftWalletService.defaultDelayTime),
     );
-    expect(plotNft.extraData.delayPuzzlehash, equals(nathan.firstPuzzlehash));
+    expect(plotNft.delayPuzzlehash, equals(nathan.firstPuzzlehash));
   });
 }

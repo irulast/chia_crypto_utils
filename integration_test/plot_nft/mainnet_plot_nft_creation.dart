@@ -78,7 +78,7 @@ Future<void> main() async {
 
   print('singleton_puzzle_hash: ${plotNft.singletonCoin.puzzlehash}');
   print('pool_state:');
-  print(plotNft.extraData.poolState);
+  print(plotNft.poolState);
 
   final poolPuzzlehash = poolWalletService.launcherIdToP2Puzzlehash(
     launcherId,
