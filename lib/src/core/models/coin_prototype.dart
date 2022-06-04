@@ -76,7 +76,7 @@ class CoinPrototype with ToBytesMixin {
 
   @override
   String toString() =>
-      'Coin(id: $id, parentCoinInfo: $parentCoinInfo puzzlehash: $puzzlehash, amount: $amount)';
+      'Coin(id: $id, parentCoinInfo: $parentCoinInfo, puzzlehash: $puzzlehash, amount: $amount)';
 }
 
 int calculateTotalCoinValue(List<CoinPrototype> coins) {

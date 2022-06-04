@@ -65,7 +65,7 @@ class PoolService {
     );
   }
 
-  Future<void> getFarmerInfo({
+  Future<GetFarmerResponse> getFarmerInfo({
     required Bytes launcherId,
     required PrivateKey authenticationPrivateKey,
   }) async {
@@ -73,7 +73,7 @@ class PoolService {
 
     final authenticationToken = getCurrentAuthenticationToken(poolInfo.authenticationTokenTimeout);
 
-    await pool.getFarmer(
+    return pool.getFarmer(
       launcherId: launcherId,
       targetPuzzlehash: poolInfo.targetPuzzlehash,
       authenticationToken: authenticationToken,

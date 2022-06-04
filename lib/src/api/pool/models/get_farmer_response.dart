@@ -19,6 +19,9 @@ class GetFarmerResponse {
   final Puzzlehash payoutInstructions;
   final int currentDifficulty;
   final int currentPoints;
+
+  @override
+  String toString() => 'GetFarmerResponse(authenticationPublicKey: $authenticationPublicKey, payoutInstructions: $payoutInstructions, currentDifficulty: $currentDifficulty, currentPoints: $currentPoints)';
 }
 
 typedef Farmer = GetFarmerResponse;
