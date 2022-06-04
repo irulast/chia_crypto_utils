@@ -120,6 +120,14 @@ class ChiaFullNodeInterface {
       singletonCoin = await getCoinById(nextSingletonCoinPrototype.id);
     }
 
+    PlotNftWalletService().validateSingletonPuzzlehash(
+      singletonPuzzlehash: singletonCoin.puzzlehash,
+      launcherId: launcherId,
+      poolState: lastNotNullPoolState,
+      delayPuzzlehash: initialExtraData.delayPuzzlehash,
+      delayTime: initialExtraData.delayTime,
+    );
+
     return PlotNft(
       launcherId: launcherId,
       singletonCoin: singletonCoin,
