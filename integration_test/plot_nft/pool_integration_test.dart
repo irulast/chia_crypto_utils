@@ -87,7 +87,7 @@ Future<void> main() async {
 
     final plotNft = await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id);
     expect(
-      plotNft.poolState.toHex(),
+      plotNft!.poolState.toHex(),
       equals(initialTargetState.toHex()),
     );
     expect(
