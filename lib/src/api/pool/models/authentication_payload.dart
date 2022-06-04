@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names
+
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/utils/serialization.dart';
 
@@ -23,9 +25,5 @@ class AuthenticationPayload {
 }
 
 enum AuthenticationEndpoint {
-  getFarmer('get_farmer'),
-  getLogin('get_login');
-
-  final String name;
-  const AuthenticationEndpoint(this.name);
+  get_farmer, get_login
 }

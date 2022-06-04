@@ -41,7 +41,7 @@ class PoolInterface {
     required PrivateKey authenticationSecretKey,
   }) async {
     final authenticationPayload = AuthenticationPayload(
-      endpoint: AuthenticationEndpoint.getFarmer,
+      endpoint: AuthenticationEndpoint.get_farmer,
       launcherId: launcherId,
       targetPuzzlehash: targetPuzzlehash,
       authenticationToken: authenticationToken,

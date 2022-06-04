@@ -7,6 +7,6 @@ class PoolResponseException implements Exception {
 
   @override
   String toString() {
-    return 'Pool at $poolUrl returned error with code ${poolErrorResponse.responseCode.code} and message ${poolErrorResponse.message}';
+    return 'Pool at $poolUrl returned error with code ${poolErrorResponse.responseCode} and message ${poolErrorResponse.message}';
   }
 }

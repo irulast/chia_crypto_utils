@@ -64,7 +64,6 @@ class Client {
       });
       request.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
       request.write(jsonEncode(requestBody));
-      // print(jsonEncode(requestBody).replaceAll('null', 'None'));
 
       final response = await request.close();
       final stringData = await response.transform(utf8.decoder).join();

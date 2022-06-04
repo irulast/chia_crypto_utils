@@ -118,6 +118,6 @@ PoolSingletonState codeToPoolSingletonState(int code) {
     case 3:
       return PoolSingletonState.farmingToPool;
     default:
-      throw ArgumentError('Invalid PoolSingletonState code');
+      throw ArgumentError('Invalid PoolSingletonState Code');
   }
 }
