@@ -11,10 +11,9 @@ import 'package:test/scaffolding.dart';
 Future<void> main() async {
   const poolUrl = 'https://xch-us-west.flexpool.io';
   const fullNodeUrl = 'FULL_NODE_URL';
-  
+
   // clone this for certificate chain: https://github.com/Chia-Network/mozilla-ca.git
-  final certificateBytes =
-      Bytes(File('CERTIFICATE_BYTES_PATH').readAsBytesSync());
+  final certificateBytes = Bytes(File('CERTIFICATE_BYTES_PATH').readAsBytesSync());
 
   const fullNodeRpc = FullNodeHttpRpc(
     fullNodeUrl,
@@ -30,11 +29,10 @@ Future<void> main() async {
   final mnemonic =
       'organ puppy mandate during obscure insane yard clever vacuum human barely wire slogan road crack dad fitness mutual typical orchard sunny cool stereo noodle'
           .split(' ');
-  print('mnemonic: ${mnemonic.join(' ')}');
+
   final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
-  print(keychainSecret.fingerprint);
   final walletsSetList = <WalletSet>[];
-  for (var i = 0; i < 10; i++) {
+  for (var i = 0; i < 5; i++) {
     final set1 = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, i);
     walletsSetList.add(set1);
   }
@@ -46,49 +44,29 @@ Future<void> main() async {
 
   final coins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
 
-  final delayPh = keychain.puzzlehashes[10];
-  LoggingContext().setLogLevel(LogLevel.low);
+  final delayPh = keychain.puzzlehashes[4];
 
-  // final launcherId = await poolService.createPlotNftForPool(
-  //   p2SingletonDelayedPuzzlehash: delayPh,
-  //   singletonWalletVector: singletonWalletVector,
-  //   coins: [coins[0]],
-  //   keychain: keychain,
-  //   changePuzzlehash: keychain.puzzlehashes[3],
-  // );
-  // print(launcherId);
-  final launcherId =
-      Bytes.fromHex('e63a91ac5c23070ee99bd7919ec3c57842c852f98856ccd16ec12a87f9230b1d');
-  final launcherCoin = await fullNode.getCoinById(launcherId);
-  print(launcherCoin);
+  final launcherId = await poolService.createPlotNftForPool(
+    p2SingletonDelayedPuzzlehash: delayPh,
+    singletonWalletVector: singletonWalletVector,
+    coins: coins,
+    keychain: keychain,
+    changePuzzlehash: keychain.puzzlehashes[3],
+  );
+
+  var launcherCoin = await fullNode.getCoinById(launcherId);
+
+  while (launcherCoin == null) {
+    print('waiting for plot nft to be created...');
+    await Future<void>.delayed(const Duration(seconds: 15));
+    launcherCoin = await fullNode.getCoinById(launcherId);
+  }
+
   final plotNft = await fullNode.getPlotNftByLauncherId(launcherId);
-  // // print(plotNft);
-  // // print('payout_address: ${chiaPayoutAddress.address}');
-  //   LoggingContext().setLogLevel(LogLevel.low);
 
-  // await poolService.getFarmerInfo(
-  //   launcherId: launcherId,
-  //   authenticationPrivateKey: singletonWalletVector.poolingAuthenticationPrivateKey,
-  // );
-
-  // final chiaPayoutAddress =
-  //     Address('xch1z630wrqdz5976xfnpeq9lgy2yuk3zqhga2s6xpfjqk0y8zmugwlqymglyr');
-
-  // final chiaPayoutPuzzlehash = chiaPayoutAddress.toPuzzlehash();
   await poolService.registerAsFarmerWithPool(
     plotNft: plotNft!,
     singletonWalletVector: singletonWalletVector,
-    payoutPuzzlehash: keychain.puzzlehashes[19],
+    payoutPuzzlehash: keychain.puzzlehashes[1],
   );
-
-  // test('get chia plot nft', () async {
-  //   // final chiaLauncherId =
-  //   //     Bytes.fromHex('876adf3ef717d4a7735d6e3fcdc582811a1be11656aec5e6dcd868f6ee69457c');
-  //   // final lauchercoin = await fullNode.getCoinById(chiaLauncherId);
-  //   // final genesisCoin = await fullNode.getCoinById(lauchercoin!.parentCoinInfo);
-  //   // // final launcherCoin = await fullNode.getCoinById(chiaLauncherId);
-
-  //   // final chiaPlotNft = await fullNode.getPlotNftByLauncherId(chiaLauncherId);
-  //   // print(chiaPlotNft);
-  // });
 }
