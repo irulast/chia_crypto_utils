@@ -10,10 +10,11 @@ import 'package:test/scaffolding.dart';
 
 Future<void> main() async {
   const poolUrl = 'https://xch-us-west.flexpool.io';
-  const fullNodeUrl = 'https://chia.irulast-prod.com';
-
+  const fullNodeUrl = 'FULL_NODE_URL';
+  
+  // clone this for certificate chain: https://github.com/Chia-Network/mozilla-ca.git
   final certificateBytes =
-      Bytes(File('/Users/nvjoshi/code/work/irulast/mozilla-ca/cacert.pem').readAsBytesSync());
+      Bytes(File('CERTIFICATE_BYTES_PATH').readAsBytesSync());
 
   const fullNodeRpc = FullNodeHttpRpc(
     fullNodeUrl,
@@ -33,7 +34,7 @@ Future<void> main() async {
   final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
   print(keychainSecret.fingerprint);
   final walletsSetList = <WalletSet>[];
-  for (var i = 0; i < 20; i++) {
+  for (var i = 0; i < 10; i++) {
     final set1 = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, i);
     walletsSetList.add(set1);
   }
@@ -75,7 +76,7 @@ Future<void> main() async {
 
   // final chiaPayoutPuzzlehash = chiaPayoutAddress.toPuzzlehash();
   await poolService.registerAsFarmerWithPool(
-    plotNft: plotNft,
+    plotNft: plotNft!,
     singletonWalletVector: singletonWalletVector,
     payoutPuzzlehash: keychain.puzzlehashes[19],
   );

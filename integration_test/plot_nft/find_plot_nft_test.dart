@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 void main() async {
   final launcherId = Bytes.fromHex('LAUNCHER_ID');
 
-  const fullNodeUrl = 'https://chia.irulast-prod.com';
+  const fullNodeUrl = 'FULL_NODE_URL';
 
   const fullNodeRpc = FullNodeHttpRpc(
     fullNodeUrl,
