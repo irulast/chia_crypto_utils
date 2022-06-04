@@ -1,5 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/pool/models/post_farmer_payload.dart';
 
 class PostFarmerRequest {
   const PostFarmerRequest(this.payload, this.signature);

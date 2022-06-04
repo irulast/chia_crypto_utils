@@ -49,8 +49,7 @@ class Bytes extends Comparable<Bytes> implements List<int> {
     return iterator.extractBytesAndAdvance(length);
   }
 
-  Bytes.encodeFromString(String text)
-      : _byteList = Uint8List.fromList(utf8.encode(text));
+  Bytes.encodeFromString(String text) : _byteList = Uint8List.fromList(utf8.encode(text));
 
   factory Bytes.fromHex(String hex) {
     if (hex.startsWith(bytesPrefix)) {
@@ -333,8 +332,12 @@ class Bytes extends Comparable<Bytes> implements List<int> {
   }
 
   @override
-  void setRange(int start, int end, Iterable<int> iterable,
-      [int skipCount = 0]) {
+  void setRange(
+    int start,
+    int end,
+    Iterable<int> iterable, [
+    int skipCount = 0,
+  ]) {
     _byteList.setRange(start, end, iterable);
   }
 

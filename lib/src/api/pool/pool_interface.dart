@@ -1,9 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/pool/models/authentication_payload.dart';
-import 'package:chia_crypto_utils/src/api/pool/models/get_farmer_response.dart';
-import 'package:chia_crypto_utils/src/api/pool/models/pool_info.dart';
-import 'package:chia_crypto_utils/src/api/pool/models/post_farmer_payload.dart';
-import 'package:chia_crypto_utils/src/api/pool/pool_http_rest.dart';
 
 class PoolInterface {
   PoolInterface(this.pool);

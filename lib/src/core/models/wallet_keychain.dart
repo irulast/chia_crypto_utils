@@ -125,7 +125,8 @@ class WalletKeychain with ToBytesMixin {
       }
     }
     throw ArgumentError(
-        'Given singletonOwnerPublicKey does not match mnemonic up to derivation index $maxIndexToCheck');
+      'Given singletonOwnerPublicKey does not match mnemonic up to derivation index $maxIndexToCheck',
+    );
   }
 
   SingletonWalletVector? getSingletonWalletVector(JacobianPoint ownerPublicKey) {

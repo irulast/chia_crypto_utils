@@ -19,5 +19,3 @@ class PoolErrorResponse {
   static String errorCodeKey = 'error_code';
   static String errorMessageKey = 'error_message';
 }
-
-

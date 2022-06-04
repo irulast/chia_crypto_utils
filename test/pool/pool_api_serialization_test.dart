@@ -1,7 +1,4 @@
-import 'dart:convert';
-
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/pool/models/post_farmer_payload.dart';
 import 'package:test/test.dart';
 
 void main() {

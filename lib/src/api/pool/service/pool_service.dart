@@ -1,5 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/pool/pool_interface.dart';
 import 'package:chia_crypto_utils/src/core/models/singleton_wallet_vector.dart';
 
 class PoolService {
@@ -49,8 +48,7 @@ class PoolService {
     required SingletonWalletVector singletonWalletVector,
     required Puzzlehash payoutPuzzlehash,
   }) async {
-    if (singletonWalletVector.singletonOwnerPublicKey !=
-        plotNft.poolState.ownerPublicKey) {
+    if (singletonWalletVector.singletonOwnerPublicKey != plotNft.poolState.ownerPublicKey) {
       throw ArgumentError(
         'Provided SingletonWalletVector  does not match plotNft owner public key',
       );

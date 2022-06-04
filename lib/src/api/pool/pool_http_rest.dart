@@ -1,11 +1,6 @@
 import 'dart:convert';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/pool/models/error_response.dart';
-import 'package:chia_crypto_utils/src/api/pool/models/exceptions/pool_response_exception.dart';
-import 'package:chia_crypto_utils/src/api/pool/models/get_farmer_response.dart';
-import 'package:chia_crypto_utils/src/api/pool/models/pool_info.dart';
-import 'package:chia_crypto_utils/src/api/pool/models/post_farmer_payload.dart';
 
 class PoolHttpREST {
   const PoolHttpREST(this.poolUrl, {this.certBytes});

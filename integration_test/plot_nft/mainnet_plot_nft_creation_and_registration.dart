@@ -2,9 +2,7 @@
 import 'dart:io';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/pool/pool_http_rest.dart';
-import 'package:chia_crypto_utils/src/api/pool/pool_interface.dart';
-import 'package:chia_crypto_utils/src/api/pool/service/pool_service.dart';
+
 import 'package:chia_crypto_utils/src/core/models/singleton_wallet_vector.dart';
 import 'package:test/scaffolding.dart';
 
