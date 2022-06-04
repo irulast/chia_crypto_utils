@@ -97,9 +97,12 @@ class ChiaFullNodeInterface {
     return catCoins;
   }
 
-  Future<PlotNft> getPlotNftByLauncherId(Bytes launcherId) async {
+  Future<PlotNft?> getPlotNftByLauncherId(Bytes launcherId) async {
     final launcherCoin = await getCoinById(launcherId);
-    final launcherCoinSpend = await getCoinSpend(launcherCoin!);
+    if (launcherCoin == null) {
+      return null;
+    }
+    final launcherCoinSpend = await getCoinSpend(launcherCoin);
     final initialExtraData = PlotNftWalletService.launcherCoinSpendToExtraData(launcherCoinSpend!);
 
     final firstSingletonCoinPrototype =
