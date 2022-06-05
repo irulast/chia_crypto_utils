@@ -59,3 +59,16 @@ class LoggingContext {
 typedef Logger = void Function(String text);
 
 enum LogLevel { none, low, high }
+
+LogLevel stringToLogLevel(String logLevelString) {
+  switch (logLevelString) {
+    case 'none':
+      return LogLevel.none;
+    case 'low':
+      return LogLevel.low;
+    case 'high':
+      return LogLevel.high;
+    default:
+      throw ArgumentError('Invalid LogLevel String');
+  }
+}

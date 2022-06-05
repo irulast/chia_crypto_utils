@@ -32,6 +32,7 @@ class PoolService {
     final plotNftSpendBundle = plotNftWalletService.createPoolNftSpendBundle(
       initialTargetState: initialTargetState,
       keychain: keychain,
+      fee: 50,
       coins: coins,
       genesisCoinId: genesisCoin.id,
       p2SingletonDelayedPuzzlehash: p2SingletonDelayedPuzzlehash,

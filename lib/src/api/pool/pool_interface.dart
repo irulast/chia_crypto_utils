@@ -1,7 +1,17 @@
+import 'dart:io';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class PoolInterface {
-  PoolInterface(this.pool);
+  const PoolInterface(this.pool);
+  factory PoolInterface.fromURLAndCertificate(String poolUrl, String certificateBytesPath) {
+    return PoolInterface(
+      PoolHttpREST(
+        poolUrl,
+        certBytes: Bytes(File(certificateBytesPath).readAsBytesSync()),
+      ),
+    );
+  } 
+  
   final PoolHttpREST pool;
 
   String get poolUrl => pool.poolUrl;

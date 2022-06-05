@@ -10,6 +10,7 @@ scripts:
   integration_tests: 'dart test integration_test/ --concurrency=1'
 
 dependencies:
+  args: ^2.3.1
   bech32m: ^0.2.2
   bip39: ^1.0.6
   crypto: ^3.0.1
