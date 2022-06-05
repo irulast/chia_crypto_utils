@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.15
+
+- Pooling protocol support
+- CLI bindings and utility for interactively generating a PlotNFT
+- Bug fixing and code cleanup
+
 ## 1.0.14
 
 - Fixes for pub.dev
@@ -11,7 +17,7 @@
 
 ## 1.0.12
 
-- Added PlotNFT pooling support
+- PlotNFT support
 
 ## 1.0.11
 
