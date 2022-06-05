@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:bip39/bip39.dart';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/plot_nft/create_new_wallet_with_plotnft.dart';
-import 'package:chia_crypto_utils/src/command/plot_nft/get_farming_status.dart';
 
 late final String logLevel;
+late final String network;
 late final String poolUrl;
 late final String fullNodeUrl;
 late final String certificateBytesPath;
@@ -19,12 +18,14 @@ void main(List<String> args) {
 
   runner.argParser
     ..addOption('log-level', defaultsTo: 'none')
+    ..addOption('network', defaultsTo: 'mainnet')
     ..addOption('pool-url', defaultsTo: 'https://xch-us-west.flexpool.io')
     ..addOption('full-node-url')
     ..addOption('certificate-bytes-path', defaultsTo: 'mozilla-ca/cacert.pem');
 
   final results = runner.argParser.parse(args);
   logLevel = results['log-level'] as String;
+  network = results['network'] as String;
   poolUrl = results['pool-url'] as String;
   fullNodeUrl = results['full-node-url'] as String;
   certificateBytesPath = results['certificate-bytes-path'] as String;
@@ -42,7 +43,7 @@ class ParseCreatePlotNFTCommand extends Command<Future<void>> {
   @override
   Future<void> run() async {
     // Configure environment based on user selections
-    ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
+    ChiaNetworkContextWrapper().registerNetworkContext(stringToNetwork(network));
     LoggingContext().setLogLevel(stringToLogLevel(logLevel));
 
     // construct the Chia full node interface
