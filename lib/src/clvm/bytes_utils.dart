@@ -4,20 +4,16 @@ import 'dart:typed_data';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 String flip(String binary) {
-  return binary.replaceAllMapped(
-      RegExp('[01]'), (match) => match.group(0) == '1' ? '0' : '1');
+  return binary.replaceAllMapped(RegExp('[01]'), (match) => match.group(0) == '1' ? '0' : '1');
 }
 
 Bytes intToBytes(int value, int size, Endian endian, {bool signed = false}) {
   if (value < 0 && !signed) {
     throw ArgumentError('Cannot convert negative int to unsigned.');
   }
-  var binary =
-      (value < 0 ? -value : value).toRadixString(2).padLeft(size * 8, '0');
+  var binary = (value < 0 ? -value : value).toRadixString(2).padLeft(size * 8, '0');
   if (value < 0) {
-    binary = (int.parse(flip(binary), radix: 2) + 1)
-        .toRadixString(2)
-        .padLeft(size * 8, '0');
+    binary = (int.parse(flip(binary), radix: 2) + 1).toRadixString(2).padLeft(size * 8, '0');
   }
   var bytes = RegExp('[01]{8}')
       .allMatches(binary)
@@ -29,15 +25,23 @@ Bytes intToBytes(int value, int size, Endian endian, {bool signed = false}) {
   return Bytes(bytes);
 }
 
-Bytes intTo64Bytes(int value) {
+Bytes intTo64Bits(int value) {
   return intToBytes(value, 8, Endian.big);
 }
 
-Bytes intTo32Bytes(int value) {
+Bytes intTo32Bits(int value) {
   return intToBytes(value, 4, Endian.big);
 }
 
-Bytes intTo8Bytes(int value) {
+int intFrom32BitsStream(Iterator<int> iterator) {
+  return bytesToInt(iterator.extractBytesAndAdvance(4), Endian.big);
+}
+
+int intFrom64BitsStream(Iterator<int> iterator) {
+  return bytesToInt(iterator.extractBytesAndAdvance(8), Endian.big);
+}
+
+Bytes intTo8Bits(int value) {
   return intToBytes(value, 1, Endian.big);
 }
 
@@ -61,16 +65,13 @@ int bytesToInt(List<int> bytes, Endian endian, {bool signed = false}) {
   if (bytes.isEmpty) {
     return 0;
   }
-  final sign = bytes[endian == Endian.little ? bytes.length - 1 : 0]
-      .toRadixString(2)
-      .padLeft(8, '0')[0];
+  final sign =
+      bytes[endian == Endian.little ? bytes.length - 1 : 0].toRadixString(2).padLeft(8, '0')[0];
   final byteList = (endian == Endian.little ? bytes.reversed : bytes).toList();
-  var binary =
-      byteList.map((byte) => byte.toRadixString(2).padLeft(8, '0')).join();
+  var binary = byteList.map((byte) => byte.toRadixString(2).padLeft(8, '0')).join();
   if (sign == '1' && signed) {
-    binary = (int.parse(flip(binary), radix: 2) + 1)
-        .toRadixString(2)
-        .padLeft(bytes.length * 8, '0');
+    binary =
+        (int.parse(flip(binary), radix: 2) + 1).toRadixString(2).padLeft(bytes.length * 8, '0');
   }
   final result = int.parse(binary, radix: 2);
   return sign == '1' && signed ? -result : result;
@@ -80,18 +81,14 @@ int decodeInt(List<int> bytes) {
   return bytesToInt(bytes, Endian.big, signed: true);
 }
 
-Bytes bigIntToBytes(BigInt value, int size, Endian endian,
-    {bool signed = false}) {
+Bytes bigIntToBytes(BigInt value, int size, Endian endian, {bool signed = false}) {
   if (value < BigInt.zero && !signed) {
     throw ArgumentError('Cannot convert negative bigint to unsigned.');
   }
-  var binary = (value < BigInt.zero ? -value : value)
-      .toRadixString(2)
-      .padLeft(size * 8, '0');
+  var binary = (value < BigInt.zero ? -value : value).toRadixString(2).padLeft(size * 8, '0');
   if (value < BigInt.zero) {
-    binary = (BigInt.parse(flip(binary), radix: 2) + BigInt.one)
-        .toRadixString(2)
-        .padLeft(size * 8, '0');
+    binary =
+        (BigInt.parse(flip(binary), radix: 2) + BigInt.one).toRadixString(2).padLeft(size * 8, '0');
   }
   var bytes = RegExp('[01]{8}')
       .allMatches(binary)
@@ -156,4 +153,13 @@ List<int> randomBytes(int length) {
     result.add(randomByte());
   }
   return result;
+}
+
+extension StripByItsPrefix on String {
+  String stripBytesPrefix() {
+    if (startsWith(Bytes.bytesPrefix)) {
+      return replaceFirst(Bytes.bytesPrefix, '');
+    }
+    return this;
+  }
 }

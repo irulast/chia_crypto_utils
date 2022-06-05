@@ -7,6 +7,7 @@ mixin ToBytesMixin {
   Bytes toBytes();
 
   String toHex() => const HexEncoder().convert(toBytes());
+  String toHexWithPrefix() => Bytes.bytesPrefix + toHex();
 }
 
 extension StringToBytesX on String {

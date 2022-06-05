@@ -1,6 +1,7 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/core/models/singleton_wallet_vector.dart';
 import 'package:test/test.dart';
 
 const testMnemonic = [
@@ -53,9 +54,8 @@ void main() {
     'UnhardenedWalletWector serializarion and deserialization to bytes must work',
     () async {
       final keychainSecret = KeychainCoreSecret.fromMnemonic(testMnemonic);
-      final walletSet =
-          WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, 0);
-      final keychain = WalletKeychain([walletSet])
+      final walletSet = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, 0);
+      final keychain = WalletKeychain.fromWalletSets([walletSet])
         ..addOuterPuzzleHashesForAssetId(
           Puzzlehash.fromHex(
             '0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad',
@@ -71,6 +71,25 @@ void main() {
       final bytes = wv.toBytes();
 
       final deserializedWv = UnhardenedWalletVector.fromBytes(bytes);
+
+      expect(wv, equals(deserializedWv));
+      expect(bytes, equals(deserializedWv.toBytes()));
+    },
+  );
+
+  test(
+    'SingletonWalletVector serializarion and deserialization to bytes must work',
+    () async {
+      final keychainSecret = KeychainCoreSecret.fromMnemonic(testMnemonic);
+      final walletSet = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, 0);
+      final keychain = WalletKeychain.fromWalletSets([walletSet])
+        ..addNewSingletonWalletVector(keychainSecret.masterPrivateKey)
+        ..addNewSingletonWalletVector(keychainSecret.masterPrivateKey);
+
+      final wv = keychain.singletonWalletVectors.first;
+      final bytes = wv.toBytes();
+
+      final deserializedWv = SingletonWalletVector.fromBytes(bytes);
 
       expect(wv, equals(deserializedWv));
       expect(bytes, equals(deserializedWv.toBytes()));

@@ -31,4 +31,17 @@ enum Network {
   testnet0,
 }
 
+Network stringToNetwork(String networkString) {
+  switch (networkString) {
+    case 'mainnet':
+      return Network.mainnet;
+    case 'testnet10':
+      return Network.testnet10;
+    case 'testnet0':
+      return Network.testnet0;
+    default:
+      throw ArgumentError('Invalid Network String');
+  }
+}
+
 enum Environment { pureDart, flutter }

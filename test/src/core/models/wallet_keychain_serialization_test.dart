@@ -13,20 +13,72 @@ void main() {
     walletsSetList.add(set1);
   }
 
-  final assetId = Puzzlehash.fromHex(
-    '625c2184e97576f5df1be46c15b2b8771c79e4e6f0aa42d3bfecaebe733f4b8c',
-  );
+  final assetIds = [Program.fromInt(0).hash(), Program.fromInt(1).hash()];
 
-  final walletKeychain = WalletKeychain(walletsSetList)
-    ..addOuterPuzzleHashesForAssetId(assetId);
+  final walletKeychain = WalletKeychain.fromWalletSets(walletsSetList)
+    ..addOuterPuzzleHashesForAssetId(assetIds[0])
+    ..addOuterPuzzleHashesForAssetId(assetIds[1])
+    ..addNewSingletonWalletVector(keychainSecret.masterPrivateKey)
+    ..addNewSingletonWalletVector(keychainSecret.masterPrivateKey);
 
   test('should correctly serialize and deserialize a WalletKeychain', () {
     final walletKeychainSerialized = walletKeychain.toBytes();
-    final walletKeychainDeserialized =
-        WalletKeychain.fromBytes(walletKeychainSerialized);
+    final walletKeychainDeserialized = WalletKeychain.fromBytes(walletKeychainSerialized);
+
     expect(
-      walletKeychainDeserialized.toBytes(),
-      equals(walletKeychainSerialized),
+      walletKeychainDeserialized.hardenedWalletVectors.length,
+      equals(20),
     );
+    expect(
+      walletKeychainDeserialized.hardenedWalletVectors.length,
+      equals(walletKeychain.hardenedWalletVectors.length),
+    );
+
+    for (var i = 0; i < walletKeychainDeserialized.hardenedWalletVectors.length; i++) {
+      expect(
+        walletKeychainDeserialized.hardenedWalletVectors[i],
+        equals(walletKeychain.hardenedWalletVectors[i]),
+      );
+    }
+
+    expect(
+      walletKeychainDeserialized.unhardenedWalletVectors.length,
+      equals(60),
+    );
+
+    expect(
+      walletKeychainDeserialized.unhardenedWalletVectors.length,
+      equals(walletKeychain.unhardenedWalletVectors.length),
+    );
+
+    final deserializeUnhardenedWalletVectors = walletKeychainDeserialized.unhardenedWalletVectors;
+    final originalUnhardenedWalletVectors = walletKeychain.unhardenedWalletVectors;
+
+    deserializeUnhardenedWalletVectors.sort((a, b) => a.puzzlehash.compareTo(b.puzzlehash));
+    originalUnhardenedWalletVectors.sort((a, b) => a.puzzlehash.compareTo(b.puzzlehash));
+
+    for (var i = 0; i < deserializeUnhardenedWalletVectors.length; i++) {
+      expect(
+        deserializeUnhardenedWalletVectors[i],
+        equals(originalUnhardenedWalletVectors[i]),
+      );
+    }
+
+    expect(
+      walletKeychainDeserialized.singletonWalletVectors.length,
+      equals(2),
+    );
+
+    expect(
+      walletKeychainDeserialized.singletonWalletVectors.length,
+      equals(walletKeychain.singletonWalletVectors.length),
+    );
+
+    for (var i = 0; i < walletKeychainDeserialized.singletonWalletVectors.length; i++) {
+      expect(
+        walletKeychainDeserialized.singletonWalletVectors[i],
+        equals(walletKeychain.singletonWalletVectors[i]),
+      );
+    }
   });
 }

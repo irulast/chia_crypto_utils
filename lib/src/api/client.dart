@@ -24,8 +24,11 @@ class Client {
   Future<Response> get(
     Uri url, {
     Map<String, String> additionalHeaders = const {},
+    Map<String, dynamic> queryParameters = const <String, dynamic>{},
   }) async {
-    final requestUri = Uri.parse('$baseURL/$url');
+    final requestUri = Uri.parse('$baseURL/$url').replace(
+      queryParameters: queryParameters,
+    );
 
     logRequest(requestUri);
 
@@ -34,8 +37,7 @@ class Client {
     additionalHeaders.forEach((key, value) {
       request.headers.add(key, value);
     });
-    request.headers.contentType =
-        ContentType('application', 'json', charset: 'utf-8');
+    request.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
 
     final response = await request.close();
     final stringData = await response.transform(utf8.decoder).join();
@@ -60,8 +62,7 @@ class Client {
       additionalHeaders.forEach((key, value) {
         request.headers.add(key, value);
       });
-      request.headers.contentType =
-          ContentType('application', 'json', charset: 'utf-8');
+      request.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
       request.write(jsonEncode(requestBody));
 
       final response = await request.close();
@@ -73,9 +74,7 @@ class Client {
     } on SocketException {
       throw NotRunningException(baseURL);
     } on HttpException catch (e) {
-      if (e
-          .toString()
-          .contains('Connection closed before full header was received')) {
+      if (e.toString().contains('Connection closed before full header was received')) {
         throw BadAuthenticationException();
       }
       rethrow;
@@ -114,8 +113,7 @@ class Client {
           : null,
       'certificate': response.certificate != null
           ? <String, dynamic>{
-              'end_validity':
-                  response.certificate!.endValidity.toIso8601String(),
+              'end_validity': response.certificate!.endValidity.toIso8601String(),
               'issuer': response.certificate!.issuer,
               'pem': response.certificate!.pem,
             }

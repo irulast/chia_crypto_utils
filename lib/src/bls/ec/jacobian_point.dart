@@ -62,8 +62,7 @@ class JacobianPoint with ToBytesMixin {
         ec: ec,
       ).toJacobian();
     }
-    final x =
-        isExtension ? Fq2.fromBytes(bytes, ec.q) : Fq.fromBytes(bytes, ec.q);
+    final x = isExtension ? Fq2.fromBytes(bytes, ec.q) : Fq.fromBytes(bytes, ec.q);
     final yValue = yForX(x, ec: ec);
     bool sign;
     if (isExtension) {
@@ -85,16 +84,14 @@ class JacobianPoint with ToBytesMixin {
     return JacobianPoint.fromBytesG2(signatureBytes);
   }
 
-  factory JacobianPoint.fromHex(String hex, bool isExtension, {EC? ec}) =>
-      JacobianPoint.fromBytes(
+  factory JacobianPoint.fromHex(String hex, bool isExtension, {EC? ec}) => JacobianPoint.fromBytes(
         const HexDecoder().convert(hex),
         isExtension,
         ec: ec,
       );
 
   factory JacobianPoint.generateG1() =>
-      AffinePoint(defaultEc.gx, defaultEc.gy, false, ec: defaultEc)
-          .toJacobian();
+      AffinePoint(defaultEc.gx, defaultEc.gy, false, ec: defaultEc).toJacobian();
 
   factory JacobianPoint.generateG2() => AffinePoint(
         defaultEcTwist.g2x,
@@ -131,13 +128,17 @@ class JacobianPoint with ToBytesMixin {
   }
 
   factory JacobianPoint.fromHexG1(String hex, {bool? isExtension}) {
-    return JacobianPoint.fromBytesG1(const HexDecoder().convert(hex),
-        isExtension: isExtension);
+    return JacobianPoint.fromBytesG1(
+      const HexDecoder().convert(hex.stripBytesPrefix()),
+      isExtension: isExtension,
+    );
   }
 
   factory JacobianPoint.fromHexG2(String hex, {bool? isExtension}) {
-    return JacobianPoint.fromBytesG2(const HexDecoder().convert(hex),
-        isExtension: isExtension);
+    return JacobianPoint.fromBytesG2(
+      const HexDecoder().convert(hex.stripBytesPrefix()),
+      isExtension: isExtension,
+    );
   }
 
   factory JacobianPoint.fromBytesG2(List<int> bytes, {bool? isExtension}) {
@@ -210,8 +211,7 @@ class JacobianPoint with ToBytesMixin {
     return JacobianPoint(X_p, Y_p, Z_p, false, ec: ec);
   }
 
-  int getFingerprint() =>
-      bytesToInt(sha256.convert(toBytes()).bytes.sublist(0, 4), Endian.big);
+  int getFingerprint() => bytesToInt(sha256.convert(toBytes()).bytes.sublist(0, 4), Endian.big);
 
   JacobianPoint operator -() => (-toAffine()).toJacobian();
 
@@ -257,8 +257,7 @@ class JacobianPoint with ToBytesMixin {
   }
 
   @override
-  bool operator ==(Object other) =>
-      other is JacobianPoint && toAffine() == other.toAffine();
+  bool operator ==(Object other) => other is JacobianPoint && toAffine() == other.toAffine();
 
   @override
   int get hashCode => hash4(x, y, z, infinity);
@@ -266,6 +265,5 @@ class JacobianPoint with ToBytesMixin {
   @override
   String toString() => 'JacobianPoint(0x${toHex()})';
 
-  JacobianPoint clone() =>
-      JacobianPoint(x.clone(), y.clone(), z.clone(), infinity, ec: ec);
+  JacobianPoint clone() => JacobianPoint(x.clone(), y.clone(), z.clone(), infinity, ec: ec);
 }

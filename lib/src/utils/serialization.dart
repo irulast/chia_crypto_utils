@@ -8,7 +8,7 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 Bytes serializeListChia(List<ToBytesMixin> items) {
   // 32 bytes indicating length of serialized list.
   // from https://github.com/Chia-Network/chia-blockchain/blob/4bd5c53f48cb049eff36c87c00d21b1f2dd26b27/chia/util/streamable.py#L241
-  var bytes = Bytes(intTo32Bytes(items.length));
+  var bytes = Bytes(intTo32Bits(items.length));
   for (final item in items) {
     bytes += item.toBytes();
   }
@@ -18,8 +18,7 @@ Bytes serializeListChia(List<ToBytesMixin> items) {
 Bytes serializeList(List<dynamic> items) {
   final bytes = items.fold(
     <int>[],
-    (List<int> previousValue, dynamic item) =>
-        <int>[...previousValue, ...serializeItem(item)],
+    (List<int> previousValue, dynamic item) => <int>[...previousValue, ...serializeItem(item)],
   );
   return Bytes(bytes);
 }
@@ -29,7 +28,7 @@ Bytes serializeItem(dynamic item) {
   int? length;
 
   if (item is int) {
-    bytes = intTo64Bytes(item);
+    bytes = intTo64Bits(item);
     length = bytes.length;
   } else if (item is bool) {
     bytes = item ? Bytes([1]) : Bytes([0]);
@@ -63,7 +62,7 @@ Bytes serializeItem(dynamic item) {
     throw UnimplementedError();
   }
 
-  final lengthBytes = intTo32Bytes(length);
+  final lengthBytes = intTo32Bits(length);
   return Bytes([...lengthBytes, ...bytes]);
 }
 

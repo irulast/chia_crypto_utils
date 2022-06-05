@@ -96,8 +96,8 @@ PrivateKey masterSkToPoolingAuthenticationSk(
   int poolWalletIndex,
   int index,
 ) {
-  assert(index < 10000, 'Index must be less tah 10000');
-  assert(poolWalletIndex < 10000, 'Pool wallet index must be less tah 10000');
+  assert(index < 10000, 'Index must be less than 10000');
+  assert(poolWalletIndex < 10000, 'Pool wallet index must be less than 10000');
   return derivePath(masterSk, [
     blsSpecNumber,
     chiaBlockchanNumber,

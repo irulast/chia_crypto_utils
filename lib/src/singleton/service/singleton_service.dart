@@ -56,4 +56,10 @@ class SingletonService extends BaseWalletService {
       Program.fromBytes(delayedPuzzlehash),
     ]);
   }
+
+  static CoinPrototype getMostRecentSingletonCoinFromCoinSpend(CoinSpend coinSpend){
+      final additions = coinSpend.additions;
+      // cribbed from https://github.com/Chia-Network/chia-blockchain/blob/4230af1a59768f6a4f9578408f810d7d2114c343/chia/pools/pool_puzzles.py#L284
+      return additions.singleWhere((coin) => coin.amount.isOdd);
+    }
 }

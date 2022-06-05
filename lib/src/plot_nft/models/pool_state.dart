@@ -24,8 +24,8 @@ class PoolState with ToBytesMixin {
   @override
   Bytes toBytes() {
     var bytes = <int>[];
-    bytes += intTo8Bytes(version);
-    bytes += intTo8Bytes(poolSingletonState.code);
+    bytes += intTo8Bits(version);
+    bytes += intTo8Bits(poolSingletonState.code);
     bytes += targetPuzzlehash;
     bytes += ownerPublicKey.toBytes();
     if (poolUrl != null) {
@@ -33,15 +33,13 @@ class PoolState with ToBytesMixin {
     } else {
       bytes += [0];
     }
-    bytes += intTo32Bytes(relativeLockHeight);
+    bytes += intTo32Bits(relativeLockHeight);
     return Bytes(bytes);
   }
 
   factory PoolState.fromExtraDataProgram(Program extraDataProgram) {
     final poolStateConsBox = extraDataProgram.toList().singleWhere(
-          (p) =>
-              String.fromCharCode(p.first().toInt()) ==
-              PlotNftExtraData.poolStateIdentifier,
+          (p) => String.fromCharCode(p.first().toInt()) == PlotNftExtraData.poolStateIdentifier,
         );
     return PoolState.fromBytes(poolStateConsBox.rest().atom);
   }
@@ -68,8 +66,7 @@ class PoolState with ToBytesMixin {
     final poolUrlIsPresentBytes = iterator.extractBytesAndAdvance(1);
     if (poolUrlIsPresentBytes[0] == 1) {
       final lengthBytes = iterator.extractBytesAndAdvance(4);
-      final poolUrlBytes =
-          iterator.extractBytesAndAdvance(bytesToInt(lengthBytes, Endian.big));
+      final poolUrlBytes = iterator.extractBytesAndAdvance(bytesToInt(lengthBytes, Endian.big));
       poolUrl = utf8.decode(poolUrlBytes);
     } else if (poolUrlIsPresentBytes[0] != 0) {
       throw ArgumentError('invalid isPresent bytes');
@@ -121,6 +118,6 @@ PoolSingletonState codeToPoolSingletonState(int code) {
     case 3:
       return PoolSingletonState.farmingToPool;
     default:
-      throw ArgumentError('Invalid PoolSingletonState code');
+      throw ArgumentError('Invalid PoolSingletonState Code');
   }
 }

@@ -51,7 +51,7 @@ Future<void> main() async {
     final set = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, i);
     walletsSetList.add(set);
   }
-  final keychain = WalletKeychain(walletsSetList);
+  final keychain = WalletKeychain.fromWalletSets(walletsSetList);
 
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
   final catWalletService = CatWalletService();
@@ -66,20 +66,18 @@ Future<void> main() async {
   await fullNodeSimulator.farmCoins(address);
   await fullNodeSimulator.moveToNextBlock();
 
-  final standardCoins =
-      await fullNodeSimulator.getCoinsByPuzzleHashes([puzzlehash]);
+  final standardCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([puzzlehash]);
   final originCoin = standardCoins[0];
 
   // issue cat
-  final curriedTail = delegatedTailProgram
-      .curry([Program.fromBytes(walletVector.childPublicKey.toBytes())]);
+  final curriedTail =
+      delegatedTailProgram.curry([Program.fromBytes(walletVector.childPublicKey.toBytes())]);
   final assetId = Puzzlehash(curriedTail.hash());
   keychain.addOuterPuzzleHashesForAssetId(assetId);
 
   final curriedGenesisByCoinIdPuzzle =
       genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id)]);
-  final tailSolution =
-      Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
+  final tailSolution = Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
 
   final signature = AugSchemeMPL.sign(
     walletVector.childPrivateKey,
@@ -149,8 +147,7 @@ Future<void> main() async {
         returnsNormally,
       );
       expect(
-        () => coins
-            .firstWhere((catCoin) => catCoin.puzzlehash == testCoin.puzzlehash),
+        () => coins.firstWhere((catCoin) => catCoin.puzzlehash == testCoin.puzzlehash),
         returnsNormally,
       );
     }
@@ -190,8 +187,7 @@ Future<void> main() async {
     for (final testCatCoin in catCoins) {
       // can't check for parentCoinInfo because it will change based on the coin used to mint the cat
       expect(
-        () => catCoins
-            .firstWhere((catCoin) => catCoin.amount == testCatCoin.amount),
+        () => catCoins.firstWhere((catCoin) => catCoin.amount == testCatCoin.amount),
         returnsNormally,
       );
       expect(

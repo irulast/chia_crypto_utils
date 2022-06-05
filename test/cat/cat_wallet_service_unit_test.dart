@@ -129,13 +129,11 @@ Future<void> main() async {
     walletsSetList.add(set1);
   }
 
-  final walletKeychain = WalletKeychain(walletsSetList)
+  final walletKeychain = WalletKeychain.fromWalletSets(walletsSetList)
     ..addOuterPuzzleHashesForAssetId(assetId);
 
-  final changePuzzlehash =
-      walletKeychain.unhardenedMap.values.toList()[0].puzzlehash;
-  final targetPuzzlehash =
-      walletKeychain.unhardenedMap.values.toList()[1].puzzlehash;
+  final changePuzzlehash = walletKeychain.unhardenedMap.values.toList()[0].puzzlehash;
+  final targetPuzzlehash = walletKeychain.unhardenedMap.values.toList()[1].puzzlehash;
 
   test('Produces valid spendbundle', () async {
     final payment = Payment(250, targetPuzzlehash);
@@ -162,8 +160,7 @@ Future<void> main() async {
   });
 
   test('Produces valid spendbundle with fee and multiple payments', () async {
-    final payment =
-        Payment(200, targetPuzzlehash, memos: <String>['Chia is really cool']);
+    final payment = Payment(200, targetPuzzlehash, memos: <String>['Chia is really cool']);
     final payment1 = Payment(100, targetPuzzlehash, memos: <int>[1000]);
     final spendBundle = catWalletService.createSpendBundle(
       payments: [payment, payment1],
@@ -191,9 +188,7 @@ Future<void> main() async {
     );
   });
 
-  test(
-      'Should create valid spendbundle without change puzzlehash when there is no change',
-      () {
+  test('Should create valid spendbundle without change puzzlehash when there is no change', () {
     final totalCoinsValue = catCoins.fold(
       0,
       (int previousValue, coin) => previousValue + coin.amount,
@@ -207,9 +202,7 @@ Future<void> main() async {
     catWalletService.validateSpendBundle(spendBundle);
   });
 
-  test(
-      'Should throw exception when change puzzlehash is not given and there is change',
-      () {
+  test('Should throw exception when change puzzlehash is not given and there is change', () {
     expect(
       () {
         catWalletService.createSpendBundle(
