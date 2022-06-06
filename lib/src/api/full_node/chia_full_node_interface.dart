@@ -109,7 +109,7 @@ class ChiaFullNodeInterface {
   }
 
   Future<List<PlotNft>> scroungeForPlotNfts(List<Puzzlehash> puzzlehashes) async {
-    final allCoins = await getCoinsByPuzzleHashes(puzzlehashes);
+    final allCoins = await getCoinsByPuzzleHashes(puzzlehashes, includeSpentCoins: true);
 
     final spentCoins = allCoins.where((c) => c.isSpent);
     final plotNfts = <PlotNft>[];
