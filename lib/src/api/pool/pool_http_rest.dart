@@ -5,6 +5,14 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 class PoolHttpREST {
   const PoolHttpREST(this.poolUrl, {this.certBytes});
 
+  factory PoolHttpREST.fromContext() {
+    final poolContext = PoolContext();
+    return PoolHttpREST(
+      poolContext.poolUrl,
+      certBytes: poolContext.certificateBytes,
+    );
+  }
+
   final String poolUrl;
   final Bytes? certBytes;
 

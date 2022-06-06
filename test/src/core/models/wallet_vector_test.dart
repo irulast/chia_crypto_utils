@@ -83,8 +83,8 @@ void main() {
       final keychainSecret = KeychainCoreSecret.fromMnemonic(testMnemonic);
       final walletSet = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, 0);
       final keychain = WalletKeychain.fromWalletSets([walletSet])
-        ..addNewSingletonWalletVector(keychainSecret.masterPrivateKey)
-        ..addNewSingletonWalletVector(keychainSecret.masterPrivateKey);
+        ..getNextSingletonWalletVector(keychainSecret.masterPrivateKey)
+        ..getNextSingletonWalletVector(keychainSecret.masterPrivateKey);
 
       final wv = keychain.singletonWalletVectors.first;
       final bytes = wv.toBytes();

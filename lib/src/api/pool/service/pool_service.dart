@@ -3,6 +3,11 @@ import 'package:chia_crypto_utils/src/core/models/singleton_wallet_vector.dart';
 
 class PoolService {
   const PoolService(this.pool, this.fullNode);
+
+  PoolService.fromContext()
+      : pool = PoolInterface.fromContext(),
+        fullNode = ChiaFullNodeInterface.fromContext();
+
   final PoolInterface pool;
   final ChiaFullNodeInterface fullNode;
 

@@ -7,9 +7,15 @@ import 'package:chia_crypto_utils/src/singleton/service/singleton_service.dart';
 class ChiaFullNodeInterface {
   const ChiaFullNodeInterface(this.fullNode);
   factory ChiaFullNodeInterface.fromURL(String baseURL) {
-    return ChiaFullNodeInterface(FullNodeHttpRpc(baseURL,),);
-  }  
-    
+    return ChiaFullNodeInterface(
+      FullNodeHttpRpc(
+        baseURL,
+      ),
+    );
+  }
+
+  ChiaFullNodeInterface.fromContext() : fullNode = FullNodeHttpRpc.fromContext();
+
   final FullNode fullNode;
 
   Future<List<Coin>> getCoinsByPuzzleHashes(

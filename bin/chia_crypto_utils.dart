@@ -65,7 +65,6 @@ class ParseCreatePlotNFTCommand extends Command<Future<void>> {
     final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
     final keychain = WalletKeychain.fromCoreSecret(
       keychainSecret,
-      5,
     );
 
     final coinAddress = Address.fromPuzzlehash(

@@ -5,16 +5,17 @@ import 'package:get_it/get_it.dart';
 
 class NetworkContext {
   final getIt = GetIt.I;
+  static const pathInstanceName = 'NetworkContext.path';
 
-  void setPath(BlockchainNetworkPath path) {
+  void setPath(String path) {
     getIt
-      ..registerSingleton<BlockchainNetworkPath>(path)
+      ..registerSingleton<String>(path, instanceName: pathInstanceName)
       ..allowReassignment = true;
   }
 
   void setLoader(BlockchainNetworkLoaderFunction loader) {
     BlockchainNetwork blockchainNetworkFactory() =>
-        loader(getIt.get<BlockchainNetworkPath>());
+        loader(getIt.get<String>(instanceName: pathInstanceName));
     getIt
       ..registerLazySingleton<BlockchainNetwork>(blockchainNetworkFactory)
       ..allowReassignment = true;
@@ -22,5 +23,3 @@ class NetworkContext {
 
   BlockchainNetwork get blockchainNetwork => getIt<BlockchainNetwork>();
 }
-
-typedef BlockchainNetworkPath = String;

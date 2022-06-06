@@ -10,8 +10,10 @@ class PoolInterface {
         certBytes: Bytes(File(certificateBytesPath).readAsBytesSync()),
       ),
     );
-  } 
-  
+  }
+
+  PoolInterface.fromContext() : pool = PoolHttpREST.fromContext();
+
   final PoolHttpREST pool;
 
   String get poolUrl => pool.poolUrl;
