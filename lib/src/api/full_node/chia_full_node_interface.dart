@@ -2,6 +2,7 @@
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/core/models/blockchain_state.dart';
+import 'package:chia_crypto_utils/src/plot_nft/models/exceptions/invalid_pool_singleton_exception.dart';
 import 'package:chia_crypto_utils/src/singleton/puzzles/singleton_launcher/singleton_launcher.clvm.hex.dart';
 import 'package:chia_crypto_utils/src/singleton/service/singleton_service.dart';
 
@@ -118,8 +119,12 @@ class ChiaFullNodeInterface {
         // check if coin is singleton launcher
         if (childCoin.puzzlehash == singletonLauncherProgram.hash()) {
           final launcherId = childCoin.id;
-          final plotNft = await getPlotNftByLauncherId(launcherId);
-          plotNfts.add(plotNft!);
+          try {
+            final plotNft = await getPlotNftByLauncherId(launcherId);
+            plotNfts.add(plotNft!);
+          } on InvalidPoolSingletonException {
+            // pass. Launcher id was not for plot nft
+          }
         }
       }
     }
