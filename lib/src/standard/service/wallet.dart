@@ -16,13 +16,11 @@ class StandardWalletService extends BaseWalletService {
     int fee = 0,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
-        const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
   }) {
     // copy coins input since coins list is modified in this function
     final coins = List<CoinPrototype>.from(coinsInput);
-    final totalCoinValue =
-        coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
+    final totalCoinValue = coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
 
     final totalPaymentAmount = payments.fold(
       0,
@@ -38,8 +36,7 @@ class StandardWalletService extends BaseWalletService {
     final spends = <CoinSpend>[];
 
     // returns -1 if originId is given but is not in coins
-    final originIndex =
-        originId == null ? 0 : coins.indexWhere((coin) => coin.id == originId);
+    final originIndex = originId == null ? 0 : coins.indexWhere((coin) => coin.id == originId);
 
     if (originIndex == -1) {
       throw OriginIdNotInCoinsException();
@@ -108,12 +105,10 @@ class StandardWalletService extends BaseWalletService {
           Bytes.empty,
           (Bytes previousValue, coin) => previousValue + coin.id,
         );
-        final message =
-            (existingCoinsMessage + createdCoinsMessage).sha256Hash();
+        final message = (existingCoinsMessage + createdCoinsMessage).sha256Hash();
         conditions.add(CreateCoinAnnouncementCondition(message));
 
-        primaryAssertCoinAnnouncement =
-            AssertCoinAnnouncementCondition(coin.id, message);
+        primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition(coin.id, message);
 
         solution = BaseWalletService.makeSolutionFromConditions(conditions);
       } else {
@@ -123,8 +118,7 @@ class StandardWalletService extends BaseWalletService {
       }
 
       final puzzle = getPuzzleFromPk(publicKey);
-      final coinSpend =
-          CoinSpend(coin: coin, puzzleReveal: puzzle, solution: solution);
+      final coinSpend = CoinSpend(coin: coin, puzzleReveal: puzzle, solution: solution);
       spends.add(coinSpend);
 
       final signature = makeSignature(privateKey, coinSpend);
@@ -145,15 +139,12 @@ class StandardWalletService extends BaseWalletService {
     final coinsBeingSpent = <CoinPrototype>[];
     Bytes? originId;
     for (final spend in spendBundle.coinSpends) {
-      final outputConditions =
-          spend.puzzleReveal.run(spend.solution).program.toList();
+      final outputConditions = spend.puzzleReveal.run(spend.solution).program.toList();
 
       // look for assert coin announcement condition
-      final assertCoinAnnouncementPrograms = outputConditions
-          .where(AssertCoinAnnouncementCondition.isThisCondition)
-          .toList();
-      if (assertCoinAnnouncementPrograms.length == 1 &&
-          actualAssertCoinAnnouncementId == null) {
+      final assertCoinAnnouncementPrograms =
+          outputConditions.where(AssertCoinAnnouncementCondition.isThisCondition).toList();
+      if (assertCoinAnnouncementPrograms.length == 1 && actualAssertCoinAnnouncementId == null) {
         actualAssertCoinAnnouncementId =
             AssertCoinAnnouncementCondition.getAnnouncementIdFromProgram(
           assertCoinAnnouncementPrograms[0],

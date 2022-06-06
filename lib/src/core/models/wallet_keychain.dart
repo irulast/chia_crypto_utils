@@ -28,16 +28,32 @@ class WalletKeychain with ToBytesMixin {
   }
 
   factory WalletKeychain.fromCoreSecret(
-    KeychainCoreSecret coreSecret,
-    int nDerivations,
-  ) {
-    final walletsSetList = <WalletSet>[];
-    for (var i = 0; i < nDerivations; i++) {
-      final set = WalletSet.fromPrivateKey(coreSecret.masterPrivateKey, i);
-      walletsSetList.add(set);
+    KeychainCoreSecret coreSecret, {
+    int walletSize = 5,
+    int plotNftWalletSize = 2,
+  }) {
+    final masterPrivateKey = coreSecret.masterPrivateKey;
+    final walletVectors = <Puzzlehash, WalletVector>{};
+    final unhardenedWalletVectors = <Puzzlehash, UnhardenedWalletVector>{};
+    for (var i = 0; i < walletSize; i++) {
+      final walletVector = WalletVector.fromPrivateKey(masterPrivateKey, i);
+      final unhardenedWalletVector = UnhardenedWalletVector.fromPrivateKey(masterPrivateKey, i);
+
+      walletVectors[walletVector.puzzlehash] = walletVector;
+      unhardenedWalletVectors[unhardenedWalletVector.puzzlehash] = unhardenedWalletVector;
     }
 
-    return WalletKeychain.fromWalletSets(walletsSetList);
+    final singletonVectors = <JacobianPoint, SingletonWalletVector>{};
+    for (var i = 0; i < plotNftWalletSize; i++) {
+      final singletonWalletVector = SingletonWalletVector.fromMasterPrivateKey(masterPrivateKey, i);
+      singletonVectors[singletonWalletVector.singletonOwnerPublicKey] = singletonWalletVector;
+    }
+
+    return WalletKeychain(
+      hardenedMap: walletVectors,
+      unhardenedMap: unhardenedWalletVectors,
+      singletonWalletVectorsMap: singletonVectors,
+    );
   }
 
   factory WalletKeychain.fromBytes(Bytes bytes) {
@@ -93,7 +109,7 @@ class WalletKeychain with ToBytesMixin {
   List<SingletonWalletVector> get singletonWalletVectors =>
       singletonWalletVectorsMap.values.toList();
 
-  SingletonWalletVector addNewSingletonWalletVector(PrivateKey masterPrivateKey) {
+  SingletonWalletVector getNextSingletonWalletVector(PrivateKey masterPrivateKey) {
     final usedDerivationIndices = singletonWalletVectors.map((wv) => wv.derivationIndex).toList();
 
     var newDerivationIndex = 0;

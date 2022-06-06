@@ -2,14 +2,28 @@
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/core/models/blockchain_state.dart';
+import 'package:chia_crypto_utils/src/plot_nft/models/exceptions/invalid_pool_singleton_exception.dart';
+import 'package:chia_crypto_utils/src/singleton/puzzles/singleton_launcher/singleton_launcher.clvm.hex.dart';
 import 'package:chia_crypto_utils/src/singleton/service/singleton_service.dart';
 
 class ChiaFullNodeInterface {
   const ChiaFullNodeInterface(this.fullNode);
-  factory ChiaFullNodeInterface.fromURL(String baseURL) {
-    return ChiaFullNodeInterface(FullNodeHttpRpc(baseURL,),);
-  }  
-    
+  factory ChiaFullNodeInterface.fromURL(
+    String baseURL, {
+    Bytes? certBytes,
+    Bytes? keyBytes,
+  }) {
+    return ChiaFullNodeInterface(
+      FullNodeHttpRpc(
+        baseURL,
+        certBytes: certBytes,
+        keyBytes: keyBytes,
+      ),
+    );
+  }
+
+  ChiaFullNodeInterface.fromContext() : fullNode = FullNodeHttpRpc.fromContext();
+
   final FullNode fullNode;
 
   Future<List<Coin>> getCoinsByPuzzleHashes(
@@ -98,6 +112,29 @@ class ChiaFullNodeInterface {
     }
 
     return catCoins;
+  }
+
+  Future<List<PlotNft>> scroungeForPlotNfts(List<Puzzlehash> puzzlehashes) async {
+    final allCoins = await getCoinsByPuzzleHashes(puzzlehashes, includeSpentCoins: true);
+
+    final spentCoins = allCoins.where((c) => c.isSpent);
+    final plotNfts = <PlotNft>[];
+    for (final spentCoin in spentCoins) {
+      final coinSpend = await getCoinSpend(spentCoin);
+      for (final childCoin in coinSpend!.additions) {
+        // check if coin is singleton launcher
+        if (childCoin.puzzlehash == singletonLauncherProgram.hash()) {
+          final launcherId = childCoin.id;
+          try {
+            final plotNft = await getPlotNftByLauncherId(launcherId);
+            plotNfts.add(plotNft!);
+          } on InvalidPoolSingletonException {
+            // pass. Launcher id was not for plot nft
+          }
+        }
+      }
+    }
+    return plotNfts;
   }
 
   Future<PlotNft?> getPlotNftByLauncherId(Bytes launcherId) async {

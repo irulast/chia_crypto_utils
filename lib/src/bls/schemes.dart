@@ -9,26 +9,22 @@ import 'package:chia_crypto_utils/src/bls/pairing.dart';
 import 'package:chia_crypto_utils/src/bls/private_key.dart';
 import 'package:quiver/collection.dart';
 
-final basicSchemeDst =
-    utf8.encode('BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_');
+final basicSchemeDst = utf8.encode('BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_');
 final augSchemeDst = utf8.encode('BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_AUG_');
 final popSchemeDst = utf8.encode('BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_');
-final popSchemePopDst =
-    utf8.encode('BLS_POP_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_');
+final popSchemePopDst = utf8.encode('BLS_POP_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_');
 
 JacobianPoint coreSignMpl(PrivateKey sk, List<int> message, List<int> dst) {
   return g2Map(message, dst) * sk.value;
 }
 
-bool coreVerifyMpl(JacobianPoint pk, List<int> message, JacobianPoint signature,
-    List<int> dst) {
+bool coreVerifyMpl(JacobianPoint pk, List<int> message, JacobianPoint signature, List<int> dst) {
   if (!signature.isValid || !pk.isValid) {
     return false;
   }
   final q = g2Map(message, dst);
   final one = Fq12.one(defaultEc.q);
-  final pairingResult =
-      atePairingMulti([pk, -JacobianPoint.generateG1()], [q, signature]);
+  final pairingResult = atePairingMulti([pk, -JacobianPoint.generateG1()], [q, signature]);
   return pairingResult == one;
 }
 
@@ -78,8 +74,7 @@ class BasicSchemeMPL {
     return coreSignMpl(sk, message, basicSchemeDst);
   }
 
-  static bool verify(
-      JacobianPoint pk, List<int> message, JacobianPoint signature) {
+  static bool verify(JacobianPoint pk, List<int> message, JacobianPoint signature) {
     return coreVerifyMpl(pk, message, signature, basicSchemeDst);
   }
 
@@ -128,8 +123,7 @@ class AugSchemeMPL {
     return coreSignMpl(sk, pk.toBytes() + message, augSchemeDst);
   }
 
-  static bool verify(
-      JacobianPoint pk, List<int> message, JacobianPoint signature) {
+  static bool verify(JacobianPoint pk, List<int> message, JacobianPoint signature) {
     return coreVerifyMpl(pk, pk.toBytes() + message, signature, augSchemeDst);
   }
 
@@ -174,8 +168,7 @@ class PopSchemeMPL {
     return coreSignMpl(sk, message, popSchemeDst);
   }
 
-  static bool verify(
-      JacobianPoint pk, List<int> message, JacobianPoint signature) {
+  static bool verify(JacobianPoint pk, List<int> message, JacobianPoint signature) {
     return coreVerifyMpl(pk, message, signature, popSchemeDst);
   }
 
@@ -212,8 +205,7 @@ class PopSchemeMPL {
       assert(pk.isValid);
       final q = g2Map(pk.toBytes(), popSchemePopDst);
       final one = Fq12.one(defaultEc.q);
-      final pairingResult =
-          atePairingMulti([pk, -JacobianPoint.generateG1()], [q, proof]);
+      final pairingResult = atePairingMulti([pk, -JacobianPoint.generateG1()], [q, proof]);
       return pairingResult == one;
     } on AssertionError {
       return false;

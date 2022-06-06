@@ -29,6 +29,5 @@ class CoinSpendResponse extends ChiaBaseResponse {
   }
 
   @override
-  String toString() =>
-      'CoinSpendResponse(coinSpend: $coinSpend, success: $success, error: $error)';
+  String toString() => 'CoinSpendResponse(coinSpend: $coinSpend, success: $success, error: $error)';
 }

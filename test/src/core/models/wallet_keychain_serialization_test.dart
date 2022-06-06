@@ -18,8 +18,8 @@ void main() {
   final walletKeychain = WalletKeychain.fromWalletSets(walletsSetList)
     ..addOuterPuzzleHashesForAssetId(assetIds[0])
     ..addOuterPuzzleHashesForAssetId(assetIds[1])
-    ..addNewSingletonWalletVector(keychainSecret.masterPrivateKey)
-    ..addNewSingletonWalletVector(keychainSecret.masterPrivateKey);
+    ..getNextSingletonWalletVector(keychainSecret.masterPrivateKey)
+    ..getNextSingletonWalletVector(keychainSecret.masterPrivateKey);
 
   test('should correctly serialize and deserialize a WalletKeychain', () {
     final walletKeychainSerialized = walletKeychain.toBytes();

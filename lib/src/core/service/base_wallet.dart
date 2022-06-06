@@ -15,8 +15,7 @@ class BaseWalletService {
   ) {
     final result = coinSpend.puzzleReveal.run(coinSpend.solution);
 
-    final addsigmessage =
-        getAddSigMeMessageFromResult(result.program, coinSpend.coin);
+    final addsigmessage = getAddSigMeMessageFromResult(result.program, coinSpend.coin);
 
     final synthSecretKey = calculateSyntheticPrivateKey(privateKey);
     final signature = AugSchemeMPL.sign(synthSecretKey, addsigmessage);
@@ -25,8 +24,7 @@ class BaseWalletService {
   }
 
   Bytes getAddSigMeMessageFromResult(Program result, CoinPrototype coin) {
-    final aggSigMeCondition =
-        result.toList().singleWhere(AggSigMeCondition.isThisCondition);
+    final aggSigMeCondition = result.toList().singleWhere(AggSigMeCondition.isThisCondition);
     return Bytes(aggSigMeCondition.toList()[2].atom) +
         coin.id +
         Bytes.fromHex(
@@ -79,12 +77,10 @@ class BaseWalletService {
     final publicKeys = <JacobianPoint>[];
     final messages = <List<int>>[];
     for (final spend in spendBundle.coinSpends) {
-      final outputConditions =
-          spend.puzzleReveal.run(spend.solution).program.toList();
+      final outputConditions = spend.puzzleReveal.run(spend.solution).program.toList();
 
       // look for assert agg sig me condition
-      final aggSigMeProgram =
-          outputConditions.singleWhere(AggSigMeCondition.isThisCondition);
+      final aggSigMeProgram = outputConditions.singleWhere(AggSigMeCondition.isThisCondition);
 
       final aggSigMeCondition = AggSigMeCondition.fromProgram(aggSigMeProgram);
       publicKeys.add(aggSigMeCondition.publicKey);

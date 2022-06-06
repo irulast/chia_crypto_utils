@@ -47,8 +47,7 @@ class SpendBundle with ToBytesMixin {
       : coinSpends = (json['coin_solutions'] as Iterable)
             .map((dynamic e) => CoinSpend.fromJson(e as Map<String, dynamic>))
             .toList(),
-        aggregatedSignature =
-            JacobianPoint.fromHexG2(json['aggregated_signature'] as String);
+        aggregatedSignature = JacobianPoint.fromHexG2(json['aggregated_signature'] as String);
 
   SpendBundle operator +(SpendBundle other) {
     final signatures = <JacobianPoint>[];
@@ -60,8 +59,7 @@ class SpendBundle with ToBytesMixin {
     }
     return SpendBundle(
       coinSpends: coinSpends + other.coinSpends,
-      aggregatedSignature:
-          (signatures.isNotEmpty) ? AugSchemeMPL.aggregate(signatures) : null,
+      aggregatedSignature: (signatures.isNotEmpty) ? AugSchemeMPL.aggregate(signatures) : null,
     );
   }
 
@@ -73,8 +71,7 @@ class SpendBundle with ToBytesMixin {
     if (other.coinSpends.length != coinSpends.length) {
       return false;
     }
-    final otherHexCoinSpends =
-        other.coinSpends.map((cs) => cs.toHex()).toList();
+    final otherHexCoinSpends = other.coinSpends.map((cs) => cs.toHex()).toList();
     for (final coinSpend in coinSpends) {
       if (!otherHexCoinSpends.contains(coinSpend.toHex())) {
         return false;
@@ -101,8 +98,7 @@ class SpendBundle with ToBytesMixin {
 
   @override
   Bytes toBytes() {
-    return serializeListChia(coinSpends) +
-        Bytes(aggregatedSignature?.toBytes() ?? []);
+    return serializeListChia(coinSpends) + Bytes(aggregatedSignature?.toBytes() ?? []);
   }
 
   factory SpendBundle.fromBytes(Bytes bytes) {
@@ -123,8 +119,7 @@ class SpendBundle with ToBytesMixin {
     }
 
     final firstSignatureByte = iterator.current;
-    final restOfSignatureBytes =
-        iterator.extractBytesAndAdvance(JacobianPoint.g2BytesLength - 1);
+    final restOfSignatureBytes = iterator.extractBytesAndAdvance(JacobianPoint.g2BytesLength - 1);
 
     final signature = JacobianPoint.fromBytesG2(
       [firstSignatureByte, ...restOfSignatureBytes],

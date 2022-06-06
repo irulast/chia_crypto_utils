@@ -19,8 +19,8 @@ void main(List<String> args) {
   runner.argParser
     ..addOption('log-level', defaultsTo: 'none')
     ..addOption('network', defaultsTo: 'mainnet')
-    ..addOption('pool-url', defaultsTo: 'https://xch-us-west.flexpool.io')
     ..addOption('full-node-url')
+    ..addOption('pool-url', defaultsTo: 'https://xch-us-west.flexpool.io')
     ..addOption('certificate-bytes-path', defaultsTo: 'mozilla-ca/cacert.pem');
 
   final results = runner.argParser.parse(args);
@@ -65,7 +65,6 @@ class ParseCreatePlotNFTCommand extends Command<Future<void>> {
     final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
     final keychain = WalletKeychain.fromCoreSecret(
       keychainSecret,
-      5,
     );
 
     final coinAddress = Address.fromPuzzlehash(

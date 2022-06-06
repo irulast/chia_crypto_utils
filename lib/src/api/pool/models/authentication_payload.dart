@@ -24,6 +24,4 @@ class AuthenticationPayload {
   }
 }
 
-enum AuthenticationEndpoint {
-  get_farmer, get_login
-}
+enum AuthenticationEndpoint { get_farmer, get_login }

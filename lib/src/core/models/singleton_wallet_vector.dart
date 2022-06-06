@@ -26,7 +26,7 @@ class SingletonWalletVector with ToBytesMixin {
     );
   }
 
-  factory SingletonWalletVector.fromBytes(Bytes bytes){
+  factory SingletonWalletVector.fromBytes(Bytes bytes) {
     final iterator = bytes.iterator;
     return SingletonWalletVector.fromStream(iterator);
   }
@@ -51,7 +51,6 @@ class SingletonWalletVector with ToBytesMixin {
       singletonOwnerPrivateKey.hashCode ^
       poolingAuthenticationPrivateKey.hashCode ^
       derivationIndex.hashCode;
-
 
   @override
   bool operator ==(Object other) {
