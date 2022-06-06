@@ -8,10 +8,16 @@ import 'package:chia_crypto_utils/src/singleton/service/singleton_service.dart';
 
 class ChiaFullNodeInterface {
   const ChiaFullNodeInterface(this.fullNode);
-  factory ChiaFullNodeInterface.fromURL(String baseURL) {
+  factory ChiaFullNodeInterface.fromURL(
+    String baseURL, {
+    Bytes? certBytes,
+    Bytes? keyBytes,
+  }) {
     return ChiaFullNodeInterface(
       FullNodeHttpRpc(
         baseURL,
+        certBytes: certBytes,
+        keyBytes: keyBytes,
       ),
     );
   }
