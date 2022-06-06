@@ -2,6 +2,7 @@
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/core/models/blockchain_state.dart';
+import 'package:chia_crypto_utils/src/singleton/puzzles/singleton_launcher/singleton_launcher.clvm.hex.dart';
 import 'package:chia_crypto_utils/src/singleton/service/singleton_service.dart';
 
 class ChiaFullNodeInterface {
@@ -104,6 +105,25 @@ class ChiaFullNodeInterface {
     }
 
     return catCoins;
+  }
+
+  Future<List<PlotNft>> scroungeForPlotNfts(List<Puzzlehash> puzzlehashes) async {
+    final allCoins = await getCoinsByPuzzleHashes(puzzlehashes);
+
+    final spentCoins = allCoins.where((c) => c.isSpent);
+    final plotNfts = <PlotNft>[];
+    for (final spentCoin in spentCoins) {
+      final coinSpend = await getCoinSpend(spentCoin);
+      for (final childCoin in coinSpend!.additions) {
+        // check if coin is singleton launcher
+        if (childCoin.puzzlehash == singletonLauncherProgram.hash()) {
+          final launcherId = childCoin.id;
+          final plotNft = await getPlotNftByLauncherId(launcherId);
+          plotNfts.add(plotNft!);
+        }
+      }
+    }
+    return plotNfts;
   }
 
   Future<PlotNft?> getPlotNftByLauncherId(Bytes launcherId) async {
