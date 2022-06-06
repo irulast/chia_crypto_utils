@@ -4,7 +4,6 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-
 void main() {
   test('Should save logging context correctly', () {
     LoggingContext().setLogLevel(LogLevel.low);
@@ -28,8 +27,7 @@ void main() {
     LoggingContext().setLogger(fileLogger);
 
     const lowLogLevelTextToLog = 'Howdy partner';
-    const highLogLevelTextToLog =
-        'Howdy partner, hows the weather in Guadalajara?';
+    const highLogLevelTextToLog = 'Howdy partner, hows the weather in Guadalajara?';
 
     LoggingContext().log(lowLogLevelTextToLog, highLogLevelTextToLog);
 

@@ -8,8 +8,7 @@ class RunIn {
   final String solution;
   final int? cost;
   final bool? strict;
-  RunIn(this.puzzle, {String? solution, this.cost, this.strict})
-      : solution = solution ?? '()';
+  RunIn(this.puzzle, {String? solution, this.cost, this.strict}) : solution = solution ?? '()';
 }
 
 class RunOut {
@@ -40,8 +39,7 @@ class DeserializeIn {
 class DeserializeOut {
   final String output;
   final bool showKeywords;
-  DeserializeOut(this.output, {bool? showKeywords})
-      : showKeywords = showKeywords ?? true;
+  DeserializeOut(this.output, {bool? showKeywords}) : showKeywords = showKeywords ?? true;
 }
 
 void main() {
@@ -91,8 +89,7 @@ void main() {
         RunOut('()', cost: 53, showKeywords: false),
     // args-01
     RunIn('1', solution: '(((8 . 12) . (10 . 14)) . ((9 . 13) . (11 . 15)))'):
-        RunOut('(((8 . 12) 10 . 14) (9 . 13) 11 . 15)',
-            cost: 53, showKeywords: false),
+        RunOut('(((8 . 12) 10 . 14) (9 . 13) 11 . 15)', cost: 53, showKeywords: false),
     // args-02
     RunIn('2', solution: '(((8 . 12) . (10 . 14)) . ((9 . 13) . (11 . 15)))'):
         RunOut('((8 . 12) 10 . 14)', cost: 57, showKeywords: false),
@@ -138,14 +135,11 @@ void main() {
     // ash-1
     RunIn('(ash (q . 7) (q . 1))'): RunOut('14', cost: 662),
     // ash-2
-    RunIn('(ash (q . 7) (q . 100))'):
-        RunOut('0x70000000000000000000000000', cost: 818),
+    RunIn('(ash (q . 7) (q . 100))'): RunOut('0x70000000000000000000000000', cost: 818),
     // ash-3
-    RunIn('(ash (q . -7) (q . 100))'):
-        RunOut('0x90000000000000000000000000', cost: 818),
+    RunIn('(ash (q . -7) (q . 100))'): RunOut('0x90000000000000000000000000', cost: 818),
     // ash-4
-    RunIn('(ash (q . 0x90000000000000000000000000) (q . -100))'):
-        RunOut('-7', cost: 698),
+    RunIn('(ash (q . 0x90000000000000000000000000) (q . -100))'): RunOut('-7', cost: 698),
     // ash-5
     RunIn('(ash (q . 1))'): null,
     // ash-6
@@ -178,8 +172,7 @@ void main() {
     // cons-2
     RunIn('(c (q . 100) (q . ()))'): RunOut('(100)', cost: 100),
     // cons-3
-    RunIn('(c (q . 100) (q . (200 300 400)))'):
-        RunOut('(100 200 300 400)', cost: 100),
+    RunIn('(c (q . 100) (q . (200 300 400)))'): RunOut('(100 200 300 400)', cost: 100),
     // cons-4
     RunIn('(c (q . 100) (q . ((500 (200 300 400)))))'):
         RunOut('(100 (500 (200 300 400)))', cost: 100),
@@ -199,71 +192,50 @@ void main() {
     RunIn('(/ (q . 0x00000000000000000000000000000000000000000000000000000000a) (q . 0x000000000000000000000000000000000000000000000000000000000000000000000005))'):
         RunOut('2', cost: 1308),
     // divmod-1
-    RunIn('(divmod 2 5)', solution: '(80001 73)'):
-        RunOut('(1095 . 66)', cost: 1280),
+    RunIn('(divmod 2 5)', solution: '(80001 73)'): RunOut('(1095 . 66)', cost: 1280),
     // divmod-10
-    RunIn('(divmod 2 5)', solution: '(80000 -10)'):
-        RunOut('(-8000)', cost: 1270),
+    RunIn('(divmod 2 5)', solution: '(80000 -10)'): RunOut('(-8000)', cost: 1270),
     // divmod-11
     RunIn('(divmod (q . 0x0000000000000000000000000000000000000000000000000000000000000013881) (q . 0x0000000000000000000000000000000000000000000000000000049))'):
         RunOut('(1095 . 66)', cost: 1568),
     // divmod-12
-    RunIn('(divmod (q . -10) (q . -7))'):
-        RunOut('(1 . -3)', cost: 1198, showKeywords: false),
+    RunIn('(divmod (q . -10) (q . -7))'): RunOut('(1 . -3)', cost: 1198, showKeywords: false),
     // divmod-13
-    RunIn('(divmod (q . -10) (q . 7))'):
-        RunOut('(-2 . 4)', cost: 1198, showKeywords: false),
+    RunIn('(divmod (q . -10) (q . 7))'): RunOut('(-2 . 4)', cost: 1198, showKeywords: false),
     // divmod-14
-    RunIn('(divmod (q . 10) (q . -7))'):
-        RunOut('(-2 . -4)', cost: 1198, showKeywords: false),
+    RunIn('(divmod (q . 10) (q . -7))'): RunOut('(-2 . -4)', cost: 1198, showKeywords: false),
     // divmod-15
-    RunIn('(divmod (q . 10) (q . 7))'):
-        RunOut('(1 . 3)', cost: 1198, showKeywords: false),
+    RunIn('(divmod (q . 10) (q . 7))'): RunOut('(1 . 3)', cost: 1198, showKeywords: false),
     // divmod-16
-    RunIn('(divmod (q . -10) (q . -70))'):
-        RunOut('(() . -10)', cost: 1188, showKeywords: false),
+    RunIn('(divmod (q . -10) (q . -70))'): RunOut('(() . -10)', cost: 1188, showKeywords: false),
     // divmod-17
-    RunIn('(divmod (q . -10) (q . 70))'):
-        RunOut('(-1 . 60)', cost: 1198, showKeywords: false),
+    RunIn('(divmod (q . -10) (q . 70))'): RunOut('(-1 . 60)', cost: 1198, showKeywords: false),
     // divmod-18
-    RunIn('(divmod (q . 10) (q . -70))'):
-        RunOut('(-1 . -60)', cost: 1198, showKeywords: false),
+    RunIn('(divmod (q . 10) (q . -70))'): RunOut('(-1 . -60)', cost: 1198, showKeywords: false),
     // divmod-19
-    RunIn('(divmod (q . 10) (q . 70))'):
-        RunOut('(() . 10)', cost: 1188, showKeywords: false),
+    RunIn('(divmod (q . 10) (q . 70))'): RunOut('(() . 10)', cost: 1188, showKeywords: false),
     // divmod-2
-    RunIn('(divmod 2 5)', solution: '(-80001 73)'):
-        RunOut('(-1096 . 7)', cost: 1280),
+    RunIn('(divmod 2 5)', solution: '(-80001 73)'): RunOut('(-1096 . 7)', cost: 1280),
     // divmod-20
-    RunIn('(divmod (q . -100) (q . -7))'):
-        RunOut('(14 . -2)', cost: 1198, showKeywords: false),
+    RunIn('(divmod (q . -100) (q . -7))'): RunOut('(14 . -2)', cost: 1198, showKeywords: false),
     // divmod-21
-    RunIn('(divmod (q . -100) (q . 7))'):
-        RunOut('(-15 . 5)', cost: 1198, showKeywords: false),
+    RunIn('(divmod (q . -100) (q . 7))'): RunOut('(-15 . 5)', cost: 1198, showKeywords: false),
     // divmod-22
-    RunIn('(divmod (q . 100) (q . -7))'):
-        RunOut('(-15 . -5)', cost: 1198, showKeywords: false),
+    RunIn('(divmod (q . 100) (q . -7))'): RunOut('(-15 . -5)', cost: 1198, showKeywords: false),
     // divmod-23
-    RunIn('(divmod (q . 100) (q . 7))'):
-        RunOut('(14 . 2)', cost: 1198, showKeywords: false),
+    RunIn('(divmod (q . 100) (q . 7))'): RunOut('(14 . 2)', cost: 1198, showKeywords: false),
     // divmod-24
-    RunIn('(divmod (q . -100) (q . -70))'):
-        RunOut('(1 . -30)', cost: 1198, showKeywords: false),
+    RunIn('(divmod (q . -100) (q . -70))'): RunOut('(1 . -30)', cost: 1198, showKeywords: false),
     // divmod-25
-    RunIn('(divmod (q . -100) (q . 70))'):
-        RunOut('(-2 . 40)', cost: 1198, showKeywords: false),
+    RunIn('(divmod (q . -100) (q . 70))'): RunOut('(-2 . 40)', cost: 1198, showKeywords: false),
     // divmod-26
-    RunIn('(divmod (q . 100) (q . -70))'):
-        RunOut('(-2 . -40)', cost: 1198, showKeywords: false),
+    RunIn('(divmod (q . 100) (q . -70))'): RunOut('(-2 . -40)', cost: 1198, showKeywords: false),
     // divmod-27
-    RunIn('(divmod (q . 100) (q . 70))'):
-        RunOut('(1 . 30)', cost: 1198, showKeywords: false),
+    RunIn('(divmod (q . 100) (q . 70))'): RunOut('(1 . 30)', cost: 1198, showKeywords: false),
     // divmod-3
-    RunIn('(divmod 2 5)', solution: '(80001 -73)'):
-        RunOut('(-1096 . -7)', cost: 1280),
+    RunIn('(divmod 2 5)', solution: '(80001 -73)'): RunOut('(-1096 . -7)', cost: 1280),
     // divmod-4
-    RunIn('(divmod 2 5)', solution: '(-80001 -73)'):
-        RunOut('(1095 . -66)', cost: 1280),
+    RunIn('(divmod 2 5)', solution: '(-80001 -73)'): RunOut('(1095 . -66)', cost: 1280),
     // divmod-5
     RunIn('(divmod 2 5)', solution: '((200 80001) 73)'): null,
     // divmod-6
@@ -273,8 +245,7 @@ void main() {
     // divmod-8
     RunIn('(divmod 2 5)', solution: '(80000 10)'): RunOut('(8000)', cost: 1270),
     // divmod-9
-    RunIn('(divmod 2 5)', solution: '(-80000 10)'):
-        RunOut('(-8000)', cost: 1270),
+    RunIn('(divmod 2 5)', solution: '(-80000 10)'): RunOut('(-8000)', cost: 1270),
     // double-cons-1
     RunIn('((+) 1 2 3 4)'): RunOut('10', cost: 1500),
     // double-cons-2
@@ -292,8 +263,7 @@ void main() {
     // env-4
     RunIn('1', solution: '(100 200)'): RunOut('(100 200)', cost: 53),
     // env-5
-    RunIn('1', solution: '((100 101 102) 105)'):
-        RunOut('((100 101 102) 105)', cost: 53),
+    RunIn('1', solution: '((100 101 102) 105)'): RunOut('((100 101 102) 105)', cost: 53),
     // equal-1
     RunIn('(= (q . 10))'): null,
     // equal-10
@@ -314,11 +284,9 @@ void main() {
     // equal-7
     RunIn("(= 3 3)"): null,
     // equal-8
-    RunIn("(= (f 1) (+ (f (r 1)) (f (r (r 1)))))", solution: "(7 3 4)"):
-        RunOut('1', cost: 1203),
+    RunIn("(= (f 1) (+ (f (r 1)) (f (r (r 1)))))", solution: "(7 3 4)"): RunOut('1', cost: 1203),
     // equal-9
-    RunIn("(= (f 1) (+ (f (r 1)) (f (r (r 1)))))", solution: "(7 3 3)"):
-        RunOut('()', cost: 1203),
+    RunIn("(= (f 1) (+ (f (r 1)) (f (r (r 1)))))", solution: "(7 3 3)"): RunOut('()', cost: 1203),
     // eval-1
     RunIn('(a (q . 1) (q . (100 200)))'): RunOut('(100 200)', cost: 184),
     // eval-2
@@ -388,11 +356,9 @@ void main() {
     // if_3
     RunIn('(i (q . 1) (q . 200) (q . 300))'): RunOut('200', cost: 103),
     // if_4
-    RunIn('(i (f (r (r 1))) (f 1) (f (r 1)))', solution: '(200 300 400)'):
-        RunOut('200', cost: 361),
+    RunIn('(i (f (r (r 1))) (f 1) (f (r 1)))', solution: '(200 300 400)'): RunOut('200', cost: 361),
     // if_5
-    RunIn('(i (f (r (r 1))) (f 1) (f (r 1)))', solution: '(200 300 1)'):
-        RunOut('200', cost: 361),
+    RunIn('(i (f (r (r 1))) (f 1) (f (r 1)))', solution: '(200 300 1)'): RunOut('200', cost: 361),
     // illegal-dot-expression
     RunIn('(q . . 0 1)'): null,
     // int-0
@@ -450,8 +416,7 @@ void main() {
     // lognot-3
     RunIn('(lognot (q . 0))'): RunOut('-1', cost: 371),
     // lognot-4
-    RunIn('(lognot (q . 734671943749191))'):
-        RunOut('0xfd63d1dbc431b8', cost: 452),
+    RunIn('(lognot (q . 734671943749191))'): RunOut('0xfd63d1dbc431b8', cost: 452),
     // lognot-5
     RunIn('(lognot)'): null,
     // lognot-6
@@ -473,14 +438,11 @@ void main() {
     // lsh-1
     RunIn('(lsh (q . 7) (q . 1))'): RunOut('14', cost: 343),
     // lsh-2
-    RunIn('(lsh (q . 7) (q . 100))'):
-        RunOut('0x70000000000000000000000000', cost: 499),
+    RunIn('(lsh (q . 7) (q . 100))'): RunOut('0x70000000000000000000000000', cost: 499),
     // lsh-3
-    RunIn('(lsh (q . -7) (q . 100))'):
-        RunOut('0x0f90000000000000000000000000', cost: 512),
+    RunIn('(lsh (q . -7) (q . 100))'): RunOut('0x0f90000000000000000000000000', cost: 512),
     // lsh-4
-    RunIn('(lsh (q . 0x90000000000000000000000000) (q . -100))'):
-        RunOut('9', cost: 379),
+    RunIn('(lsh (q . 0x90000000000000000000000000) (q . -100))'): RunOut('9', cost: 379),
     // lsh-5
     RunIn('(lsh (q . 1))'): null,
     // lsh-6
@@ -544,12 +506,9 @@ void main() {
                 '(0x1337 . (0x1337 . (0x1337 . ((0x1337 . ((0x1337 . 42) . 0x1337)) . 0x1337))))'):
         RunOut('42', cost: 81, showKeywords: false),
     // path-11
-    RunIn('0x000000000000000000000000'):
-        RunOut('()', cost: 101, showKeywords: false),
+    RunIn('0x000000000000000000000000'): RunOut('()', cost: 101, showKeywords: false),
     // path-2
-    RunIn('44',
-            solution:
-                '(((0x1337 . (0x1337 . (42 . 0x1337))) . 0x1337) . 0x1337)'):
+    RunIn('44', solution: '(((0x1337 . (0x1337 . (42 . 0x1337))) . 0x1337) . 0x1337)'):
         RunOut('42', cost: 73, showKeywords: false),
     // path-3
     RunIn('7708975405620101644641102810267383005',
@@ -557,11 +516,8 @@ void main() {
                 '(0x1337 . ((0x1337 . (0x1337 . (0x1337 . ((0x1337 . (0x1337 . (((0x1337 . ((0x1337 . (0x1337 . (0x1337 . (0x1337 . (0x1337 . ((0x1337 . (0x1337 . ((0x1337 . (((0x1337 . (0x1337 . (0x1337 . ((0x1337 . (((0x1337 . (((0x1337 . (0x1337 . (0x1337 . (0x1337 . ((0x1337 . ((0x1337 . (((((0x1337 . ((0x1337 . ((0x1337 . (0x1337 . (0x1337 . (((0x1337 . (0x1337 . ((0x1337 . (0x1337 . ((((0x1337 . (0x1337 . (0x1337 . (0x1337 . (((((0x1337 . (0x1337 . (0x1337 . (0x1337 . (0x1337 . (((((0x1337 . (((((0x1337 . ((0x1337 . (0x1337 . ((((0x1337 . ((((0x1337 . ((0x1337 . ((0x1337 . ((0x1337 . (0x1337 . (0x1337 . ((((0x1337 . (0x1337 . ((0x1337 . (((0x1337 . (0x1337 . (((0x1337 . (0x1337 . (0x1337 . (42 . 0x1337)))) . 0x1337) . 0x1337))) . 0x1337) . 0x1337)) . 0x1337))) . 0x1337) . 0x1337) . 0x1337)))) . 0x1337)) . 0x1337)) . 0x1337)) . 0x1337) . 0x1337) . 0x1337)) . 0x1337) . 0x1337) . 0x1337))) . 0x1337)) . 0x1337) . 0x1337) . 0x1337) . 0x1337)) . 0x1337) . 0x1337) . 0x1337) . 0x1337)))))) . 0x1337) . 0x1337) . 0x1337) . 0x1337))))) . 0x1337) . 0x1337) . 0x1337))) . 0x1337))) . 0x1337) . 0x1337)))) . 0x1337)) . 0x1337)) . 0x1337) . 0x1337) . 0x1337) . 0x1337)) . 0x1337)) . 0x1337))))) . 0x1337) . 0x1337)) . 0x1337) . 0x1337)) . 0x1337)))) . 0x1337) . 0x1337)) . 0x1337))) . 0x1337)))))) . 0x1337)) . 0x1337) . 0x1337))) . 0x1337)))) . 0x1337))'):
         RunOut('42', cost: 541, showKeywords: false),
     // path-4
-    RunIn('1',
-            solution:
-                '(((0x1337 . (0x1337 . (42 . 0x1337))) . 0x1337) . 0x1337)'):
-        RunOut('(((4919 4919 42 . 4919) . 4919) . 4919)',
-            cost: 53, showKeywords: false),
+    RunIn('1', solution: '(((0x1337 . (0x1337 . (42 . 0x1337))) . 0x1337) . 0x1337)'):
+        RunOut('(((4919 4919 42 . 4919) . 4919) . 4919)', cost: 53, showKeywords: false),
     // path-5
     RunIn(
         '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001',
@@ -662,19 +618,14 @@ void main() {
     // rest-4
     RunIn('(r (r (q . ((100 200 300) 400 500))))'): RunOut('(500)', cost: 91),
     // sha256-1
-    RunIn('(sha256 (f 1))', solution: '("hello.there.my.dear.friend")'): RunOut(
-        '0x5272821c151fdd49f19cc58cf8833da5781c7478a36d500e8dc2364be39f8216',
-        cost: 678),
+    RunIn('(sha256 (f 1))', solution: '("hello.there.my.dear.friend")'):
+        RunOut('0x5272821c151fdd49f19cc58cf8833da5781c7478a36d500e8dc2364be39f8216', cost: 678),
     // sha256-2
-    RunIn('(sha256 (q . "hel") (q . "lo.there.my.dear.friend"))'): RunOut(
-        '0x5272821c151fdd49f19cc58cf8833da5781c7478a36d500e8dc2364be39f8216',
-        cost: 777),
+    RunIn('(sha256 (q . "hel") (q . "lo.there.my.dear.friend"))'):
+        RunOut('0x5272821c151fdd49f19cc58cf8833da5781c7478a36d500e8dc2364be39f8216', cost: 777),
     // sha256-3
-    RunIn('(sha256 (f 1) (f (r 1)))',
-        solution:
-            '("hel" "lo.there.my.dear.friend")'): RunOut(
-        '0x5272821c151fdd49f19cc58cf8833da5781c7478a36d500e8dc2364be39f8216',
-        cost: 918),
+    RunIn('(sha256 (f 1) (f (r 1)))', solution: '("hel" "lo.there.my.dear.friend")'):
+        RunOut('0x5272821c151fdd49f19cc58cf8833da5781c7478a36d500e8dc2364be39f8216', cost: 918),
     // sha256-4
     RunIn('(sha256 1)', solution: '(hello)'): null,
     // simple_add
@@ -697,8 +648,7 @@ void main() {
     // strlen-3
     RunIn('(strlen 1)', solution: '()'): RunOut('()', cost: 227),
     // strlen-4
-    RunIn('(strlen 1)',
-            solution: '"the quick brown fox jumps over the lazy dogs"'):
+    RunIn('(strlen 1)', solution: '"the quick brown fox jumps over the lazy dogs"'):
         RunOut('44', cost: 281),
     // sub-1
     RunIn('(- (q . 7) (q . 1))'): RunOut('6', cost: 805),
@@ -714,8 +664,7 @@ void main() {
     // substr-00
     RunIn('(substr (q . "abcdefghijkl") (q . 14))'): null,
     // substr-01
-    RunIn('(substr (q . "abcdefghijkl") (q . 0))'):
-        RunOut('"abcdefghijkl"', cost: 51),
+    RunIn('(substr (q . "abcdefghijkl") (q . 0))'): RunOut('"abcdefghijkl"', cost: 51),
     // substr-02
     RunIn('(substr (q . "abcdefghijkl") (q . -1))'): null,
     // substr-03
@@ -723,8 +672,7 @@ void main() {
     // substr-04
     RunIn('(substr (q . "abcdefghijkl") (q . 11))'): RunOut('108', cost: 51),
     // substr-05
-    RunIn('(substr (q . "abcdefghijkl") 2 5)', solution: '(0 4)'):
-        RunOut('"abcd"', cost: 131),
+    RunIn('(substr (q . "abcdefghijkl") 2 5)', solution: '(0 4)'): RunOut('"abcd"', cost: 131),
     // substr-06
     RunIn('(substr (q . "abcdefghijkl") 2 5)', solution: '(0 12)'):
         RunOut('"abcdefghijkl"', cost: 131),
@@ -733,16 +681,13 @@ void main() {
     // substr-08
     RunIn('(substr (q . "abcdefghijkl") 2 5)', solution: '(0 13)'): null,
     // substr-09
-    RunIn('(substr (q . "abcdefghijkl") 2 5)', solution: '(10 10)'):
-        RunOut('()', cost: 131),
+    RunIn('(substr (q . "abcdefghijkl") 2 5)', solution: '(10 10)'): RunOut('()', cost: 131),
     // substr-10
     RunIn('(substr (q . "abcdefghijkl") 2 5)', solution: '(10 9)'): null,
     // substr-11
-    RunIn('(substr (q . "abcdefghijkl") 2 5)', solution: '(1 4)'):
-        RunOut('"bcd"', cost: 131),
+    RunIn('(substr (q . "abcdefghijkl") 2 5)', solution: '(1 4)'): RunOut('"bcd"', cost: 131),
     // substr-12
-    RunIn('(substr (q . "abcdefghijkl") 2 5)', solution: '(8 12)'):
-        RunOut('"ijkl"', cost: 131),
+    RunIn('(substr (q . "abcdefghijkl") 2 5)', solution: '(8 12)'): RunOut('"ijkl"', cost: 131),
     // substr-13
     RunIn('(substr (q . ("abcdefghijkl")) 2 5)', solution: '(0 4)'): null,
     // substr-14
@@ -755,8 +700,7 @@ void main() {
     // substr-17
     RunIn('(substr (q . "abcdefghijkl") 2 5)', solution: '(0 -1)'): null,
     // substr-18
-    RunIn('(substr (q . "abcdefghijkl") 2 5)', solution: '(4294967297 3)'):
-        null,
+    RunIn('(substr (q . "abcdefghijkl") 2 5)', solution: '(4294967297 3)'): null,
     // trace-1
     RunIn('(+ (q . 10) (f 1))', solution: '(51)'): RunOut('61', cost: 860),
     // trace-2
@@ -848,8 +792,7 @@ void main() {
     // ash-06
     RunIn('(ash (q . 0xffff) (q . 0xffff))'): RunOut('-1'),
     // ash-07
-    RunIn('(ash (q . 128) (q . 128))'):
-        RunOut('0x008000000000000000000000000000000000'),
+    RunIn('(ash (q . 128) (q . 128))'): RunOut('0x008000000000000000000000000000000000'),
     // ash-08
     RunIn('(ash (q . -1) (q . -1))'): RunOut('-1'),
     // concat-01
@@ -887,8 +830,7 @@ void main() {
     // cons-05
     RunIn('(c () ())'): RunOut('(())'),
     // cons-06
-    RunIn('(c (q . (1 2)) (q . (1 2)))'):
-        RunOut('((1 2) 1 2)', showKeywords: false),
+    RunIn('(c (q . (1 2)) (q . (1 2)))'): RunOut('((1 2) 1 2)', showKeywords: false),
     // cons-07
     RunIn('(c (q . 0xffff) (q . 0xffff))'): RunOut('(0xffff . 0xffff)'),
     // cons-08
@@ -926,8 +868,7 @@ void main() {
     // divmod-06
     RunIn('(divmod (q . (1 2)) (q . (1 2)))'): null,
     // divmod-07
-    RunIn('(divmod (q . 0xffff) (q . 0xffff))'):
-        RunOut('(1)', showKeywords: false),
+    RunIn('(divmod (q . 0xffff) (q . 0xffff))'): RunOut('(1)', showKeywords: false),
     // divmod-08
     RunIn('(divmod (q . 128) (q . 128))'): RunOut('(1)', showKeywords: false),
     // divmod-09
@@ -1015,8 +956,7 @@ void main() {
     // if-06
     RunIn('(i () () ())'): RunOut('()'),
     // if-07
-    RunIn('(i (q . (1 2)) (q . (1 3)) (q . (1 4)))'):
-        RunOut('(1 3)', showKeywords: false),
+    RunIn('(i (q . (1 2)) (q . (1 3)) (q . (1 4)))'): RunOut('(1 3)', showKeywords: false),
     // if-08
     RunIn('(i (q . 0xffff) (q . 0xffff) (q . 0xffff))'): RunOut('0xffff'),
     // if-09
@@ -1116,8 +1056,7 @@ void main() {
     // lsh-06
     RunIn('(lsh (q . 0xffff) (q . 0xffff))'): RunOut('32767'),
     // lsh-07
-    RunIn('(lsh (q . 128) (q . 128))'):
-        RunOut('0x008000000000000000000000000000000000'),
+    RunIn('(lsh (q . 128) (q . 128))'): RunOut('0x008000000000000000000000000000000000'),
     // lsh-08
     RunIn('(lsh (q . -1) (q . -1))'): RunOut('127'),
     // mul-01
@@ -1239,28 +1178,27 @@ void main() {
     // rest-08
     RunIn('(r (q . -1))'): null,
     // sha256-01
-    RunIn('(sha256)'): RunOut(
-        '0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'),
+    RunIn('(sha256)'): RunOut('0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'),
     // sha256-02
-    RunIn('(sha256 (q . 1))'): RunOut(
-        '0x4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a'),
+    RunIn('(sha256 (q . 1))'):
+        RunOut('0x4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a'),
     // sha256-03
-    RunIn('(sha256 (q . 1) (q . 1))'): RunOut(
-        '0x9dcf97a184f32623d11a73124ceb99a5709b083721e878a16d78f596718ba7b2'),
+    RunIn('(sha256 (q . 1) (q . 1))'):
+        RunOut('0x9dcf97a184f32623d11a73124ceb99a5709b083721e878a16d78f596718ba7b2'),
     // sha256-04
-    RunIn('(sha256 () ())'): RunOut(
-        '0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'),
+    RunIn('(sha256 () ())'):
+        RunOut('0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'),
     // sha256-05
     RunIn('(sha256 (q . (1 2)) (q . (1 2)))'): null,
     // sha256-06
-    RunIn('(sha256 (q . 0xffff) (q . 0xffff))'): RunOut(
-        '0xad95131bc0b799c0b1af477fb14fcf26a6a9f76079e48bf090acb7e8367bfd0e'),
+    RunIn('(sha256 (q . 0xffff) (q . 0xffff))'):
+        RunOut('0xad95131bc0b799c0b1af477fb14fcf26a6a9f76079e48bf090acb7e8367bfd0e'),
     // sha256-07
-    RunIn('(sha256 (q . 128) (q . 128))'): RunOut(
-        '0xda60b92bc70e999c07a6ded180a16c1e801e89a5722b565ea242d6aff2f507d8'),
+    RunIn('(sha256 (q . 128) (q . 128))'):
+        RunOut('0xda60b92bc70e999c07a6ded180a16c1e801e89a5722b565ea242d6aff2f507d8'),
     // sha256-08
-    RunIn('(sha256 (q . -1) (q . -1))'): RunOut(
-        '0xca2fd00fa001190744c15c317643ab092e7048ce086a243e2be9437c898de1bb'),
+    RunIn('(sha256 (q . -1) (q . -1))'):
+        RunOut('0xca2fd00fa001190744c15c317643ab092e7048ce086a243e2be9437c898de1bb'),
     // softfork-01
     RunIn('(softfork)'): null,
     // softfork-02
@@ -1670,21 +1608,17 @@ void main() {
     // unknown-200
     RunIn('(0xfffeffff00 (q . 1) (q . 2) (q . (1 10 20)))', strict: true): null,
     // unknown-201
-    RunIn('(0xfffeffff00 (q . 1) (q . 2) (q . (1 10 20)))'):
-        RunOut('()', cost: 4294901830),
+    RunIn('(0xfffeffff00 (q . 1) (q . 2) (q . (1 10 20)))'): RunOut('()', cost: 4294901830),
     // unknown-202
     RunIn('(0xfffeffff3f (q . 1) (q . 2) (q . (1 10 20)))', strict: true): null,
     // unknown-203
-    RunIn('(0xfffeffff3f (q . 1) (q . 2) (q . (1 10 20)))'):
-        RunOut('()', cost: 4294901830),
+    RunIn('(0xfffeffff3f (q . 1) (q . 2) (q . (1 10 20)))'): RunOut('()', cost: 4294901830),
     // unknown-204
-    RunIn('(0x7ffffffff00 (q . 1) (q . 2) (q . (1 10 20)))', strict: true):
-        null,
+    RunIn('(0x7ffffffff00 (q . 1) (q . 2) (q . (1 10 20)))', strict: true): null,
     // unknown-205
     RunIn('(0x7ffffffff00 (q . 1) (q . 2) (q . (1 10 20)))'): null,
     // unknown-206
-    RunIn('(0x7ffffffff3f (q . 1) (q . 2) (q . (1 10 20)))', strict: true):
-        null,
+    RunIn('(0x7ffffffff3f (q . 1) (q . 2) (q . (1 10 20)))', strict: true): null,
     // unknown-207
     RunIn('(0x7ffffffff3f (q . 1) (q . 2) (q . (1 10 20)))'): null,
     // unknown-208
@@ -1716,13 +1650,11 @@ void main() {
     // unknown-22
     RunIn('(0x17f )', strict: true): null,
     // unknown-220
-    RunIn('(0x7ffffffff40 (q . 1) (q . 2) (q . (1 10 20)))', strict: true):
-        null,
+    RunIn('(0x7ffffffff40 (q . 1) (q . 2) (q . (1 10 20)))', strict: true): null,
     // unknown-221
     RunIn('(0x7ffffffff40 (q . 1) (q . 2) (q . (1 10 20)))'): null,
     // unknown-222
-    RunIn('(0x7ffffffff7f (q . 1) (q . 2) (q . (1 10 20)))', strict: true):
-        null,
+    RunIn('(0x7ffffffff7f (q . 1) (q . 2) (q . (1 10 20)))', strict: true): null,
     // unknown-223
     RunIn('(0x7ffffffff7f (q . 1) (q . 2) (q . (1 10 20)))'): null,
     // unknown-224
@@ -1752,13 +1684,11 @@ void main() {
     // unknown-235
     RunIn('(0xfffeffffbf (q . 1) (q . 2) (q . (1 10 20)))'): null,
     // unknown-236
-    RunIn('(0x7ffffffff80 (q . 1) (q . 2) (q . (1 10 20)))', strict: true):
-        null,
+    RunIn('(0x7ffffffff80 (q . 1) (q . 2) (q . (1 10 20)))', strict: true): null,
     // unknown-237
     RunIn('(0x7ffffffff80 (q . 1) (q . 2) (q . (1 10 20)))'): null,
     // unknown-238
-    RunIn('(0x7ffffffffbf (q . 1) (q . 2) (q . (1 10 20)))', strict: true):
-        null,
+    RunIn('(0x7ffffffffbf (q . 1) (q . 2) (q . (1 10 20)))', strict: true): null,
     // unknown-239
     RunIn('(0x7ffffffffbf (q . 1) (q . 2) (q . (1 10 20)))'): null,
     // unknown-24
@@ -1790,13 +1720,11 @@ void main() {
     // unknown-251
     RunIn('(0xfffeffffff (q . 1) (q . 2) (q . (1 10 20)))'): null,
     // unknown-252
-    RunIn('(0x7ffffffffc0 (q . 1) (q . 2) (q . (1 10 20)))', strict: true):
-        null,
+    RunIn('(0x7ffffffffc0 (q . 1) (q . 2) (q . (1 10 20)))', strict: true): null,
     // unknown-253
     RunIn('(0x7ffffffffc0 (q . 1) (q . 2) (q . (1 10 20)))'): null,
     // unknown-254
-    RunIn('(0x7ffffffffff (q . 1) (q . 2) (q . (1 10 20)))', strict: true):
-        null,
+    RunIn('(0x7ffffffffff (q . 1) (q . 2) (q . (1 10 20)))', strict: true): null,
     // unknown-255
     RunIn('(0x7ffffffffff (q . 1) (q . 2) (q . (1 10 20)))'): null,
     // unknown-26
@@ -1894,13 +1822,11 @@ void main() {
     // unknown-72
     RunIn('(0xfffeffff00 (q . 1) (q . 2) (q . 3))', strict: true): null,
     // unknown-73
-    RunIn('(0xfffeffff00 (q . 1) (q . 2) (q . 3))'):
-        RunOut('()', cost: 4294901830),
+    RunIn('(0xfffeffff00 (q . 1) (q . 2) (q . 3))'): RunOut('()', cost: 4294901830),
     // unknown-74
     RunIn('(0xfffeffff3f (q . 1) (q . 2) (q . 3))', strict: true): null,
     // unknown-75
-    RunIn('(0xfffeffff3f (q . 1) (q . 2) (q . 3))'):
-        RunOut('()', cost: 4294901830),
+    RunIn('(0xfffeffff3f (q . 1) (q . 2) (q . 3))'): RunOut('()', cost: 4294901830),
     // unknown-76
     RunIn('(0x7ffffffff00 (q . 1) (q . 2) (q . 3))', strict: true): null,
     // unknown-77
@@ -1958,8 +1884,7 @@ void main() {
     SerializeIn('1'): SerializeOut('01'),
     SerializeIn('0xffffabcdef'): SerializeOut('85ffffabcdef'),
     SerializeIn('"abcdef"'): SerializeOut('86616263646566'),
-    SerializeIn('(f (c (q . 20) (q . 30)))'):
-        SerializeOut('ff05ffff04ffff0114ffff011e8080'),
+    SerializeIn('(f (c (q . 20) (q . 30)))'): SerializeOut('ff05ffff04ffff0114ffff011e8080'),
     SerializeIn(
             '(+ 100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 100000000000000000000000000000000000))'):
         SerializeOut(
@@ -1995,8 +1920,7 @@ void main() {
               : result.program.toSource(showKeywords: item.value!.showKeywords);
           expect(output, equals(expected.output), reason: 'Wrong output');
           if (expected.cost != null) {
-            expect(result.cost.toInt(), equals(expected.cost! - 9),
-                reason: 'Wrong cost');
+            expect(result.cost.toInt(), equals(expected.cost! - 9), reason: 'Wrong cost');
           }
         }
       });
@@ -2015,8 +1939,7 @@ void main() {
         } else {
           var puzzleProgram = Program.parse(puzzle);
           var expected = item.value!;
-          expect(puzzleProgram.serializeHex(), equals(expected.output),
-              reason: 'Wrong output');
+          expect(puzzleProgram.serializeHex(), equals(expected.output), reason: 'Wrong output');
         }
       });
     }

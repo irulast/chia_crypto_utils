@@ -36,8 +36,7 @@ class TailInfo {
         supply = json['supply'] as int,
         description = json['description'] as String,
         tailProgram = Program.parse(json['clvm'] as String),
-        hashgreenInfo =
-            HashgreenInfo.fromJson(json['hashgreen'] as Map<String, dynamic>),
+        hashgreenInfo = HashgreenInfo.fromJson(json['hashgreen'] as Map<String, dynamic>),
         logoUrl = json['logo_url'] as String,
         websiteUrl = json['website_url'] as String?;
 }
@@ -48,9 +47,7 @@ class HashgreenInfo {
     required this.marketcap,
   });
   HashgreenInfo.fromJson(Map<String, dynamic> json)
-      : price = (json['price'] as String?) == null
-            ? null
-            : double.parse(json['price'] as String),
+      : price = (json['price'] as String?) == null ? null : double.parse(json['price'] as String),
         marketcap = json['marketcap'] as num?;
   final double? price;
   final num? marketcap;

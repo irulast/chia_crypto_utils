@@ -57,40 +57,40 @@ extension PoolErrorResponseCode on PoolErrorState {
 }
 
 PoolErrorState codeToPoolErrorResponse(int code) {
-    switch (code) {
-      case 1:
-        return PoolErrorState.revertedSignagePoint;
-      case 2:
-        return PoolErrorState.tooLate;
-      case 3:
-        return PoolErrorState.notFound;
-      case 4:
-        return PoolErrorState.invalidProof;
-      case 5:
-        return PoolErrorState.proofNotGoodEnough;
-      case 6:
-        return PoolErrorState.invalidDifficulty;
-      case 7:
-        return PoolErrorState.invalidSignature;
-      case 8:
-        return PoolErrorState.serverException;
-      case 9:
-        return PoolErrorState.invalidP2SingletonPuzzleHash;
-      case 10:
-        return PoolErrorState.farmerNotKnown;
-      case 11:
-        return PoolErrorState.farmerAlreadyKnown;
-      case 12:
-        return PoolErrorState.invalidAuthenticationToken;
-      case 13:
-        return PoolErrorState.invalidPayoutInstructions;
-      case 14:
-        return PoolErrorState.invalidSingleton;
-      case 15:
-        return PoolErrorState.delayTimeTooShort;
-      case 16:
-        return PoolErrorState.requestFailed;
-      default:
-        throw ArgumentError('Invalid Pool Error Response Code');
-    }
+  switch (code) {
+    case 1:
+      return PoolErrorState.revertedSignagePoint;
+    case 2:
+      return PoolErrorState.tooLate;
+    case 3:
+      return PoolErrorState.notFound;
+    case 4:
+      return PoolErrorState.invalidProof;
+    case 5:
+      return PoolErrorState.proofNotGoodEnough;
+    case 6:
+      return PoolErrorState.invalidDifficulty;
+    case 7:
+      return PoolErrorState.invalidSignature;
+    case 8:
+      return PoolErrorState.serverException;
+    case 9:
+      return PoolErrorState.invalidP2SingletonPuzzleHash;
+    case 10:
+      return PoolErrorState.farmerNotKnown;
+    case 11:
+      return PoolErrorState.farmerAlreadyKnown;
+    case 12:
+      return PoolErrorState.invalidAuthenticationToken;
+    case 13:
+      return PoolErrorState.invalidPayoutInstructions;
+    case 14:
+      return PoolErrorState.invalidSingleton;
+    case 15:
+      return PoolErrorState.delayTimeTooShort;
+    case 16:
+      return PoolErrorState.requestFailed;
+    default:
+      throw ArgumentError('Invalid Pool Error Response Code');
   }
+}

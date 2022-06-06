@@ -58,9 +58,7 @@ class CoinSpend with ToBytesMixin {
 
   @override
   Bytes toBytes() {
-    return coin.toBytes() +
-        Bytes(puzzleReveal.serialize()) +
-        Bytes(solution.serialize());
+    return coin.toBytes() + Bytes(puzzleReveal.serialize()) + Bytes(solution.serialize());
   }
 
   factory CoinSpend.fromJson(Map<String, dynamic> json) {
@@ -73,8 +71,7 @@ class CoinSpend with ToBytesMixin {
 
   SpendType get type {
     final uncurriedPuzzleSource = puzzleReveal.uncurry().program.toSource();
-    if (uncurriedPuzzleSource ==
-        p2DelegatedPuzzleOrHiddenPuzzleProgram.toSource()) {
+    if (uncurriedPuzzleSource == p2DelegatedPuzzleOrHiddenPuzzleProgram.toSource()) {
       return SpendType.standard;
     }
     if (uncurriedPuzzleSource == catProgram.toSource()) {
@@ -84,8 +81,7 @@ class CoinSpend with ToBytesMixin {
   }
 
   @override
-  String toString() =>
-      'CoinSpend(coin: $coin, puzzleReveal: $puzzleReveal, solution: $solution)';
+  String toString() => 'CoinSpend(coin: $coin, puzzleReveal: $puzzleReveal, solution: $solution)';
 }
 
 enum SpendType { standard, cat, nft }

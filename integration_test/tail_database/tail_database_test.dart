@@ -11,8 +11,7 @@ Future<void> main() async {
   );
   final tailDatabaseInterface = TailDatabaseApi();
   test('should get tail info for asset ids', () async {
-    final holidayTailInfo =
-        await tailDatabaseInterface.getTailInfo(holidayAssetId);
+    final holidayTailInfo = await tailDatabaseInterface.getTailInfo(holidayAssetId);
     expect(holidayTailInfo.name, equals('Chia Holiday 2021'));
 
     final chessTailInfo = await tailDatabaseInterface.getTailInfo(chessAssetId);

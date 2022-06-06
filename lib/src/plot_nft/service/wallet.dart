@@ -270,6 +270,4 @@ class PlotNftWalletService extends BaseWalletService {
         throw Exception('unexpected number of program arguments');
     }
   }
-
-  
 }

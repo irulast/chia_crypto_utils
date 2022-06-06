@@ -23,8 +23,7 @@ class CoinRecordsResponse extends ChiaBaseResponse {
     final coinRecords = json['coin_records'] != null
         ? (json['coin_records'] as List)
             .map(
-              (dynamic value) =>
-                  ChiaCoinRecord.fromJson(value as Map<String, dynamic>),
+              (dynamic value) => ChiaCoinRecord.fromJson(value as Map<String, dynamic>),
             )
             .toList()
         : <ChiaCoinRecord>[];

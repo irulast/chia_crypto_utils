@@ -215,21 +215,18 @@ final etas = [
 ];
 
 JacobianPoint osswu2Help(Fq2 t) {
-  final numDenCommon = xi_2.pow(BigInt.two) * t.pow(BigInt.from(4)) +
-      xi_2 * t.pow(BigInt.from(2));
+  final numDenCommon = xi_2.pow(BigInt.two) * t.pow(BigInt.from(4)) + xi_2 * t.pow(BigInt.from(2));
   final x0_num = Ell2p_b * (numDenCommon + Fq(q, BigInt.one));
   var x0_den = -Ell2p_a * numDenCommon;
   // ignore: unrelated_type_equality_checks
   x0_den = x0_den == BigInt.zero ? Ell2p_a * xi_2 : x0_den;
   final gx0_den = x0_den.pow(BigInt.from(3));
-  final gx0_num = Ell2p_b * gx0_den +
-      Ell2p_a * x0_num * x0_den.pow(BigInt.two) +
-      x0_num.pow(BigInt.from(3));
+  final gx0_num =
+      Ell2p_b * gx0_den + Ell2p_a * x0_num * x0_den.pow(BigInt.two) + x0_num.pow(BigInt.from(3));
   var tmp1 = gx0_den.pow(BigInt.from(7));
   final tmp2 = gx0_num * tmp1;
   tmp1 *= tmp2 * gx0_den;
-  var sqrtCandidate =
-      tmp2 * tmp1.pow((q.pow(2) - BigInt.from(9)) ~/ BigInt.from(16));
+  var sqrtCandidate = tmp2 * tmp1.pow((q.pow(2) - BigInt.from(9)) ~/ BigInt.from(16));
   for (final root in rootsOfUnity) {
     var y0 = sqrtCandidate * root as Fq2;
     if (y0.pow(BigInt.two) * gx0_den == gx0_num) {
@@ -284,8 +281,7 @@ JacobianPoint optSwu2Map(Fq2 t, Fq2? t2) {
 }
 
 JacobianPoint g2Map(List<int> alpha, List<int> DST) {
-  final elements = Hp2(alpha, 2, DST)
-      .map((hh) => Fq2(q, hh.map((value) => Fq(q, value)).toList()))
-      .toList();
+  final elements =
+      Hp2(alpha, 2, DST).map((hh) => Fq2(q, hh.map((value) => Fq(q, value)).toList())).toList();
   return optSwu2Map(elements[0], elements[1]);
 }

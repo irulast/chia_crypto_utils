@@ -6,8 +6,7 @@ void main() {
 
   test('should serialize and deserialize keychain core secret', () {
     final keychainsSecretSerialized = keychainSecret.toBytes();
-    final keychainSecretDeSerialized =
-        KeychainCoreSecret.fromBytes(keychainsSecretSerialized);
+    final keychainSecretDeSerialized = KeychainCoreSecret.fromBytes(keychainsSecretSerialized);
     final keychainSecretReSerialized = keychainSecretDeSerialized.toBytes();
 
     expect(keychainSecretReSerialized, equals(keychainsSecretSerialized));

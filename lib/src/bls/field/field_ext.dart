@@ -57,9 +57,7 @@ abstract class FieldExtBase<F extends FieldExtBase<F>> extends Field {
 
     return construct(
       Q,
-      zip([elements, otherNew])
-          .map((element) => element[0] + element[1])
-          .toList(),
+      zip([elements, otherNew]).map((element) => element[0] + element[1]).toList(),
       root,
     );
   }
@@ -224,8 +222,7 @@ abstract class FieldExtBase<F extends FieldExtBase<F>> extends Field {
   }
 
   @override
-  FieldExtBase myFromHex(String hex, BigInt Q) =>
-      myFromBytes(const HexDecoder().convert(hex), Q);
+  FieldExtBase myFromHex(String hex, BigInt Q) => myFromBytes(const HexDecoder().convert(hex), Q);
 
   @override
   F pow(BigInt exponent) {
@@ -300,8 +297,7 @@ abstract class FieldExtBase<F extends FieldExtBase<F>> extends Field {
         .map(
           (element) => element.index == 0
               ? element.value.qiPower(_i)
-              : element.value.qiPower(_i) *
-                  getFrobCoeff([extension, _i, element.index]),
+              : element.value.qiPower(_i) * getFrobCoeff([extension, _i, element.index]),
         )
         .toList();
     return construct(Q, items, root);

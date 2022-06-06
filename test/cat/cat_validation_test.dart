@@ -49,15 +49,13 @@ Future<void> main() async {
   );
 
   test('Does not error on valid cat', () async {
-    final catCoinObject =
-        CatCoin(coin: validCatCoin, parentCoinSpend: catParentCoinSpend);
+    final catCoinObject = CatCoin(coin: validCatCoin, parentCoinSpend: catParentCoinSpend);
     expect(catCoinObject.assetId, assetId);
   });
 
   test('errors on invalid cat', () async {
     expect(
-      () =>
-          CatCoin(coin: standardCoin, parentCoinSpend: standardCoinParentSpend),
+      () => CatCoin(coin: standardCoin, parentCoinSpend: standardCoinParentSpend),
       throwsA(isA<InvalidCatException>()),
     );
   });

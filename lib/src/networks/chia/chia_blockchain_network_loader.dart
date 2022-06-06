@@ -12,10 +12,10 @@ class ChiaBlockchainNetworkLoader implements BlockchainNetworkLoader {
     final dynamic selectedNetwork = yaml['full_node']['selected_network'];
     return BlockchainNetwork(
       name: selectedNetwork as String,
-      addressPrefix: yaml['farmer']['network_overrides']['config']
-          [selectedNetwork]['address_prefix']! as String,
-      aggSigMeExtraData: yaml['farmer']['network_overrides']['constants']
-          [selectedNetwork]['GENESIS_CHALLENGE']! as String,
+      addressPrefix: yaml['farmer']['network_overrides']['config'][selectedNetwork]
+          ['address_prefix']! as String,
+      aggSigMeExtraData: yaml['farmer']['network_overrides']['constants'][selectedNetwork]
+          ['GENESIS_CHALLENGE']! as String,
       networkConfig: yaml,
     );
   }
