@@ -1,16 +1,19 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:bip39/bip39.dart';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/plot_nft/create_new_wallet_with_plotnft.dart';
+import 'package:chia_crypto_utils/src/command/plot_nft/get_farming_status.dart';
 
 late final ChiaFullNodeInterface fullNode;
 
 void main(List<String> args) {
   final runner = CommandRunner<Future<void>>('ccu', 'Chia Crypto Utils Command Line Tools')
-    ..addCommand(CreateWalletWithPlotNFTCommand());
+    ..addCommand(CreateWalletWithPlotNFTCommand())
+    ..addCommand(GetFarmingStatusCommand());
   // Add global options
   runner.argParser
     ..addOption('log-level', defaultsTo: 'none')
@@ -60,15 +63,7 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
 
   @override
   Future<void> run() async {
-    final poolUrl = argResults!['pool-url'] as String;
-    final certificateBytesPath = argResults!['certificate-bytes-path'] as String;
-    // clone this for certificate chain: https://github.com/Chia-Network/mozilla-ca.git
-    final poolInterface = PoolInterface.fromURLAndCertificate(
-      poolUrl,
-      certificateBytesPath,
-    );
-    final poolService = PoolService(poolInterface, fullNode);
-
+    final poolService = _getPoolService(argResults!);
     final mnemonicPhrase = generateMnemonic(strength: 256);
     final mnemonic = mnemonicPhrase.split(' ');
     print('Mnemonic Phrase: $mnemonic');
@@ -107,4 +102,63 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
       fullNode,
     );
   }
+}
+
+class GetFarmingStatusCommand extends Command<Future<void>> {
+  GetFarmingStatusCommand() {
+    argParser
+      ..addOption('pool-url', defaultsTo: 'https://xch-us-west.flexpool.io')
+      ..addOption('certificate-bytes-path', defaultsTo: 'mozilla-ca/cacert.pem');
+  }
+
+  @override
+  String get description => 'Gets the farming status of a mnemonic';
+
+  @override
+  String get name => 'Get-FarmingStatus';
+
+  @override
+  Future<void> run() async {
+    final poolService = _getPoolService(argResults!);
+    final mnemonicPhrase = stdin.readLineSync();
+
+    if (mnemonicPhrase == null) {
+      throw ArgumentError('Must supply a mnemonic phrase to check');
+    }
+
+    final mnemonic = mnemonicPhrase.split(' ');
+
+    if (mnemonic.length != 12 || mnemonic.length != 24) {
+      throw ArgumentError('Invalid mnemonic phrase. Must contain either 12 or 24 seed words');
+    }
+
+    final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
+    final keychain = WalletKeychain.fromCoreSecret(
+      keychainSecret,
+    );
+
+    final plotNfts = await fullNode.scroungeForPlotNfts(keychain.puzzlehashes);
+
+    for (final plotNft in plotNfts) {
+      await getFarmingStatus(
+        plotNft,
+        keychainSecret,
+        keychain,
+        poolService,
+        fullNode,
+      );
+    }
+  }
+}
+
+PoolService _getPoolService(ArgResults argResults) {
+  final poolUrl = argResults['pool-url'] as String;
+  final certificateBytesPath = argResults['certificate-bytes-path'] as String;
+  // clone this for certificate chain: https://github.com/Chia-Network/mozilla-ca.git
+  final poolInterface = PoolInterface.fromURLAndCertificate(
+    poolUrl,
+    certificateBytesPath,
+  );
+
+  return PoolService(poolInterface, fullNode);
 }
