@@ -6,7 +6,7 @@ import 'package:bip39/bip39.dart';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/plot_nft/create_new_wallet_with_plotnft.dart';
 import 'package:chia_crypto_utils/src/command/plot_nft/get_farming_status.dart';
-import 'package:chia_crypto_utils/src/command/standard/generate_cold_wallet.dart';
+import 'package:chia_crypto_utils/src/command/standard/create_cold_wallet.dart';
 
 late final ChiaFullNodeInterface fullNode;
 
@@ -14,7 +14,7 @@ void main(List<String> args) {
   final runner = CommandRunner<Future<void>>('ccu', 'Chia Crypto Utils Command Line Tools')
     ..addCommand(CreateWalletWithPlotNFTCommand())
     ..addCommand(GetFarmingStatusCommand())
-    ..addCommand(GenerateColdWalletCommand());
+    ..addCommand(CreateColdWalletCommand());
   // Add global options
   runner.argParser
     ..addOption('log-level', defaultsTo: 'none')
@@ -31,7 +31,7 @@ void main(List<String> args) {
     exit(0);
   }
 
-  if (results.command?.name != 'Generate-ColdWallet') {
+  if (results.command?.name != 'Create-ColdWallet') {
     if (results['full-node-url'] == null) {
       print('Option full-node-url is mandatory.');
       print(runner.argParser.usage);
@@ -163,16 +163,16 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
   }
 }
 
-class GenerateColdWalletCommand extends Command<Future<void>> {
+class CreateColdWalletCommand extends Command<Future<void>> {
   @override
   String get description => 'Generate an offline cold wallet';
 
   @override
-  String get name => 'Generate-ColdWallet';
+  String get name => 'Create-ColdWallet';
 
   @override
   Future<void> run() async {
-    await generateColdWallet();
+    await createColdWallet();
   }
 }
 

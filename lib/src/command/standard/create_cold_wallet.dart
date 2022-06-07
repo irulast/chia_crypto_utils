@@ -1,7 +1,7 @@
 import 'package:bip39/bip39.dart';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
-Future<void> generateColdWallet() async {
+Future<void> createColdWallet() async {
   final mnemonicPhrase = generateMnemonic(strength: 256);
   final mnemonicWords = mnemonicPhrase.split(' ');
   final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonicWords);
