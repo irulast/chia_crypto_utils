@@ -6,34 +6,52 @@ import 'package:bip39/bip39.dart';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/plot_nft/create_new_wallet_with_plotnft.dart';
 
-late final String logLevel;
-late final String network;
-late final String poolUrl;
-late final String fullNodeUrl;
-late final String certificateBytesPath;
+late final ChiaFullNodeInterface fullNode;
 
 void main(List<String> args) {
   final runner = CommandRunner<Future<void>>('ccu', 'Chia Crypto Utils Command Line Tools')
-    ..addCommand(ParseCreatePlotNFTCommand());
-
+    ..addCommand(CreateWalletWithPlotNFTCommand());
+  // Add global options
   runner.argParser
     ..addOption('log-level', defaultsTo: 'none')
     ..addOption('network', defaultsTo: 'mainnet')
-    ..addOption('full-node-url')
-    ..addOption('pool-url', defaultsTo: 'https://xch-us-west.flexpool.io')
-    ..addOption('certificate-bytes-path', defaultsTo: 'mozilla-ca/cacert.pem');
+    ..addOption('full-node-url');
 
   final results = runner.argParser.parse(args);
-  logLevel = results['log-level'] as String;
-  network = results['network'] as String;
-  poolUrl = results['pool-url'] as String;
-  fullNodeUrl = results['full-node-url'] as String;
-  certificateBytesPath = results['certificate-bytes-path'] as String;
+
+  if (results.wasParsed('help') || results.command == null) {
+    if (results.arguments.isEmpty || results.command == null) {
+      print('No commands were provided.');
+    }
+    print(runner.argParser.usage);
+    exit(0);
+  }
+
+  if (results['full-node-url'] == null) {
+    print('Option full-node-url is mandatory.');
+    print(runner.argParser.usage);
+    exit(126);
+  }
+
+  // Do global setup
+  // Configure environment based on user selections
+  ChiaNetworkContextWrapper().registerNetworkContext(stringToNetwork(results['network'] as String));
+  LoggingContext().setLogLevel(stringToLogLevel(results['log-level'] as String));
+  // construct the Chia full node interface
+  fullNode = ChiaFullNodeInterface.fromURL(
+    results['full-node-url'] as String,
+  );
 
   runner.run(args);
 }
 
-class ParseCreatePlotNFTCommand extends Command<Future<void>> {
+class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
+  CreateWalletWithPlotNFTCommand() {
+    argParser
+      ..addOption('pool-url', defaultsTo: 'https://xch-us-west.flexpool.io')
+      ..addOption('certificate-bytes-path', defaultsTo: 'mozilla-ca/cacert.pem');
+  }
+
   @override
   String get description => 'Creates a wallet with a new PlotNFT';
 
@@ -42,15 +60,8 @@ class ParseCreatePlotNFTCommand extends Command<Future<void>> {
 
   @override
   Future<void> run() async {
-    // Configure environment based on user selections
-    ChiaNetworkContextWrapper().registerNetworkContext(stringToNetwork(network));
-    LoggingContext().setLogLevel(stringToLogLevel(logLevel));
-
-    // construct the Chia full node interface
-    final fullNode = ChiaFullNodeInterface.fromURL(
-      fullNodeUrl,
-    );
-
+    final poolUrl = argResults!['pool-url'] as String;
+    final certificateBytesPath = argResults!['certificate-bytes-path'] as String;
     // clone this for certificate chain: https://github.com/Chia-Network/mozilla-ca.git
     final poolInterface = PoolInterface.fromURLAndCertificate(
       poolUrl,
