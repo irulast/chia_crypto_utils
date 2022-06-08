@@ -28,6 +28,10 @@ class StandardWalletService extends BaseWalletService {
     );
     final change = totalCoinValue - totalPaymentAmount - fee;
 
+    if (change < 0) {
+      throw ArgumentError('Total coin value is not enough to cover payments and fee');
+    }
+
     if (changePuzzlehash == null && change > 0) {
       throw ChangePuzzlehashNeededException();
     }

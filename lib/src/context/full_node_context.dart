@@ -1,4 +1,5 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/api/full_node/full_node_utils.dart';
 import 'package:get_it/get_it.dart';
 
 class FullNodeContext {
@@ -9,7 +10,7 @@ class FullNodeContext {
 
   String get url {
     if (!getIt.isRegistered<String>(instanceName: urlInstanceName)) {
-      throw ContextNotSetException(urlInstanceName);
+      return FullNodeUtils.defaultUrl;
     }
     return getIt.get<String>(instanceName: urlInstanceName);
   }
