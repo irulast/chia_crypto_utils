@@ -169,36 +169,49 @@ void main() async {
     print('finished 10 split');
   }
 
-  // // final split
-  var numberOfCoinsCreated = 0;
-  final transactionFutures = <Future>[];
-  var isFinished = false;
-  for (final catCoin in nathan.catCoins) {
-    final payments = <Payment>[];
-    for (var i = 0; i < 10; i++) {
-      if (numberOfCoinsCreated >= desiredNumberOfCoins) {
-        isFinished = true;
+  Future<void> createAndPushFinalSplittingTransactions({
+    required List<CatCoin> catCoins,
+    required List<Coin> standardCoinsForFee,
+    required WalletKeychain keychain,
+    required int splitWidth,
+    required int feePerCoin,
+    required int desiredNumberOfCoins,
+    required int desiredAmountPerCoin,
+    required Puzzlehash changePuzzlehash,
+  }) async {
+    var numberOfCoinsCreated = 0;
+    final transactionFutures = <Future>[];
+    var isFinished = false;
+    for (final catCoin in catCoins) {
+      final payments = <Payment>[];
+      for (var i = 0; i < 10; i++) {
+        if (numberOfCoinsCreated >= desiredNumberOfCoins) {
+          isFinished = true;
+          break;
+        }
+        payments.add(Payment(desiredAmountPerCoin, keychain.puzzlehashes[i]));
+        numberOfCoinsCreated++;
+      }
+
+      final lastPaymentAmount = catCoin.amount -
+          payments.fold(0, (previousValue, payment) => previousValue + payment.amount);
+      payments.add(Payment(lastPaymentAmount.toInt(), changePuzzlehash));
+
+      final spendBundle = CatWalletService().createSpendBundle(
+        payments: payments,
+        catCoinsInput: [catCoin],
+        keychain: nathan.keychain,
+      );
+      transactionFutures.add(fullNodeSimulator.pushTransaction(spendBundle));
+      if (isFinished) {
         break;
       }
-      payments.add(Payment(desiredAmountPerCoin, nathan.keychain.puzzlehashes[i]));
-      numberOfCoinsCreated++;
     }
-
-    final lastPaymentAmount = catCoin.amount -
-        payments.fold(0, (previousValue, payment) => previousValue + payment.amount);
-    payments.add(Payment(lastPaymentAmount.toInt(), nathan.firstPuzzlehash));
-
-    final spendBundle = CatWalletService().createSpendBundle(
-      payments: payments,
-      catCoinsInput: [catCoin],
-      keychain: nathan.keychain,
-    );
-    transactionFutures.add(fullNodeSimulator.pushTransaction(spendBundle));
-    if (isFinished) {
-      break;
-    }
+    await Future.wait<void>(transactionFutures);
   }
-  await Future.wait<void>(transactionFutures);
+
+  // // final split
+
   await fullNodeSimulator.moveToNextBlock();
   await nathan.refreshCoins();
   print(nathan.catCoins.where((c) => c.amount == desiredAmountPerCoin).length);
