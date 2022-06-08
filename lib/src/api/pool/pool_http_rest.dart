@@ -43,9 +43,9 @@ class PoolHttpREST {
     final response = await client.get(
       Uri.parse('farmer'),
       queryParameters: <String, dynamic>{
-        'launcher_id': launcherId.hexWithBytesPrefix,
+        'launcher_id': launcherId.toHex(),
         'authentication_token': authenticationToken.toString(),
-        'signature': signature.toHexWithPrefix(),
+        'signature': signature.toHex(),
       },
     );
     mapResponseToError(response);

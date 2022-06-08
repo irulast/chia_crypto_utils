@@ -1,54 +1,49 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:bip39/bip39.dart';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/plot_nft/create_new_wallet_with_plotnft.dart';
 import 'package:chia_crypto_utils/src/command/plot_nft/get_farming_status.dart';
-import 'package:chia_crypto_utils/src/command/standard/create_cold_wallet.dart';
 
 late final ChiaFullNodeInterface fullNode;
 
 void main(List<String> args) {
-  final runner = CommandRunner<Future<void>>('ccu', 'Chia Crypto Utils Command Line Tools')
+  final runner = CommandRunner<Future<void>>(
+    'ccu',
+    'Chia Crypto Utils Command Line Tools',
+  )
+    ..argParser.addOption(
+      'log-level',
+      defaultsTo: 'none',
+      allowed: ['none', 'low', 'high'],
+    )
+    ..argParser.addOption('network', defaultsTo: 'mainnet')
+    ..argParser.addOption('full-node-url')
     ..addCommand(CreateWalletWithPlotNFTCommand())
-    ..addCommand(GetFarmingStatusCommand())
-    ..addCommand(CreateColdWalletCommand());
-  // Add global options
-  runner.argParser
-    ..addOption('log-level', defaultsTo: 'none')
-    ..addOption('network', defaultsTo: 'mainnet')
-    ..addOption('full-node-url');
+    ..addCommand(GetFarmingStatusCommand());
 
   final results = runner.argParser.parse(args);
 
-  if (results.wasParsed('help') || results.command == null) {
-    if (results.arguments.isEmpty || results.command == null) {
-      print('No commands were provided.');
-    }
-    print(runner.argParser.usage);
-    exit(0);
+  parseHelp(results, runner);
+
+  if (results['full-node-url'] == null) {
+    print('Option full-node-url is mandatory.');
+    printUsage(runner);
+    exit(126);
   }
 
-  if (results.command?.name != 'Create-ColdWallet') {
-    if (results['full-node-url'] == null) {
-      print('Option full-node-url is mandatory.');
-      print(runner.argParser.usage);
-      exit(126);
-    }
-
-    // Do global setup
-    // Configure environment based on user selections
-    ChiaNetworkContextWrapper().registerNetworkContext(
-        stringToNetwork(results['network'] as String));
-    LoggingContext().setLogLevel(
-        stringToLogLevel(results['log-level'] as String));
-    // construct the Chia full node interface
-    fullNode = ChiaFullNodeInterface.fromURL(
-      results['full-node-url'] as String,
-    );
-  }
+  // Configure environment based on user selections
+  LoggingContext()
+      .setLogLevel(stringToLogLevel(results['log-level'] as String));
+  ChiaNetworkContextWrapper()
+      .registerNetworkContext(stringToNetwork(results['network'] as String));
+  // construct the Chia full node interface
+  fullNode = ChiaFullNodeInterface.fromURL(
+    results['full-node-url'] as String,
+  );
 
   runner.run(args);
 }
@@ -57,7 +52,10 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
   CreateWalletWithPlotNFTCommand() {
     argParser
       ..addOption('pool-url', defaultsTo: 'https://xch-us-west.flexpool.io')
-      ..addOption('certificate-bytes-path', defaultsTo: 'mozilla-ca/cacert.pem');
+      ..addOption(
+        'certificate-bytes-path',
+        defaultsTo: 'mozilla-ca/cacert.pem',
+      );
   }
 
   @override
@@ -96,7 +94,10 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
     while (coins.isEmpty) {
       print('waiting for coin...');
       await Future<void>.delayed(const Duration(seconds: 3));
-      coins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes, includeSpentCoins: true);
+      coins = await fullNode.getCoinsByPuzzleHashes(
+        keychain.puzzlehashes,
+        includeSpentCoins: true,
+      );
 
       if (coins.isNotEmpty) {
         print(coins);
@@ -111,14 +112,17 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
         fullNode,
       );
     } catch (e) {
-      print(e);
+      LoggingContext().log(e.toString());
     }
   }
 }
 
 class GetFarmingStatusCommand extends Command<Future<void>> {
   GetFarmingStatusCommand() {
-    argParser.addOption('certificate-bytes-path', defaultsTo: 'mozilla-ca/cacert.pem');
+    argParser.addOption(
+      'certificate-bytes-path',
+      defaultsTo: 'mozilla-ca/cacert.pem',
+    );
   }
 
   @override
@@ -130,15 +134,16 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
   @override
   Future<void> run() async {
     final mnemonicPhrase = stdin.readLineSync();
-
     if (mnemonicPhrase == null) {
       throw ArgumentError('Must supply a mnemonic phrase to check');
     }
 
     final mnemonic = mnemonicPhrase.split(' ');
 
-    if (mnemonic.length != 12 || mnemonic.length != 24) {
-      throw ArgumentError('Invalid mnemonic phrase. Must contain either 12 or 24 seed words');
+    if (mnemonic.length != 12 && mnemonic.length != 24) {
+      throw ArgumentError(
+        'Invalid mnemonic phrase. Must contain either 12 or 24 seed words',
+      );
     }
 
     final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
@@ -149,8 +154,8 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
     final plotNfts = await fullNode.scroungeForPlotNfts(keychain.puzzlehashes);
     for (final plotNft in plotNfts) {
       final poolService = _getPoolService(
-          plotNft.poolState.poolUrl!,
-          argResults!['certificate-bytes-path'] as String,
+        plotNft.poolState.poolUrl!,
+        argResults!['certificate-bytes-path'] as String,
       );
       await getFarmingStatus(
         plotNft,
@@ -163,16 +168,23 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
   }
 }
 
-class CreateColdWalletCommand extends Command<Future<void>> {
-  @override
-  String get description => 'Generate an offline cold wallet';
+void printUsage(CommandRunner runner) {
+  print(runner.argParser.usage);
+  print('\nAvailable commands:');
+  for (final command in runner.commands.keys) {
+    print('    $command');
+  }
+}
 
-  @override
-  String get name => 'Create-ColdWallet';
-
-  @override
-  Future<void> run() async {
-    await createColdWallet();
+void parseHelp(ArgResults results, CommandRunner runner) {
+  if (results.command == null ||
+      results.wasParsed('help') ||
+      results.command?.name == 'help') {
+    if (results.arguments.isEmpty || results.command == null) {
+      print('No command was provided.');
+    }
+    printUsage(runner);
+    exit(0);
   }
 }
 
