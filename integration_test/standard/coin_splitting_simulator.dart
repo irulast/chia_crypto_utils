@@ -20,43 +20,89 @@ void main() async {
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
   final catWalletService = CatWalletService();
 
-  final nathan = ChiaEnthusiast(fullNodeSimulator, derivations: 2);
+  final nathan = ChiaEnthusiast(fullNodeSimulator, derivations: 6);
   await nathan.farmCoins();
   await nathan.issueMultiIssuanceCat();
 
-  final startingNumberOfCoins = nathan.catCoins.length;
+  final startingCoin = nathan.catCoins..first;
+  const desiredAmountPerCoin = 100;
 
-  const desiredMinimumNumberOfCoins = 200;
+  const desiredNumberOfCoins = 51;
+  // get at most first two digits of desiredNumberOfCoins
+  final numberOfCoinsDigitsToCompare = (desiredNumberOfCoins.numberOfDigits > 2)
+      ? desiredNumberOfCoins.toNDigits(2)
+      : desiredNumberOfCoins;
+
+  // calculate number of binary splits
+  late int numberOfBinarySplits;
+  var smallestSurplus = 1000000;
+
+  for (var i = 0; i < 10; i++) {
+    final resultingCoins = pow(2, i).toInt();
+    if (resultingCoins > desiredNumberOfCoins) {
+      break;
+    }
+
+    final resultingCoinsDigitsToCompare =
+        resultingCoins.toNDigits(numberOfCoinsDigitsToCompare.numberOfDigits);
+
+    var surplus = resultingCoinsDigitsToCompare - numberOfCoinsDigitsToCompare;
+    if (surplus < 0) {
+      final resultingCoinsDigitsPlusOneToCompare =
+          resultingCoins.toNDigits(numberOfCoinsDigitsToCompare.numberOfDigits + 1);
+
+      surplus = resultingCoinsDigitsPlusOneToCompare - numberOfCoinsDigitsToCompare;
+    }
+
+    if (surplus < smallestSurplus) {
+      smallestSurplus = surplus;
+      numberOfBinarySplits = i;
+    }
+  }
+
+  final resultingCoinsFromBinarySplits = pow(2, numberOfBinarySplits);
+
+  var numberOfDecaSplits = 0;
+  while (resultingCoinsFromBinarySplits * pow(10, numberOfDecaSplits) < desiredNumberOfCoins){
+    numberOfDecaSplits++;
+  }
+
+final totalNumberOfResultingCoins = resultingCoinsFromBinarySplits * pow(10, numberOfDecaSplits);
+
+
+
 
   final numberOfSplits = (log(desiredMinimumNumberOfCoins / startingNumberOfCoins) / log(2)).ceil();
   print(numberOfSplits);
   print(pow(2, numberOfSplits));
 
   final startTime = DateTime.now().millisecondsSinceEpoch;
-
   for (var i = 0; i < numberOfSplits; i++) {
     final numberOfCoinsToCreate = nathan.catCoins.length * 2;
     final fee = numberOfCoinsToCreate * 1000;
     print('fee: $fee');
     print('number of coins created in split: $numberOfCoinsToCreate');
-    var finalSpendBundle = SpendBundle.empty;
+    final pushTransactionFutures = <Future>[];
     for (final coin in nathan.catCoins) {
-      final childCoinOneAmount = coin.amount ~/ 2;
-      final childCoinTwoAmount = coin.amount - childCoinOneAmount;
+      final feePerCoin = (fee / nathan.catCoins.length).ceil();
+      final amountMinusFee = coin.amount - feePerCoin;
+
+      final coinAmount = amountMinusFee ~/ 2;
 
       final spendBundle = catWalletService.createSpendBundle(
         payments: [
-          Payment(childCoinOneAmount, nathan.firstPuzzlehash),
-          Payment(childCoinTwoAmount, nathan.puzzlehashes[1])
+          Payment(coinAmount, nathan.puzzlehashes[0]),
+          Payment(coinAmount, nathan.puzzlehashes[1])
         ],
         catCoinsInput: [coin],
+        changePuzzlehash: Program.fromBool(true).hash(),
         keychain: nathan.keychain,
       );
-
-      finalSpendBundle += spendBundle;
+      catWalletService.validateSpendBundle(spendBundle);
+      pushTransactionFutures.add(fullNodeSimulator.pushTransaction(spendBundle));
     }
 
-    await fullNodeSimulator.pushTransaction(finalSpendBundle);
+    await Future.wait<void>(pushTransactionFutures);
     await fullNodeSimulator.moveToNextBlock();
 
     await nathan.refreshCoins();
@@ -67,4 +113,24 @@ void main() async {
   final duration = (endTime - startTime) / 1000;
 
   print('total duration: $duration seconds');
+}
+
+extension ShortenIntToTwoDigits on int {
+  int toNDigits(int nDigits) {
+    final asString = toString();
+    final currentNumberOfDigits = asString.length;
+    if (currentNumberOfDigits > nDigits) {
+      return int.parse(asString.substring(0, nDigits));
+    }
+    if (currentNumberOfDigits < nDigits) {
+      final newString = StringBuffer(asString);
+      while (newString.length < nDigits) {
+        newString.write('0');
+      }
+      return int.parse(newString.toString());
+    }
+    return nDigits;
+  }
+
+  int get numberOfDigits => toString().length;
 }
