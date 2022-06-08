@@ -3,66 +3,103 @@ import 'dart:math';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 void main() async {
-  // if (!(await SimulatorUtils.checkIfSimulatorIsRunning())) {
-  //   print(SimulatorUtils.simulatorNotRunningWarning);
-  //   return;
-  // }
+  if (!(await SimulatorUtils.checkIfSimulatorIsRunning())) {
+    print(SimulatorUtils.simulatorNotRunningWarning);
+    return;
+  }
 
-  // final simulatorHttpRpc = SimulatorHttpRpc(
-  //   SimulatorUtils.simulatorUrl,
-  //   certBytes: SimulatorUtils.certBytes,
-  //   keyBytes: SimulatorUtils.keyBytes,
-  // );
+  final simulatorHttpRpc = SimulatorHttpRpc(
+    SimulatorUtils.simulatorUrl,
+    certBytes: SimulatorUtils.certBytes,
+    keyBytes: SimulatorUtils.keyBytes,
+  );
 
-  // final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
+  final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
 
-  // // set up context, services
-  // ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
-  // final catWalletService = CatWalletService();
+  Future<void> createAndPushSplittingTransactions({
+    required List<CatCoin> catCoins,
+    required List<Coin> standardCoinsForFee,
+    required WalletKeychain keychain,
+    required int splitWidth,
+    required int feePerCoin,
+  }) async {
+    final transactionFutures = <Future>[];
+    for (final catCoin in catCoins) {
+      final payments = <Payment>[];
+      for (var i = 0; i < splitWidth - 1; i++) {
+        payments.add(Payment(catCoin.amount ~/ splitWidth, keychain.puzzlehashes[i]));
+      }
+      final lastPaymentAmount = catCoin.amount -
+          payments.fold(0, (previousValue, payment) => previousValue + payment.amount);
+      payments.add(Payment(lastPaymentAmount.toInt(), keychain.puzzlehashes[splitWidth - 1]));
+      if (payments.toSet().length != payments.length) {
+        print(payments.map((e) => e.puzzlehash).toList());
+        throw Exception('duplicate output');
+      }
+      final spendBundle = CatWalletService().createSpendBundle(
+        payments: payments,
+        catCoinsInput: [catCoin],
+        keychain: keychain,
+        standardCoinsForFee: standardCoinsForFee,
+        fee: splitWidth * feePerCoin,
+      );
+      transactionFutures.add(fullNodeSimulator.pushTransaction(spendBundle));
+    }
+    await Future.wait<void>(transactionFutures);
+  }
 
-  // final nathan = ChiaEnthusiast(fullNodeSimulator, derivations: 6);
-  // await nathan.farmCoins();
-  // await nathan.issueMultiIssuanceCat();
+  int calculateNumberOfNWidthSplitsRequired({
+    int desiredNumberOfCoins,
+    int initialSplitWidth,
+  }) {
+late int numberOfBinarySplits;
+  num smallestDifference = 1000000;
+
+  for (var i = 0; i < 10; i++) {
+    final resultingCoins = pow(2, i).toInt();
+
+    if (resultingCoins > desiredNumberOfCoins) {
+      break;
+    }
+
+    final desiredNumberOfCoinsDigitsToCompare = desiredNumberOfCoins.toNDigits(3);
+
+    final resultingCoinsDigitsToCompare = resultingCoins.toNDigits(3);
+
+    var difference = desiredNumberOfCoinsDigitsToCompare - resultingCoinsDigitsToCompare;
+    if (difference < 0 && resultingCoins.numberOfDigits > 1) {
+      final resultingCoinsDigitsMinusOneToCompare =
+          resultingCoins.toNDigits(resultingCoins.numberOfDigits - 1);
+
+      difference = desiredNumberOfCoinsDigitsToCompare - resultingCoinsDigitsMinusOneToCompare;
+    }
+
+    if (difference > 0 && difference < smallestDifference) {
+      smallestDifference = difference;
+      numberOfBinarySplits = i;
+    }
+  }
+  }
+
+  // set up context, services
+  ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
+  final catWalletService = CatWalletService();
+
+  final nathan = ChiaEnthusiast(fullNodeSimulator, derivations: 11);
+  await nathan.farmCoins();
+  await nathan.issueMultiIssuanceCat();
 
   // final startingCoin = nathan.catCoins..first;
   const desiredAmountPerCoin = 100;
 
-  const desiredNumberOfCoins = 410000;
+  const desiredNumberOfCoins = 900;
   // get at most first two digits of desiredNumberOfCoins
-  final desiredNumberOfCoinsDigitsToCompare = (desiredNumberOfCoins.numberOfDigits > 2)
-      ? desiredNumberOfCoins.toNDigits(2)
-      : desiredNumberOfCoins;
+  // final desiredNumberOfCoinsDigitsToCompare = (desiredNumberOfCoins.numberOfDigits > 2)
+  //     ? desiredNumberOfCoins.toNDigits(2)
+  //     : desiredNumberOfCoins;
 
   // calculate number of binary splits
-  late int numberOfBinarySplits;
-  var smallestSurplus = 1000000;
-
-  for (var i = 0; i < 10; i++) {
-    final resultingCoins = pow(2, i).toInt();
-    // if (resultingCoins > desiredNumberOfCoins) {
-    //   break;
-    // }
-    late int resultingCoinsDigitsToCompare;
-    if (resultingCoins > desiredNumberOfCoins) {
-      resultingCoinsDigitsToCompare = resultingCoins;
-    } else {
-      resultingCoinsDigitsToCompare =
-          resultingCoins.toNDigits(desiredNumberOfCoinsDigitsToCompare.numberOfDigits);
-    }
-
-    var surplus = resultingCoinsDigitsToCompare - desiredNumberOfCoinsDigitsToCompare;
-    if (surplus < 0) {
-      final resultingCoinsDigitsPlusOneToCompare =
-          resultingCoins.toNDigits(resultingCoinsDigitsToCompare.numberOfDigits + 1);
-
-      surplus = resultingCoinsDigitsPlusOneToCompare - desiredNumberOfCoinsDigitsToCompare;
-    }
-
-    if (surplus < smallestSurplus) {
-      smallestSurplus = surplus;
-      numberOfBinarySplits = i;
-    }
-  }
+  
 
   final resultingCoinsFromBinarySplits = pow(2, numberOfBinarySplits);
 
@@ -70,7 +107,8 @@ void main() async {
   while (resultingCoinsFromBinarySplits * pow(10, numberOfDecaSplits) < desiredNumberOfCoins) {
     numberOfDecaSplits++;
   }
-
+  numberOfDecaSplits--;
+  // want to optimize amount per coin
   final totalNumberOfResultingCoins = resultingCoinsFromBinarySplits * pow(10, numberOfDecaSplits);
 
   print('number of binary splits: $numberOfBinarySplits');
@@ -81,6 +119,68 @@ void main() async {
   print(' ');
   print('total number of resulting coins: $totalNumberOfResultingCoins');
   print('desired coins: $desiredNumberOfCoins');
+
+  for (var i = 0; i < numberOfBinarySplits; i++) {
+    await createAndPushSplittingTransactions(
+      catCoins: nathan.catCoins,
+      standardCoinsForFee: nathan.standardCoins,
+      keychain: nathan.keychain,
+      splitWidth: 2,
+      feePerCoin: 100,
+    );
+    await fullNodeSimulator.moveToNextBlock();
+
+    await nathan.refreshCoins();
+    print('finished 2 split');
+  }
+
+  for (var i = 0; i < numberOfDecaSplits; i++) {
+    await createAndPushSplittingTransactions(
+      catCoins: nathan.catCoins,
+      standardCoinsForFee: nathan.standardCoins,
+      keychain: nathan.keychain,
+      splitWidth: 10,
+      feePerCoin: 100,
+    );
+    await fullNodeSimulator.moveToNextBlock();
+
+    await nathan.refreshCoins();
+    print('finished 10 split');
+  }
+
+  // final split
+  var numberOfCoinsCreated = 0;
+  final transactionFutures = <Future>[];
+  var isFinished = false;
+  for (final catCoin in nathan.catCoins) {
+    final payments = <Payment>[];
+    for (var i = 0; i < 10; i++) {
+      if (numberOfCoinsCreated >= desiredNumberOfCoins) {
+        isFinished = true;
+        break;
+      }
+      payments.add(Payment(desiredAmountPerCoin, nathan.keychain.puzzlehashes[i]));
+      numberOfCoinsCreated++;
+    }
+
+    final lastPaymentAmount = catCoin.amount -
+        payments.fold(0, (previousValue, payment) => previousValue + payment.amount);
+    payments.add(Payment(lastPaymentAmount.toInt(), nathan.firstPuzzlehash));
+
+    final spendBundle = CatWalletService().createSpendBundle(
+      payments: payments,
+      catCoinsInput: [catCoin],
+      keychain: nathan.keychain,
+    );
+    transactionFutures.add(fullNodeSimulator.pushTransaction(spendBundle));
+    if (isFinished) {
+      break;
+    }
+  }
+  await Future.wait<void>(transactionFutures);
+  await fullNodeSimulator.moveToNextBlock();
+  await nathan.refreshCoins();
+  print(nathan.catCoins.where((c) => c.amount == desiredAmountPerCoin).length);
 
   // final numberOfSplits = (log(desiredMinimumNumberOfCoins / startingNumberOfCoins) / log(2)).ceil();
   // print(numberOfSplits);
@@ -125,22 +225,26 @@ void main() async {
   // print('total duration: $duration seconds');
 }
 
-extension ShortenIntToTwoDigits on int {
-  int toNDigits(int nDigits) {
-    final asString = toString();
-    final currentNumberOfDigits = asString.length;
-    if (currentNumberOfDigits > nDigits) {
-      return int.parse(asString.substring(0, nDigits));
-    }
-    if (currentNumberOfDigits < nDigits) {
-      final newString = StringBuffer(asString);
-      while (newString.length < nDigits) {
-        newString.write('0');
+extension ShortenIntToTwoDigits on num {
+  num toNDigits(int nDigits) {
+    final base10Upper = pow(10, nDigits);
+    final base10Lower = pow(10, nDigits - 1);
+    if (this > base10Upper) {
+      var reduced = this;
+      while (reduced > base10Upper) {
+        reduced /= 10;
       }
-      return int.parse(newString.toString());
+      return reduced;
+    }
+    if (this < base10Lower) {
+      var increased = this;
+      while (increased < base10Lower) {
+        increased *= 10;
+      }
+      return increased;
     }
     return this;
   }
 
-  int get numberOfDigits => toString().length;
+  int get numberOfDigits => toString().replaceAll('.', '').length;
 }
