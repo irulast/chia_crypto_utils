@@ -24,6 +24,7 @@ void main() async {
     required int feePerCoin,
   }) async {
     final transactionFutures = <Future>[];
+    final additionIdsToLookFor = <Bytes>[];
     for (final catCoin in catCoins) {
       final payments = <Payment>[];
       for (var i = 0; i < splitWidth - 1; i++) {
@@ -43,47 +44,61 @@ void main() async {
         standardCoinsForFee: standardCoinsForFee,
         fee: splitWidth * feePerCoin,
       );
+      additionIdsToLookFor.add(spendBundle.additions.first.id);
       transactionFutures.add(fullNodeSimulator.pushTransaction(spendBundle));
     }
     await Future.wait<void>(transactionFutures);
+
+    // wait for all spend bundles to be pushed
+    while ((await fullNodeSimulator.getCoinsByIds(additionIdsToLookFor)).length ==
+        additionIdsToLookFor.length) {
+      await Future<void>.delayed(const Duration(seconds: 19));
+      print('waiting for transactions to be included...');
+    }
   }
 
   int calculateNumberOfNWidthSplitsRequired({
-    int desiredNumberOfCoins,
-    int initialSplitWidth,
+    required int desiredNumberOfCoins,
+    required int initialSplitWidth,
   }) {
-late int numberOfBinarySplits;
-  num smallestDifference = 1000000;
+    late int numberOfBinarySplits;
+    num smallestDifference = 1000000;
 
-  for (var i = 0; i < 10; i++) {
-    final resultingCoins = pow(2, i).toInt();
+    for (var i = 0; i < 10; i++) {
+      final resultingCoins = pow(initialSplitWidth, i).toInt();
 
-    if (resultingCoins > desiredNumberOfCoins) {
-      break;
+      if (resultingCoins > desiredNumberOfCoins) {
+        break;
+      }
+
+      if (resultingCoins == 9) {
+        print(9);
+      }
+
+      final desiredNumberOfCoinsDigitsToCompare = desiredNumberOfCoins.toNDigits(3);
+
+      final resultingCoinsDigitsToCompare = resultingCoins.toNDigits(3);
+
+      var difference = desiredNumberOfCoinsDigitsToCompare - resultingCoinsDigitsToCompare;
+      if (difference < 0 && resultingCoins.numberOfDigits > 1) {
+        final resultingCoinsDigitsMinusOneToCompare =
+            resultingCoins.toNDigits(resultingCoins.numberOfDigits - 1);
+
+        difference = desiredNumberOfCoinsDigitsToCompare - resultingCoinsDigitsMinusOneToCompare;
+      }
+
+      if (difference >= 0 && difference < smallestDifference) {
+        smallestDifference = difference;
+        numberOfBinarySplits = i;
+      }
     }
 
-    final desiredNumberOfCoinsDigitsToCompare = desiredNumberOfCoins.toNDigits(3);
-
-    final resultingCoinsDigitsToCompare = resultingCoins.toNDigits(3);
-
-    var difference = desiredNumberOfCoinsDigitsToCompare - resultingCoinsDigitsToCompare;
-    if (difference < 0 && resultingCoins.numberOfDigits > 1) {
-      final resultingCoinsDigitsMinusOneToCompare =
-          resultingCoins.toNDigits(resultingCoins.numberOfDigits - 1);
-
-      difference = desiredNumberOfCoinsDigitsToCompare - resultingCoinsDigitsMinusOneToCompare;
-    }
-
-    if (difference > 0 && difference < smallestDifference) {
-      smallestDifference = difference;
-      numberOfBinarySplits = i;
-    }
-  }
+    return numberOfBinarySplits;
   }
 
   // set up context, services
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
-  final catWalletService = CatWalletService();
+  // final catWalletService = CatWalletService();
 
   final nathan = ChiaEnthusiast(fullNodeSimulator, derivations: 11);
   await nathan.farmCoins();
@@ -92,26 +107,32 @@ late int numberOfBinarySplits;
   // final startingCoin = nathan.catCoins..first;
   const desiredAmountPerCoin = 100;
 
-  const desiredNumberOfCoins = 900;
+  const desiredNumberOfCoins = 310;
   // get at most first two digits of desiredNumberOfCoins
   // final desiredNumberOfCoinsDigitsToCompare = (desiredNumberOfCoins.numberOfDigits > 2)
   //     ? desiredNumberOfCoins.toNDigits(2)
   //     : desiredNumberOfCoins;
 
   // calculate number of binary splits
-  
 
-  final resultingCoinsFromBinarySplits = pow(2, numberOfBinarySplits);
+  const desiredSplitWidth = 3;
+
+  final numberOfBinarySplits = calculateNumberOfNWidthSplitsRequired(
+    desiredNumberOfCoins: desiredNumberOfCoins,
+    initialSplitWidth: desiredSplitWidth,
+  );
+
+  final resultingCoinsFromBinarySplits = pow(desiredSplitWidth, numberOfBinarySplits);
 
   var numberOfDecaSplits = 0;
-  while (resultingCoinsFromBinarySplits * pow(10, numberOfDecaSplits) < desiredNumberOfCoins) {
+  while (resultingCoinsFromBinarySplits * pow(10, numberOfDecaSplits) <= desiredNumberOfCoins) {
     numberOfDecaSplits++;
   }
   numberOfDecaSplits--;
   // want to optimize amount per coin
   final totalNumberOfResultingCoins = resultingCoinsFromBinarySplits * pow(10, numberOfDecaSplits);
 
-  print('number of binary splits: $numberOfBinarySplits');
+  print('number of $desiredSplitWidth splits: $numberOfBinarySplits');
   print('number of ten splits: $numberOfDecaSplits');
   print(' ');
 
@@ -148,7 +169,7 @@ late int numberOfBinarySplits;
     print('finished 10 split');
   }
 
-  // final split
+  // // final split
   var numberOfCoinsCreated = 0;
   final transactionFutures = <Future>[];
   var isFinished = false;
