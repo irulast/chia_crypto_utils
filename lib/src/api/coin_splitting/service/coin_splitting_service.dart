@@ -24,38 +24,51 @@ class CoinSplittingService {
       initialSplitWidth: splitWidth,
     );
 
-    print('number of $splitWidth width splits: numberOfNWidthSplits');
+    print('number of $splitWidth width splits: $numberOfNWidthSplits');
 
     final resultingCoinsFromNWidthSplits = pow(splitWidth, numberOfNWidthSplits).toInt();
     final numberOfDecaSplits =
         calculateNumberOfDecaSplitsRequired(resultingCoinsFromNWidthSplits, desiredNumberOfCoins);
 
-    print('number of 10 width splits: numberOfDecaSplits');
+    print('number of 10 width splits: $numberOfDecaSplits');
 
     final totalNumberOfResultingCoins =
         resultingCoinsFromNWidthSplits * pow(10, numberOfDecaSplits);
 
-// check if resulting coins will be big enough
-    resultingCatCoinAmount = catCoinToSplit.amount;
     print('total number of resulting coins: $totalNumberOfResultingCoins');
+
+    validateInputs(
+      feePerCoin: feePerCoin,
+      numberOfDecaSplits: numberOfDecaSplits,
+      numberOfNWidthSplits: numberOfNWidthSplits,
+      splitWidth: splitWidth,
+      desiredCoinAmount: desiredAmountPerCoin,
+      startingCatAmount: catCoinToSplit.amount,
+      startingStandardCoins: standardCoinsForFee,
+    );
 
     final airdropId = catCoinToSplit.id;
     final airdropFeeCoinsId = standardCoinsForFee.joinedIds.sha256Hash();
 
-    await createAndPushStandardCoinJoinTransaction(
-      coins: standardCoinsForFee,
-      keychain: keychain,
-      destinationPuzzlehash: keychain.puzzlehashes.first,
-      airdropFeeCoinsId: airdropFeeCoinsId,
-    );
+    var standardCoins = standardCoinsForFee;
 
-    print('joined standard coins for fee');
+    if (standardCoinsForFee.length > 1) {
+      await createAndPushStandardCoinJoinTransaction(
+        coins: standardCoinsForFee,
+        keychain: keychain,
+        destinationPuzzlehash: keychain.puzzlehashes.first,
+        airdropFeeCoinsId: airdropFeeCoinsId,
+      );
+
+      standardCoins = await fullNode.getCoinsByMemo(airdropFeeCoinsId);
+      print('joined standard coins for fee');
+
+      if (standardCoins.length != 1) {
+        throw Exception('should only be one standard coin after join. got ${standardCoins.length}');
+      }
+    }
 
     var catCoins = [catCoinToSplit];
-    var standardCoins = await fullNode.getCoinsByMemo(airdropFeeCoinsId);
-    if (standardCoins.length != 1) {
-      throw Exception('should only be one standard coin after join. got ${standardCoins.length}');
-    }
 
     for (var i = 0; i < numberOfNWidthSplits; i++) {
       final catParentCoinIds = catCoins.map((cc) => cc.id).toSet();
@@ -175,6 +188,7 @@ class CoinSplittingService {
         catCoinsInput: [catCoin],
         keychain: keychain,
         standardCoinsForFee: [standardCoin],
+        changePuzzlehash: changePuzzlehash,
         fee: 10 * feePerCoin,
       );
       parentIdsToLookFor.add(catCoin.id);
@@ -409,7 +423,7 @@ class CoinSplittingService {
       feeCoinAmount = (feeCoinAmount - totalFeePerDecaSplit) ~/ splitWidth;
     }
 
-    if (feeCoinAmount > feePerCoin) {
+    if (feePerCoin > feeCoinAmount) {
       throw ArgumentError('Standard balance is not enough to meet desired splitting parameters');
     }
   }
