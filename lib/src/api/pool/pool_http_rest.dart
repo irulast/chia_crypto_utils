@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/api/pool/models/add_farmer_response.dart';
 
 class PoolHttpREST {
   const PoolHttpREST(this.poolUrl, {this.certBytes});
@@ -27,12 +28,13 @@ class PoolHttpREST {
     );
   }
 
-  Future<void> addFarmer(PostFarmerPayload payload, JacobianPoint signature) async {
+  Future<AddFarmerResponse> addFarmer(PostFarmerPayload payload, JacobianPoint signature) async {
     final response = await client.post(Uri.parse('farmer'), <String, dynamic>{
       'payload': payload.toJson(),
       'signature': signature.toHexWithPrefix(),
     });
     mapResponseToError(response);
+    return AddFarmerResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   Future<GetFarmerResponse> getFarmer(
@@ -43,9 +45,9 @@ class PoolHttpREST {
     final response = await client.get(
       Uri.parse('farmer'),
       queryParameters: <String, dynamic>{
-        'launcher_id': launcherId.hexWithBytesPrefix,
+        'launcher_id': launcherId.toHex(),
         'authentication_token': authenticationToken.toString(),
-        'signature': signature.toHexWithPrefix(),
+        'signature': signature.toHex(),
       },
     );
     mapResponseToError(response);
