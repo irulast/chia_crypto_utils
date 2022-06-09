@@ -8,6 +8,7 @@ class CoinSplittingService {
   final ChiaFullNodeInterface fullNode;
   final catWalletService = CatWalletService();
   final standardWalletService = StandardWalletService();
+  final logger = LoggingContext().log;
 
   Future<void> splitCoins({
     required CatCoin catCoinToSplit,
@@ -24,9 +25,17 @@ class CoinSplittingService {
       initialSplitWidth: splitWidth,
     );
 
+    logger('number of $splitWidth width splits: numberOfNWidthSplits');
+
     final resultingCoinsFromNWidthSplits = pow(splitWidth, numberOfNWidthSplits).toInt();
     final numberOfDecaSplits =
         calculateNumberOfDecaSplitsRequired(resultingCoinsFromNWidthSplits, desiredNumberOfCoins);
+
+    logger('number of 10 width splits: numberOfDecaSplits');
+
+      final totalNumberOfResultingCoins = resultingCoinsFromNWidthSplits * pow(10, numberOfDecaSplits);
+    
+    logger('total number of resulting coins: $totalNumberOfResultingCoins');
 
     final airdropId = catCoinToSplit.id;
     final airdropFeeCoinsId = standardCoinsForFee.joinedIds.sha256Hash();
@@ -38,21 +47,27 @@ class CoinSplittingService {
       airdropFeeCoinsId: airdropFeeCoinsId,
     );
 
+    logger('joined standard coins for fee');
+
     var catCoins = [catCoinToSplit];
     var standardCoins = await fullNode.getCoinsByMemo(airdropFeeCoinsId);
+    if (standardCoins.length != 1) {
+      throw Exception('should only be one standard coin after join');
+    }
 
     for (var i = 0; i < numberOfNWidthSplits; i++) {
       await createAndPushSplittingTransactions(
         catCoins: catCoins,
         standardCoinsForFee: standardCoins,
         keychain: keychain,
-        splitWidth: 2,
-        feePerCoin: 100,
+        splitWidth: splitWidth,
+        feePerCoin: feePerCoin,
         airdropId: airdropId,
         airdropFeeCoinsId: airdropFeeCoinsId,
       );
       catCoins = await fullNode.getCatCoinsByMemo(airdropId);
       standardCoins = await fullNode.getCoinsByMemo(airdropFeeCoinsId);
+      logger('finished $splitWidth width split');
     }
 
     for (var i = 0; i < numberOfDecaSplits; i++) {
@@ -61,12 +76,13 @@ class CoinSplittingService {
         standardCoinsForFee: standardCoins,
         keychain: keychain,
         splitWidth: 10,
-        feePerCoin: 100,
+        feePerCoin: feePerCoin,
         airdropId: airdropId,
         airdropFeeCoinsId: airdropFeeCoinsId,
       );
       catCoins = await fullNode.getCatCoinsByMemo(airdropId);
       standardCoins = await fullNode.getCoinsByMemo(airdropFeeCoinsId);
+      logger('finished 10 width split');
     }
 
     await createAndPushFinalSplittingTransactions(
@@ -79,6 +95,7 @@ class CoinSplittingService {
       desiredNumberOfCoins: desiredNumberOfCoins,
       changePuzzlehash: keychain.puzzlehashes.first,
     );
+    logger('finish splitting with airdropId: $airdropId');
   }
 
   Future<void> createAndPushFinalSplittingTransactions({
