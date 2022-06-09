@@ -45,9 +45,11 @@ Future<void> createNewWalletWithPlotNFT(
   print('Pool welcome message: ${addFarmerResponse.welcomeMessage}');
 
   GetFarmerResponse? farmerInfo;
-  while (farmerInfo == null) {
+  var attempts = 0;
+  while (farmerInfo == null && attempts < 6) {
     print('waiting for farmer information to become available...');
     try {
+      attempts = attempts + 1;
       await Future<void>.delayed(const Duration(seconds: 15));
       farmerInfo = await poolService.getFarmerInfo(
         authenticationPrivateKey:
@@ -58,8 +60,13 @@ Future<void> createNewWalletWithPlotNFT(
       if (e.poolErrorResponse.responseCode != PoolErrorState.farmerNotKnown) {
         rethrow;
       }
+      if (attempts == 5) {
+        print(e.poolErrorResponse.message);
+      }
     }
   }
 
-  print(farmerInfo);
+  if (farmerInfo != null) {
+    print(farmerInfo);
+  }
 }
