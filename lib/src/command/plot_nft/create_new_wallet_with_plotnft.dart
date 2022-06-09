@@ -8,11 +8,15 @@ Future<void> createNewWalletWithPlotNFT(
   PoolService poolService,
   ChiaFullNodeInterface fullNode,
 ) async {
-  final coins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes,);
+  final coins = await fullNode.getCoinsByPuzzleHashes(
+    keychain.puzzlehashes,
+  );
 
   final delayPh = keychain.puzzlehashes[4];
   final singletonWalletVector = SingletonWalletVector.fromMasterPrivateKey(
-      keychainSecret.masterPrivateKey, 20,);
+    keychainSecret.masterPrivateKey,
+    20,
+  );
 
   final launcherId = await poolService.createPlotNftForPool(
     p2SingletonDelayedPuzzlehash: delayPh,
@@ -53,6 +57,8 @@ Future<void> createNewWalletWithPlotNFT(
       if (e.poolErrorResponse.responseCode != PoolErrorState.farmerNotKnown) {
         rethrow;
       }
+    } catch (e) {
+      rethrow;
     }
   }
 

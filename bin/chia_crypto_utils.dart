@@ -157,13 +157,18 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
         plotNft.poolState.poolUrl!,
         argResults!['certificate-bytes-path'] as String,
       );
-      await getFarmingStatus(
-        plotNft,
-        keychainSecret,
-        keychain,
-        poolService,
-        fullNode,
-      );
+
+      try {
+        await getFarmingStatus(
+          plotNft,
+          keychainSecret,
+          keychain,
+          poolService,
+          fullNode,
+        );
+      } catch (e) {
+        LoggingContext().log(e.toString());
+      }
     }
   }
 }
