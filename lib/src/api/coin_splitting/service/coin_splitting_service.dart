@@ -312,7 +312,7 @@ class CoinSplittingService {
     required int desiredNumberOfCoins,
     required int initialSplitWidth,
   }) {
-    late int numberOfBinarySplits;
+    late int numberOfNWidthSplits;
     num smallestDifference = 10000000;
 
     final maxResultingCoinDigits = pow(initialSplitWidth, 10).toInt();
@@ -338,11 +338,11 @@ class CoinSplittingService {
 
       if (difference < smallestDifference) {
         smallestDifference = difference;
-        numberOfBinarySplits = i;
+        numberOfNWidthSplits = i;
       }
     }
 
-    return numberOfBinarySplits;
+    return numberOfNWidthSplits;
   }
 
   Future<int> createAndPushStandardCoinJoinTransaction({
