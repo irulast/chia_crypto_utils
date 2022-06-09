@@ -70,7 +70,7 @@ void main() async {
   // print('pushed');
   final catCoins = await fullNode
       .getCatCoinsByOuterPuzzleHashes(keychain.getOuterPuzzleHashesForAssetId(assetId));
-print(catCoins.length);
+  print(catCoins.length);
   // final sendCatSpendBundle = catWalletService.createSpendBundle(
   //   payments: [
   //     Payment(catCoins.totalValue, keychain.puzzlehashes.first),
@@ -98,7 +98,7 @@ print(catCoins.length);
     keychain: keychain,
     splitWidth: 2,
     feePerCoin: 1000,
-    desiredNumberOfCoins: 112,
+    desiredNumberOfCoins: 1715,
     desiredAmountPerCoin: 101,
     changePuzzlehash: keychain.puzzlehashes.first,
   );
