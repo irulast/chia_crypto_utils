@@ -324,20 +324,19 @@ class CoinSplittingService {
         break;
       }
 
-      final desiredNumberOfCoinsDigitsToCompare = desiredNumberOfCoins.toNDigits(maxResultingCoinDigits);
-
+      final desiredNumberOfCoinsDigitsToCompare =
+          desiredNumberOfCoins.toNDigits(maxResultingCoinDigits);
       final resultingCoinsDigitsToCompare = resultingCoins.toNDigits(maxResultingCoinDigits);
 
       var difference = desiredNumberOfCoinsDigitsToCompare - resultingCoinsDigitsToCompare;
-      if (difference < 0 && resultingCoins.numberOfDigits > 1) {
+      if (difference < 0) {
         final resultingCoinsDigitsMinusOneToCompare =
-            //TODO(nvjoshi): fix this
             resultingCoins.toNDigits(maxResultingCoinDigits - 1);
 
         difference = desiredNumberOfCoinsDigitsToCompare - resultingCoinsDigitsMinusOneToCompare;
       }
 
-      if (difference >= 0 && difference < smallestDifference) {
+      if (difference < smallestDifference) {
         smallestDifference = difference;
         numberOfBinarySplits = i;
       }
