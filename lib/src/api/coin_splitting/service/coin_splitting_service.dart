@@ -8,10 +8,8 @@ class CoinSplittingService {
   final ChiaFullNodeInterface fullNode;
   final catWalletService = CatWalletService();
 
-  
-
-  Future<void> createAndPushFinalSplittingTransactions({
-    required List<CatCoin> catCoins,
+  Future<void> splitCoins({
+    required CatCoin catCoinToSplit,
     required List<Coin> standardCoinsForFee,
     required WalletKeychain keychain,
     required int splitWidth,
@@ -19,6 +17,46 @@ class CoinSplittingService {
     required int desiredNumberOfCoins,
     required int desiredAmountPerCoin,
     required Puzzlehash changePuzzlehash,
+  }) async {
+    final numberOfNWidthSplits = calculateNumberOfNWidthSplitsRequired(
+      desiredNumberOfCoins: desiredNumberOfCoins,
+      initialSplitWidth: splitWidth,
+    );
+
+    final resultingCoinsFromNWidthSplits = pow(splitWidth, numberOfNWidthSplits).toInt();
+    final numberOfDecaSplits =
+        calculateNumberOfDecaSplitsRequired(resultingCoinsFromNWidthSplits, desiredNumberOfCoins);
+
+    var catCoins = [catCoinToSplit];
+    var standardCoins = standardCoinsForFee;
+
+    final airdropId = catCoinToSplit.id;
+    final airdropFeeCoinsId = airdropId.sha256Hash();
+
+    for (var i = 0; i < numberOfNWidthSplits; i++) {
+      await createAndPushSplittingTransactions(
+        catCoins: catCoins,
+        standardCoinsForFee: standardCoins,
+        keychain: nathan.keychain,
+        splitWidth: 2,
+        feePerCoin: 100,
+      );
+      await fullNodeSimulator.moveToNextBlock();
+
+      await nathan.refreshCoins();
+      print('finished 2 split');
+    }
+  }
+
+  Future<void> createAndPushFinalSplittingTransactions({
+    required List<CatCoin> catCoins,
+    required List<Coin> standardCoinsForFee,
+    required WalletKeychain keychain,
+    required int feePerCoin,
+    required int desiredNumberOfCoins,
+    required int desiredAmountPerCoin,
+    required Puzzlehash changePuzzlehash,
+    required Bytes airdropId,
   }) async {
     var numberOfCoinsCreated = 0;
     final additionIdsToLookFor = <Bytes>[];
@@ -33,7 +71,13 @@ class CoinSplittingService {
           isFinished = true;
           break;
         }
-        payments.add(Payment(desiredAmountPerCoin, keychain.puzzlehashes[i]));
+        payments.add(
+          Payment(
+            desiredAmountPerCoin,
+            keychain.puzzlehashes[i],
+            memos: <Bytes>[airdropId],
+          ),
+        );
         numberOfCoinsCreated++;
       }
 
@@ -45,6 +89,8 @@ class CoinSplittingService {
         payments: payments,
         catCoinsInput: [catCoin],
         keychain: keychain,
+        standardCoinsForFee: standardCoinsForFee,
+        fee: 10 * feePerCoin,
       );
       additionIdsToLookFor.add(spendBundle.additions.first.id);
 
@@ -63,21 +109,46 @@ class CoinSplittingService {
     required WalletKeychain keychain,
     required int splitWidth,
     required int feePerCoin,
+    required Bytes airdropId,
+    required Bytes airdropFeeCoinsId,
   }) async {
     final transactionFutures = <Future>[];
     final additionIdsToLookFor = <Bytes>[];
     for (final catCoin in catCoins) {
       final payments = <Payment>[];
       for (var i = 0; i < splitWidth - 1; i++) {
-        payments.add(Payment(catCoin.amount ~/ splitWidth, keychain.puzzlehashes[i]));
+        payments.add(
+          Payment(
+            catCoin.amount ~/ splitWidth,
+            keychain.puzzlehashes[i],
+            memos: <Bytes>[airdropId],
+          ),
+        );
       }
+
       final lastPaymentAmount = catCoin.amount -
           payments.fold(0, (previousValue, payment) => previousValue + payment.amount);
-      payments.add(Payment(lastPaymentAmount.toInt(), keychain.puzzlehashes[splitWidth - 1]));
-      if (payments.toSet().length != payments.length) {
-        print(payments.map((e) => e.puzzlehash).toList());
-        throw Exception('duplicate output');
+      payments.add(
+        Payment(
+          lastPaymentAmount.toInt(),
+          keychain.puzzlehashes[splitWidth - 1],
+          memos: <Bytes>[airdropId],
+        ),
+      );
+      
+      final standardPayments = <Payment>[];
+      for (var i = 0; i < splitWidth - 1; i++) {
+        standardPayments.add(
+          Payment(
+            standardCoinsForFee.totalValue ~/ splitWidth,
+            keychain.puzzlehashes[i],
+            memos: <Bytes>[airdropFeeCoinsId],
+          ),
+        );
       }
+
+
+
       final spendBundle = CatWalletService().createSpendBundle(
         payments: payments,
         catCoinsInput: [catCoin],
@@ -142,6 +213,8 @@ class CoinSplittingService {
     return numberOfBinarySplits;
   }
 
+
+
   int calculateNumberOfDecaSplitsRequired(
     int resultingCoinsFromNWidthSplits,
     int desiredNumberOfCoins,
@@ -155,7 +228,7 @@ class CoinSplittingService {
   }
 }
 
-extension ShortenIntToTwoDigits on num {
+extension DigitOperations on num {
   num toNDigits(int nDigits) {
     final base10Upper = pow(10, nDigits);
     final base10Lower = pow(10, nDigits - 1);

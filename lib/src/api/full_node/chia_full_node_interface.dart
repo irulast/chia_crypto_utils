@@ -86,6 +86,15 @@ class ChiaFullNodeInterface {
     return coinRecordsResponse.coinRecords.map((record) => record.toCoin()).toList();
   }
 
+  Future<List<Coin>> getCoinsByMemo(Bytes memo) async {
+    final coinRecordsResponse = await fullNode.getCoinsByHint(
+      memo,
+    );
+    mapResponseToError(coinRecordsResponse);
+
+    return coinRecordsResponse.coinRecords.map((record) => record.toCoin()).toList();
+  }
+
   Future<CoinSpend?> getCoinSpend(Coin coin) async {
     final coinSpendResponse = await fullNode.getPuzzleAndSolution(coin.id, coin.spentBlockIndex);
     mapResponseToError(coinSpendResponse);
