@@ -37,11 +37,12 @@ Future<void> createNewWalletWithPlotNFT(
   final newPlotNft = await fullNode.getPlotNftByLauncherId(launcherId);
   print(newPlotNft);
 
-  await poolService.registerAsFarmerWithPool(
+  final addFarmerResponse = await poolService.registerAsFarmerWithPool(
     plotNft: newPlotNft!,
     singletonWalletVector: singletonWalletVector,
     payoutPuzzlehash: keychain.puzzlehashes[1],
   );
+  print('Pool welcome message: ${addFarmerResponse.welcomeMessage}');
 
   GetFarmerResponse? farmerInfo;
   while (farmerInfo == null) {
