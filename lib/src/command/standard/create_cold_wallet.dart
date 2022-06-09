@@ -13,6 +13,7 @@ Future<void> createColdWallet() async {
   final poolPublicKeyHex = masterSkToPoolSk(masterPrivateKey).getG1().toHex();
 
   print('Fingerprint: $fingerprint');
+  print('Mnemonic Phrase: $mnemonicPhrase');
   print('Master public key (m): $masterPublicKeyHex');
   print(
     'Farmer public key (m/$blsSpecNumber/$chiaBlockchanNumber/$farmerPathNumber/0): $farmerPublicKeyHex',
@@ -21,8 +22,6 @@ Future<void> createColdWallet() async {
     'Pool public key (m/$blsSpecNumber/$chiaBlockchanNumber/$poolPathNumber/0: $poolPublicKeyHex',
   );
   print('Wallet addresses');
-
-  print('Mnemonic Phrase: $mnemonicWords');
 
   final walletSet = <WalletSet>[];
   for (var i = 0; i < 20; i++) {

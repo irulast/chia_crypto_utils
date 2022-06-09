@@ -72,7 +72,7 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
     );
     final mnemonicPhrase = generateMnemonic(strength: 256);
     final mnemonic = mnemonicPhrase.split(' ');
-    print('Mnemonic Phrase: $mnemonic');
+    print('Mnemonic Phrase: $mnemonicPhrase');
 
     final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
     final keychain = WalletKeychain.fromCoreSecret(
