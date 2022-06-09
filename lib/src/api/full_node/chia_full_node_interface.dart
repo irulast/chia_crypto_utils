@@ -102,12 +102,23 @@ class ChiaFullNodeInterface {
     return coinSpendResponse.coinSpend;
   }
 
+  Future<List<CatCoin>> getCatCoinsByMemo(
+    Bytes memo,
+  ) async {
+    final coins = await getCoinsByMemo(memo);
+    return _hydrateCatCoins(coins);
+  }
+
   Future<List<CatCoin>> getCatCoinsByOuterPuzzleHashes(
     List<Puzzlehash> puzzlehashes,
   ) async {
     final coins = await getCoinsByPuzzleHashes(puzzlehashes);
+    return _hydrateCatCoins(coins);
+  }
+
+  Future<List<CatCoin>> _hydrateCatCoins(List<Coin> unHydratedCatCoins) async {
     final catCoins = <CatCoin>[];
-    for (final coin in coins) {
+    for (final coin in unHydratedCatCoins) {
       final parentCoin = await getCoinById(coin.parentCoinInfo);
 
       final parentCoinSpend = await getCoinSpend(parentCoin!);

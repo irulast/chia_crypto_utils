@@ -88,4 +88,8 @@ extension CoinValue on List<CoinPrototype> {
   int get totalValue {
     return fold(0, (int previousValue, coin) => previousValue + coin.amount);
   }
+
+  Bytes get joinedIds {
+    return fold(Bytes.empty, (Bytes previousValue, coin) => previousValue + coin.id);
+  }
 }

@@ -51,9 +51,15 @@ class Payment {
   String toString() => 'Payment(amount: $amount, puzzlehash: $puzzlehash, memos: $memos)';
 
   @override
-  bool operator ==(Object other) => other is Payment && puzzlehash == other.puzzlehash && amount == other.amount;
+  bool operator ==(Object other) =>
+      other is Payment && puzzlehash == other.puzzlehash && amount == other.amount;
 
   @override
   int get hashCode => puzzlehash.hashCode ^ amount.hashCode;
+}
 
+extension PaymentValue on List<Payment> {
+  int get totalValue {
+    return fold(0, (int previousValue, payment) => previousValue + payment.amount);
+  }
 }
