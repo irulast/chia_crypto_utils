@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/api/coin_splitting/service/coin_splitting_service.dart';
 import 'package:chia_crypto_utils/src/api/full_node/full_node_utils.dart';
 
 void main() async {
@@ -32,6 +33,7 @@ void main() async {
   ];
 
   final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
+  print(keychainSecret.fingerprint);
   final keychain = WalletKeychain.fromCoreSecret(keychainSecret, walletSize: 50);
   final fullNodeUtils = FullNodeUtils(Network.testnet10);
   FullNodeContext().setCertificateBytes(fullNodeUtils.certBytes);
@@ -40,63 +42,67 @@ void main() async {
 
   final fullNode = ChiaFullNodeInterface.fromContext();
 
-  final walletService = StandardWalletService();
+  final coinSplittingService = CoinSplittingService(fullNode);
 
-  print(keychain.puzzlehashes.length);
+  final coins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
+  print(coins.length);
+  print(coins.totalValue);
 
-  var coins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
+  final catWalletService = CatWalletService();
 
-  final startingNumberOfCoins = coins.length;
+  final assetId =
+      Puzzlehash.fromHex('9170b3a2214c1a017a2a9e953d541d4d15f163ef2a6f60e7c3335cba24f86401');
+  keychain.addOuterPuzzleHashesForAssetId(assetId);
 
-  const desiredMinimumNumberOfCoins = 10000;
+  // final makeCatSpendBundle = catWalletService.makeMultiIssuanceCatSpendBundle(
+  //   genesisCoinId: coins[0].id,
+  //   standardCoins: coins,
+  //   privateKey: keychain.unhardenedWalletVectors.first.childPrivateKey,
+  //   destinationPuzzlehash: keychain.puzzlehashes.first,
+  //   changePuzzlehash: keychain.puzzlehashes.first,
+  //   amount: 841657360,
+  //   keychain: keychain,
+  //   fee: 1000,
+  // );
 
-  final numberOfSplits = (log(desiredMinimumNumberOfCoins / startingNumberOfCoins) / log(2)).ceil();
+  // await fullNode.pushTransaction(makeCatSpendBundle);
+  // await coinSplittingService.waitForTransactions([makeCatSpendBundle.additions.first.id]);
+  // print('pushed');
+  final catCoins = await fullNode
+      .getCatCoinsByOuterPuzzleHashes(keychain.getOuterPuzzleHashesForAssetId(assetId));
 
-  for (var i = 0; i < numberOfSplits; i++) {
-    final numberOfCoinsToCreate = coins.length * 2;
-    final fee = numberOfCoinsToCreate * 1000;
-    print('fee: $fee');
-    print('number of coins created in split: $numberOfCoinsToCreate');
-    final payments = <Payment>{};
-    for (final coin in coins) {
-      final paymentPuzzleHash = keychain.puzzlehashes[Random().nextInt(50)];
+  final sendCatSpendBundle = catWalletService.createSpendBundle(
+    payments: [
+      Payment(catCoins.totalValue, keychain.puzzlehashes.first),
+    ],
+    catCoinsInput: catCoins,
+    standardCoinsForFee: coins,
+    changePuzzlehash: keychain.puzzlehashes.first,
+    keychain: keychain,
+    fee: 1000,
+  );
 
-      final childCoinOneAmount = coin.amount ~/ 2;
-      final childCoinTwoAmount = coin.amount - childCoinOneAmount - (fee / coins.length).ceil();
+  await fullNode.pushTransaction(sendCatSpendBundle);
 
-      final uniquePaymentOne = getUniquePayment(childCoinOneAmount, paymentPuzzleHash, payments);
-      payments.add(uniquePaymentOne);
-
-      final uniquePaymentTwo = getUniquePayment(childCoinTwoAmount, paymentPuzzleHash, payments);
-      payments.add(uniquePaymentTwo);
-    }
-
-    final spendBundle = walletService.createSpendBundle(
-      payments: payments.toList(),
-      coinsInput: coins,
-      keychain: keychain,
-      changePuzzlehash: Program.fromInt(2).hash(),
-      fee: fee,
-    );
-
-    await fullNode.pushTransaction(spendBundle);
-
-    final addition = spendBundle.additions.first;
-    while ((await fullNode.getCoinById(addition.id)) == null) {
-      await Future<void>.delayed(const Duration(seconds: 19));
-      print('waiting for spend bundle to be include...');
-    }
-    coins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
-    print('${((i / numberOfSplits) * 100).round()}% done');
+  await coinSplittingService.waitForTransactions([catCoins[0].id]);
+  print('done joining cats');
+  if (catCoins.length > 1) {
+    throw Exception();
   }
+  final catCoinToSplit = catCoins[0];
+  print('starting split');
 
-  print('done splitting. ${coins.length} coins created');
-}
+  await coinSplittingService.splitCoins(
+    catCoinToSplit: catCoinToSplit,
+    standardCoinsForFee: coins,
+    keychain: keychain,
+    splitWidth: 2,
+    feePerCoin: 10000,
+    desiredNumberOfCoins: 112,
+    desiredAmountPerCoin: 101,
+    changePuzzlehash: keychain.puzzlehashes.first,
+  );
 
-Payment getUniquePayment(int amount, Puzzlehash puzzlehash, Set<Payment> otherPayments) {
-  var payment = Payment(amount, puzzlehash);
-  while (otherPayments.contains(payment)) {
-    payment = Payment(amount - 1, puzzlehash);
-  }
-  return payment;
+  final resultingCoins =  await fullNode.getCatCoinsByOuterPuzzleHashes(keychain.getOuterPuzzleHashesForAssetId(assetId));
+  print(resultingCoins.where((c) => c.amount == 101).length);
 }

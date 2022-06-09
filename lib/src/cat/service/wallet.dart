@@ -158,9 +158,12 @@ class CatWalletService extends BaseWalletService {
     required Puzzlehash changePuzzlehash,
     required int amount,
     required WalletKeychain keychain,
+    int fee = 0,
   }) {
     final publicKey = privateKey.getG1();
     final curriedTail = delegatedTailProgram.curry([Program.fromBytes(publicKey.toBytes())]);
+
+    print('assetId: ${curriedTail.hash()}');
 
     final curriedGenesisByCoinId = genesisByCoinIdProgram.curry([Program.fromBytes(genesisCoinId)]);
     final tailSolution = Program.list([curriedGenesisByCoinId, Program.nil]);
@@ -177,6 +180,7 @@ class CatWalletService extends BaseWalletService {
       signature: signature,
       keychain: keychain,
       originId: genesisCoinId,
+      fee: fee,
     );
   }
 
@@ -250,6 +254,7 @@ class CatWalletService extends BaseWalletService {
     required JacobianPoint signature,
     required WalletKeychain keychain,
     Bytes? originId,
+    int fee = 0,
   }) {
     final payToPuzzle = Program.cons(
       Program.fromInt(1),
@@ -283,6 +288,7 @@ class CatWalletService extends BaseWalletService {
       changePuzzlehash: changePuzzlehash,
       keychain: keychain,
       originId: standardCoinOriginId,
+      fee: fee,
     );
 
     final eveParentSpend = standardSpendBundle.coinSpends

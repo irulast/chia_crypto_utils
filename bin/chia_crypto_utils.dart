@@ -15,7 +15,7 @@ late final String certificateBytesPath;
 void main(List<String> args) {
   final runner = CommandRunner<Future<void>>('ccu', 'Chia Crypto Utils Command Line Tools')
     ..addCommand(ParseCreatePlotNFTCommand());
-
+    
   runner.argParser
     ..addOption('log-level', defaultsTo: 'none')
     ..addOption('network', defaultsTo: 'mainnet')
@@ -97,3 +97,7 @@ class ParseCreatePlotNFTCommand extends Command<Future<void>> {
     );
   }
 }
+
+// class SplitCoinsCommand extends Command<Future<void>> {
+
+// }

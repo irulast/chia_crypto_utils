@@ -81,6 +81,31 @@ class FullNodeHttpRpc implements FullNode {
   }
 
   @override
+  Future<CoinRecordsResponse> getCoinsByParentIds(
+    List<Bytes> parentIds, {
+    int? startHeight,
+    int? endHeight,
+    bool includeSpentCoins = false,
+  }) async {
+    final body = <String, dynamic>{
+      'parent_ids': parentIds.map((parentId) => parentId.toHex()).toList(),
+    };
+    if (startHeight != null) {
+      body['start_height'] = startHeight;
+    }
+    if (endHeight != null) {
+      body['end_height'] = endHeight;
+    }
+    body['include_spent_coins'] = includeSpentCoins;
+    final response = await client.post(Uri.parse('get_coin_records_by_parent_ids'), body);
+    mapResponseToError(response);
+
+    return CoinRecordsResponse.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
+  @override
   Future<CoinRecordResponse> getCoinByName(Bytes coinId) async {
     final response = await client.post(Uri.parse('get_coin_record_by_name'), {
       'name': coinId.toHex(),

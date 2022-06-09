@@ -86,6 +86,23 @@ class ChiaFullNodeInterface {
     return coinRecordsResponse.coinRecords.map((record) => record.toCoin()).toList();
   }
 
+  Future<List<Coin>> getCoinsByParentIds(
+    List<Bytes> parentIds, {
+    int? startHeight,
+    int? endHeight,
+    bool includeSpentCoins = false,
+  }) async {
+    final coinRecordsResponse = await fullNode.getCoinsByParentIds(
+      parentIds,
+      startHeight: startHeight,
+      endHeight: endHeight,
+      includeSpentCoins: includeSpentCoins,
+    );
+    mapResponseToError(coinRecordsResponse);
+
+    return coinRecordsResponse.coinRecords.map((record) => record.toCoin()).toList();
+  }
+
   Future<List<Coin>> getCoinsByMemo(Bytes memo) async {
     final coinRecordsResponse = await fullNode.getCoinsByHint(
       memo,
@@ -110,9 +127,17 @@ class ChiaFullNodeInterface {
   }
 
   Future<List<CatCoin>> getCatCoinsByOuterPuzzleHashes(
-    List<Puzzlehash> puzzlehashes,
-  ) async {
-    final coins = await getCoinsByPuzzleHashes(puzzlehashes);
+    List<Puzzlehash> puzzlehashes, {
+    int? startHeight,
+    int? endHeight,
+    bool includeSpentCoins = false,
+  }) async {
+    final coins = await getCoinsByPuzzleHashes(
+      puzzlehashes,
+      startHeight: startHeight,
+      endHeight: endHeight,
+      includeSpentCoins: includeSpentCoins,
+    );
     return _hydrateCatCoins(coins);
   }
 
