@@ -45,8 +45,8 @@ void main() async {
   final coinSplittingService = CoinSplittingService(fullNode);
 
   final coins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
-  print(coins.length);
-  print(coins.totalValue);
+  // print(coins.length);
+  // print(coins.totalValue);
 
   final catWalletService = CatWalletService();
 
@@ -70,22 +70,22 @@ void main() async {
   // print('pushed');
   final catCoins = await fullNode
       .getCatCoinsByOuterPuzzleHashes(keychain.getOuterPuzzleHashesForAssetId(assetId));
+print(catCoins.length);
+  final sendCatSpendBundle = catWalletService.createSpendBundle(
+    payments: [
+      Payment(catCoins.totalValue, keychain.puzzlehashes.first),
+    ],
+    catCoinsInput: catCoins,
+    standardCoinsForFee: coins,
+    changePuzzlehash: keychain.puzzlehashes.first,
+    keychain: keychain,
+    fee: 1000,
+  );
 
-  // final sendCatSpendBundle = catWalletService.createSpendBundle(
-  //   payments: [
-  //     Payment(catCoins.totalValue, keychain.puzzlehashes.first),
-  //   ],
-  //   catCoinsInput: catCoins,
-  //   standardCoinsForFee: coins,
-  //   changePuzzlehash: keychain.puzzlehashes.first,
-  //   keychain: keychain,
-  //   fee: 1000,
-  // );
+  await fullNode.pushTransaction(sendCatSpendBundle);
 
-  // await fullNode.pushTransaction(sendCatSpendBundle);
-
-  // await coinSplittingService.waitForTransactions([catCoins[0].id]);
-  // print('done joining cats');
+  await coinSplittingService.waitForTransactions([catCoins[0].id]);
+  print('done joining cats');
   if (catCoins.length > 1) {
     throw Exception();
   }

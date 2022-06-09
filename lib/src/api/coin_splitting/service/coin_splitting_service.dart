@@ -315,6 +315,8 @@ class CoinSplittingService {
     late int numberOfBinarySplits;
     num smallestDifference = 10000000;
 
+    final maxResultingCoinDigits = pow(initialSplitWidth, 10).toInt();
+
     for (var i = 0; i < 10; i++) {
       final resultingCoins = pow(initialSplitWidth, i).toInt();
 
@@ -322,15 +324,15 @@ class CoinSplittingService {
         break;
       }
 
-      final desiredNumberOfCoinsDigitsToCompare = desiredNumberOfCoins.toNDigits(3);
+      final desiredNumberOfCoinsDigitsToCompare = desiredNumberOfCoins.toNDigits(maxResultingCoinDigits);
 
-      final resultingCoinsDigitsToCompare = resultingCoins.toNDigits(3);
+      final resultingCoinsDigitsToCompare = resultingCoins.toNDigits(maxResultingCoinDigits);
 
       var difference = desiredNumberOfCoinsDigitsToCompare - resultingCoinsDigitsToCompare;
       if (difference < 0 && resultingCoins.numberOfDigits > 1) {
         final resultingCoinsDigitsMinusOneToCompare =
             //TODO(nvjoshi): fix this
-            resultingCoins.toNDigits(resultingCoins.numberOfDigits - 1);
+            resultingCoins.toNDigits(maxResultingCoinDigits - 1);
 
         difference = desiredNumberOfCoinsDigitsToCompare - resultingCoinsDigitsMinusOneToCompare;
       }
