@@ -57,8 +57,6 @@ Future<void> createNewWalletWithPlotNFT(
       if (e.poolErrorResponse.responseCode != PoolErrorState.farmerNotKnown) {
         rethrow;
       }
-    } catch (e) {
-      rethrow;
     }
   }
 
