@@ -50,17 +50,11 @@ class SimulatorUtils {
   }
 
   static Future<bool> checkIfSimulatorIsRunning() async {
-    SimulatorHttpRpc? simulatorRpc;
-    try {
-      simulatorRpc = SimulatorHttpRpc(
-        simulatorUrl,
-        certBytes: certBytes,
-        keyBytes: keyBytes,
-      );
-    } on SimulatorAuthFilesNotFoundException {
-      // if cert/keys havent been generated then the simulator can't be running
-      return false;
-    }
+    final simulatorRpc = SimulatorHttpRpc(
+      simulatorUrl,
+      certBytes: certBytes,
+      keyBytes: keyBytes,
+    );
 
     final simulator = SimulatorFullNodeInterface(simulatorRpc);
     try {
