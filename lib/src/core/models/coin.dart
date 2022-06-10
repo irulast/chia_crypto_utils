@@ -82,6 +82,31 @@ class Coin extends CoinPrototype with ToBytesMixin {
     );
   }
 
+  factory Coin.fromJson(Map<String, dynamic> json) {
+    final coinPrototype = CoinPrototype.fromJson(json);
+    return Coin(
+      confirmedBlockIndex: json['confirmed_block_index'] as int,
+      spentBlockIndex: json['spent_block_index'] as int,
+      coinbase: json['coinbase'] as bool,
+      timestamp: json['timestamp'] as int,
+      parentCoinInfo: coinPrototype.parentCoinInfo,
+      puzzlehash: coinPrototype.puzzlehash,
+      amount: coinPrototype.amount,
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    final json = super.toJson()
+      ..addAll(<String, dynamic>{
+        'confirmed_block_index': confirmedBlockIndex,
+        'spent_block_index': spentBlockIndex,
+        'coinbase': coinbase,
+        'timestamp': timestamp,
+      });
+    return json;
+  }
+
   CoinPrototype toCoinPrototype() => CoinPrototype(
         parentCoinInfo: parentCoinInfo,
         puzzlehash: puzzlehash,
