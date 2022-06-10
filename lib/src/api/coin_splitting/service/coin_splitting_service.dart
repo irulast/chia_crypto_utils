@@ -13,9 +13,9 @@ class CoinSplittingService {
   final BlockchainUtils blockchainUtils;
   final catWalletService = CatWalletService();
   final standardWalletService = StandardWalletService();
-  final logger = LoggingContext().log;
+  // final print = LoggingContext().log;
 
-  Future<List<CatCoin>> splitCoins({
+  Future<void> splitCoins({
     required CatCoin catCoinToSplit,
     required List<Coin> standardCoinsForFee,
     required WalletKeychain keychain,
@@ -30,18 +30,18 @@ class CoinSplittingService {
       initialSplitWidth: splitWidth,
     );
 
-    logger('number of $splitWidth width splits: $numberOfNWidthSplits');
+    print('number of $splitWidth width splits: $numberOfNWidthSplits');
 
     final resultingCoinsFromNWidthSplits = pow(splitWidth, numberOfNWidthSplits).toInt();
     final numberOfDecaSplits =
         calculateNumberOfDecaSplitsRequired(resultingCoinsFromNWidthSplits, desiredNumberOfCoins);
 
-    logger('number of 10 width splits: $numberOfDecaSplits');
+    print('number of 10 width splits: $numberOfDecaSplits');
 
     final totalNumberOfResultingCoins =
         resultingCoinsFromNWidthSplits * pow(10, numberOfDecaSplits);
 
-    logger('total number of resulting coins: $totalNumberOfResultingCoins');
+    print('total number of resulting coins: $totalNumberOfResultingCoins');
 
     validateInputs(
       feePerCoin: feePerCoin,
@@ -57,12 +57,11 @@ class CoinSplittingService {
     var standardCoins = standardCoinsForFee;
 
     if (standardCoinsForFee.length > 1) {
-      final standardCoinBatches = standardCoins.split
-      final earliestSpentBlockIndex = await createAndPushStandardCoinJoinTransaction(
+      final earliestSpentBlockIndex = await joinStandardCoins(
         coins: standardCoinsForFee,
         keychain: keychain,
         destinationPuzzlehash: keychain.puzzlehashes.first,
-        fee: feePerCoin * standardCoins.length,
+        feePerCoin: feePerCoin,
       );
 
       standardCoins = await getChildCoinsByPuzzlehashes(
@@ -70,7 +69,7 @@ class CoinSplittingService {
         parentCoins: standardCoinsForFee,
         earliestSpentBlockIndex: earliestSpentBlockIndex,
       );
-      logger('joined standard coins for fee');
+      print('joined standard coins for fee');
 
       if (standardCoins.length != 1) {
         throw Exception('should only be one standard coin after join. got ${standardCoins.length}');
@@ -102,7 +101,7 @@ class CoinSplittingService {
         parentCoins: standardCoins,
         earliestSpentBlockIndex: earliestSpentBlockIndex,
       );
-      logger('finished $splitWidth width split');
+      print('finished $splitWidth width split');
     }
 
     for (var i = 0; i < numberOfDecaSplits; i++) {
@@ -125,7 +124,7 @@ class CoinSplittingService {
         parentCoins: standardCoins,
         earliestSpentBlockIndex: earliestSpentBlockIndex,
       );
-      logger('finished 10 width split');
+      print('finished 10 width split');
     }
 
     final earliestSpentBlockIndex = await createAndPushFinalSplittingTransactions(
@@ -137,14 +136,7 @@ class CoinSplittingService {
       desiredNumberOfCoins: desiredNumberOfCoins,
       changePuzzlehash: keychain.puzzlehashes.first,
     );
-    final coins = await getChildCatCoinsByOuterPuzzlehashes(
-      relevantOuterPuzzleHashes,
-      parentCoins: catCoins,
-      earliestSpentBlockIndex: earliestSpentBlockIndex,
-    );
-
-    logger('done with split');
-    return coins;
+    
   }
 
   Future<List<CatCoin>> getChildCatCoinsByOuterPuzzlehashes(
@@ -286,25 +278,48 @@ class CoinSplittingService {
     return waitForTransactionsAndGetFirstSpentIndex(parentIdsToLookFor);
   }
 
+  Future<int> joinStandardCoins({
+    required List<Coin> coins,
+    required WalletKeychain keychain,
+    required Puzzlehash destinationPuzzlehash,
+    int feePerCoin = 0,
+  }) async {
+    final coinBatches = coins.splitIntoBatches(200);
+    final futures = <Future<int>>[];
+    print('started joining standard coins');
+    for (final coinBatch in coinBatches) {
+      futures.add(
+        createAndPushStandardCoinJoinTransaction(
+          coins: coinBatch,
+          keychain: keychain,
+          destinationPuzzlehash: keychain.puzzlehashes.first,
+          feePerCoin: feePerCoin,
+        ),
+      );
+    }
+
+    final confirmedBlockIndices = await Future.wait<int>(futures);
+    return confirmedBlockIndices.reduce(min);
+  }
+
   Future<int> createAndPushStandardCoinJoinTransaction({
     required List<Coin> coins,
     required WalletKeychain keychain,
     required Puzzlehash destinationPuzzlehash,
-    int fee = 0,
-    Bytes? airdropFeeCoinsId,
+    int feePerCoin = 0,
   }) async {
-    final totalAmountMinusFee = coins.totalValue - fee;
+    final totalFee = coins.length * feePerCoin;
+    final totalAmountMinusFee = coins.totalValue - totalFee;
     final joinSpendBundle = standardWalletService.createSpendBundle(
       payments: [
         Payment(
           totalAmountMinusFee,
           destinationPuzzlehash,
-          memos: (airdropFeeCoinsId == null) ? null : <Bytes>[airdropFeeCoinsId],
         )
       ],
       coinsInput: coins,
       keychain: keychain,
-      fee: fee,
+      fee: totalFee,
     );
 
     await fullNode.pushTransaction(joinSpendBundle);
@@ -389,8 +404,6 @@ class CoinSplittingService {
 
     return numberOfNWidthSplits;
   }
-
-  
 
   static int calculateNumberOfDecaSplitsRequired(
     int resultingCoinsFromNWidthSplits,
