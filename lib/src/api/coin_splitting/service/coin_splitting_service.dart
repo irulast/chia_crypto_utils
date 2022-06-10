@@ -13,7 +13,7 @@ class CoinSplittingService {
   final BlockchainUtils blockchainUtils;
   final catWalletService = CatWalletService();
   final standardWalletService = StandardWalletService();
-  // final print = LoggingContext().log;
+  final logger = LoggingContext().log;
 
   Future<void> splitCoins({
     required CatCoin catCoinToSplit,
@@ -30,18 +30,18 @@ class CoinSplittingService {
       initialSplitWidth: splitWidth,
     );
 
-    print('number of $splitWidth width splits: $numberOfNWidthSplits');
+    logger('number of $splitWidth width splits: $numberOfNWidthSplits');
 
     final resultingCoinsFromNWidthSplits = pow(splitWidth, numberOfNWidthSplits).toInt();
     final numberOfDecaSplits =
         calculateNumberOfDecaSplitsRequired(resultingCoinsFromNWidthSplits, desiredNumberOfCoins);
 
-    print('number of 10 width splits: $numberOfDecaSplits');
+    logger('number of 10 width splits: $numberOfDecaSplits');
 
     final totalNumberOfResultingCoins =
         resultingCoinsFromNWidthSplits * pow(10, numberOfDecaSplits);
 
-    print('total number of resulting coins: $totalNumberOfResultingCoins');
+    logger('total number of resulting coins: $totalNumberOfResultingCoins');
 
     validateInputs(
       feePerCoin: feePerCoin,
@@ -69,7 +69,7 @@ class CoinSplittingService {
         parentCoins: standardCoinsForFee,
         earliestSpentBlockIndex: earliestSpentBlockIndex,
       );
-      print('joined standard coins for fee');
+      logger('joined standard coins for fee');
 
       if (standardCoins.length != 1) {
         throw Exception('should only be one standard coin after join. got ${standardCoins.length}');
@@ -101,7 +101,7 @@ class CoinSplittingService {
         parentCoins: standardCoins,
         earliestSpentBlockIndex: earliestSpentBlockIndex,
       );
-      print('finished $splitWidth width split');
+      logger('finished $splitWidth width split');
     }
 
     for (var i = 0; i < numberOfDecaSplits; i++) {
@@ -124,7 +124,7 @@ class CoinSplittingService {
         parentCoins: standardCoins,
         earliestSpentBlockIndex: earliestSpentBlockIndex,
       );
-      print('finished 10 width split');
+      logger('finished 10 width split');
     }
 
     final earliestSpentBlockIndex = await createAndPushFinalSplittingTransactions(
@@ -286,7 +286,7 @@ class CoinSplittingService {
   }) async {
     final coinBatches = coins.splitIntoBatches(200);
     final futures = <Future<int>>[];
-    print('started joining standard coins');
+    logger('started joining standard coins');
     for (final coinBatch in coinBatches) {
       futures.add(
         createAndPushStandardCoinJoinTransaction(
