@@ -57,6 +57,7 @@ class CoinSplittingService {
     var standardCoins = standardCoinsForFee;
 
     if (standardCoinsForFee.length > 1) {
+      final standardCoinBatches = standardCoins.split
       final earliestSpentBlockIndex = await createAndPushStandardCoinJoinTransaction(
         coins: standardCoinsForFee,
         keychain: keychain,

@@ -68,9 +68,9 @@ void main() async {
   // await fullNode.pushTransaction(makeCatSpendBundle);
   // await coinSplittingService.waitForTransactions([makeCatSpendBundle.additions.first.id]);
   // print('pushed');
-  final catCoins = await fullNode
-      .getCatCoinsByOuterPuzzleHashes(keychain.getOuterPuzzleHashesForAssetId(assetId));
-  print(catCoins.length);
+  // final catCoins = await fullNode
+  //     .getCatCoinsByOuterPuzzleHashes(keychain.getOuterPuzzleHashesForAssetId(assetId));
+  // print(catCoins.length);
   // final sendCatSpendBundle = catWalletService.createSpendBundle(
   //   payments: [
   //     Payment(catCoins.totalValue, keychain.puzzlehashes.first),
@@ -84,26 +84,43 @@ void main() async {
 
   // await fullNode.pushTransaction(sendCatSpendBundle);
 
-  // await coinSplittingService.waitForTransactions([catCoins[0].id]);
-  // print('done joining cats');
-  if (catCoins.length > 1) {
-    throw Exception();
+  final coinBatches = coins.splitIntoBatches(batchSize)
+  final futures = <Future<int>>[];
+  print('started joining coins');
+  for (final coinBatch in coinBatches) {
+    futures.add(coinSplittingService.createAndPushStandardCoinJoinTransaction(
+      coins: coinBatch,
+      keychain: keychain,
+      destinationPuzzlehash: keychain.puzzlehashes.first,
+      fee: 10000,
+    ));
   }
-  final catCoinToSplit = catCoins[0];
-  print('starting split');
 
-  await coinSplittingService.splitCoins(
-    catCoinToSplit: catCoinToSplit,
-    standardCoinsForFee: coins,
-    keychain: keychain,
-    splitWidth: 2,
-    feePerCoin: 1000,
-    desiredNumberOfCoins: 1715,
-    desiredAmountPerCoin: 101,
-    changePuzzlehash: keychain.puzzlehashes.first,
-  );
+   await Future.wait<int>(futures);
 
-  final resultingCoins = await fullNode
-      .getCatCoinsByOuterPuzzleHashes(keychain.getOuterPuzzleHashesForAssetId(assetId));
-  print(resultingCoins.where((c) => c.amount == 101).length);
+   print('done joining coins');
+
+
+  // await coinSplittingService.waitForTransactionsAndGetFirstSpentIndex([catCoins[0].id]);
+  // // print('done joining cats');
+  // if (catCoins.length > 1) {
+  //   throw Exception();
+  // }
+  // final catCoinToSplit = catCoins[0];
+  // print('starting split');
+
+  // await coinSplittingService.splitCoins(
+  //   catCoinToSplit: catCoinToSplit,
+  //   standardCoinsForFee: coins,
+  //   keychain: keychain,
+  //   splitWidth: 2,
+  //   feePerCoin: 1000,
+  //   desiredNumberOfCoins: 1715,
+  //   desiredAmountPerCoin: 101,
+  //   changePuzzlehash: keychain.puzzlehashes.first,
+  // );
+
+  // final resultingCoins = await fullNode
+  //     .getCatCoinsByOuterPuzzleHashes(keychain.getOuterPuzzleHashesForAssetId(assetId));
+  // print(resultingCoins.where((c) => c.amount == 101).length);
 }
