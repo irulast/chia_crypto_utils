@@ -99,7 +99,7 @@ class ChiaEnthusiast {
       standardCoins: [standardCoins.firstWhere((coin) => coin.amount >= 10000)],
       destinationPuzzlehash: firstWalletVector.puzzlehash,
       changePuzzlehash: firstWalletVector.puzzlehash,
-      amount: 10000,
+      amount: 100000000,
       signature: signature,
       keychain: keychain,
       originId: originCoin.id,

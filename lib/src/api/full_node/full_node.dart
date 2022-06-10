@@ -16,6 +16,15 @@ abstract class FullNode {
 
   Future<CoinRecordResponse> getCoinByName(Bytes coinId);
 
+  Future<CoinRecordsResponse> getCoinsByHint(Bytes hint);
+
+  Future<CoinRecordsResponse> getCoinsByParentIds(
+    List<Bytes> parentIds, {
+    int? startHeight,
+    int? endHeight,
+    bool includeSpentCoins = false,
+  });
+
   Future<CoinRecordsResponse> getCoinsByNames(
     List<Bytes> coinIds, {
     int? startHeight,

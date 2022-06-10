@@ -86,6 +86,32 @@ class ChiaFullNodeInterface {
     return coinRecordsResponse.coinRecords.map((record) => record.toCoin()).toList();
   }
 
+  Future<List<Coin>> getCoinsByParentIds(
+    List<Bytes> parentIds, {
+    int? startHeight,
+    int? endHeight,
+    bool includeSpentCoins = false,
+  }) async {
+    final coinRecordsResponse = await fullNode.getCoinsByParentIds(
+      parentIds,
+      startHeight: startHeight,
+      endHeight: endHeight,
+      includeSpentCoins: includeSpentCoins,
+    );
+    mapResponseToError(coinRecordsResponse);
+
+    return coinRecordsResponse.coinRecords.map((record) => record.toCoin()).toList();
+  }
+
+  Future<List<Coin>> getCoinsByMemo(Bytes memo) async {
+    final coinRecordsResponse = await fullNode.getCoinsByHint(
+      memo,
+    );
+    mapResponseToError(coinRecordsResponse);
+
+    return coinRecordsResponse.coinRecords.map((record) => record.toCoin()).toList();
+  }
+
   Future<CoinSpend?> getCoinSpend(Coin coin) async {
     final coinSpendResponse = await fullNode.getPuzzleAndSolution(coin.id, coin.spentBlockIndex);
     mapResponseToError(coinSpendResponse);
@@ -93,12 +119,31 @@ class ChiaFullNodeInterface {
     return coinSpendResponse.coinSpend;
   }
 
-  Future<List<CatCoin>> getCatCoinsByOuterPuzzleHashes(
-    List<Puzzlehash> puzzlehashes,
+  Future<List<CatCoin>> getCatCoinsByMemo(
+    Bytes memo,
   ) async {
-    final coins = await getCoinsByPuzzleHashes(puzzlehashes);
+    final coins = await getCoinsByMemo(memo);
+    return _hydrateCatCoins(coins);
+  }
+
+  Future<List<CatCoin>> getCatCoinsByOuterPuzzleHashes(
+    List<Puzzlehash> puzzlehashes, {
+    int? startHeight,
+    int? endHeight,
+    bool includeSpentCoins = false,
+  }) async {
+    final coins = await getCoinsByPuzzleHashes(
+      puzzlehashes,
+      startHeight: startHeight,
+      endHeight: endHeight,
+      includeSpentCoins: includeSpentCoins,
+    );
+    return _hydrateCatCoins(coins);
+  }
+
+  Future<List<CatCoin>> _hydrateCatCoins(List<Coin> unHydratedCatCoins) async {
     final catCoins = <CatCoin>[];
-    for (final coin in coins) {
+    for (final coin in unHydratedCatCoins) {
       final parentCoin = await getCoinById(coin.parentCoinInfo);
 
       final parentCoinSpend = await getCoinSpend(parentCoin!);

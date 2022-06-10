@@ -3,7 +3,6 @@
 import 'dart:io';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:path/path.dart' as path;
 
 class FullNodeUtils {
   FullNodeUtils(this.network, {this.url = defaultUrl});
@@ -15,7 +14,7 @@ class FullNodeUtils {
 
   String get checkNetworkMessage => 'Check if your full node is runing on $network';
 
-  String get sslPath => 'lib/src/networks/chia/${network.name}/ssl';
+  String get sslPath => '${Platform.environment['HOME']}/.chia/${network.name}/config/ssl/full_node';
 
   Bytes get certBytes {
     return _getAuthFileBytes('$sslPath/private_full_node.crt');
@@ -29,8 +28,8 @@ class FullNodeUtils {
     LoggingContext()
       ..log(null, 'auth file loaded: $pathToFile')
       ..log(null, 'file contents:')
-      ..log(null, File(path.join(path.current, pathToFile)).readAsStringSync());
-    return Bytes(File(path.join(path.current, pathToFile)).readAsBytesSync());
+      ..log(null, File(pathToFile).readAsStringSync());
+    return Bytes(File(pathToFile).readAsBytesSync());
   }
 
   Future<void> checkIsRunning() async {

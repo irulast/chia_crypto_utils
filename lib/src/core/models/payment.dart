@@ -3,7 +3,9 @@
 import 'dart:convert';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:meta/meta.dart';
 
+@immutable
 class Payment {
   final int amount;
   final Puzzlehash puzzlehash;
@@ -47,4 +49,17 @@ class Payment {
   }
   @override
   String toString() => 'Payment(amount: $amount, puzzlehash: $puzzlehash, memos: $memos)';
+
+  @override
+  bool operator ==(Object other) =>
+      other is Payment && puzzlehash == other.puzzlehash && amount == other.amount;
+
+  @override
+  int get hashCode => puzzlehash.hashCode ^ amount.hashCode;
+}
+
+extension PaymentValue on List<Payment> {
+  int get totalValue {
+    return fold(0, (int previousValue, payment) => previousValue + payment.amount);
+  }
 }

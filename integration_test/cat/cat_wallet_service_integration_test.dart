@@ -221,12 +221,12 @@ Future<void> main() async {
       Payment(
         sendAmounts[0],
         receiverPuzzlehash,
-        memos: <String>['Chia is cool'],
+        memos: const <String>['Chia is cool'],
       ),
       Payment(
         sendAmounts[1],
         receiverPuzzlehash,
-        memos: <int>[1000],
+        memos: const <int>[1000],
       ),
     ];
 

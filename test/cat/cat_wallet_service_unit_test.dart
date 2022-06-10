@@ -160,8 +160,8 @@ Future<void> main() async {
   });
 
   test('Produces valid spendbundle with fee and multiple payments', () async {
-    final payment = Payment(200, targetPuzzlehash, memos: <String>['Chia is really cool']);
-    final payment1 = Payment(100, targetPuzzlehash, memos: <int>[1000]);
+    final payment = Payment(200, targetPuzzlehash, memos: const <String>['Chia is really cool']);
+    final payment1 = Payment(100, targetPuzzlehash, memos: const <int>[1000]);
     final spendBundle = catWalletService.createSpendBundle(
       payments: [payment, payment1],
       catCoinsInput: catCoins,
