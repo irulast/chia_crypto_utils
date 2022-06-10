@@ -15,7 +15,7 @@ class CoinSplittingService {
   final standardWalletService = StandardWalletService();
   final logger = LoggingContext().log;
 
-  Future<void> splitCoins({
+  Future<List<CatCoin>> splitCoins({
     required CatCoin catCoinToSplit,
     required List<Coin> standardCoinsForFee,
     required WalletKeychain keychain,
@@ -57,8 +57,6 @@ class CoinSplittingService {
     var standardCoins = standardCoinsForFee;
 
     if (standardCoinsForFee.length > 1) {
-      final standardParentCoinIds = standardCoins.map((c) => c.id).toSet();
-
       final earliestSpentBlockIndex = await createAndPushStandardCoinJoinTransaction(
         coins: standardCoinsForFee,
         keychain: keychain,
@@ -66,12 +64,11 @@ class CoinSplittingService {
         fee: feePerCoin * standardCoins.length,
       );
 
-      standardCoins = (await fullNode.getCoinsByPuzzleHashes(
-        keychain.puzzlehashes,
-        startHeight: earliestSpentBlockIndex,
-      ))
-          .where((c) => standardParentCoinIds.contains(c.parentCoinInfo))
-          .toList();
+      standardCoins = await getChildCoinsByPuzzlehashes(
+        [keychain.puzzlehashes.first],
+        parentCoins: standardCoinsForFee,
+        earliestSpentBlockIndex: earliestSpentBlockIndex,
+      );
       logger('joined standard coins for fee');
 
       if (standardCoins.length != 1) {
@@ -79,77 +76,102 @@ class CoinSplittingService {
       }
     }
 
+    final relevantPuzzleHashes = keychain.puzzlehashes.sublist(0, 10);
+    final relevantOuterPuzzleHashes =
+        keychain.getOuterPuzzleHashesForAssetId(catCoinToSplit.assetId).sublist(0, 10);
+
     var catCoins = [catCoinToSplit];
 
     for (var i = 0; i < numberOfNWidthSplits; i++) {
-      final catParentCoinIds = catCoins.map((cc) => cc.id).toSet();
-      final standardParentCoinIds = standardCoins.map((c) => c.id).toSet();
-
       final earliestSpentBlockIndex = await createAndPushSplittingTransactions(
         catCoins: catCoins,
         standardCoinsForFee: standardCoins,
         keychain: keychain,
         splitWidth: splitWidth,
         feePerCoin: feePerCoin,
-        airdropId: airdropId,
-        airdropFeeCoinsId: airdropFeeCoinsId,
       );
-      catCoins = (await fullNode.getCatCoinsByOuterPuzzleHashes(
-        keychain.getOuterPuzzleHashesForAssetId(catCoinToSplit.assetId).sublist(0, splitWidth),
-        startHeight: earliestSpentBlockIndex,
-      ))
-          .where((cc) => catParentCoinIds.contains(cc.parentCoinInfo))
-          .toList();
+      catCoins = await getChildCatCoinsByOuterPuzzlehashes(
+        relevantOuterPuzzleHashes,
+        parentCoins: catCoins,
+        earliestSpentBlockIndex: earliestSpentBlockIndex,
+      );
 
-      standardCoins = (await fullNode.getCoinsByPuzzleHashes(
-        keychain.puzzlehashes.sublist(0, splitWidth),
-        startHeight: earliestSpentBlockIndex,
-      ))
-          .where((c) => standardParentCoinIds.contains(c.parentCoinInfo))
-          .toList();
+      standardCoins = await getChildCoinsByPuzzlehashes(
+        relevantPuzzleHashes,
+        parentCoins: standardCoins,
+        earliestSpentBlockIndex: earliestSpentBlockIndex,
+      );
       logger('finished $splitWidth width split');
     }
 
     for (var i = 0; i < numberOfDecaSplits; i++) {
-      final catParentCoinIds = catCoins.map((cc) => cc.id).toSet();
-      final standardParentCoinIds = standardCoins.map((c) => c.id).toSet();
-
       final earliestSpentBlockIndex = await createAndPushSplittingTransactions(
         catCoins: catCoins,
         standardCoinsForFee: standardCoins,
         keychain: keychain,
         splitWidth: 10,
         feePerCoin: feePerCoin,
-        airdropId: airdropId,
-        airdropFeeCoinsId: airdropFeeCoinsId,
       );
-      catCoins = (await fullNode.getCatCoinsByOuterPuzzleHashes(
-        keychain.getOuterPuzzleHashesForAssetId(catCoinToSplit.assetId).sublist(0, 10),
-        startHeight: earliestSpentBlockIndex,
-      ))
-          .where((cc) => catParentCoinIds.contains(cc.parentCoinInfo))
-          .toList();
 
-      standardCoins = (await fullNode.getCoinsByPuzzleHashes(
-        keychain.puzzlehashes.sublist(0, 10),
-        startHeight: earliestSpentBlockIndex,
-      ))
-          .where((c) => standardParentCoinIds.contains(c.parentCoinInfo))
-          .toList();
+      catCoins = await getChildCatCoinsByOuterPuzzlehashes(
+        relevantOuterPuzzleHashes,
+        parentCoins: catCoins,
+        earliestSpentBlockIndex: earliestSpentBlockIndex,
+      );
+
+      standardCoins = await getChildCoinsByPuzzlehashes(
+        relevantPuzzleHashes,
+        parentCoins: standardCoins,
+        earliestSpentBlockIndex: earliestSpentBlockIndex,
+      );
       logger('finished 10 width split');
     }
 
-    await createAndPushFinalSplittingTransactions(
+    final earliestSpentBlockIndex = await createAndPushFinalSplittingTransactions(
       catCoins: catCoins,
       standardCoinsForFee: standardCoins,
       keychain: keychain,
       feePerCoin: feePerCoin,
-      airdropId: airdropId,
       desiredAmountPerCoin: desiredAmountPerCoin,
       desiredNumberOfCoins: desiredNumberOfCoins,
       changePuzzlehash: keychain.puzzlehashes.first,
     );
-    logger('finish splitting with airdropId: $airdropId');
+    final coins = await getChildCatCoinsByOuterPuzzlehashes(
+      relevantOuterPuzzleHashes,
+      parentCoins: catCoins,
+      earliestSpentBlockIndex: earliestSpentBlockIndex,
+    );
+
+    logger('done with split');
+    return coins;
+  }
+
+  Future<List<CatCoin>> getChildCatCoinsByOuterPuzzlehashes(
+    List<Puzzlehash> outerPuzzlehashes, {
+    required List<CatCoin> parentCoins,
+    required int earliestSpentBlockIndex,
+  }) async {
+    final catParentCoinIds = parentCoins.map((cc) => cc.id).toSet();
+    final catCoins = await fullNode.getCatCoinsByOuterPuzzleHashes(
+      outerPuzzlehashes,
+      startHeight: earliestSpentBlockIndex,
+    );
+
+    return catCoins.where((cc) => catParentCoinIds.contains(cc.parentCoinInfo)).toList();
+  }
+
+  Future<List<Coin>> getChildCoinsByPuzzlehashes(
+    List<Puzzlehash> puzzlehashes, {
+    required List<Coin> parentCoins,
+    required int earliestSpentBlockIndex,
+  }) async {
+    final parentCoinIds = parentCoins.map((cc) => cc.id).toSet();
+    final standardCoins = await fullNode.getCoinsByPuzzleHashes(
+      puzzlehashes,
+      startHeight: earliestSpentBlockIndex,
+    );
+
+    return standardCoins.where((c) => parentCoinIds.contains(c.parentCoinInfo)).toList();
   }
 
   Future<int> createAndPushFinalSplittingTransactions({
@@ -160,7 +182,6 @@ class CoinSplittingService {
     required int desiredNumberOfCoins,
     required int desiredAmountPerCoin,
     required Puzzlehash changePuzzlehash,
-    required Bytes airdropId,
   }) async {
     if (standardCoinsForFee.length != catCoins.length) {
       throw ArgumentError('Should provide a standard coin for  every cat coin');
@@ -217,8 +238,6 @@ class CoinSplittingService {
     required WalletKeychain keychain,
     required int splitWidth,
     required int feePerCoin,
-    required Bytes airdropId,
-    required Bytes airdropFeeCoinsId,
   }) async {
     if (standardCoinsForFee.length != catCoins.length) {
       throw ArgumentError('Should provide a standard coin for  every cat coin');
@@ -266,7 +285,37 @@ class CoinSplittingService {
     return waitForTransactionsAndGetFirstSpentIndex(parentIdsToLookFor);
   }
 
-  List<Payment> makeSplittingPayments({
+  Future<int> createAndPushStandardCoinJoinTransaction({
+    required List<Coin> coins,
+    required WalletKeychain keychain,
+    required Puzzlehash destinationPuzzlehash,
+    int fee = 0,
+    Bytes? airdropFeeCoinsId,
+  }) async {
+    final totalAmountMinusFee = coins.totalValue - fee;
+    final joinSpendBundle = standardWalletService.createSpendBundle(
+      payments: [
+        Payment(
+          totalAmountMinusFee,
+          destinationPuzzlehash,
+          memos: (airdropFeeCoinsId == null) ? null : <Bytes>[airdropFeeCoinsId],
+        )
+      ],
+      coinsInput: coins,
+      keychain: keychain,
+      fee: fee,
+    );
+
+    await fullNode.pushTransaction(joinSpendBundle);
+    return waitForTransactionsAndGetFirstSpentIndex([coins.first.id]);
+  }
+
+  Future<int> waitForTransactionsAndGetFirstSpentIndex(List<Bytes> parentIds) async {
+    final spentCoins = await blockchainUtils.waitForTransactions(parentIds);
+    return spentCoins.map((c) => c.spentBlockIndex).reduce(min);
+  }
+
+  static List<Payment> makeSplittingPayments({
     required int coinAmount,
     required int splitWidth,
     required List<Puzzlehash> puzzlehashes,
@@ -340,35 +389,7 @@ class CoinSplittingService {
     return numberOfNWidthSplits;
   }
 
-  Future<int> createAndPushStandardCoinJoinTransaction({
-    required List<Coin> coins,
-    required WalletKeychain keychain,
-    required Puzzlehash destinationPuzzlehash,
-    int fee = 0,
-    Bytes? airdropFeeCoinsId,
-  }) async {
-    final totalAmountMinusFee = coins.totalValue - fee;
-    final joinSpendBundle = standardWalletService.createSpendBundle(
-      payments: [
-        Payment(
-          totalAmountMinusFee,
-          destinationPuzzlehash,
-          memos: (airdropFeeCoinsId == null) ? null : <Bytes>[airdropFeeCoinsId],
-        )
-      ],
-      coinsInput: coins,
-      keychain: keychain,
-      fee: fee,
-    );
-
-    await fullNode.pushTransaction(joinSpendBundle);
-    return waitForTransactionsAndGetFirstSpentIndex([coins.first.id]);
-  }
-
-  Future<int> waitForTransactionsAndGetFirstSpentIndex(List<Bytes> parentIds) async {
-    final spentCoins = await blockchainUtils.waitForTransactions(parentIds);
-    return spentCoins.map((c) => c.spentBlockIndex).reduce(min);
-  }
+  
 
   static int calculateNumberOfDecaSplitsRequired(
     int resultingCoinsFromNWidthSplits,
@@ -382,7 +403,7 @@ class CoinSplittingService {
     return numberOfDecaSplits - 1;
   }
 
-  void validateInputs({
+  static void validateInputs({
     required int feePerCoin,
     required int numberOfDecaSplits,
     required int numberOfNWidthSplits,
