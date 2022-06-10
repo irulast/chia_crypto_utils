@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/api/pool/models/add_farmer_response.dart';
 
 class PoolInterface {
   const PoolInterface(this.pool);
@@ -22,7 +23,7 @@ class PoolInterface {
     return pool.getPoolInfo();
   }
 
-  Future<void> addFarmer({
+  Future<AddFarmerResponse> addFarmer({
     required Bytes launcherId,
     required int authenticationToken,
     required JacobianPoint authenticationPublicKey,
@@ -43,10 +44,10 @@ class PoolInterface {
       payload.toBytes().sha256Hash(),
     );
 
-    await pool.addFarmer(payload, signature);
+    return pool.addFarmer(payload, signature);
   }
 
-  Future<Farmer> getFarmer({
+  Future<GetFarmerResponse> getFarmer({
     required Bytes launcherId,
     required Puzzlehash targetPuzzlehash,
     required int authenticationToken,

@@ -1,4 +1,5 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/api/pool/models/pool_error_response_code.dart';
 import 'package:chia_crypto_utils/src/core/models/singleton_wallet_vector.dart';
 
 Future<void> createNewWalletWithPlotNFT(
@@ -7,12 +8,15 @@ Future<void> createNewWalletWithPlotNFT(
   PoolService poolService,
   ChiaFullNodeInterface fullNode,
 ) async {
-  final coins =
-      await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes, includeSpentCoins: true);
+  final coins = await fullNode.getCoinsByPuzzleHashes(
+    keychain.puzzlehashes,
+  );
 
   final delayPh = keychain.puzzlehashes[4];
-  final singletonWalletVector =
-      SingletonWalletVector.fromMasterPrivateKey(keychainSecret.masterPrivateKey, 20);
+  final singletonWalletVector = SingletonWalletVector.fromMasterPrivateKey(
+    keychainSecret.masterPrivateKey,
+    20,
+  );
 
   final launcherId = await poolService.createPlotNftForPool(
     p2SingletonDelayedPuzzlehash: delayPh,
@@ -33,15 +37,36 @@ Future<void> createNewWalletWithPlotNFT(
   final newPlotNft = await fullNode.getPlotNftByLauncherId(launcherId);
   print(newPlotNft);
 
-  await poolService.registerAsFarmerWithPool(
+  final addFarmerResponse = await poolService.registerAsFarmerWithPool(
     plotNft: newPlotNft!,
     singletonWalletVector: singletonWalletVector,
     payoutPuzzlehash: keychain.puzzlehashes[1],
   );
+  print('Pool welcome message: ${addFarmerResponse.welcomeMessage}');
 
-  final farmerInfo = await poolService.getFarmerInfo(
-    authenticationPrivateKey: singletonWalletVector.poolingAuthenticationPrivateKey,
-    launcherId: launcherId,
-  );
-  print(farmerInfo);
+  GetFarmerResponse? farmerInfo;
+  var attempts = 0;
+  while (farmerInfo == null && attempts < 6) {
+    print('waiting for farmer information to become available...');
+    try {
+      attempts = attempts + 1;
+      await Future<void>.delayed(const Duration(seconds: 15));
+      farmerInfo = await poolService.getFarmerInfo(
+        authenticationPrivateKey:
+            singletonWalletVector.poolingAuthenticationPrivateKey,
+        launcherId: launcherId,
+      );
+    } on PoolResponseException catch (e) {
+      if (e.poolErrorResponse.responseCode != PoolErrorState.farmerNotKnown) {
+        rethrow;
+      }
+      if (attempts == 5) {
+        print(e.poolErrorResponse.message);
+      }
+    }
+  }
+
+  if (farmerInfo != null) {
+    print(farmerInfo);
+  }
 }
