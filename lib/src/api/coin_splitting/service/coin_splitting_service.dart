@@ -54,20 +54,24 @@ class CoinSplittingService {
       puzzlehashes: keychain.puzzlehashes,
     );
 
-    final airdropId = catCoinToSplit.id;
-    final airdropFeeCoinsId = standardCoinsForFee.joinedIds.sha256Hash();
-
     var standardCoins = standardCoinsForFee;
 
     if (standardCoinsForFee.length > 1) {
-      await createAndPushStandardCoinJoinTransaction(
+      final standardParentCoinIds = standardCoins.map((c) => c.id).toSet();
+
+      final earliestSpentBlockIndex = await createAndPushStandardCoinJoinTransaction(
         coins: standardCoinsForFee,
         keychain: keychain,
         destinationPuzzlehash: keychain.puzzlehashes.first,
-        airdropFeeCoinsId: airdropFeeCoinsId,
+        fee: feePerCoin * standardCoins.length,
       );
 
-      standardCoins = await fullNode.getCoinsByMemo(airdropFeeCoinsId);
+      standardCoins = (await fullNode.getCoinsByPuzzleHashes(
+        keychain.puzzlehashes,
+        startHeight: earliestSpentBlockIndex,
+      ))
+          .where((c) => standardParentCoinIds.contains(c.parentCoinInfo))
+          .toList();
       logger('joined standard coins for fee');
 
       if (standardCoins.length != 1) {
