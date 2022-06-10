@@ -163,8 +163,6 @@ class CatWalletService extends BaseWalletService {
     final publicKey = privateKey.getG1();
     final curriedTail = delegatedTailProgram.curry([Program.fromBytes(publicKey.toBytes())]);
 
-    print('assetId: ${curriedTail.hash()}');
-
     final curriedGenesisByCoinId = genesisByCoinIdProgram.curry([Program.fromBytes(genesisCoinId)]);
     final tailSolution = Program.list([curriedGenesisByCoinId, Program.nil]);
 
