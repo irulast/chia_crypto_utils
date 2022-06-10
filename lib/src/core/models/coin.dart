@@ -97,13 +97,13 @@ class Coin extends CoinPrototype with ToBytesMixin {
 
   @override
   Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json.addAll({
-      'confirmed_block_index': confirmedBlockIndex,
-      'spent_block_index': spentBlockIndex,
-      'coinbase': coinbase,
-      'timestamp': timestamp,
-    });
+    final json = super.toJson()
+      ..addAll(<String, dynamic>{
+        'confirmed_block_index': confirmedBlockIndex,
+        'spent_block_index': spentBlockIndex,
+        'coinbase': coinbase,
+        'timestamp': timestamp,
+      });
     return json;
   }
 
