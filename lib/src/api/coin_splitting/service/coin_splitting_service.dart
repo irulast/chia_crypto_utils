@@ -15,7 +15,7 @@ class CoinSplittingService {
   final standardWalletService = StandardWalletService();
   final logger = LoggingContext().log;
 
-  Future<void> splitCoins({
+  Future<int> splitCoins({
     required CatCoin catCoinToSplit,
     required List<Coin> standardCoinsForFee,
     required WalletKeychain keychain,
@@ -127,7 +127,7 @@ class CoinSplittingService {
       logger('finished 10 width split');
     }
 
-    final earliestSpentBlockIndex = await createAndPushFinalSplittingTransactions(
+    await createAndPushFinalSplittingTransactions(
       catCoins: catCoins,
       standardCoinsForFee: standardCoins,
       keychain: keychain,
@@ -136,7 +136,8 @@ class CoinSplittingService {
       desiredNumberOfCoins: desiredNumberOfCoins,
       changePuzzlehash: keychain.puzzlehashes.first,
     );
-    
+
+    return desiredNumberOfCoins;
   }
 
   Future<List<CatCoin>> getChildCatCoinsByOuterPuzzlehashes(
