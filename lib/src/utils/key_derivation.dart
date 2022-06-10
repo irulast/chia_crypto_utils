@@ -82,7 +82,9 @@ PrivateKey masterSkToSingletonOwnerSk(
   int poolWalletIndex,
 ) {
   return derivePath(
-      masterSk, [blsSpecNumber, chiaBlockchanNumber, singletonPathNumber, poolWalletIndex]);
+    masterSk,
+    [blsSpecNumber, chiaBlockchanNumber, singletonPathNumber, poolWalletIndex],
+  );
 }
 
 // This key is used for the farmer to authenticate

@@ -28,17 +28,6 @@ class CreateCoinCondition implements Condition {
 
   @override
   Program get program {
-    if (memos != null && memos!.length == 2) {
-      print(Program.list([
-        Program.fromInt(conditionCode),
-        Program.fromBytes(destinationPuzzlehash),
-        Program.fromInt(amount),
-        if (memos != null)
-          Program.list(
-            memos!.map(Program.fromBytes).toList(),
-          )
-      ]));
-    }
     return Program.list([
       Program.fromInt(conditionCode),
       Program.fromBytes(destinationPuzzlehash),

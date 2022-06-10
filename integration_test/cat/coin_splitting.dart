@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/api/coin_splitting/service/coin_splitting_service.dart';
 import 'package:chia_crypto_utils/src/api/full_node/full_node_utils.dart';
@@ -32,10 +30,7 @@ void main() async {
     'mesh',
   ];
 
-  final keychainSecret = KeychainCoreSecret.fromMnemonic(
-    'guilt rail green junior loud track cupboard citizen begin play west adapt myself panda eye finger nuclear someone update light dance exotic expect layer'
-        .split(' '),
-  );
+  final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
 
   print(keychainSecret.fingerprint);
   final keychain = WalletKeychain.fromCoreSecret(keychainSecret, walletSize: 50);
