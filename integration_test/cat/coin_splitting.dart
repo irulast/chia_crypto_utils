@@ -1,5 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/coin_splitting/service/coin_splitting_service.dart';
 import 'package:chia_crypto_utils/src/api/full_node/full_node_utils.dart';
 
 void main() async {

@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/utils/blockchain_utils.dart';
 
 class CoinSplittingService {
   CoinSplittingService(this.fullNode) : blockchainUtils = BlockchainUtils(fullNode);
