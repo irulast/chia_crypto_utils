@@ -1,4 +1,5 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/api/pool/models/add_farmer_response.dart';
 import 'package:chia_crypto_utils/src/core/models/singleton_wallet_vector.dart';
 
 class PoolService {
@@ -49,20 +50,20 @@ class PoolService {
     return PlotNftWalletService.makeLauncherCoin(genesisCoin.id).id;
   }
 
-  Future<void> registerAsFarmerWithPool({
+  Future<AddFarmerResponse> registerAsFarmerWithPool({
     required PlotNft plotNft,
     required SingletonWalletVector singletonWalletVector,
     required Puzzlehash payoutPuzzlehash,
   }) async {
     if (singletonWalletVector.singletonOwnerPublicKey != plotNft.poolState.ownerPublicKey) {
       throw ArgumentError(
-        'Provided SingletonWalletVector  does not match plotNft owner public key',
+        'Provided SingletonWalletVector does not match plotNft owner public key',
       );
     }
 
     final poolInfo = await pool.getPoolInfo();
 
-    await pool.addFarmer(
+    return pool.addFarmer(
       launcherId: plotNft.launcherId,
       authenticationToken: getCurrentAuthenticationToken(poolInfo.authenticationTokenTimeout),
       authenticationPublicKey: singletonWalletVector.poolingAuthenticationPublicKey,

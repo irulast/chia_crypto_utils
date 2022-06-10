@@ -15,7 +15,7 @@ class PoolInfo {
   factory PoolInfo.fromJson(Map<String, dynamic> json) {
     return PoolInfo(
       description: json['description'] as String,
-      fee: json['fee'] as String,
+      fee: json['fee'] is double ? json['fee'].toString() : json['fee'] as String,
       logoUrl: json['logo_url'] as String,
       minimumDifficulty: json['minimum_difficulty'] as num,
       name: json['name'] as String,
