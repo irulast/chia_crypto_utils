@@ -95,8 +95,7 @@ class Coin extends CoinPrototype with ToBytesMixin {
     );
   }
 
-  @override
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toFullJson() {
     final json = super.toJson()
       ..addAll(<String, dynamic>{
         'confirmed_block_index': confirmedBlockIndex,
