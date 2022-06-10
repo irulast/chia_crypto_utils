@@ -290,32 +290,41 @@ class CoinSplittingService {
     return payments;
   }
 
-  int calculateNumberOfNWidthSplitsRequired({
+  static int calculateNumberOfNWidthSplitsRequired({
     required int desiredNumberOfCoins,
     required int initialSplitWidth,
   }) {
     late int numberOfNWidthSplits;
-    num smallestDifference = 10000000;
+    num smallestDifference = 1000000000;
 
-    final maxResultingCoinDigits = pow(initialSplitWidth, 10).toInt();
+    // adjust values to make sure maxResultingCoins doesn't go out of bounds
+    var maxNWidthSplitIndex = 9;
+    var maxResultingCoins = pow(initialSplitWidth, maxNWidthSplitIndex);
+    // pow(...) returns negative went out of bounds
+    while (maxResultingCoins <= 0) {
+      maxNWidthSplitIndex--;
+      maxResultingCoins = pow(initialSplitWidth, maxNWidthSplitIndex).powerOfTen;
+    }
 
-    for (var i = 0; i < 10; i++) {
+    final maxResultingCoinsPowerOfTen = maxResultingCoins.powerOfTen;
+
+    for (var i = 0; i < maxNWidthSplitIndex + 1; i++) {
       final resultingCoins = pow(initialSplitWidth, i).toInt();
 
       if (resultingCoins > desiredNumberOfCoins) {
         break;
       }
 
-      final desiredNumberOfCoinsDigitsToCompare =
-          desiredNumberOfCoins.toNDigits(maxResultingCoinDigits);
-      final resultingCoinsDigitsToCompare = resultingCoins.toNDigits(maxResultingCoinDigits);
+      final desiredNumberOfCoinsAdjusted =
+          desiredNumberOfCoins.toNthPowerOfTen(maxResultingCoinsPowerOfTen);
+      final resultingCoinsAdjusted = resultingCoins.toNthPowerOfTen(maxResultingCoinsPowerOfTen);
 
-      var difference = desiredNumberOfCoinsDigitsToCompare - resultingCoinsDigitsToCompare;
+      var difference = desiredNumberOfCoinsAdjusted - resultingCoinsAdjusted;
       if (difference < 0) {
         final resultingCoinsDigitsMinusOneToCompare =
-            resultingCoins.toNDigits(maxResultingCoinDigits - 1);
+            resultingCoins.toNthPowerOfTen(maxResultingCoinsPowerOfTen - 1);
 
-        difference = desiredNumberOfCoinsDigitsToCompare - resultingCoinsDigitsMinusOneToCompare;
+        difference = desiredNumberOfCoinsAdjusted - resultingCoinsDigitsMinusOneToCompare;
       }
 
       if (difference < smallestDifference) {
@@ -357,7 +366,7 @@ class CoinSplittingService {
     return spentCoins.map((c) => c.spentBlockIndex).reduce(min);
   }
 
-  int calculateNumberOfDecaSplitsRequired(
+  static int calculateNumberOfDecaSplitsRequired(
     int resultingCoinsFromNWidthSplits,
     int desiredNumberOfCoins,
   ) {
@@ -419,37 +428,12 @@ class CoinSplittingService {
       throw ArgumentError('Standard balance is not enough to meet desired splitting parameters');
     }
   }
-
-  int calculateTotalFee({
-    required int feePerCoin,
-    required int numberOfDecaSplits,
-    required int numberOfNWidthSplits,
-    required int splitWidth,
-    required int desiredNumberOfCoins,
-  }) {
-    var totalFee = 0;
-    for (var i = 1; i < numberOfDecaSplits + 1; i++) {
-      final coinsCreatedInSplit = pow(10, i);
-      totalFee += coinsCreatedInSplit.toInt() * feePerCoin;
-    }
-
-    for (var i = 1; i < numberOfNWidthSplits + 1; i++) {
-      final coinsCreatedInSplit = pow(splitWidth, i);
-      totalFee += coinsCreatedInSplit.toInt() * feePerCoin;
-    }
-    //account for parallel standard coin splitting as well
-    totalFee *= 2;
-
-    // last split
-    totalFee += desiredNumberOfCoins * feePerCoin;
-    return totalFee;
-  }
 }
 
-extension DigitOperations on num {
-  num toNDigits(int nDigits) {
-    final base10Upper = pow(10, nDigits);
-    final base10Lower = pow(10, nDigits - 1);
+extension PowersOfTen on num {
+  num toNthPowerOfTen(int nthPowerOfTen) {
+    final base10Upper = pow(10, nthPowerOfTen);
+    final base10Lower = pow(10, nthPowerOfTen - 1);
     if (this > base10Upper) {
       var reduced = this;
       while (reduced > base10Upper) {
@@ -467,5 +451,15 @@ extension DigitOperations on num {
     return this;
   }
 
-  int get numberOfDigits => toString().replaceAll('.', '').length;
+  int get powerOfTen {
+    var place = 0;
+
+    var reduced = this;
+
+    while (reduced >= 1) {
+      reduced /= 10;
+      place++;
+    }
+    return place;
+  }
 }
