@@ -59,7 +59,7 @@ class SimulatorUtils {
     final simulator = SimulatorFullNodeInterface(simulatorRpc);
     try {
       await simulator.getBlockchainState();
-    } on SocketException {
+    } on NotRunningException {
       return false;
     }
     return true;
