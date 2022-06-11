@@ -36,10 +36,8 @@ void main(List<String> args) {
   }
 
   // Configure environment based on user selections
-  LoggingContext()
-      .setLogLevel(stringToLogLevel(results['log-level'] as String));
-  ChiaNetworkContextWrapper()
-      .registerNetworkContext(stringToNetwork(results['network'] as String));
+  LoggingContext().setLogLevel(stringToLogLevel(results['log-level'] as String));
+  ChiaNetworkContextWrapper().registerNetworkContext(stringToNetwork(results['network'] as String));
   // construct the Chia full node interface
   fullNode = ChiaFullNodeInterface.fromURL(
     results['full-node-url'] as String,
@@ -71,6 +69,7 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
       argResults!['certificate-bytes-path'] as String,
     );
     final mnemonicPhrase = generateMnemonic(strength: 256);
+    // const mnemonicPhrase = 'wolf drift avoid approve stumble sugar exotic chapter lobster great razor middle feel teach agent dirt cherry frozen improve rebuild wish pigeon wire sentence';
     final mnemonic = mnemonicPhrase.split(' ');
     print('Mnemonic Phrase: $mnemonicPhrase');
 
@@ -78,6 +77,9 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
     final keychain = WalletKeychain.fromCoreSecret(
       keychainSecret,
     );
+
+    final farmerPublicKeyHex = masterSkToFarmerSk(keychainSecret.masterPrivateKey).getG1().toHex();
+    print('Farmer public key: $farmerPublicKeyHex');
 
     final coinAddress = Address.fromPuzzlehash(
       keychain.puzzlehashes[0],
@@ -182,9 +184,7 @@ void printUsage(CommandRunner runner) {
 }
 
 void parseHelp(ArgResults results, CommandRunner runner) {
-  if (results.command == null ||
-      results.wasParsed('help') ||
-      results.command?.name == 'help') {
+  if (results.command == null || results.wasParsed('help') || results.command?.name == 'help') {
     if (results.arguments.isEmpty || results.command == null) {
       print('No command was provided.');
     }

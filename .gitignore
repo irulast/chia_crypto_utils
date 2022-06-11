@@ -30,4 +30,4 @@ mozilla-ca
 .idea
 
 # Ignore generated plots
-integration_test/simulator/temp
+lib/src/api/full_node/simulator/run/temp

@@ -178,7 +178,7 @@ class PlotNftWalletService extends BaseWalletService {
   Bytes get poolRewardPrefix =>
       Bytes.fromHex(blockchainNetwork.aggSigMeExtraData).sublist(0, 16) + Bytes(List.filled(16, 0));
 
-  Puzzlehash launcherIdToP2Puzzlehash(
+  static Puzzlehash launcherIdToP2Puzzlehash(
     Bytes launcherId,
     int secondsDelay,
     Puzzlehash delayedPuzzlehash,
