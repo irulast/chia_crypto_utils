@@ -37,6 +37,27 @@ Future<void> createNewWalletWithPlotNFT(
   final newPlotNft = await fullNode.getPlotNftByLauncherId(launcherId);
   print(newPlotNft);
 
+  final contractPuzzlehash = PlotNftWalletService.launcherIdToP2Puzzlehash(
+    launcherId,
+    PlotNftWalletService.defaultDelayTime,
+    delayPh,
+  );
+
+  final payoutPuzzlehash = keychain.puzzlehashes[1];
+
+  final payoutAddress = Address.fromPuzzlehash(
+    payoutPuzzlehash,
+    ChiaNetworkContextWrapper().blockchainNetwork.addressPrefix,
+  );
+
+  final contractAddress = Address.fromPuzzlehash(
+    contractPuzzlehash,
+    ChiaNetworkContextWrapper().blockchainNetwork.addressPrefix,
+  );
+
+  print('Contract Address: $contractAddress');
+  print('Payout Address: $payoutAddress');
+
   final addFarmerResponse = await poolService.registerAsFarmerWithPool(
     plotNft: newPlotNft!,
     singletonWalletVector: singletonWalletVector,
@@ -52,8 +73,7 @@ Future<void> createNewWalletWithPlotNFT(
       attempts = attempts + 1;
       await Future<void>.delayed(const Duration(seconds: 15));
       farmerInfo = await poolService.getFarmerInfo(
-        authenticationPrivateKey:
-            singletonWalletVector.poolingAuthenticationPrivateKey,
+        authenticationPrivateKey: singletonWalletVector.poolingAuthenticationPrivateKey,
         launcherId: launcherId,
       );
     } on PoolResponseException catch (e) {
