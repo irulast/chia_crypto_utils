@@ -1,3 +1,4 @@
+export './src/singleton/index.dart';
 export 'src/api/index.dart';
 export 'src/bls.dart';
 export 'src/cat/index.dart';
