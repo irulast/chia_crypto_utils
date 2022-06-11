@@ -30,14 +30,16 @@ class Puzzlehash extends Bytes {
   static const hexLength = 64;
 }
 
-class Bytes extends Comparable<Bytes> implements List<int> {
+class Bytes extends Comparable<Bytes> with ToBytesMixin implements List<int>  {
   final Uint8List _byteList;
   Bytes(List<int> bytesList) : _byteList = Uint8List.fromList(bytesList);
 
   static String bytesPrefix = '0x';
 
-  String toHex() => const HexEncoder().convert(_byteList);
-  String toHexWithPrefix() => bytesPrefix + toHex();
+  @override
+  Bytes toBytes() {
+    return this;
+  }
 
   static Bytes get empty => Bytes([]);
 
