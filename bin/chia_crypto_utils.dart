@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -57,6 +58,10 @@ class GetCoinRecords extends Command<Future<void>> {
       ..addOption(
         'address',
         defaultsTo: '',
+      )
+      ..addOption(
+        'includeSpentCoins',
+        defaultsTo: 'false',
       );
   }
 
@@ -68,27 +73,35 @@ class GetCoinRecords extends Command<Future<void>> {
 
   @override
   Future<void> run() async {
-    final puzzlehash = argResults?['puzzlehash'] as String;
-    final address = argResults?['address'] as String;
+    final puzzlehashArg = argResults?['puzzlehash'] as String;
+    final addressArg = argResults?['address'] as String;
+    final includeSpentCoinsArg = argResults?['includeSpentCoins'] as String;
 
-    if (puzzlehash.isEmpty && address.isEmpty) {
+    if (puzzlehashArg.isEmpty && addressArg.isEmpty) {
       throw ArgumentError('Must supply either a puzzlehash or address');
     }
 
-    if (puzzlehash.isNotEmpty && address.isNotEmpty) {
+    if (puzzlehashArg.isNotEmpty && addressArg.isNotEmpty) {
       throw ArgumentError('Must not supply both puzzlehash and address');
     }
 
-    final actualPuzzlehash =
-        address.isNotEmpty ? Address(address).toPuzzlehash() : Puzzlehash.fromHex(puzzlehash);
+    final includeSpentCoins = includeSpentCoinsArg == 'true';
 
+    Puzzlehash puzzlehash;
+    try {
+      puzzlehash =
+        addressArg.isNotEmpty ? Address(addressArg).toPuzzlehash() : Puzzlehash.fromHex(puzzlehashArg);
+    } catch (e) {
+      throw ArgumentError('Invalid address or puzzlehash');
+    }
+    
     var coins = <Coin>[];
     while (coins.isEmpty) {
       print('waiting for coins...');
       await Future<void>.delayed(const Duration(seconds: 3));
       coins = await fullNode.getCoinsByPuzzleHashes(
-        [actualPuzzlehash],
-        includeSpentCoins: true,
+        [puzzlehash],
+        includeSpentCoins: includeSpentCoins,
       );
 
       if (coins.isNotEmpty) {
