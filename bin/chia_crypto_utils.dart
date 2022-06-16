@@ -23,7 +23,8 @@ void main(List<String> args) {
     ..argParser.addOption('network', defaultsTo: 'mainnet')
     ..argParser.addOption('full-node-url')
     ..addCommand(CreateWalletWithPlotNFTCommand())
-    ..addCommand(GetFarmingStatusCommand());
+    ..addCommand(GetFarmingStatusCommand())
+    ..addCommand(GetCoinRecords());
 
   final results = runner.argParser.parse(args);
 
@@ -44,6 +45,60 @@ void main(List<String> args) {
   );
 
   runner.run(args);
+}
+
+class GetCoinRecords extends Command<Future<void>> {
+  GetCoinRecords() {
+    argParser
+      ..addOption(
+        'puzzlehash',
+        defaultsTo: '',
+      )
+      ..addOption(
+        'address',
+        defaultsTo: '',
+      );
+  }
+
+  @override
+  String get description => 'Gets coin records for a given address or puzzlehash';
+
+  @override
+  String get name => 'Get-CoinRecords';
+
+  @override
+  Future<void> run() async {
+    final puzzlehash = argResults?['puzzlehash'] as String;
+    final address = argResults?['address'] as String;
+
+    if (puzzlehash.isEmpty && address.isEmpty) {
+      throw ArgumentError('Must supply either a puzzlehash or address');
+    }
+
+    if (puzzlehash.isNotEmpty && address.isNotEmpty) {
+      throw ArgumentError('Must not supply both puzzlehash and address');
+    }
+
+    final actualPuzzlehash =
+        address.isNotEmpty ? Address(address).toPuzzlehash() : Puzzlehash.fromHex(puzzlehash);
+
+    var coins = <Coin>[];
+    while (coins.isEmpty) {
+      print('waiting for coins...');
+      await Future<void>.delayed(const Duration(seconds: 3));
+      coins = await fullNode.getCoinsByPuzzleHashes(
+        [actualPuzzlehash],
+        includeSpentCoins: true,
+      );
+
+      if (coins.isNotEmpty) {
+        print('Found ${coins.length} coins!');
+        for (final coin in coins) {
+          print(coin.toFullJson());
+        }
+      }
+    }
+  }
 }
 
 class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
