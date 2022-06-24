@@ -21,5 +21,11 @@ class NetworkContext {
       ..allowReassignment = true;
   }
 
+  void setBlockchainNetwork(BlockchainNetwork blockChainNetwork) {
+    getIt
+      ..registerSingleton<BlockchainNetwork>(blockChainNetwork)
+      ..allowReassignment = true;
+  }
+
   BlockchainNetwork get blockchainNetwork => getIt<BlockchainNetwork>();
 }
