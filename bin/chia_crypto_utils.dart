@@ -137,7 +137,6 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
       argResults!['certificate-bytes-path'] as String,
     );
     final mnemonicPhrase = generateMnemonic(strength: 256);
-    // const mnemonicPhrase = 'wolf drift avoid approve stumble sugar exotic chapter lobster great razor middle feel teach agent dirt cherry frozen improve rebuild wish pigeon wire sentence';
     final mnemonic = mnemonicPhrase.split(' ');
     print('Mnemonic Phrase: $mnemonicPhrase');
 
