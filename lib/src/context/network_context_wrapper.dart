@@ -1,27 +1,27 @@
 // ignore_for_file: lines_longer_than_80_chars
 
-import 'package:chia_crypto_utils/src/context/network_context.dart';
-import 'package:chia_crypto_utils/src/core/models/blockchain_network_loader.dart';
-import 'package:chia_crypto_utils/src/networks/chia/chia_blockchain_network_loader.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/networks/chia/mainnet/mainnet_blockchain_network.dart';
+import 'package:chia_crypto_utils/src/networks/chia/testnet0/testnet0_blockchain_network.dart';
+import 'package:chia_crypto_utils/src/networks/chia/testnet10/testnet10_blockchain_network.dart';
 
 class ChiaNetworkContextWrapper extends NetworkContext {
   void registerNetworkContext(
-    Network network, [
+    Network network, {
     Environment environment = Environment.pureDart,
-  ]) {
+  }) {
     final chiaBlockchainNetworkLoader = ChiaBlockchainNetworkLoader();
 
     BlockchainNetworkLoaderFunction loader;
     switch (environment) {
       case Environment.pureDart:
         loader = chiaBlockchainNetworkLoader.loadfromLocalFileSystem;
+        setPath('lib/src/networks/chia/${network.name}/config.yaml');
+        setLoader(loader);
         break;
       case Environment.flutter:
-        loader = chiaBlockchainNetworkLoader.loadfromApplicationLib;
+        setBlockchainNetwork(blockchainNetworks[network]!);
     }
-
-    setPath('lib/src/networks/chia/${network.name}/config.yaml');
-    setLoader(loader);
   }
 }
 
@@ -45,3 +45,9 @@ Network stringToNetwork(String networkString) {
 }
 
 enum Environment { pureDart, flutter }
+
+final blockchainNetworks = {
+  Network.mainnet: mainnetBlockchainNetwork,
+  Network.testnet10: testnet10BlockchainNetwork,
+  Network.testnet0: testnet0BlockchainNetwork,
+};
