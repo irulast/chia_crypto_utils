@@ -103,6 +103,7 @@ class Client {
           makePrettyJsonString(responseBody),
         )
         ..log('------------');
+      return;
     }
 
     final lowLogLevelResponseJson = <String, dynamic>{
