@@ -169,8 +169,17 @@ class FullNodeHttpRpc implements FullNode {
   }
 
   static void mapResponseToError(Response response) {
+    try {
+      jsonDecode(response.body);
+    } on Exception {
+      throw InternalServeErrorException(message: response.body);
+    }
     switch (response.statusCode) {
       case 500:
+        throw InternalServeErrorException(message: response.body);
+      case 200:
+        return;
+      default:
         throw InternalServeErrorException(message: response.body);
     }
   }

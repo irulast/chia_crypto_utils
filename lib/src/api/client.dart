@@ -94,6 +94,17 @@ class Client {
   void logResponse(HttpClientResponse response, String responseBody) {
     final loggingContext = LoggingContext();
 
+    try {
+      jsonDecode(responseBody);
+    } on Exception {
+      loggingContext
+        ..log('response: ')
+        ..log(
+          makePrettyJsonString(responseBody),
+        )
+        ..log('------------');
+    }
+
     final lowLogLevelResponseJson = <String, dynamic>{
       'status_code': response.statusCode,
       'body': jsonDecode(responseBody),
