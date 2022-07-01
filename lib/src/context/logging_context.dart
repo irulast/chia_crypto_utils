@@ -3,9 +3,9 @@ import 'package:get_it/get_it.dart';
 class LoggingContext {
   GetIt get getIt => GetIt.I;
 
-  void setLogger(Logger logger) {
+  void setLogger(LoggingFunction logger) {
     getIt
-      ..registerSingleton<Logger>(logger)
+      ..registerSingleton<LoggingFunction>(logger)
       ..allowReassignment = true;
   }
 
@@ -38,14 +38,14 @@ class LoggingContext {
     }
   }
 
-  Logger get defaultLogger => print;
+  LoggingFunction get defaultLogger => print;
   LogLevel defaultLogLevel = LogLevel.none;
 
-  Logger get _logger {
-    if (!getIt.isRegistered<Logger>()) {
+  LoggingFunction get _logger {
+    if (!getIt.isRegistered<LoggingFunction>()) {
       return defaultLogger;
     }
-    return getIt.get<Logger>();
+    return getIt.get<LoggingFunction>();
   }
 
   LogLevel get logLevel {
@@ -56,7 +56,7 @@ class LoggingContext {
   }
 }
 
-typedef Logger = void Function(String text);
+typedef LoggingFunction = void Function(String text);
 
 enum LogLevel { none, low, high }
 
