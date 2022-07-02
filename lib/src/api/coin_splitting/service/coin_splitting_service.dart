@@ -12,7 +12,7 @@ class CoinSplittingService {
   final BlockchainUtils blockchainUtils;
   final catWalletService = CatWalletService();
   final standardWalletService = StandardWalletService();
-  final logger = LoggingContext().log;
+  final logger = LoggingContext().info;
 
   Future<int> splitCoins({
     required CatCoin catCoinToSplit,

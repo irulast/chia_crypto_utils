@@ -114,7 +114,7 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
         fullNode,
       );
     } catch (e) {
-      LoggingContext().log(e.toString());
+      LoggingContext().error(e.toString());
     }
   }
 }
@@ -169,7 +169,7 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
           fullNode,
         );
       } catch (e) {
-        LoggingContext().log(e.toString());
+        LoggingContext().error(e.toString());
       }
     }
   }

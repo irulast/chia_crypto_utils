@@ -26,9 +26,9 @@ class FullNodeUtils {
 
   static Bytes _getAuthFileBytes(String pathToFile) {
     LoggingContext()
-      ..log(null, 'auth file loaded: $pathToFile')
-      ..log(null, 'file contents:')
-      ..log(null, File(pathToFile).readAsStringSync());
+      ..info(null, 'auth file loaded: $pathToFile')
+      ..info(null, 'file contents:')
+      ..info(null, File(pathToFile).readAsStringSync());
     return Bytes(File(pathToFile).readAsBytesSync());
   }
 

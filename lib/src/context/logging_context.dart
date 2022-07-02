@@ -15,7 +15,31 @@ class LoggingContext {
       ..allowReassignment = true;
   }
 
-  void log(String? lowLogLevelText, [String? highLogLevelText]) {
+  void setLogTypes(LogTypes logTypes) {
+    getIt
+      ..registerSingleton<LogTypes>(logTypes)
+      ..allowReassignment = true;
+  }
+
+  void api(String? lowLogLevelText, [String? highLogLevelText]) {
+    if (logTypes.contains(LogType.api)) {
+      _log(lowLogLevelText, highLogLevelText);
+    }
+  }
+
+  void info(String? lowLogLevelText, [String? highLogLevelText]) {
+    if (logTypes.contains(LogType.info)) {
+      _log(lowLogLevelText, highLogLevelText);
+    }
+  }
+
+  void error(String? lowLogLevelText, [String? highLogLevelText]) {
+    if (logTypes.contains(LogType.error)) {
+      _log(lowLogLevelText, highLogLevelText);
+    }
+  }
+
+  void _log(String? lowLogLevelText, [String? highLogLevelText]) {
     final logger = _logger;
 
     switch (logLevel) {
@@ -40,6 +64,7 @@ class LoggingContext {
 
   LoggingFunction get defaultLogger => print;
   LogLevel defaultLogLevel = LogLevel.none;
+  LogTypes defaultLogTypes = {LogType.info, LogType.error};
 
   LoggingFunction get _logger {
     if (!getIt.isRegistered<LoggingFunction>()) {
@@ -54,9 +79,19 @@ class LoggingContext {
     }
     return getIt.get<LogLevel>();
   }
+
+  LogTypes get logTypes {
+    if (!getIt.isRegistered<LogTypes>()) {
+      return defaultLogTypes;
+    }
+    return getIt.get<LogTypes>();
+  }
 }
 
 typedef LoggingFunction = void Function(String text);
+typedef LogTypes = Set<LogType>;
+
+enum LogType { info, api, error }
 
 enum LogLevel { none, low, high }
 
