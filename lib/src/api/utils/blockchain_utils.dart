@@ -5,7 +5,7 @@ class BlockchainUtils {
   BlockchainUtils.fromContext() : fullNode = ChiaFullNodeInterface.fromContext();
 
   final ChiaFullNodeInterface fullNode;
-  final logger = LoggingContext().log;
+  final logger = LoggingContext().info;
 
   Future<List<Coin>> waitForTransactions(List<Bytes> parentCoinIds) async {
     final unspentIds = Set<Bytes>.from(parentCoinIds);
