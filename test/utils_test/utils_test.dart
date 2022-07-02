@@ -100,10 +100,10 @@ void main() async {
     print('Fingerprint: $fingerprint');
     print('Master public key (m): $masterPublicKeyHex');
     print(
-      'Farmer public key (m/$blsSpecNumber/$chiaBlockchanNumber/$farmerPathNumber/0): $farmerPublicKeyHex',
+      'Farmer public key (m/$blsSpecNumber/$chiaBlockchainNumber/$farmerPathNumber/0): $farmerPublicKeyHex',
     );
     print(
-      'Pool public key (m/$blsSpecNumber/$chiaBlockchanNumber/$poolPathNumber/0: $poolPublicKeyHex',
+      'Pool public key (m/$blsSpecNumber/$chiaBlockchainNumber/$poolPathNumber/0: $poolPublicKeyHex',
     );
     print('First wallet address: ${firstAddress.address}');
   });

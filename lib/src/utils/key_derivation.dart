@@ -16,7 +16,7 @@ import 'package:crypto/crypto.dart';
 // pooling authentication key numbers: 6
 
 const blsSpecNumber = 12381;
-const chiaBlockchanNumber = 8444;
+const chiaBlockchainNumber = 8444;
 const farmerPathNumber = 0;
 const poolPathNumber = 1;
 const walletPathNumber = 2;
@@ -36,42 +36,42 @@ PrivateKey derivePathUnhardened(PrivateKey sk, List<int> path) {
 PrivateKey masterSkToFarmerSk(PrivateKey masterSk) {
   return derivePath(
     masterSk,
-    [blsSpecNumber, chiaBlockchanNumber, farmerPathNumber, 0],
+    [blsSpecNumber, chiaBlockchainNumber, farmerPathNumber, 0],
   );
 }
 
 PrivateKey masterSkToPoolSk(PrivateKey masterSk) {
   return derivePath(
     masterSk,
-    [blsSpecNumber, chiaBlockchanNumber, poolPathNumber, 0],
+    [blsSpecNumber, chiaBlockchainNumber, poolPathNumber, 0],
   );
 }
 
 PrivateKey masterSkToWalletSk(PrivateKey masterSk, int index) {
   return derivePath(
     masterSk,
-    [blsSpecNumber, chiaBlockchanNumber, walletPathNumber, index],
+    [blsSpecNumber, chiaBlockchainNumber, walletPathNumber, index],
   );
 }
 
 PrivateKey masterSkToWalletSkUnhardened(PrivateKey masterSk, int index) {
   return derivePathUnhardened(
     masterSk,
-    [blsSpecNumber, chiaBlockchanNumber, walletPathNumber, index],
+    [blsSpecNumber, chiaBlockchainNumber, walletPathNumber, index],
   );
 }
 
 PrivateKey masterSkToLocalSk(PrivateKey masterSk) {
   return derivePath(
     masterSk,
-    [blsSpecNumber, chiaBlockchanNumber, localPathNumber, 0],
+    [blsSpecNumber, chiaBlockchainNumber, localPathNumber, 0],
   );
 }
 
 PrivateKey masterSkToBackupSk(PrivateKey masterSk) {
   return derivePath(
     masterSk,
-    [blsSpecNumber, chiaBlockchanNumber, backupKeyPathNumber, 0],
+    [blsSpecNumber, chiaBlockchainNumber, backupKeyPathNumber, 0],
   );
 }
 
@@ -83,7 +83,7 @@ PrivateKey masterSkToSingletonOwnerSk(
 ) {
   return derivePath(
     masterSk,
-    [blsSpecNumber, chiaBlockchanNumber, singletonPathNumber, poolWalletIndex],
+    [blsSpecNumber, chiaBlockchainNumber, singletonPathNumber, poolWalletIndex],
   );
 }
 
@@ -98,7 +98,7 @@ PrivateKey masterSkToPoolingAuthenticationSk(
   assert(poolWalletIndex < 10000, 'Pool wallet index must be less than 10000');
   return derivePath(masterSk, [
     blsSpecNumber,
-    chiaBlockchanNumber,
+    chiaBlockchainNumber,
     poolingAuthenticationPathNumber,
     poolWalletIndex * 10000 + index
   ]);
