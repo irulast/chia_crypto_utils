@@ -3,6 +3,8 @@ import 'package:get_it/get_it.dart';
 class LoggingContext {
   GetIt get getIt => GetIt.I;
 
+  static const includencludeTimestampInstanceName = 'logging_context_include_timestamp';
+
   void setLogger(LoggingFunction logger) {
     getIt
       ..registerSingleton<LoggingFunction>(logger)
@@ -18,6 +20,14 @@ class LoggingContext {
   void setLogTypes(LogTypes logTypes) {
     getIt
       ..registerSingleton<LogTypes>(logTypes)
+      ..allowReassignment = true;
+  }
+
+  // ignore: avoid_positional_boolean_parameters
+  void setShouldIncludeTimestamp(bool shouldIncludeTimestamp) {
+    getIt
+      ..registerSingleton<bool>(shouldIncludeTimestamp,
+          instanceName: includencludeTimestampInstanceName)
       ..allowReassignment = true;
   }
 
@@ -62,7 +72,18 @@ class LoggingContext {
     }
   }
 
+  String formatLog(String log) {
+    if (includeTimestamp) {
+      final now = DateTime.now();
+      final timestamp = '${now.hour}:${now.minute}:${now.second}';
+      return '($timestamp)  $log';
+    }
+
+    return log;
+  }
+
   LoggingFunction get defaultLogger => print;
+  bool defaultIncludeTimestamp = false;
   LogLevel defaultLogLevel = LogLevel.none;
   LogTypes defaultLogTypes = {LogType.info, LogType.error};
 
@@ -85,6 +106,13 @@ class LoggingContext {
       return defaultLogTypes;
     }
     return getIt.get<LogTypes>();
+  }
+
+  bool get includeTimestamp {
+    if (!getIt.isRegistered<bool>(instanceName: includencludeTimestampInstanceName)) {
+      return defaultIncludeTimestamp;
+    }
+    return getIt.get<bool>(instanceName: includencludeTimestampInstanceName);
   }
 }
 
