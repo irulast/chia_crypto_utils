@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -23,7 +24,8 @@ void main(List<String> args) {
     ..argParser.addOption('network', defaultsTo: 'mainnet')
     ..argParser.addOption('full-node-url')
     ..addCommand(CreateWalletWithPlotNFTCommand())
-    ..addCommand(GetFarmingStatusCommand());
+    ..addCommand(GetFarmingStatusCommand())
+    ..addCommand(GetCoinRecords());
 
   final results = runner.argParser.parse(args);
 
@@ -44,6 +46,72 @@ void main(List<String> args) {
   );
 
   runner.run(args);
+}
+
+class GetCoinRecords extends Command<Future<void>> {
+  GetCoinRecords() {
+    argParser
+      ..addOption(
+        'puzzlehash',
+        defaultsTo: '',
+      )
+      ..addOption(
+        'address',
+        defaultsTo: '',
+      )
+      ..addOption(
+        'includeSpentCoins',
+        defaultsTo: 'false',
+      );
+  }
+
+  @override
+  String get description => 'Gets coin records for a given address or puzzlehash';
+
+  @override
+  String get name => 'Get-CoinRecords';
+
+  @override
+  Future<void> run() async {
+    final puzzlehashArg = argResults?['puzzlehash'] as String;
+    final addressArg = argResults?['address'] as String;
+    final includeSpentCoinsArg = argResults?['includeSpentCoins'] as String;
+
+    if (puzzlehashArg.isEmpty && addressArg.isEmpty) {
+      throw ArgumentError('Must supply either a puzzlehash or address');
+    }
+
+    if (puzzlehashArg.isNotEmpty && addressArg.isNotEmpty) {
+      throw ArgumentError('Must not supply both puzzlehash and address');
+    }
+
+    final includeSpentCoins = includeSpentCoinsArg == 'true';
+
+    Puzzlehash puzzlehash;
+    try {
+      puzzlehash =
+        addressArg.isNotEmpty ? Address(addressArg).toPuzzlehash() : Puzzlehash.fromHex(puzzlehashArg);
+    } catch (e) {
+      throw ArgumentError('Invalid address or puzzlehash');
+    }
+    
+    var coins = <Coin>[];
+    while (coins.isEmpty) {
+      print('waiting for coins...');
+      await Future<void>.delayed(const Duration(seconds: 3));
+      coins = await fullNode.getCoinsByPuzzleHashes(
+        [puzzlehash],
+        includeSpentCoins: includeSpentCoins,
+      );
+
+      if (coins.isNotEmpty) {
+        print('Found ${coins.length} coins!');
+        for (final coin in coins) {
+          print(coin.toFullJson());
+        }
+      }
+    }
+  }
 }
 
 class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
@@ -69,7 +137,6 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
       argResults!['certificate-bytes-path'] as String,
     );
     final mnemonicPhrase = generateMnemonic(strength: 256);
-    // const mnemonicPhrase = 'wolf drift avoid approve stumble sugar exotic chapter lobster great razor middle feel teach agent dirt cherry frozen improve rebuild wish pigeon wire sentence';
     final mnemonic = mnemonicPhrase.split(' ');
     print('Mnemonic Phrase: $mnemonicPhrase');
 
@@ -114,7 +181,7 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
         fullNode,
       );
     } catch (e) {
-      LoggingContext().log(e.toString());
+      LoggingContext().error(e.toString());
     }
   }
 }
@@ -169,7 +236,7 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
           fullNode,
         );
       } catch (e) {
-        LoggingContext().log(e.toString());
+        LoggingContext().error(e.toString());
       }
     }
   }

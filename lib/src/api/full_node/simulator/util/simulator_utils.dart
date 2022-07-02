@@ -41,7 +41,7 @@ class SimulatorUtils {
 
   static Bytes _getAuthFileBytes(String pathToFile) {
     try {
-      LoggingContext().log(null, 'auth file loaded: $pathToFile');
+      LoggingContext().info(null, 'auth file loaded: $pathToFile');
 
       return Bytes(File(pathToFile).readAsBytesSync());
     } on FileSystemException {
