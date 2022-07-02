@@ -58,15 +58,15 @@ class LoggingContext {
 
       case LogLevel.low:
         if (lowLogLevelText != null) {
-          logger(lowLogLevelText);
+          logger(formatLog(lowLogLevelText));
         }
         break;
 
       case LogLevel.high:
         if (highLogLevelText != null) {
-          logger(highLogLevelText);
+          logger(formatLog(highLogLevelText));
         } else if (lowLogLevelText != null) {
-          logger(lowLogLevelText);
+          logger(formatLog(lowLogLevelText));
         }
         break;
     }
