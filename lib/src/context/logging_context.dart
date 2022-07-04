@@ -26,8 +26,10 @@ class LoggingContext {
   // ignore: avoid_positional_boolean_parameters
   void setShouldIncludeTimestamp(bool shouldIncludeTimestamp) {
     getIt
-      ..registerSingleton<bool>(shouldIncludeTimestamp,
-          instanceName: includencludeTimestampInstanceName)
+      ..registerSingleton<bool>(
+        shouldIncludeTimestamp,
+        instanceName: includencludeTimestampInstanceName,
+      )
       ..allowReassignment = true;
   }
 

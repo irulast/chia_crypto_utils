@@ -57,7 +57,7 @@ class PoolHttpREST {
   void mapResponseToError(Response response) {
     switch (response.statusCode) {
       case 500:
-        throw InternalServeErrorException(message: response.body);
+        throw InternalServerErrorException(response.body);
     }
 
     final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;

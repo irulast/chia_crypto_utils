@@ -3,6 +3,8 @@
 import 'dart:convert';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/api/full_node/exceptions/full_node_error.dart';
+import 'package:chia_crypto_utils/src/api/full_node/exceptions/gateway_timeout_exception.dart';
 
 import 'package:meta/meta.dart';
 
@@ -169,18 +171,15 @@ class FullNodeHttpRpc implements FullNode {
   }
 
   static void mapResponseToError(Response response) {
-    try {
-      jsonDecode(response.body);
-    } on Exception {
-      throw InternalServeErrorException(message: response.body);
-    }
     switch (response.statusCode) {
-      case 500:
-        throw InternalServeErrorException(message: response.body);
       case 200:
         return;
+      case 500:
+        throw InternalServerErrorException(response.body);
+      case 504:
+        throw GatewayTimeoutErrorException(response.body);
       default:
-        throw InternalServeErrorException(message: response.body);
+        throw FullNodeErrorException(response.body);
     }
   }
 

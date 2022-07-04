@@ -96,13 +96,13 @@ class Client {
 
     try {
       jsonDecode(responseBody);
-    } on Exception {
+    } on FormatException {
       loggingContext
-        ..log('response: ')
-        ..log(
+        ..api('response: ')
+        ..api(
           makePrettyJsonString(responseBody),
         )
-        ..log('------------');
+        ..api('------------');
       return;
     }
 

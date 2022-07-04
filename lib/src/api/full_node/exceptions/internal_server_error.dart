@@ -1,7 +1,7 @@
-class InternalServeErrorException implements Exception {
+class InternalServerErrorException implements Exception {
   String? message;
 
-  InternalServeErrorException({this.message});
+  InternalServerErrorException([this.message]);
 
   @override
   String toString() {
