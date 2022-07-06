@@ -5,7 +5,7 @@ typedef CoinSelector = List<Coin> Function(List<Coin> coinsInput, int amount);
 List<Coin> selectCoinsForAmount(List<Coin> coinsInput, int amount) {
   final coins = List<Coin>.from(coinsInput)
     ..sort(
-      (a, b) => b.amount.compareTo(a.amount),
+      (a, b) => a.amount.compareTo(b.amount),
     );
   var totalCoinValue = 0;
 
