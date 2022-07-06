@@ -1,5 +1,7 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
+typedef CoinSelector = List<Coin> Function(List<Coin> coinsInput, int amount);
+
 List<Coin> selectCoinsForAmount(List<Coin> coinsInput, int amount) {
   final coins = List<Coin>.from(coinsInput)
     ..sort(
