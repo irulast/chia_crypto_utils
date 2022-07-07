@@ -17,14 +17,15 @@ class XchService {
     int fee = 0,
     Puzzlehash? changePuzzlehash,
     CoinSelector? coinSelector = selectCoinsForAmount,
-  }) {
-    return sendXchWithPayments(
+  }) async {
+    final response = await sendXchWithPayments(
       coins: coins,
       payments: [Payment(amount, puzzlehash)],
       fee: fee,
       changePuzzlehash: changePuzzlehash,
       coinSelector: coinSelector,
     );
+    return response;
   }
 
   Future<ChiaBaseResponse> sendXchWithPayments({
@@ -33,7 +34,7 @@ class XchService {
     int fee = 0,
     Puzzlehash? changePuzzlehash,
     CoinSelector? coinSelector = selectCoinsForAmount,
-  }) {
+  }) async {
     final coinsToUse = (coinSelector != null) ? coinSelector(coins, payments.totalValue) : coins;
 
     final changePuzzlehashToUse = changePuzzlehash ?? keychain.puzzlehashes.first;
@@ -44,6 +45,7 @@ class XchService {
       changePuzzlehash: changePuzzlehashToUse,
       fee: fee,
     );
-    return fullNode.pushTransaction(spendBundle);
+    final response = await fullNode.pushTransaction(spendBundle);
+    return response;
   }
 }
