@@ -16,14 +16,12 @@ class XchService {
     required Puzzlehash puzzlehash,
     int fee = 0,
     Puzzlehash? changePuzzlehash,
-    CoinSelector? coinSelector = selectCoinsForAmount,
   }) async {
     final response = await sendXchWithPayments(
       coins: coins,
       payments: [Payment(amount, puzzlehash)],
       fee: fee,
       changePuzzlehash: changePuzzlehash,
-      coinSelector: coinSelector,
     );
     return response;
   }
@@ -33,14 +31,11 @@ class XchService {
     required List<Payment> payments,
     int fee = 0,
     Puzzlehash? changePuzzlehash,
-    CoinSelector? coinSelector = selectCoinsForAmount,
   }) async {
-    final coinsToUse = (coinSelector != null) ? coinSelector(coins, payments.totalValue) : coins;
-
     final changePuzzlehashToUse = changePuzzlehash ?? keychain.puzzlehashes.first;
     final spendBundle = walletService.createSpendBundle(
       payments: payments,
-      coinsInput: coinsToUse,
+      coinsInput: coins,
       keychain: keychain,
       changePuzzlehash: changePuzzlehashToUse,
       fee: fee,
