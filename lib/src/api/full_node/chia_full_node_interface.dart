@@ -55,9 +55,10 @@ class ChiaFullNodeInterface {
     return balance;
   }
 
-  Future<void> pushTransaction(SpendBundle spendBundle) async {
+  Future<ChiaBaseResponse> pushTransaction(SpendBundle spendBundle) async {
     final response = await fullNode.pushTransaction(spendBundle);
     mapResponseToError(response);
+    return response;
   }
 
   Future<Coin?> getCoinById(Bytes coinId) async {

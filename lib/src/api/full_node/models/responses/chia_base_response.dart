@@ -16,6 +16,10 @@ class ChiaBaseResponse {
       success: json['success'] as bool,
     );
   }
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'error': error,
+        'success': success,
+      };
 
   @override
   String toString() => 'ChiaBaseResponse(success: $success, error: $error)';
