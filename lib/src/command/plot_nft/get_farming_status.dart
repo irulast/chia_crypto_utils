@@ -17,5 +17,5 @@ Future<void> getFarmingStatus(
     launcherId: plotNft.launcherId,
   );
 
-  print(farmerInfo);
+  LoggingContext().info(null, farmerInfo.toString());
 }

@@ -155,4 +155,7 @@ class Response {
 
   String body;
   int statusCode;
+
+  @override
+  String toString() => 'Response(body: ${body.trim()}, statusCode: $statusCode)';
 }

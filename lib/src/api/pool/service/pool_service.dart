@@ -24,6 +24,8 @@ class PoolService {
   }) async {
     final poolInfo = await pool.getPoolInfo();
 
+    LoggingContext().info(null, poolInfo.toString());
+
     final initialTargetState = PoolState(
       poolSingletonState: PoolSingletonState.farmingToPool,
       targetPuzzlehash: poolInfo.targetPuzzlehash,
@@ -63,6 +65,8 @@ class PoolService {
 
     final poolInfo = await pool.getPoolInfo();
 
+    LoggingContext().info(null, poolInfo.toString());
+
     return pool.addFarmer(
       launcherId: plotNft.launcherId,
       authenticationToken: getCurrentAuthenticationToken(poolInfo.authenticationTokenTimeout),
@@ -78,7 +82,11 @@ class PoolService {
   }) async {
     final poolInfo = await pool.getPoolInfo();
 
+    LoggingContext().info(null, poolInfo.toString());
+
     final authenticationToken = getCurrentAuthenticationToken(poolInfo.authenticationTokenTimeout);
+
+    print('authenticationToken: $authenticationToken');
 
     return pool.getFarmer(
       launcherId: launcherId,

@@ -38,6 +38,7 @@ void main(List<String> args) {
 
   // Configure environment based on user selections
   LoggingContext().setLogLevel(stringToLogLevel(results['log-level'] as String));
+  LoggingContext().setLogTypes({...LoggingContext().defaultLogTypes, LogType.api});
   ChiaNetworkContextWrapper().registerNetworkContext(stringToNetwork(results['network'] as String));
   // construct the Chia full node interface
   fullNode = ChiaFullNodeInterface.fromURL(
@@ -88,12 +89,13 @@ class GetCoinRecords extends Command<Future<void>> {
 
     Puzzlehash puzzlehash;
     try {
-      puzzlehash =
-        addressArg.isNotEmpty ? Address(addressArg).toPuzzlehash() : Puzzlehash.fromHex(puzzlehashArg);
+      puzzlehash = addressArg.isNotEmpty
+          ? Address(addressArg).toPuzzlehash()
+          : Puzzlehash.fromHex(puzzlehashArg);
     } catch (e) {
       throw ArgumentError('Invalid address or puzzlehash');
     }
-    
+
     var coins = <Coin>[];
     while (coins.isEmpty) {
       print('waiting for coins...');
@@ -221,6 +223,8 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
 
     final plotNfts = await fullNode.scroungeForPlotNfts(keychain.puzzlehashes);
     for (final plotNft in plotNfts) {
+      LoggingContext().info(null, plotNft.toString());
+
       final poolService = _getPoolService(
         plotNft.poolState.poolUrl!,
         argResults!['certificate-bytes-path'] as String,
