@@ -86,8 +86,6 @@ class PoolService {
 
     final authenticationToken = getCurrentAuthenticationToken(poolInfo.authenticationTokenTimeout);
 
-    print('authenticationToken: $authenticationToken');
-
     return pool.getFarmer(
       launcherId: launcherId,
       targetPuzzlehash: poolInfo.targetPuzzlehash,

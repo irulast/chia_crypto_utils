@@ -231,15 +231,17 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
       );
 
       try {
-        await getFarmingStatus(
+        final farmingStatus = await getFarmingStatus(
           plotNft,
           keychainSecret,
           keychain,
           poolService,
           fullNode,
         );
+
+        print(farmingStatus);
       } catch (e) {
-        LoggingContext().error(e.toString());
+        print(e.toString());
       }
     }
   }
