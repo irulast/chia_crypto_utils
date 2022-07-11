@@ -94,16 +94,41 @@ void main() {
     expect(loggedText[0], equals(infoText));
     expect(loggedText[1], equals(errorText));
 
-    LoggingContext().setLogTypes({
-      LogType.api,
-    });
+    LoggingContext().setLogTypes(
+      api: true,
+    );
     LoggingContext().api(apiText);
+    LoggingContext().info(infoText);
+    LoggingContext().error(errorText);
 
     loggedText = createdFile.readAsLinesSync();
-    expect(loggedText.length, equals(3));
+    expect(loggedText.length, equals(5));
     expect(loggedText[2], equals(apiText));
+    expect(loggedText[3], equals(infoText));
+    expect(loggedText[4], equals(errorText));
 
-   
+    LoggingContext().setLogTypes(
+      api: false,
+      info: false,
+    );
+
+    LoggingContext().api(apiText);
+    LoggingContext().info(infoText);
+    LoggingContext().error(errorText);
+
+    loggedText = createdFile.readAsLinesSync();
+    expect(loggedText.length, equals(6));
+    expect(loggedText[5], equals(errorText));
+
+    LoggingContext().setLogTypes(api: false, error: true);
+    LoggingContext().api(apiText);
+    LoggingContext().info(infoText);
+    LoggingContext().error(errorText);
+
+    loggedText = createdFile.readAsLinesSync();
+    expect(loggedText.length, equals(7));
+    expect(loggedText[6], equals(errorText));
+
     createdFile.deleteSync();
   });
 }

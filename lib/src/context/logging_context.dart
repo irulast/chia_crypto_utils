@@ -17,9 +17,25 @@ class LoggingContext {
       ..allowReassignment = true;
   }
 
-  void setLogTypes(LogTypes logTypes) {
+  void setLogTypes({
+    bool? info,
+    bool? error,
+    bool? api,
+  }) {
+    final currentLogTypes = logTypes;
+    final newLogTypes = <LogType>{};
+    if ((info != null && info) || (info == null && currentLogTypes.contains(LogType.info))) {
+      newLogTypes.add(LogType.info);
+    }
+    if ((error != null && error) || (error == null && currentLogTypes.contains(LogType.error))) {
+      newLogTypes.add(LogType.error);
+    }
+    if ((api != null && api) || (api == null && currentLogTypes.contains(LogType.api))) {
+      newLogTypes.add(LogType.api);
+    }
+
     getIt
-      ..registerSingleton<LogTypes>(logTypes)
+      ..registerSingleton<LogTypes>(newLogTypes)
       ..allowReassignment = true;
   }
 
