@@ -81,6 +81,9 @@ class Client {
         throw BadAuthenticationException();
       }
       rethrow;
+    } on Exception catch (e) {
+      LoggingContext().error(e.toString());
+      rethrow;
     }
   }
 
@@ -139,7 +142,7 @@ class Client {
       ..api('response: ')
       ..api(
         makePrettyJsonString(lowLogLevelResponseJson),
-        makePrettyJsonString(highLogLevelResponseJson),
+        highLog: makePrettyJsonString(highLogLevelResponseJson),
       )
       ..api('------------');
   }

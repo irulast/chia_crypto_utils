@@ -14,7 +14,8 @@ class FullNodeUtils {
 
   String get checkNetworkMessage => 'Check if your full node is runing on $network';
 
-  String get sslPath => '${Platform.environment['HOME']}/.chia/${network.name}/config/ssl/full_node';
+  String get sslPath =>
+      '${Platform.environment['HOME']}/.chia/${network.name}/config/ssl/full_node';
 
   Bytes get certBytes {
     return _getAuthFileBytes('$sslPath/private_full_node.crt');
@@ -26,9 +27,9 @@ class FullNodeUtils {
 
   static Bytes _getAuthFileBytes(String pathToFile) {
     LoggingContext()
-      ..info(null, 'auth file loaded: $pathToFile')
-      ..info(null, 'file contents:')
-      ..info(null, File(pathToFile).readAsStringSync());
+      ..info(null, highLog: 'auth file loaded: $pathToFile')
+      ..info(null, highLog: 'file contents:')
+      ..info(null, highLog: File(pathToFile).readAsStringSync());
     return Bytes(File(pathToFile).readAsBytesSync());
   }
 

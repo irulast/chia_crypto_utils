@@ -27,20 +27,30 @@ void main() {
     LoggingContext().setLogger(fileLogger);
 
     const lowLogLevelTextToLog = 'Howdy partner';
+    const mediumLogLevelTextToLog = 'Howdy partner, hows weather?';
+
     const highLogLevelTextToLog = 'Howdy partner, hows the weather in Guadalajara?';
 
-    LoggingContext().info(lowLogLevelTextToLog, highLogLevelTextToLog);
+    LoggingContext().info(
+      lowLogLevelTextToLog,
+      mediumLog: mediumLogLevelTextToLog,
+      highLog: highLogLevelTextToLog,
+    );
 
     var loggedText = createdFile.readAsLinesSync();
     expect(loggedText.length, equals(1));
     expect(loggedText[0], equals(lowLogLevelTextToLog));
 
-    LoggingContext().setLogLevel(LogLevel.high);
-    LoggingContext().info(lowLogLevelTextToLog, highLogLevelTextToLog);
+    LoggingContext().setLogLevel(LogLevel.medium);
+    LoggingContext().info(
+      lowLogLevelTextToLog,
+      mediumLog: mediumLogLevelTextToLog,
+      highLog: highLogLevelTextToLog,
+    );
 
     loggedText = createdFile.readAsLinesSync();
     expect(loggedText.length, equals(2));
-    expect(loggedText[1], equals(highLogLevelTextToLog));
+    expect(loggedText[1], equals(mediumLogLevelTextToLog));
 
     LoggingContext().info(lowLogLevelTextToLog);
 
@@ -48,21 +58,54 @@ void main() {
     expect(loggedText.length, equals(3));
     expect(loggedText[2], equals(lowLogLevelTextToLog));
 
-    LoggingContext().info(null, highLogLevelTextToLog);
+    LoggingContext().info(null, highLog: highLogLevelTextToLog);
+
+    loggedText = createdFile.readAsLinesSync();
+    expect(loggedText.length, equals(3));
+
+    LoggingContext().setLogLevel(LogLevel.high);
+    LoggingContext().info(
+      lowLogLevelTextToLog,
+      mediumLog: mediumLogLevelTextToLog,
+      highLog: highLogLevelTextToLog,
+    );
 
     loggedText = createdFile.readAsLinesSync();
     expect(loggedText.length, equals(4));
     expect(loggedText[3], equals(highLogLevelTextToLog));
 
-    LoggingContext().setLogLevel(LogLevel.low);
-    LoggingContext().info(null, highLogLevelTextToLog);
+    LoggingContext().info(lowLogLevelTextToLog);
 
-    expect(loggedText.length, equals(4));
+    loggedText = createdFile.readAsLinesSync();
+    expect(loggedText.length, equals(5));
+    expect(loggedText[4], equals(lowLogLevelTextToLog));
+
+    LoggingContext().info(null, mediumLog: mediumLogLevelTextToLog);
+
+    loggedText = createdFile.readAsLinesSync();
+    expect(loggedText.length, equals(6));
+    expect(loggedText[5], equals(mediumLogLevelTextToLog));
+
+    LoggingContext().info(null, highLog: highLogLevelTextToLog);
+
+    loggedText = createdFile.readAsLinesSync();
+    expect(loggedText.length, equals(7));
+    expect(loggedText[6], equals(highLogLevelTextToLog));
+
+    LoggingContext().setLogLevel(LogLevel.low);
+    LoggingContext().info(null, highLog: highLogLevelTextToLog);
+    LoggingContext().info(null, mediumLog: mediumLogLevelTextToLog);
+
+    expect(loggedText.length, equals(7));
 
     LoggingContext().setLogLevel(LogLevel.none);
-    LoggingContext().info(lowLogLevelTextToLog, highLogLevelTextToLog);
+    LoggingContext().info(
+      lowLogLevelTextToLog,
+      mediumLog: mediumLogLevelTextToLog,
+      highLog: highLogLevelTextToLog,
+    );
 
-    expect(loggedText.length, equals(4));
+    expect(loggedText.length, equals(7));
 
     createdFile.deleteSync();
   });
