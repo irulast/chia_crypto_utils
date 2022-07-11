@@ -117,6 +117,21 @@ class Client {
       'body': jsonDecode(responseBody),
     };
 
+    final mediumLogLevelResponseJson = <String, dynamic>{
+      'headers': <String, dynamic>{
+        'content_type': response.headers.contentType?.value,
+      },
+      'status_code': response.statusCode,
+      'connection_info': response.connectionInfo != null
+          ? <String, dynamic>{
+              'local_port': response.connectionInfo!.localPort,
+              'remote_port': response.connectionInfo!.remotePort,
+              'remote_address': response.connectionInfo!.remoteAddress.address,
+            }
+          : null,
+      'body': jsonDecode(responseBody),
+    };
+
     final highLogLevelResponseJson = <String, dynamic>{
       'headers': <String, dynamic>{
         'content_type': response.headers.contentType?.value,
@@ -142,6 +157,7 @@ class Client {
       ..api('response: ')
       ..api(
         makePrettyJsonString(lowLogLevelResponseJson),
+        mediumLog: makePrettyJsonString(mediumLogLevelResponseJson),
         highLog: makePrettyJsonString(highLogLevelResponseJson),
       )
       ..api('------------');
