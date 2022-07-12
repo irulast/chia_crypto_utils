@@ -15,6 +15,6 @@ Future<void> main() async {
     expect(holidayTailInfo.name, equals('Chia Holiday 2021'));
 
     final chessTailInfo = await tailDatabaseInterface.getTailInfo(chessAssetId);
-    expect(chessTailInfo.name, equals('Chia Chess'));
+    expect(chessTailInfo.name, equals('Chess'));
   });
 }

@@ -112,8 +112,7 @@ class Coin extends CoinPrototype with ToBytesMixin {
         amount: amount,
       );
 
-  @override
-  Bytes toBytes() {
+  Bytes toCoinBytes() {
     final coinPrototypeBytes = super.toBytes();
     final coinPrototypeBytesLength = coinPrototypeBytes.length;
     return serializeList(<dynamic>[

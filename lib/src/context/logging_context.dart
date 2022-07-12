@@ -17,9 +17,25 @@ class LoggingContext {
       ..allowReassignment = true;
   }
 
-  void setLogTypes(LogTypes logTypes) {
+  void setLogTypes({
+    bool? info,
+    bool? error,
+    bool? api,
+  }) {
+    final currentLogTypes = logTypes;
+    final newLogTypes = <LogType>{};
+    if ((info != null && info) || (info == null && currentLogTypes.contains(LogType.info))) {
+      newLogTypes.add(LogType.info);
+    }
+    if ((error != null && error) || (error == null && currentLogTypes.contains(LogType.error))) {
+      newLogTypes.add(LogType.error);
+    }
+    if ((api != null && api) || (api == null && currentLogTypes.contains(LogType.api))) {
+      newLogTypes.add(LogType.api);
+    }
+
     getIt
-      ..registerSingleton<LogTypes>(logTypes)
+      ..registerSingleton<LogTypes>(newLogTypes)
       ..allowReassignment = true;
   }
 
@@ -33,25 +49,41 @@ class LoggingContext {
       ..allowReassignment = true;
   }
 
-  void api(String? lowLogLevelText, [String? highLogLevelText]) {
+  void api(
+    String? lowLog, {
+    String? mediumLog,
+    String? highLog,
+  }) {
     if (logTypes.contains(LogType.api)) {
-      _log(lowLogLevelText, highLogLevelText);
+      _log(lowLog, mediumLog: mediumLog, highLog: highLog);
     }
   }
 
-  void info(String? lowLogLevelText, [String? highLogLevelText]) {
+  void info(
+    String? lowLog, {
+    String? mediumLog,
+    String? highLog,
+  }) {
     if (logTypes.contains(LogType.info)) {
-      _log(lowLogLevelText, highLogLevelText);
+      _log(lowLog, mediumLog: mediumLog, highLog: highLog);
     }
   }
 
-  void error(String? lowLogLevelText, [String? highLogLevelText]) {
+  void error(
+    String? lowLog, {
+    String? mediumLog,
+    String? highLog,
+  }) {
     if (logTypes.contains(LogType.error)) {
-      _log(lowLogLevelText, highLogLevelText);
+      _log(lowLog, mediumLog: mediumLog, highLog: highLog);
     }
   }
 
-  void _log(String? lowLogLevelText, [String? highLogLevelText]) {
+  void _log(
+    String? lowLog, {
+    String? mediumLog,
+    String? highLog,
+  }) {
     final logger = _logger;
 
     switch (logLevel) {
@@ -59,16 +91,26 @@ class LoggingContext {
         break;
 
       case LogLevel.low:
-        if (lowLogLevelText != null) {
-          logger(formatLog(lowLogLevelText));
+        if (lowLog != null) {
+          logger(formatLog(lowLog));
+        }
+        break;
+
+      case LogLevel.medium:
+        if (mediumLog != null) {
+          logger(formatLog(mediumLog));
+        } else if (lowLog != null) {
+          logger(formatLog(lowLog));
         }
         break;
 
       case LogLevel.high:
-        if (highLogLevelText != null) {
-          logger(formatLog(highLogLevelText));
-        } else if (lowLogLevelText != null) {
-          logger(formatLog(lowLogLevelText));
+        if (highLog != null) {
+          logger(formatLog(highLog));
+        } else if (mediumLog != null) {
+          logger(formatLog(mediumLog));
+        } else if (lowLog != null) {
+          logger(formatLog(lowLog));
         }
         break;
     }
@@ -123,7 +165,7 @@ typedef LogTypes = Set<LogType>;
 
 enum LogType { info, api, error }
 
-enum LogLevel { none, low, high }
+enum LogLevel { none, low, medium, high }
 
 LogLevel stringToLogLevel(String logLevelString) {
   switch (logLevelString) {
