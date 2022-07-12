@@ -231,11 +231,11 @@ class ChiaFullNodeInterface {
     return fetchedCoins.any((c) => c.spentBlockIndex != 0);
   }
 
-  Future<BlockchainState> getBlockchainState() async {
+  Future<BlockchainState?> getBlockchainState() async {
     final blockchainStateResponse = await fullNode.getBlockchainState();
     mapResponseToError(blockchainStateResponse);
 
-    return blockchainStateResponse.blockchainState!;
+    return blockchainStateResponse.blockchainState;
   }
 
   static void mapResponseToError(ChiaBaseResponse baseResponse) {
