@@ -38,13 +38,13 @@ jobs:
       run: flutter pub get
 
     - name: Start Simulator and Run Tests
-        run: |
-          # Waiting for simulator to work
-          echo "Waiting for simulator to startup..."
-          until $(sudo curl --output /dev/null --silent --fail --insecure --cert /root/.chia/mainnet/config/ssl/full_node/private_full_node.crt --key /root/.chia/mainnet/config/ssl/full_node/private_full_node.key -d '{}' -H "Content-Type: application/json" -X POST https://127.0.0.1:8555/get_blockchain_state); do
-              printf '.'
-              sleep 1
-          done
+      run: |
+        # Waiting for simulator to work
+        echo "Waiting for simulator to startup..."
+        until $(sudo curl --output /dev/null --silent --fail --insecure --cert /root/.chia/mainnet/config/ssl/full_node/private_full_node.crt --key /root/.chia/mainnet/config/ssl/full_node/private_full_node.key -d '{}' -H "Content-Type: application/json" -X POST https://127.0.0.1:8555/get_blockchain_state); do
+            printf '.'
+            sleep 1
+        done
 
     - name: Run tests
       run: flutter test integration_test/ --concurrency=1 --coverage 
