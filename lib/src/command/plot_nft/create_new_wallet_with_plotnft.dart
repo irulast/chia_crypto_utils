@@ -23,6 +23,7 @@ Future<void> createNewWalletWithPlotNFT(
     singletonWalletVector: singletonWalletVector,
     coins: coins,
     keychain: keychain,
+    fee: 50,
     changePuzzlehash: keychain.puzzlehashes[3],
   );
 

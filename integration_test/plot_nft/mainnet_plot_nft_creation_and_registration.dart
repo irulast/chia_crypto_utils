@@ -48,6 +48,7 @@ Future<void> main() async {
     p2SingletonDelayedPuzzlehash: delayPh,
     singletonWalletVector: singletonWalletVector,
     coins: coins,
+    fee: 50,
     keychain: keychain,
     changePuzzlehash: keychain.puzzlehashes[3],
   );
