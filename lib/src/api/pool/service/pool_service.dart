@@ -21,6 +21,7 @@ class PoolService {
     Bytes? genesisCoinId,
     required WalletKeychain keychain,
     Puzzlehash? changePuzzlehash,
+    int fee = 0,
   }) async {
     final poolInfo = await pool.getPoolInfo();
 
@@ -38,7 +39,7 @@ class PoolService {
     final plotNftSpendBundle = plotNftWalletService.createPoolNftSpendBundle(
       initialTargetState: initialTargetState,
       keychain: keychain,
-      fee: 50,
+      fee: fee,
       coins: coins,
       genesisCoinId: genesisCoin.id,
       p2SingletonDelayedPuzzlehash: p2SingletonDelayedPuzzlehash,
