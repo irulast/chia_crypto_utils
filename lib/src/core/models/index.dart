@@ -7,6 +7,7 @@ export './coin_spend.dart';
 export './conditions/index.dart';
 export './keychain_core_secret.dart';
 export './payment.dart';
+export './singleton_wallet_vector.dart';
 export './spend_bundle.dart';
 export './wallet_keychain.dart';
 export './wallet_set.dart';
