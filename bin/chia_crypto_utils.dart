@@ -88,12 +88,13 @@ class GetCoinRecords extends Command<Future<void>> {
 
     Puzzlehash puzzlehash;
     try {
-      puzzlehash =
-        addressArg.isNotEmpty ? Address(addressArg).toPuzzlehash() : Puzzlehash.fromHex(puzzlehashArg);
+      puzzlehash = addressArg.isNotEmpty
+          ? Address(addressArg).toPuzzlehash()
+          : Puzzlehash.fromHex(puzzlehashArg);
     } catch (e) {
       throw ArgumentError('Invalid address or puzzlehash');
     }
-    
+
     var coins = <Coin>[];
     while (coins.isEmpty) {
       print('waiting for coins...');
@@ -261,9 +262,9 @@ void parseHelp(ArgResults results, CommandRunner runner) {
 
 PoolService _getPoolService(String poolUrl, String certificateBytesPath) {
   // clone this for certificate chain: https://github.com/Chia-Network/mozilla-ca.git
-  final poolInterface = PoolInterface.fromURLAndCertificate(
+  final poolInterface = PoolInterface.fromURL(
     poolUrl,
-    certificateBytesPath,
+    certificateBytesPath: certificateBytesPath,
   );
 
   return PoolService(poolInterface, fullNode);
