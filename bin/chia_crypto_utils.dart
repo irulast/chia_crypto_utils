@@ -132,7 +132,7 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
 
   @override
   Future<void> run() async {
-    final poolService = _getPoolService(
+    final poolService = _getPoolServiceImpl(
       argResults!['pool-url'] as String,
       argResults!['certificate-bytes-path'] as String,
     );
@@ -222,7 +222,7 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
 
     final plotNfts = await fullNode.scroungeForPlotNfts(keychain.puzzlehashes);
     for (final plotNft in plotNfts) {
-      final poolService = _getPoolService(
+      final poolService = _getPoolServiceImpl(
         plotNft.poolState.poolUrl!,
         argResults!['certificate-bytes-path'] as String,
       );
@@ -260,12 +260,12 @@ void parseHelp(ArgResults results, CommandRunner runner) {
   }
 }
 
-PoolService _getPoolService(String poolUrl, String certificateBytesPath) {
+PoolService _getPoolServiceImpl(String poolUrl, String certificateBytesPath) {
   // clone this for certificate chain: https://github.com/Chia-Network/mozilla-ca.git
   final poolInterface = PoolInterface.fromURL(
     poolUrl,
     certificateBytesPath: certificateBytesPath,
   );
 
-  return PoolService(poolInterface, fullNode);
+  return PoolServiceImpl(poolInterface, fullNode);
 }
