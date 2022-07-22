@@ -1,6 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/pool/models/add_farmer_response.dart';
-import 'package:chia_crypto_utils/src/core/models/singleton_wallet_vector.dart';
 
 abstract class PoolService {
   const PoolService(this.pool, this.fullNode);

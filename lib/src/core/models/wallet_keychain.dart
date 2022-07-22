@@ -1,7 +1,6 @@
 // ignore_for_file: lines_longer_than_80_chars, avoid_equals_and_hash_code_on_mutable_classes
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/core/models/singleton_wallet_vector.dart';
 import 'package:chia_crypto_utils/src/utils/serialization.dart';
 
 class WalletKeychain with ToBytesMixin {
