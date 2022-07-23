@@ -34,4 +34,7 @@ class PoolInfo {
   final int relativeLockHeight;
   final Puzzlehash targetPuzzlehash;
   final int authenticationTokenTimeout;
+
+  @override
+  String toString() => 'PoolInfo(name: $name, description: $description, fee: $fee, minimumDifficulty: $minimumDifficulty, protocolVersion: $protocolVersion, relativeLockHeight: $relativeLockHeight, targetPuzzlehash: $targetPuzzlehash, authenticationTokenTimeout: $authenticationTokenTimeout, logoUrl: $logoUrl)';
 }

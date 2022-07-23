@@ -1,5 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/pool/models/pool_error_response_code.dart';
 
 Future<void> createNewWalletWithPlotNFT(
   KeychainCoreSecret keychainSecret,

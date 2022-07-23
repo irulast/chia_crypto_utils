@@ -222,19 +222,23 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
 
     final plotNfts = await fullNode.scroungeForPlotNfts(keychain.puzzlehashes);
     for (final plotNft in plotNfts) {
+      LoggingContext().info(plotNft.toString());
+      
       final poolService = _getPoolServiceImpl(
         plotNft.poolState.poolUrl!,
         argResults!['certificate-bytes-path'] as String,
       );
 
       try {
-        await getFarmingStatus(
+        final farmingStatus =await getFarmingStatus(
           plotNft,
           keychainSecret,
           keychain,
           poolService,
           fullNode,
         );
+
+        print(farmingStatus);
       } catch (e) {
         LoggingContext().error(e.toString());
       }
