@@ -4,9 +4,9 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:test/test.dart';
 
 void main() async {
-  final launcherId = Bytes.fromHex('a08ddff5d78e5fb0fb950142da46f4645a054d0c9c64118a523533eea9e34838');
+  final launcherId = Bytes.fromHex('LAUNCHER_ID');
 
-  const fullNodeUrl = 'https://chia.irulast-prod.com';
+  const fullNodeUrl = 'FULL_NODE_URL';
 
   const fullNodeRpc = FullNodeHttpRpc(
     fullNodeUrl,
