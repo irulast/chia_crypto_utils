@@ -1,6 +1,5 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/api/pool/models/pool_error_response_code.dart';
-import 'package:chia_crypto_utils/src/core/models/singleton_wallet_vector.dart';
 
 Future<void> createNewWalletWithPlotNFT(
   KeychainCoreSecret keychainSecret,
@@ -23,6 +22,7 @@ Future<void> createNewWalletWithPlotNFT(
     singletonWalletVector: singletonWalletVector,
     coins: coins,
     keychain: keychain,
+    fee: 50,
     changePuzzlehash: keychain.puzzlehashes[3],
   );
 

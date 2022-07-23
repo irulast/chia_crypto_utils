@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
-import 'package:chia_crypto_utils/src/core/models/singleton_wallet_vector.dart';
 import 'package:test/scaffolding.dart';
 
 Future<void> main() async {
@@ -22,7 +21,7 @@ Future<void> main() async {
   final poolHttpRest = PoolHttpREST(poolUrl, certBytes: certificateBytes);
   final poolInterface = PoolInterface(poolHttpRest);
 
-  final poolService = PoolService(poolInterface, fullNode);
+  final poolService = PoolServiceImpl(poolInterface, fullNode);
 
   final mnemonic =
       'organ puppy mandate during obscure insane yard clever vacuum human barely wire slogan road crack dad fitness mutual typical orchard sunny cool stereo noodle'
@@ -48,6 +47,7 @@ Future<void> main() async {
     p2SingletonDelayedPuzzlehash: delayPh,
     singletonWalletVector: singletonWalletVector,
     coins: coins,
+    fee: 50,
     keychain: keychain,
     changePuzzlehash: keychain.puzzlehashes[3],
   );
