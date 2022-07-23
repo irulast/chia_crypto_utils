@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/pool/models/add_farmer_response.dart';
 
 class PoolHttpREST {
   const PoolHttpREST(this.poolUrl, {this.certBytes});

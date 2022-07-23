@@ -38,7 +38,6 @@ void main(List<String> args) {
 
   // Configure environment based on user selections
   LoggingContext().setLogLevel(stringToLogLevel(results['log-level'] as String));
-  LoggingContext().setLogTypes({...LoggingContext().defaultLogTypes, LogType.api});
   ChiaNetworkContextWrapper().registerNetworkContext(stringToNetwork(results['network'] as String));
   // construct the Chia full node interface
   fullNode = ChiaFullNodeInterface.fromURL(
@@ -133,7 +132,7 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
 
   @override
   Future<void> run() async {
-    final poolService = _getPoolService(
+    final poolService = _getPoolServiceImpl(
       argResults!['pool-url'] as String,
       argResults!['certificate-bytes-path'] as String,
     );
@@ -223,15 +222,15 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
 
     final plotNfts = await fullNode.scroungeForPlotNfts(keychain.puzzlehashes);
     for (final plotNft in plotNfts) {
-      LoggingContext().info(null, plotNft.toString());
-
-      final poolService = _getPoolService(
+      LoggingContext().info(plotNft.toString());
+      
+      final poolService = _getPoolServiceImpl(
         plotNft.poolState.poolUrl!,
         argResults!['certificate-bytes-path'] as String,
       );
 
       try {
-        final farmingStatus = await getFarmingStatus(
+        final farmingStatus =await getFarmingStatus(
           plotNft,
           keychainSecret,
           keychain,
@@ -241,7 +240,7 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
 
         print(farmingStatus);
       } catch (e) {
-        print(e.toString());
+        LoggingContext().error(e.toString());
       }
     }
   }
@@ -265,12 +264,12 @@ void parseHelp(ArgResults results, CommandRunner runner) {
   }
 }
 
-PoolService _getPoolService(String poolUrl, String certificateBytesPath) {
+PoolService _getPoolServiceImpl(String poolUrl, String certificateBytesPath) {
   // clone this for certificate chain: https://github.com/Chia-Network/mozilla-ca.git
-  final poolInterface = PoolInterface.fromURLAndCertificate(
+  final poolInterface = PoolInterface.fromURL(
     poolUrl,
-    certificateBytesPath,
+    certificateBytesPath: certificateBytesPath,
   );
 
-  return PoolService(poolInterface, fullNode);
+  return PoolServiceImpl(poolInterface, fullNode);
 }

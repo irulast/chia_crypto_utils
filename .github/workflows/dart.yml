@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: [self-hosted, chia-dev]
+    runs-on: ubuntu-latest
 
     steps:
     - name: Clone the repository
@@ -29,7 +29,6 @@ jobs:
         ls -al "$GITHUB_WORKSPACE/../flutter/bin"
         echo "$GITHUB_WORKSPACE/../flutter/bin" >> $GITHUB_PATH
         echo "$GITHUB_WORKSPACE/../flutter/bin/cache/dart-sdk/bin" >> $GITHUB_PATH
-
     - name: Populate the Flutter tool's cache of binary artifacts
       run: |
         flutter config --no-analytics
@@ -37,17 +36,8 @@ jobs:
     - name: Get Flutter packages
       run: flutter pub get
 
-    - name: Start Simulator and Run Tests
-      run: |
-        # Waiting for simulator to work
-        echo "Waiting for simulator to startup..."
-        until $(sudo curl --output /dev/null --silent --fail --insecure --cert /root/.chia/mainnet/config/ssl/full_node/private_full_node.crt --key /root/.chia/mainnet/config/ssl/full_node/private_full_node.key -d '{}' -H "Content-Type: application/json" -X POST https://127.0.0.1:8555/get_blockchain_state); do
-            printf '.'
-            sleep 1
-        done
-
     - name: Run tests
-      run: flutter test integration_test/ --concurrency=1 --coverage 
+      run: flutter test --coverage 
 
     - name: Generate coverate report 
       run: genhtml coverage/lcov.info -o coverage

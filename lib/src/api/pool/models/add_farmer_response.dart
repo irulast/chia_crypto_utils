@@ -9,6 +9,10 @@ class AddFarmerResponse {
     );
   }
 
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'welcome_message': welcomeMessage,
+      };
+
   @override
   String toString() => 'AddFarmerResponse(welcomeMessage: $welcomeMessage)';
 }
