@@ -6,8 +6,15 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:path/path.dart' as path;
 
 class SimulatorUtils {
-  static String simulatorUrlEnvironmentVariableName = 'FULL_NODE_SIMULATOR_URL';
+  static final env = Platform.environment;
+  static String envUrl = 'FULL_NODE_SIMULATOR_URL';
   static String defaultUrl = 'https://localhost:5000';
+  static String envCertBytes = 'FULL_NODE_SIMULATOR_CERT_PATH';
+  static String defaultCertBytesPath =
+      'integration_test/simulator/temp/config/ssl/full_node/private_full_node.crt';
+  static String envKeyBytes = 'FULL_NODE_SIMULATOR_KEY_PATH';
+  static String defaultKeyBytesPath =
+      'integration_test/simulator/temp/config/ssl/full_node/private_full_node.key';
 
   // if you are using this class outside of chia-crypto-utils you must set FULL_NODE_SIMULATOR_GEN_PATH
   static String simulatorGeneratedFilesPathVariableName = 'FULL_NODE_SIMULATOR_GEN_PATH';
@@ -15,13 +22,11 @@ class SimulatorUtils {
       path.join(path.current, 'lib/src/api/full_node/simulator/run');
 
   static String get generatedFilesPath {
-    final env = Platform.environment;
     return env[simulatorGeneratedFilesPathVariableName] ?? defaultgeneratedFilesPath;
   }
 
   static String get simulatorUrl {
-    final env = Platform.environment;
-    return env[simulatorUrlEnvironmentVariableName] ?? defaultUrl;
+    return env[envUrl] ?? defaultUrl;
   }
 
   static String get simulatorNotRunningWarning =>
@@ -29,13 +34,13 @@ class SimulatorUtils {
 
   static Bytes get certBytes {
     return _getAuthFileBytes(
-      '$generatedFilesPath/temp/config/ssl/full_node/private_full_node.crt',
+      env[envCertBytes] ?? defaultCertBytesPath,
     );
   }
 
   static Bytes get keyBytes {
     return _getAuthFileBytes(
-      '$generatedFilesPath/temp/config/ssl/full_node/private_full_node.key',
+      env[envKeyBytes] ?? defaultKeyBytesPath,
     );
   }
 
