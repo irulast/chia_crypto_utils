@@ -1,14 +1,13 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
-Future<void> getFarmingStatus(
+Future<GetFarmerResponse> getFarmingStatus(
   PlotNft plotNft,
   KeychainCoreSecret keychainSecret,
   WalletKeychain keychain,
   PoolService poolService,
   ChiaFullNodeInterface fullNode,
 ) async {
-  final singletonWalletVector =
-  keychain.addSingletonWalletVectorForSingletonOwnerPublicKey(
+  final singletonWalletVector = keychain.addSingletonWalletVectorForSingletonOwnerPublicKey(
     plotNft.poolState.ownerPublicKey,
     keychainSecret.masterPrivateKey,
   );
@@ -18,4 +17,5 @@ Future<void> getFarmingStatus(
   );
 
   print(farmerInfo);
+  return farmerInfo;
 }
