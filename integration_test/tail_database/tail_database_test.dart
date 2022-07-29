@@ -9,9 +9,7 @@ Future<void> main() async {
   final caesarCoinAssetId = Puzzlehash.fromHex(
     '125ef688c3200d4a82248c31f6dcfe2dc45d549b779c0b3b1ef35568fea840b6',
   );
-  LoggingContext()
-    ..setLogTypes(api: true)
-    ..setLogLevel(LogLevel.low);
+
   final tailDatabaseInterface = TailDatabaseApi();
   test('should get tail info for asset ids', () async {
     final holidayTailInfo = await tailDatabaseInterface.getTailInfo(holidayAssetId);
