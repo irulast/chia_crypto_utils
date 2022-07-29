@@ -13,6 +13,8 @@ class Address {
 
   final String address;
 
+  String get prefix => address.startsWith('txch') ? 'txch' : 'xch';
+
   Puzzlehash toPuzzlehash() {
     return Puzzlehash(segwit.decode(address).program);
   }
