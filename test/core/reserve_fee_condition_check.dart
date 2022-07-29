@@ -3,13 +3,21 @@ import 'package:test/test.dart';
 
 void main() {
   test('should determine if condition is reserve fee condition', () {
-    final wrongCondition0 = CreateCoinCondition(Program.fromBool(false).hash(), 5);
-    final wrongCondition1 =
+    final createCoinCondition = CreateCoinCondition(Program.fromBool(false).hash(), 5);
+    final aggSigMeCondition =
         AggSigMeCondition(JacobianPoint.generateG1(), Bytes.encodeFromString('yo'));
 
-    final rightCondition = ReserveFeeCondition(5);
-    expect(ReserveFeeCondition.isThisCondition(rightCondition.program), true);
-    expect(ReserveFeeCondition.isThisCondition(wrongCondition0.program), false);
-    expect(ReserveFeeCondition.isThisCondition(wrongCondition1.program), false);
+    final reserveFeeCondition = ReserveFeeCondition(5);
+
+    expect(ReserveFeeCondition.isThisCondition(reserveFeeCondition.program), true);
+    expect(ReserveFeeCondition.isThisCondition(aggSigMeCondition.program), false);
+    expect(ReserveFeeCondition.isThisCondition(createCoinCondition.program), false);
+
+    final serialized = reserveFeeCondition.program;
+    final deserialized = ReserveFeeCondition.fromProgram(serialized);
+
+    expect(deserialized.feeAmount, reserveFeeCondition.feeAmount);
+    expect(serialized, deserialized.program);
+
   });
 }
