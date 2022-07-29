@@ -20,10 +20,10 @@ class TailInfo {
   final Puzzlehash assetId;
   final String code;
   final String category;
-  final int supply;
+  final int? supply;
   final String description;
-  final Program tailProgram;
-  final String logoUrl;
+  final Program? tailProgram;
+  final String? logoUrl;
   final String? websiteUrl;
   final HashgreenInfo hashgreenInfo;
 
@@ -33,11 +33,11 @@ class TailInfo {
         assetId = Puzzlehash.fromHex(json['hash'] as String),
         code = json['code'] as String,
         category = json['category'] as String,
-        supply = json['supply'] as int,
+        supply = json['supply'] as int?,
         description = json['description'] as String,
-        tailProgram = Program.parse(json['clvm'] as String),
+        tailProgram =(json['clvm'] != null) ?  Program.parse(json['clvm'] as String) : null,
         hashgreenInfo = HashgreenInfo.fromJson(json['hashgreen'] as Map<String, dynamic>),
-        logoUrl = json['logo_url'] as String,
+        logoUrl = json['logo_url'] as String?,
         websiteUrl = json['website_url'] as String?;
 }
 
