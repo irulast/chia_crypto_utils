@@ -20,6 +20,9 @@ class ReserveFeeCondition implements Condition {
 
   static bool isThisCondition(Program condition) {
     final conditionParts = condition.toList();
+    if (conditionParts.length != 2) {
+      return false;
+    }
     return conditionParts[0].toInt() == conditionCode;
   }
 
