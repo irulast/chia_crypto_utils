@@ -9,6 +9,11 @@ class ReserveFeeCondition implements Condition {
 
   ReserveFeeCondition(this.feeAmount);
 
+  static bool isThisCondition(Program condition) {
+    final conditionParts = condition.toList();
+    return conditionParts[0].toInt() == conditionCode;
+  }
+
   @override
   Program get program {
     return Program.list(
