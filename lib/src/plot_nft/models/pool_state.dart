@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/plot_nft/models/exceptions/invalid_plot_nft_exception.dart';
 import 'package:chia_crypto_utils/src/utils/serialization.dart';
 
 class PoolState with ToBytesMixin {
@@ -38,9 +39,13 @@ class PoolState with ToBytesMixin {
   }
 
   factory PoolState.fromExtraDataProgram(Program extraDataProgram) {
-    final poolStateConsBox = extraDataProgram.toList().singleWhere(
+    final extraDataConsBoxes = extraDataProgram.toList().where(
           (p) => String.fromCharCode(p.first().toInt()) == PlotNftExtraData.poolStateIdentifier,
         );
+    if (extraDataConsBoxes.isEmpty || extraDataConsBoxes.length > 1) {
+      throw InvalidPlotNftException();
+    }
+    final poolStateConsBox = extraDataConsBoxes.single;
     return PoolState.fromBytes(poolStateConsBox.rest().atom);
   }
 
