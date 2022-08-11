@@ -168,6 +168,18 @@ class WalletKeychain with ToBytesMixin {
     return unhardenedMap.values.map((v) => v.assetIdtoOuterPuzzlehash[assetId]!).toList();
   }
 
+  void addPuzzleHashes(PrivateKey masterPrivateKey,int numberOfPuzzleHashes){
+    final currentDerivationIndex = puzzlehashes.length;
+
+    for (var i = currentDerivationIndex; i < currentDerivationIndex + numberOfPuzzleHashes; i++) {
+      final walletVector = WalletVector.fromPrivateKey(masterPrivateKey, i);
+      final unhardenedWalletVector = UnhardenedWalletVector.fromPrivateKey(masterPrivateKey, i);
+
+      hardenedMap[walletVector.puzzlehash] = walletVector;
+      unhardenedMap[unhardenedWalletVector.puzzlehash] = unhardenedWalletVector;
+    }
+  }
+
   void addOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
     final entriesToAdd = <Puzzlehash, UnhardenedWalletVector>{};
     for (final walletVector in unhardenedMap.values) {
