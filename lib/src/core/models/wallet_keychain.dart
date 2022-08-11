@@ -91,6 +91,7 @@ class WalletKeychain with ToBytesMixin {
       singletonWalletVectorsMap: singletonWalletVectorMap,
     );
   }
+  factory WalletKeychain.fromHex(String hex) => WalletKeychain.fromBytes(Bytes.fromHex(hex));
 
   @override
   Bytes toBytes() {
