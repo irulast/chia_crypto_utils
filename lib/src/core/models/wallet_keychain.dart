@@ -225,6 +225,19 @@ class HardenedAndUnhardenedPuzzleHashes {
     required this.unhardened,
   });
 
+  HardenedAndUnhardenedPuzzleHashes.fromJson(Map<String, dynamic> json)
+      : hardened = (json['hardened'] as Iterable<dynamic>)
+            .map((dynamic e) => Puzzlehash.fromHex(e as String))
+            .toList(),
+        unhardened = (json['unhardened'] as Iterable<dynamic>)
+            .map((dynamic e) => Puzzlehash.fromHex(e as String))
+            .toList();
+
   final List<Puzzlehash> hardened;
   final List<Puzzlehash> unhardened;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'hardened': hardened.map((e) => e.toHex()).toList(),
+        'unhardened': unhardened.map((e) => e.toHex()).toList(),
+      };
 }
