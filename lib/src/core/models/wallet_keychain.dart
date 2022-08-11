@@ -161,8 +161,14 @@ class WalletKeychain with ToBytesMixin {
     return hardenedMap[puzzlehash];
   }
 
-  List<Puzzlehash> get puzzlehashes =>
-      unhardenedMap.values.map((wv) => wv.puzzlehash).toSet().toList();
+  List<Puzzlehash> get puzzlehashes => LinkedHashSet<Puzzlehash>.from(
+        unhardenedMap.values.map<Puzzlehash>((wv) => wv.puzzlehash),
+      ).toList();
+      
+  List<WalletPuzzlehash> get walletPuzzlehashes => LinkedHashSet<WalletPuzzlehash>.from(
+        unhardenedMap.values.map<WalletPuzzlehash>((wv) => wv.walletPuzzlehash),
+      ).toList();
+
   List<Puzzlehash> getOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
     if (!unhardenedMap.values.first.assetIdtoOuterPuzzlehash.containsKey(assetId)) {
       throw ArgumentError(
@@ -239,5 +245,23 @@ class HardenedAndUnhardenedPuzzleHashes {
   Map<String, dynamic> toJson() => <String, dynamic>{
         'hardened': hardened.map((e) => e.toHex()).toList(),
         'unhardened': unhardened.map((e) => e.toHex()).toList(),
+      };
+}
+
+class WalletPuzzlehash extends Puzzlehash {
+  WalletPuzzlehash(List<int> bytesList, this.derivationIndex) : super(bytesList);
+
+  WalletPuzzlehash.fromPuzzlehash(Puzzlehash puzzlehash, this.derivationIndex)
+      : super(puzzlehash.byteList);
+
+  WalletPuzzlehash.fromJson(Map<String, dynamic> json)
+      : derivationIndex = json['derivation_index'] as int,
+        super(Bytes.fromHex(json['puzzlehash'] as String));
+
+  final int derivationIndex;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'puzzlehash': toHex(),
+        'derivation_index': derivationIndex,
       };
 }

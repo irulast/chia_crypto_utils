@@ -8,15 +8,18 @@ class WalletVector with ToBytesMixin {
   const WalletVector({
     required this.childPrivateKey,
     required this.puzzlehash,
+    required this.derivationIndex,
   });
 
   factory WalletVector.fromStream(Iterator<int> iterator) {
     final childPrivateKey = PrivateKey.fromStream(iterator);
     final puzzlehash = Puzzlehash.fromStream(iterator);
+    final derivationIndex = intFrom64BitsStream(iterator);
 
     return WalletVector(
       childPrivateKey: childPrivateKey,
       puzzlehash: puzzlehash,
+      derivationIndex: derivationIndex,
     );
   }
 
@@ -38,19 +41,25 @@ class WalletVector with ToBytesMixin {
     return WalletVector(
       childPrivateKey: childPrivateKeyHardened,
       puzzlehash: puzzlehashHardened,
+      derivationIndex: derivationIndex,
     );
   }
 
   final PrivateKey childPrivateKey;
   JacobianPoint get childPublicKey => childPrivateKey.getG1();
   final Puzzlehash puzzlehash;
+  final int derivationIndex;
+
+  WalletPuzzlehash get walletPuzzlehash =>
+      WalletPuzzlehash.fromPuzzlehash(puzzlehash, derivationIndex);
 
   @override
   int get hashCode =>
       runtimeType.hashCode ^
       childPrivateKey.hashCode ^
       childPublicKey.hashCode ^
-      puzzlehash.hashCode;
+      puzzlehash.hashCode ^
+      derivationIndex.hashCode;
 
   @override
   bool operator ==(Object other) {
@@ -59,12 +68,13 @@ class WalletVector with ToBytesMixin {
             runtimeType == other.runtimeType &&
             childPrivateKey == other.childPrivateKey &&
             childPublicKey == other.childPublicKey &&
-            puzzlehash == other.puzzlehash;
+            puzzlehash == other.puzzlehash &&
+            derivationIndex == other.derivationIndex;
   }
 
   @override
   Bytes toBytes() {
-    return childPrivateKey.toBytes() + puzzlehash.byteList;
+    return childPrivateKey.toBytes() + puzzlehash.byteList + intTo64Bits(derivationIndex);
   }
 }
 
@@ -72,11 +82,13 @@ class UnhardenedWalletVector extends WalletVector {
   UnhardenedWalletVector({
     required PrivateKey childPrivateKey,
     required Puzzlehash puzzlehash,
+    required int derivationIndex,
     Map<Puzzlehash, Puzzlehash>? assetIdtoOuterPuzzlehash,
   })  : assetIdtoOuterPuzzlehash = assetIdtoOuterPuzzlehash ?? <Puzzlehash, Puzzlehash>{},
         super(
           childPrivateKey: childPrivateKey,
           puzzlehash: puzzlehash,
+          derivationIndex: derivationIndex,
         );
 
   factory UnhardenedWalletVector.fromPrivateKey(
@@ -93,6 +105,7 @@ class UnhardenedWalletVector extends WalletVector {
     return UnhardenedWalletVector(
       childPrivateKey: childPrivateKeyUnhardened,
       puzzlehash: puzzlehashUnhardened,
+      derivationIndex: derivationIndex,
     );
   }
 
@@ -101,6 +114,7 @@ class UnhardenedWalletVector extends WalletVector {
     var bytesList = <int>[];
     bytesList += childPrivateKey.toBytes();
     bytesList += puzzlehash.byteList;
+    bytesList += intTo64Bits(derivationIndex);
 
     bytesList += intTo32Bits(assetIdtoOuterPuzzlehash.length);
 
@@ -116,6 +130,7 @@ class UnhardenedWalletVector extends WalletVector {
   factory UnhardenedWalletVector.fromStream(Iterator<int> iterator) {
     final childPrivateKey = PrivateKey.fromStream(iterator);
     final puzzlehash = Puzzlehash.fromStream(iterator);
+    final derivationIndex = intFrom64BitsStream(iterator);
 
     final assetIdToOuterPuzzlehashMap = <Puzzlehash, Puzzlehash>{};
 
@@ -131,6 +146,7 @@ class UnhardenedWalletVector extends WalletVector {
       childPrivateKey: childPrivateKey,
       puzzlehash: puzzlehash,
       assetIdtoOuterPuzzlehash: assetIdToOuterPuzzlehashMap,
+      derivationIndex: derivationIndex,
     );
   }
 
@@ -151,7 +167,8 @@ class UnhardenedWalletVector extends WalletVector {
         runtimeType == other.runtimeType &&
         childPrivateKey == other.childPrivateKey &&
         childPublicKey == other.childPublicKey &&
-        puzzlehash == other.puzzlehash;
+        puzzlehash == other.puzzlehash &&
+        derivationIndex == other.derivationIndex;
 
     if (!firstCheck) {
       return false;
