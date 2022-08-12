@@ -164,7 +164,7 @@ class WalletKeychain with ToBytesMixin {
   List<Puzzlehash> get puzzlehashes => LinkedHashSet<Puzzlehash>.from(
         unhardenedMap.values.map<Puzzlehash>((wv) => wv.puzzlehash),
       ).toList();
-      
+
   List<WalletPuzzlehash> get walletPuzzlehashes => LinkedHashSet<WalletPuzzlehash>.from(
         unhardenedMap.values.map<WalletPuzzlehash>((wv) => wv.walletPuzzlehash),
       ).toList();
@@ -183,14 +183,14 @@ class WalletKeychain with ToBytesMixin {
     int numberOfPuzzleHashes,
   ) {
     final currentDerivationIndex = puzzlehashes.length;
-    final unhardenedPuzzlehashes = <Puzzlehash>[];
-    final hardenedPuzzlehashes = <Puzzlehash>[];
+    final unhardenedPuzzlehashes = <WalletPuzzlehash>[];
+    final hardenedPuzzlehashes = <WalletPuzzlehash>[];
     for (var i = currentDerivationIndex; i < currentDerivationIndex + numberOfPuzzleHashes; i++) {
       final walletVector = WalletVector.fromPrivateKey(masterPrivateKey, i);
       final unhardenedWalletVector = UnhardenedWalletVector.fromPrivateKey(masterPrivateKey, i);
 
-      hardenedPuzzlehashes.add(walletVector.puzzlehash);
-      unhardenedPuzzlehashes.add(unhardenedWalletVector.puzzlehash);
+      hardenedPuzzlehashes.add(walletVector.walletPuzzlehash);
+      unhardenedPuzzlehashes.add(unhardenedWalletVector.walletPuzzlehash);
 
       hardenedMap[walletVector.puzzlehash] = walletVector;
       unhardenedMap[unhardenedWalletVector.puzzlehash] = unhardenedWalletVector;
@@ -233,18 +233,18 @@ class HardenedAndUnhardenedPuzzleHashes {
 
   HardenedAndUnhardenedPuzzleHashes.fromJson(Map<String, dynamic> json)
       : hardened = (json['hardened'] as Iterable<dynamic>)
-            .map((dynamic e) => Puzzlehash.fromHex(e as String))
+            .map((dynamic e) => WalletPuzzlehash.fromJson(e as Map<String, dynamic>))
             .toList(),
         unhardened = (json['unhardened'] as Iterable<dynamic>)
-            .map((dynamic e) => Puzzlehash.fromHex(e as String))
+            .map((dynamic e) => WalletPuzzlehash.fromJson(e as Map<String, dynamic>))
             .toList();
 
-  final List<Puzzlehash> hardened;
-  final List<Puzzlehash> unhardened;
+  final List<WalletPuzzlehash> hardened;
+  final List<WalletPuzzlehash> unhardened;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'hardened': hardened.map((e) => e.toHex()).toList(),
-        'unhardened': unhardened.map((e) => e.toHex()).toList(),
+        'hardened': hardened.map((e) => e.toJson()).toList(),
+        'unhardened': unhardened.map((e) => e.toJson()).toList(),
       };
 }
 
