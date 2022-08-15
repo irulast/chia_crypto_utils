@@ -1,4 +1,5 @@
 export './address.dart';
+export './block_record.dart';
 export './blockchain_network.dart';
 export './blockchain_network_loader.dart';
 export './coin.dart';
