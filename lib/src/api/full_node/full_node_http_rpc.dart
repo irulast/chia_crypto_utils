@@ -226,7 +226,7 @@ class FullNodeHttpRpc implements FullNode {
       Uri.parse('get_block_records'),
       <String, dynamic>{
         'start': start,
-        'end': 'end',
+        'end': end,
       },
     );
     mapResponseToError(response);

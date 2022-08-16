@@ -6,21 +6,22 @@ import 'package:chia_crypto_utils/src/api/full_node/full_node_utils.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
-  final fullNodeUtils = FullNodeUtils(Network.mainnet);
-  try {
-    await fullNodeUtils.checkIsRunning();
-  } catch (e) {
-    print(e);
-    return;
-  }
+  // final fullNodeUtils = FullNodeUtils(Network.mainnet);
+  // try {
+  //   await fullNodeUtils.checkIsRunning();
+  // } catch (e) {
+  //   print(e);
+  //   return;
+  // }
 
-  final fullNodeRpc = FullNodeHttpRpc(
-    fullNodeUtils.url,
-    certBytes: fullNodeUtils.certBytes,
-    keyBytes: fullNodeUtils.keyBytes,
-  );
+  // final fullNodeRpc = FullNodeHttpRpc(
+  //   fullNodeUtils.url,
+  //   certBytes: fullNodeUtils.certBytes,
+  //   keyBytes: fullNodeUtils.keyBytes,
+  // );
 
-  final fullNode = ChiaFullNodeInterface(fullNodeRpc);
+  // final fullNode = ChiaFullNodeInterface(fullNodeRpc);
+  final fullNode = ChiaFullNodeInterface.fromURL('https://chia.irulast-dev.com');
 
   test('should get coins ', () async {
     final coins = await fullNode.getCoinsByPuzzleHashes(
@@ -44,5 +45,17 @@ Future<void> main() async {
       endHeight: 1691337,
     );
     expect(coins.length == 2, true);
+  });
+
+  test('should get additions and removals', () async {
+    final state = await fullNode.getBlockchainState();
+    // LoggingContext().setLogTypes(api: true);
+    // LoggingContext().setLogLevel(LogLevel.low);
+    final currentHeight = state!.peak!.height;
+    final blockRecords = await fullNode.getBlockRecords(currentHeight - 100, currentHeight);
+    for (final blockRecord in blockRecords) {
+      final additionsAndRemovals = await fullNode.getAdditionsAndRemovals(blockRecord.headerHash);
+      print(additionsAndRemovals.additions.length);
+    }
   });
 }

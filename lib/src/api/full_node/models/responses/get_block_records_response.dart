@@ -17,11 +17,14 @@ class GetBlockRecordsResponse extends ChiaBaseResponse {
   factory GetBlockRecordsResponse.fromJson(Map<String, dynamic> json) {
     final chiaBaseResponse = ChiaBaseResponse.fromJson(json);
 
-    final blockRecords =
-        List<Map<String, dynamic>>.from(json['block_records'] as Iterable).map(BlockRecord.fromJson);
+    final blockRecords = (json['block_records'] != null)
+        ? List<Map<String, dynamic>>.from(json['block_records'] as Iterable)
+            .map(BlockRecord.fromJson)
+            .toList()
+        : null;
 
     return GetBlockRecordsResponse(
-      blockRecords: blockRecords.toList(),
+      blockRecords: blockRecords,
       success: chiaBaseResponse.success,
       error: chiaBaseResponse.error,
     );
