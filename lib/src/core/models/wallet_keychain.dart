@@ -104,7 +104,15 @@ class WalletKeychain with ToBytesMixin {
   final LinkedHashMap<Puzzlehash, UnhardenedWalletVector> unhardenedMap;
 
   List<WalletVector> get hardenedWalletVectors => hardenedMap.values.toList();
-  List<UnhardenedWalletVector> get unhardenedWalletVectors => unhardenedMap.values.toList();
+  List<UnhardenedWalletVector> get unhardenedWalletVectors {
+    final seenUnhardenedWalletVectorPuzzlehashes = <Puzzlehash>{};
+    final uniqueUnhardenedWalletVectors = unhardenedMap.values
+        .where(
+          (wv) => seenUnhardenedWalletVectorPuzzlehashes.add(wv.puzzlehash),
+        )
+        .toList();
+    return uniqueUnhardenedWalletVectors;
+  }
 
   final Map<JacobianPoint, SingletonWalletVector> singletonWalletVectorsMap;
 

@@ -42,7 +42,7 @@ void main() {
     }
 
     expect(
-      walletKeychainDeserialized.unhardenedWalletVectors.length,
+      walletKeychainDeserialized.unhardenedMap.length,
       equals(60),
     );
 
