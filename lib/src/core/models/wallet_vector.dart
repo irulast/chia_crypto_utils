@@ -10,11 +10,9 @@ class WalletVector with ToBytesMixin {
     required this.puzzlehash,
     required this.derivationIndex,
   });
-
-  factory WalletVector.fromStream(Iterator<int> iterator) {
+  factory WalletVector.fromStream(Iterator<int> iterator, int derivationIndex) {
     final childPrivateKey = PrivateKey.fromStream(iterator);
     final puzzlehash = Puzzlehash.fromStream(iterator);
-    final derivationIndex = intFrom64BitsStream(iterator);
 
     return WalletVector(
       childPrivateKey: childPrivateKey,
@@ -23,9 +21,9 @@ class WalletVector with ToBytesMixin {
     );
   }
 
-  factory WalletVector.fromBytes(Bytes bytes) {
+  factory WalletVector.fromBytes(Bytes bytes, int derivationIndex) {
     final iterator = bytes.iterator;
-    return WalletVector.fromStream(iterator);
+    return WalletVector.fromStream(iterator, derivationIndex);
   }
 
   factory WalletVector.fromPrivateKey(
@@ -74,7 +72,7 @@ class WalletVector with ToBytesMixin {
 
   @override
   Bytes toBytes() {
-    return childPrivateKey.toBytes() + puzzlehash.byteList + intTo64Bits(derivationIndex);
+    return childPrivateKey.toBytes() + puzzlehash.byteList;
   }
 }
 
@@ -114,7 +112,6 @@ class UnhardenedWalletVector extends WalletVector {
     var bytesList = <int>[];
     bytesList += childPrivateKey.toBytes();
     bytesList += puzzlehash.byteList;
-    bytesList += intTo64Bits(derivationIndex);
 
     bytesList += intTo32Bits(assetIdtoOuterPuzzlehash.length);
 
@@ -127,10 +124,9 @@ class UnhardenedWalletVector extends WalletVector {
     return Bytes(bytesList);
   }
 
-  factory UnhardenedWalletVector.fromStream(Iterator<int> iterator) {
+  factory UnhardenedWalletVector.fromStream(Iterator<int> iterator, int derivationIndex) {
     final childPrivateKey = PrivateKey.fromStream(iterator);
     final puzzlehash = Puzzlehash.fromStream(iterator);
-    final derivationIndex = intFrom64BitsStream(iterator);
 
     final assetIdToOuterPuzzlehashMap = <Puzzlehash, Puzzlehash>{};
 
@@ -150,9 +146,9 @@ class UnhardenedWalletVector extends WalletVector {
     );
   }
 
-  factory UnhardenedWalletVector.fromBytes(Bytes bytes) {
+  factory UnhardenedWalletVector.fromBytes(Bytes bytes, int derivationIndex) {
     final iterator = bytes.iterator;
-    return UnhardenedWalletVector.fromStream(iterator);
+    return UnhardenedWalletVector.fromStream(iterator, derivationIndex);
   }
 
   @override

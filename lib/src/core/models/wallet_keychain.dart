@@ -66,13 +66,13 @@ class WalletKeychain with ToBytesMixin {
 
     final nHardenedWalletVectors = intFrom32BitsStream(iterator);
     for (var _ = 0; _ < nHardenedWalletVectors; _++) {
-      final wv = WalletVector.fromStream(iterator);
+      final wv = WalletVector.fromStream(iterator, _);
       hardenedWalletVectorMap[wv.puzzlehash] = wv;
     }
 
     final nUnhardenedWalletVectors = intFrom32BitsStream(iterator);
     for (var _ = 0; _ < nUnhardenedWalletVectors; _++) {
-      final wv = UnhardenedWalletVector.fromStream(iterator);
+      final wv = UnhardenedWalletVector.fromStream(iterator, _);
       unhardenedWalletVectorMap[wv.puzzlehash] = wv;
       for (final outerPuzzlehash in wv.assetIdtoOuterPuzzlehash.values) {
         unhardenedWalletVectorMap[outerPuzzlehash] = wv;
