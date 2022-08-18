@@ -8,21 +8,22 @@ class WalletVector with ToBytesMixin {
   const WalletVector({
     required this.childPrivateKey,
     required this.puzzlehash,
+    required this.derivationIndex,
   });
-
-  factory WalletVector.fromStream(Iterator<int> iterator) {
+  factory WalletVector.fromStream(Iterator<int> iterator, int derivationIndex) {
     final childPrivateKey = PrivateKey.fromStream(iterator);
     final puzzlehash = Puzzlehash.fromStream(iterator);
 
     return WalletVector(
       childPrivateKey: childPrivateKey,
       puzzlehash: puzzlehash,
+      derivationIndex: derivationIndex,
     );
   }
 
-  factory WalletVector.fromBytes(Bytes bytes) {
+  factory WalletVector.fromBytes(Bytes bytes, int derivationIndex) {
     final iterator = bytes.iterator;
-    return WalletVector.fromStream(iterator);
+    return WalletVector.fromStream(iterator, derivationIndex);
   }
 
   factory WalletVector.fromPrivateKey(
@@ -38,19 +39,25 @@ class WalletVector with ToBytesMixin {
     return WalletVector(
       childPrivateKey: childPrivateKeyHardened,
       puzzlehash: puzzlehashHardened,
+      derivationIndex: derivationIndex,
     );
   }
 
   final PrivateKey childPrivateKey;
   JacobianPoint get childPublicKey => childPrivateKey.getG1();
   final Puzzlehash puzzlehash;
+  final int derivationIndex;
+
+  WalletPuzzlehash get walletPuzzlehash =>
+      WalletPuzzlehash.fromPuzzlehash(puzzlehash, derivationIndex);
 
   @override
   int get hashCode =>
       runtimeType.hashCode ^
       childPrivateKey.hashCode ^
       childPublicKey.hashCode ^
-      puzzlehash.hashCode;
+      puzzlehash.hashCode ^
+      derivationIndex.hashCode;
 
   @override
   bool operator ==(Object other) {
@@ -59,7 +66,8 @@ class WalletVector with ToBytesMixin {
             runtimeType == other.runtimeType &&
             childPrivateKey == other.childPrivateKey &&
             childPublicKey == other.childPublicKey &&
-            puzzlehash == other.puzzlehash;
+            puzzlehash == other.puzzlehash &&
+            derivationIndex == other.derivationIndex;
   }
 
   @override
@@ -72,11 +80,13 @@ class UnhardenedWalletVector extends WalletVector {
   UnhardenedWalletVector({
     required PrivateKey childPrivateKey,
     required Puzzlehash puzzlehash,
+    required int derivationIndex,
     Map<Puzzlehash, Puzzlehash>? assetIdtoOuterPuzzlehash,
   })  : assetIdtoOuterPuzzlehash = assetIdtoOuterPuzzlehash ?? <Puzzlehash, Puzzlehash>{},
         super(
           childPrivateKey: childPrivateKey,
           puzzlehash: puzzlehash,
+          derivationIndex: derivationIndex,
         );
 
   factory UnhardenedWalletVector.fromPrivateKey(
@@ -93,6 +103,7 @@ class UnhardenedWalletVector extends WalletVector {
     return UnhardenedWalletVector(
       childPrivateKey: childPrivateKeyUnhardened,
       puzzlehash: puzzlehashUnhardened,
+      derivationIndex: derivationIndex,
     );
   }
 
@@ -113,7 +124,7 @@ class UnhardenedWalletVector extends WalletVector {
     return Bytes(bytesList);
   }
 
-  factory UnhardenedWalletVector.fromStream(Iterator<int> iterator) {
+  factory UnhardenedWalletVector.fromStream(Iterator<int> iterator, int derivationIndex) {
     final childPrivateKey = PrivateKey.fromStream(iterator);
     final puzzlehash = Puzzlehash.fromStream(iterator);
 
@@ -131,12 +142,13 @@ class UnhardenedWalletVector extends WalletVector {
       childPrivateKey: childPrivateKey,
       puzzlehash: puzzlehash,
       assetIdtoOuterPuzzlehash: assetIdToOuterPuzzlehashMap,
+      derivationIndex: derivationIndex,
     );
   }
 
-  factory UnhardenedWalletVector.fromBytes(Bytes bytes) {
+  factory UnhardenedWalletVector.fromBytes(Bytes bytes, int derivationIndex) {
     final iterator = bytes.iterator;
-    return UnhardenedWalletVector.fromStream(iterator);
+    return UnhardenedWalletVector.fromStream(iterator, derivationIndex);
   }
 
   @override
@@ -151,7 +163,8 @@ class UnhardenedWalletVector extends WalletVector {
         runtimeType == other.runtimeType &&
         childPrivateKey == other.childPrivateKey &&
         childPublicKey == other.childPublicKey &&
-        puzzlehash == other.puzzlehash;
+        puzzlehash == other.puzzlehash &&
+        derivationIndex == other.derivationIndex;
 
     if (!firstCheck) {
       return false;

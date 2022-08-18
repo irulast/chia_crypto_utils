@@ -42,7 +42,7 @@ void main() {
 
       final bytes = wv.toBytes();
 
-      final wv2 = WalletVector.fromBytes(bytes);
+      final wv2 = WalletVector.fromBytes(bytes, 0);
 
       expect(wv, equals(wv2));
       expect(bytes, equals(wv2.toBytes()));
@@ -69,7 +69,7 @@ void main() {
       final wv = keychain.unhardenedMap.values.first;
       final bytes = wv.toBytes();
 
-      final deserializedWv = UnhardenedWalletVector.fromBytes(bytes);
+      final deserializedWv = UnhardenedWalletVector.fromBytes(bytes, 0);
 
       expect(wv, equals(deserializedWv));
       expect(bytes, equals(deserializedWv.toBytes()));

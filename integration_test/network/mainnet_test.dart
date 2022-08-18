@@ -21,7 +21,6 @@ Future<void> main() async {
   );
 
   final fullNode = ChiaFullNodeInterface(fullNodeRpc);
-
   test('should get coins ', () async {
     final coins = await fullNode.getCoinsByPuzzleHashes(
       [

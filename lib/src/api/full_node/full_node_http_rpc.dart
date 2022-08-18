@@ -170,6 +170,32 @@ class FullNodeHttpRpc implements FullNode {
     );
   }
 
+  @override
+  Future<GetAdditionsAndRemovalsResponse> getAdditionsAndRemovals(Bytes headerHash) async {
+    final response = await client.post(
+      Uri.parse('get_additions_and_removals'),
+      <String, dynamic>{'header_hash': headerHash.toHex()},
+    );
+    mapResponseToError(response);
+
+    return GetAdditionsAndRemovalsResponse.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
+  @override
+  Future<GetBlockRecordByHeightResponse> getBlockRecordByHeight(int height) async {
+    final response = await client.post(
+      Uri.parse('get_block_record_by_height'),
+      <String, dynamic>{'height': height},
+    );
+    mapResponseToError(response);
+
+    return GetBlockRecordByHeightResponse.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
   static void mapResponseToError(Response response) {
     switch (response.statusCode) {
       case 200:
@@ -193,4 +219,20 @@ class FullNodeHttpRpc implements FullNode {
 
   @override
   int get hashCode => runtimeType.hashCode ^ baseURL.hashCode;
+
+  @override
+  Future<GetBlockRecordsResponse> getBlockRecords(int start, int end) async {
+    final response = await client.post(
+      Uri.parse('get_block_records'),
+      <String, dynamic>{
+        'start': start,
+        'end': end,
+      },
+    );
+    mapResponseToError(response);
+
+    return GetBlockRecordsResponse.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
 }
