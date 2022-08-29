@@ -238,9 +238,10 @@ class ChiaFullNodeInterface {
     return blockchainStateResponse.blockchainState;
   }
 
-  Future<List<BlockRecord>> getBlockRecords(int startHeight,int endHeight)async{
-    final response =  await fullNode.getBlockRecords(startHeight, endHeight);
+  Future<List<BlockRecord>> getBlockRecords(int startHeight, int endHeight) async {
+    final response = await fullNode.getBlockRecords(startHeight, endHeight);
     mapResponseToError(response);
+
     return response.blockRecords!;
   }
 
@@ -251,7 +252,7 @@ class ChiaFullNodeInterface {
   }
 
   static void mapResponseToError(ChiaBaseResponse baseResponse) {
-    if (baseResponse.success) {
+    if (baseResponse.success && baseResponse.error == null) {
       return;
     }
     final errorMessage = baseResponse.error!;
