@@ -46,6 +46,10 @@ class KeychainCoreSecret with ToBytesMixin {
   final List<String> mnemonic;
   final PrivateKey masterPrivateKey;
   JacobianPoint get masterPublicKey => masterPrivateKey.getG1();
+
+  PrivateKey get farmerPrivateKey => masterSkToFarmerSk(masterPrivateKey);
+  JacobianPoint get farmerPublicKey => farmerPrivateKey.getG1();
+
   int get fingerprint => masterPublicKey.getFingerprint();
 
   static List<String> generateMnemonic({int strength = 256}) {
