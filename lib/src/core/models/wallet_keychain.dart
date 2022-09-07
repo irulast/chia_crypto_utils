@@ -173,8 +173,16 @@ class WalletKeychain with ToBytesMixin {
         unhardenedMap.values.map<Puzzlehash>((wv) => wv.puzzlehash),
       ).toList();
 
+  List<Puzzlehash> get puzzlehashesHardened => LinkedHashSet<Puzzlehash>.from(
+        hardenedMap.values.map<Puzzlehash>((wv) => wv.puzzlehash),
+      ).toList();
+
   List<WalletPuzzlehash> get walletPuzzlehashes => LinkedHashSet<WalletPuzzlehash>.from(
         unhardenedMap.values.map<WalletPuzzlehash>((wv) => wv.walletPuzzlehash),
+      ).toList();
+
+  List<WalletPuzzlehash> get walletPuzzlehashesHardened => LinkedHashSet<WalletPuzzlehash>.from(
+        hardenedMap.values.map<WalletPuzzlehash>((wv) => wv.walletPuzzlehash),
       ).toList();
 
   List<Puzzlehash> getOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
