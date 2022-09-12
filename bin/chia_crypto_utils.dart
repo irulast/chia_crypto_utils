@@ -6,7 +6,6 @@ import 'package:args/command_runner.dart';
 import 'package:bip39/bip39.dart';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/plot_nft/create_new_wallet_with_plotnft.dart';
-import 'package:chia_crypto_utils/src/command/plot_nft/get_farming_status.dart';
 
 late final ChiaFullNodeInterface fullNode;
 
@@ -223,14 +222,14 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
     final plotNfts = await fullNode.scroungeForPlotNfts(keychain.puzzlehashes);
     for (final plotNft in plotNfts) {
       LoggingContext().info(plotNft.toString());
-      
+
       final poolService = _getPoolServiceImpl(
         plotNft.poolState.poolUrl!,
         argResults!['certificate-bytes-path'] as String,
       );
 
       try {
-        final farmingStatus =await getFarmingStatus(
+        final farmingStatus = await getFarmingStatus(
           plotNft,
           keychainSecret,
           keychain,
