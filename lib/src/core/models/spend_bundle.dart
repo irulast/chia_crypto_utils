@@ -8,6 +8,8 @@ import 'package:meta/meta.dart';
 
 @immutable
 class SpendBundle with ToBytesMixin {
+  Bytes get id => toBytes().sha256Hash();
+
   final List<CoinSpend> coinSpends;
   final JacobianPoint? aggregatedSignature;
 
