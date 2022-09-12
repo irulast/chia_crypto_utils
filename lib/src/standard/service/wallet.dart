@@ -2,7 +2,6 @@
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/core/exceptions/change_puzzlehash_needed_exception.dart';
-import 'package:chia_crypto_utils/src/core/service/base_wallet.dart';
 import 'package:chia_crypto_utils/src/standard/exceptions/origin_id_not_in_coins_exception.dart';
 import 'package:chia_crypto_utils/src/standard/exceptions/spend_bundle_validation/incorrect_announcement_id_exception.dart';
 import 'package:chia_crypto_utils/src/standard/exceptions/spend_bundle_validation/multiple_origin_coin_exception.dart';
