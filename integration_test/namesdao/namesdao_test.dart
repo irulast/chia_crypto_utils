@@ -3,6 +3,7 @@ import 'package:test/test.dart';
 
 Future<void> main() async {
   final namesdaoInterface = NamesdaoApi();
+
   test('should get name info for name', () async {
     const name = '_namesdao.xchh';
     final nameInfo = await namesdaoInterface.getNameInfo(name);
