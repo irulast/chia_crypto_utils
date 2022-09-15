@@ -22,11 +22,11 @@ class Output {
 
   Output.fromJson(Map<String, dynamic> json)
       : cost = BigInt.parse(json['cost'] as String),
-        program = Program.fromHex(json['program'] as String);
+        program = Program.parse(json['program'] as String);
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'cost': cost.toString(),
-        'program': program.toHex(),
+        'program': program.toSource(),
       };
 }
 
@@ -137,13 +137,13 @@ class Program with ToBytesMixin {
   static Map<String, dynamic> runProgramIsolateTask(PuzzleAndSolution puzzleAndSolution) {
     final puzzle = puzzleAndSolution.puzzle;
     final solution = puzzleAndSolution.solution;
-    final output = puzzle.run(solution);
+    final output = puzzle.run(solution, options: puzzleAndSolution.options);
     return output.toJson();
   }
 
-  Future<Output> runAsync(Program args) async {
+  Future<Output> runAsync(Program args, {RunOptions? options}) async {
     return spawnAndWaitForIsolate(
-      taskArgument: PuzzleAndSolution(puzzle: this, solution: args),
+      taskArgument: PuzzleAndSolution(puzzle: this, solution: args, options: options),
       isolateTask: runProgramIsolateTask,
       handleTaskCompletion: Output.fromJson,
     );
@@ -524,9 +524,11 @@ class ProgramAndArguments {
 class PuzzleAndSolution {
   final Program puzzle;
   final Program solution;
+  final RunOptions? options;
 
   PuzzleAndSolution({
     required this.puzzle,
     required this.solution,
+    required this.options,
   });
 }

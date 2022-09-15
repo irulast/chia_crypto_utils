@@ -10,6 +10,7 @@ Future<T> spawnAndWaitForIsolate<T, R>({
   required FutureOr<T> Function(Map<String, dynamic> taskResultJson) handleTaskCompletion,
 }) async {
   final receivePort = ReceivePort();
+  final errorPort = ReceivePort();
 
   final completer = Completer<void>();
 
@@ -25,9 +26,21 @@ Future<T> spawnAndWaitForIsolate<T, R>({
     onDone: completer.complete,
   );
 
+  errorPort.listen((dynamic message) {
+    // first is Error Message
+    // second is stacktrace which is not needed
+    final errors = message as List<dynamic>;
+    errorPort.close();
+    completer.completeError(errors.first as Object);
+  });
+
   final taskArgumentAndSendPort = TaskArgumentAndSendPort(taskArgument, receivePort.sendPort);
 
-  await Isolate.spawn(_makeActualTask(isolateTask), taskArgumentAndSendPort);
+  await Isolate.spawn(
+    _makeActualTask(isolateTask),
+    taskArgumentAndSendPort,
+    onError: errorPort.sendPort,
+  );
 
   await Future.wait([completer.future]);
   return result as T;
