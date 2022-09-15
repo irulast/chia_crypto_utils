@@ -15,10 +15,11 @@ class CoinSpend with ToBytesMixin {
     required this.solution,
   });
 
+  Program get outputProgram => puzzleReveal.run(solution).program;
+
   List<CoinPrototype> get additions {
-    final result = puzzleReveal.run(solution).program;
     final createCoinConditions = BaseWalletService.extractConditionsFromResult(
-      result,
+      outputProgram,
       CreateCoinCondition.isThisCondition,
       CreateCoinCondition.fromProgram,
     );
@@ -77,6 +78,17 @@ class CoinSpend with ToBytesMixin {
       return SpendType.cat;
     }
     throw UnimplementedError('Unimplemented spend type');
+  }
+
+  List<Bytes> get memos {
+    final createCoinConditions = BaseWalletService.extractConditionsFromResult(
+      outputProgram,
+      CreateCoinCondition.isThisCondition,
+      CreateCoinCondition.fromProgram,
+    );
+
+    return createCoinConditions
+        .fold([], (previousValue, element) => previousValue + (element.memos ?? []));
   }
 
   @override
