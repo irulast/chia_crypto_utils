@@ -17,7 +17,34 @@ class CoinSpend with ToBytesMixin {
 
   Program get outputProgram => puzzleReveal.run(solution).program;
 
+  Future<Program> get outputProgramAsync async {
+    return puzzleReveal.runAsync(solution).then((value) => value.program);
+  }
+
   List<CoinPrototype> get additions {
+    final createCoinConditions = BaseWalletService.extractConditionsFromResult(
+      outputProgram,
+      CreateCoinCondition.isThisCondition,
+      CreateCoinCondition.fromProgram,
+    );
+
+    return createCoinConditions
+        .map(
+          (ccc) => CoinPrototype(
+            parentCoinInfo: coin.id,
+            puzzlehash: ccc.destinationPuzzlehash,
+            amount: ccc.amount,
+          ),
+        )
+        .toList();
+  }
+
+  Future<List<CoinPrototype>> get additionsAsync async {
+    final outputProgram = await outputProgramAsync;
+    return _getAdditionsFromOutputProgram(outputProgram);
+  }
+
+  List<CoinPrototype> _getAdditionsFromOutputProgram(Program outputProgram) {
     final createCoinConditions = BaseWalletService.extractConditionsFromResult(
       outputProgram,
       CreateCoinCondition.isThisCondition,
@@ -80,7 +107,13 @@ class CoinSpend with ToBytesMixin {
     throw UnimplementedError('Unimplemented spend type');
   }
 
-  List<Bytes> get memos {
+  List<Bytes> get memos => _getMemosFromOutputProgram(outputProgram);
+
+  Future<List<Bytes>> get memosAsync async {
+    return _getMemosFromOutputProgram(await outputProgramAsync);
+  }
+
+  List<Bytes> _getMemosFromOutputProgram(Program outputProgram) {
     final createCoinConditions = BaseWalletService.extractConditionsFromResult(
       outputProgram,
       CreateCoinCondition.isThisCondition,
