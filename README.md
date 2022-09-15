@@ -11,20 +11,15 @@ This repository provides an object model for working with Chia primitives servin
 
 ## Dependencies
 
-This repository is written in [Dart](https://dart.dev/get-dart) to enable mobile and web usage.
-
-## Installation
-
-```console
-dart pub global activate rps
-export PATH="$PATH":"$HOME/.pub-cache/bin"
-```
+This repository is written in [Dart](https://dart.dev/get-dart) to enable mobile and web usage. You may install either the Dart SDK or the [Flutter SDK](https://docs.flutter.dev/get-started/install), which also includes Dart. 
 
 ## Build and Test
 
 ```console
 dart test
+```
 
+```console
 00:00 +0: test/wallet_service_test.dart: (suite)
   Skip: Integration test
 00:08 +223 ~1: test/utils_test/utils_test.dart: should generate correct puzzle hashes from mnemonic
@@ -39,14 +34,39 @@ First wallet address: txch1v8vergyvwugwv0tmxwnmeecuxh3tat5jaskkunnn79zjz0muds0ql
 For integration tests, run the following command:
 
 ```console
-rps integration_tests
+dart test integration_test/ --concurrency=1
+```
 
-> integration_tests
-$ dart test integration_test/ --concurrency=1
-
+```console
 00:28 +6: integration_test/network/mainnet_test.dart(suite)
   Skip: Test provided for reference, not nominally run
 00:28 +6 ~1: integration_test/network/testnet10_test.dart: (suite)
   Skip: Test provided for reference, not nominally run
 00:47 +14 ~2: All tests passed!
+```
+
+## Coverage 
+
+### Dependencies
+
+Install [Flutter](https://docs.flutter.dev/get-started/install) and add the flutter tool to your path.
+
+[LCOV](http://ltp.sourceforge.net/coverage/lcov.php) is used to create a coverage report in HTML format.
+
+### Generate Coverage Report
+
+Run the following commands to generate the coverage report: 
+
+```console
+flutter test ./integration_test test --coverage --concurrency=1
+```
+
+```console
+genhtml coverage/lcov.info -o coverage
+```
+
+View the coverage report:
+
+```console
+open coverage/index.html
 ```
