@@ -8,7 +8,7 @@ class MempoolItem {
     required this.fee,
     required this.spendBundle,
     required this.spendBundleId,
-    required this.npcResult,
+    // required this.npcResult,
   });
 
   factory MempoolItem.fromJson(Map<String, dynamic> json) {
@@ -23,7 +23,7 @@ class MempoolItem {
     final spendBundle = SpendBundle.fromJson(json['spend_bundle'] as Map<String, dynamic>);
     final spendBundleId = Bytes.fromHex(json['spend_bundle_name'] as String);
 
-    final npcResult = NpcResult.fromJson(json['npc_result'] as Map<String, dynamic>);
+    // final npcResult = NpcResult.fromJson(json['npc_result'] as Map<String, dynamic>);
 
     return MempoolItem(
       additions: additions,
@@ -31,7 +31,7 @@ class MempoolItem {
       fee: fee,
       spendBundle: spendBundle,
       spendBundleId: spendBundleId,
-      npcResult: npcResult,
+      // npcResult: npcResult,
     );
   }
 
@@ -40,7 +40,7 @@ class MempoolItem {
 
   final int fee;
 
-  final NpcResult npcResult;
+  // final NpcResult npcResult;
 
   final SpendBundle spendBundle;
 

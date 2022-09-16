@@ -31,6 +31,14 @@ class SpendBundle with ToBytesMixin {
     );
   }
 
+  Future<List<CoinPrototype>> get additionsAsync async {
+    final additions = <CoinPrototype>[];
+    for (final coinSpend in coinSpends) {
+      additions.addAll(await coinSpend.additionsAsync);
+    }
+    return additions;
+  }
+
   List<CoinPrototype> get coins => coinSpends.map((cs) => cs.coin).toList();
 
   SpendBundle({
@@ -46,7 +54,7 @@ class SpendBundle with ToBytesMixin {
         'aggregated_signature': aggregatedSignature?.toHex(),
       };
   SpendBundle.fromJson(Map<String, dynamic> json)
-      : coinSpends = (json['coin_solutions'] as Iterable)
+      : coinSpends = (json['coin_spends'] as Iterable)
             .map((dynamic e) => CoinSpend.fromJson(e as Map<String, dynamic>))
             .toList(),
         aggregatedSignature = JacobianPoint.fromHexG2(json['aggregated_signature'] as String);

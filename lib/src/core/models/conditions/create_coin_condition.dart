@@ -30,19 +30,17 @@ class CreateCoinCondition implements Condition {
     );
   }
 
-  factory CreateCoinCondition.fromJson(Map<String, dynamic> json) {
-    final opcodeFromJson = json['opcode'] as String;
-    if (opcodeFromJson != opcode) {
-      throw InvalidConditionCastException(CreateCoinCondition);
-    }
-    final vars = json['vars'] as List<String>;
-    final puzzlehash = Puzzlehash.fromHex(vars[0]);
-    final amount = bytesToInt(Bytes.fromHex(vars[1]), Endian.big);
+  factory CreateCoinCondition.fromJsonList(List<dynamic> vars) {
+    final puzzlehash = Puzzlehash.fromHex(vars[0] as String);
+    final amount = vars[1] as int;
 
-    List<Bytes>? memos;
-    if (vars.length > 2) {
-      memos = Program.fromHex(vars[2]).toList().map((e) => e.atom).toList();
+    // memo only given in list format if its a hint
+    Bytes? hint;
+    if (vars.length > 2 && vars[2] != Bytes.bytesPrefix) {
+      hint = Bytes.fromHex(vars[2] as String);
     }
+
+    final memos = hint != null ? [hint] : null;
     return CreateCoinCondition(puzzlehash, amount, memos: memos);
   }
 

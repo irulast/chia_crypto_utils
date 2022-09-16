@@ -1,34 +1,34 @@
-import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+// import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
-class Npc {
-  Npc({
-    required this.coinId,
-    required this.puzzlehash,
-    required this.createCoinConditions,
-  });
+// class Npc {
+//   Npc({
+//     required this.coinId,
+//     required this.puzzlehash,
+//     required this.createCoinConditions,
+//   });
 
-  factory Npc.fromJson(Map<String, dynamic> json) {
-    final coinId = Bytes.fromHex(json['coin_name'] as String);
-    final puzzlehash = Puzzlehash.fromHex(json['puzzle_hash'] as String);
+//   factory Npc.fromJson(Map<String, dynamic> json) {
+//     final coinId = Bytes.fromHex(json['coin_name'] as String);
+//     final puzzlehash = Puzzlehash.fromHex(json['puzzle_hash'] as String);
 
-    final conditionsTuples = List<List>.from(json['conditions'] as List<dynamic>);
-    final createCoinConditionsTuples = conditionsTuples
-        .where((conditionsTuple) => conditionsTuple[0] == CreateCoinCondition.conditionCodeHex)
-        .toList();
-    var createCoinConditions = <CreateCoinCondition>[];
-    if (createCoinConditionsTuples.isNotEmpty) {
-      final createCoinConditionsList = createCoinConditionsTuples.first[1] as Iterable;
+//     final conditionsMapList = List<Map<String, dynamic>>.from(json['spends'] as List<dynamic>);
+//     var createCoinConditions = <CreateCoinCondition>[];
+//     for (final conditionsMap in conditionsMapList){
 
-      createCoinConditions = List<Map<String, dynamic>>.from(createCoinConditionsList)
-          .map(CreateCoinCondition.fromJson)
-          .toList();
-    }
+//     } 
+//     if (createCoinConditionsTuples.isNotEmpty) {
+//       final createCoinConditionsList = createCoinConditionsTuples.first[1] as Iterable;
 
-    return Npc(coinId: coinId, puzzlehash: puzzlehash, createCoinConditions: createCoinConditions);
-  }
+//       createCoinConditions = List<Map<String, dynamic>>.from(createCoinConditionsList)
+//           .map(CreateCoinCondition.fromJson)
+//           .toList();
+//     }
 
-  final Bytes coinId;
-  final Puzzlehash puzzlehash;
+//     return Npc(coinId: coinId, puzzlehash: puzzlehash, createCoinConditions: createCoinConditions);
+//   }
 
-  final List<CreateCoinCondition> createCoinConditions;
-}
+//   final Bytes coinId;
+//   final Puzzlehash puzzlehash;
+
+//   final List<CreateCoinCondition> createCoinConditions;
+// }
