@@ -4,13 +4,13 @@ import 'package:test/test.dart';
 Future<void> main() async {
   final namesdaoInterface = NamesdaoApi();
 
-  test('should get name info for name', () async {
+  test('should fail getting name info for invalid name', () async {
     const name = '_namesdao.xchh';
     final nameInfo = await namesdaoInterface.getNameInfo(name);
     expect(nameInfo?.address.address, equals(null));
   });
 
-  test('should get name info for cloaked registration', () async {
+  test('should get name info for valid name ___CloakedRegistration.xch', () async {
     const name = '___CloakedRegistration.xch';
     final nameInfo = await namesdaoInterface.getNameInfo(name);
     expect(
