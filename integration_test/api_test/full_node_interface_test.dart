@@ -147,7 +147,36 @@ Future<void> main() async {
         returnsNormally,
       );
       expect(
-        () => coins.firstWhere((catCoin) => catCoin.puzzlehash == testCoin.puzzlehash),
+        () => coins.firstWhere((coin) => coin.puzzlehash == testCoin.puzzlehash),
+        returnsNormally,
+      );
+    }
+  });
+
+  test('should get standard coins by id', () async {
+    final coinsGotByPuzzlehashes = await fullNodeSimulator.getCoinsByPuzzleHashes(
+      testStandardCoins
+          .map(
+            (c) => c.puzzlehash,
+          )
+          .toList(),
+      includeSpentCoins: true,
+    );
+
+    final coinIds = coinsGotByPuzzlehashes
+        .map(
+          (c) => c.id,
+        )
+        .toList();
+
+    final coinsGotByIDs = await fullNodeSimulator.getCoinsByIds(
+      coinIds,
+      includeSpentCoins: true,
+    );
+
+    for (final coinGotByPuzzlehash in coinsGotByPuzzlehashes) {
+      expect(
+        () => coinsGotByIDs.firstWhere((coin) => coin.id == coinGotByPuzzlehash.id),
         returnsNormally,
       );
     }
