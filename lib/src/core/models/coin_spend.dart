@@ -107,21 +107,27 @@ class CoinSpend with ToBytesMixin {
     throw UnimplementedError('Unimplemented spend type');
   }
 
-  List<Bytes> get memos => _getMemosFromOutputProgram(outputProgram);
+  List<Payment> get payments => _getPaymentsFromOutputProgram(outputProgram);
 
-  Future<List<Bytes>> get memosAsync async {
-    return _getMemosFromOutputProgram(await outputProgramAsync);
+  Future<List<Payment>> get paymentsAsync async {
+    return _getPaymentsFromOutputProgram(await outputProgramAsync);
   }
 
-  List<Bytes> _getMemosFromOutputProgram(Program outputProgram) {
+  List<Payment> _getPaymentsFromOutputProgram(Program outputProgram) {
     final createCoinConditions = BaseWalletService.extractConditionsFromResult(
       outputProgram,
       CreateCoinCondition.isThisCondition,
       CreateCoinCondition.fromProgram,
     );
 
-    return createCoinConditions
-        .fold([], (previousValue, element) => previousValue + (element.memos ?? []));
+    return createCoinConditions.map((e) => e.toPayment()).toList();
+  }
+
+  Future<PaymentsAndAdditions> get paymentsAndEditionsAsync async {
+    final outputProgram = await outputProgramAsync;
+    final additions = _getAdditionsFromOutputProgram(outputProgram);
+    final payments = _getPaymentsFromOutputProgram(outputProgram);
+    return PaymentsAndAdditions(payments, additions);
   }
 
   @override
@@ -129,3 +135,15 @@ class CoinSpend with ToBytesMixin {
 }
 
 enum SpendType { standard, cat, nft }
+
+class PaymentsAndAdditions {
+  final List<Payment> payments;
+  final List<CoinPrototype> additions;
+
+  PaymentsAndAdditions(this.payments, this.additions);
+}
+
+extension PaymentMemos on Iterable<Payment> {
+  List<Bytes> get memos =>
+      fold(<Bytes>[], (previousValue, element) => previousValue + (element.memos ?? []));
+}

@@ -44,6 +44,8 @@ class CreateCoinCondition implements Condition {
     return CreateCoinCondition(puzzlehash, amount, memos: memos);
   }
 
+  Payment toPayment() => Payment(amount, destinationPuzzlehash, memos: memos);
+
   @override
   Program get program {
     return Program.list([
