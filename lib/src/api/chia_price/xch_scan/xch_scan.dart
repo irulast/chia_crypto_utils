@@ -1,15 +1,9 @@
 import 'dart:convert';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/chia_price/xch_scan/xch_scan_response.dart';
+import 'package:chia_crypto_utils/src/api/chia_price/chia_price_provider.dart';
 
-abstract class XchScan {
-  factory XchScan() => _XchScan();
-  Future<XchScanResponse> getChiaPrice();
-}
-
-// TODO(nvjoshi2): implement chia pricer interface
-class _XchScan implements XchScan {
+class XchScan implements ChiaPriceProvider {
   Client get client => Client(url);
 
   String get url => 'https://xchscan.com/api';

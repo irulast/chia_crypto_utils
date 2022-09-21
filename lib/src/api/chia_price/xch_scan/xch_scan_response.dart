@@ -1,12 +1,15 @@
-class XchScanResponse {
+import 'package:chia_crypto_utils/src/api/chia_price/chia_price_provider.dart';
+
+class XchScanResponse implements ChiaPriceResponse {
   const XchScanResponse({
-    required this.priceUsd,
-    required this.priceBtc,
+    required this.currencyPriceMap,
   });
-  final double priceUsd;
-  final double priceBtc;
+  @override
+  num get priceUsd => currencyPriceMap['usd']!;
 
   XchScanResponse.fromJson(Map<String, dynamic> json)
-      : priceUsd = json['usd'] as double,
-        priceBtc = json['btc'] as double;
+      : currencyPriceMap = Map<String, num>.from(json);
+
+  @override
+  final Map<String, num> currencyPriceMap;
 }
