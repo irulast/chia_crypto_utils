@@ -66,8 +66,8 @@ Future<PlotNFTDetails> createNewWalletWithPlotNFT(
     ChiaNetworkContextWrapper().blockchainNetwork.addressPrefix,
   );
 
-  print('Contract Address: $contractAddress');
-  print('Payout Address: $payoutAddress');
+  print('Contract Address: ${contractAddress.address}');
+  print('Payout Address: ${payoutAddress.address}');
 
   final addFarmerResponse = await poolService.registerAsFarmerWithPool(
     plotNft: newPlotNft!,

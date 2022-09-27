@@ -117,6 +117,8 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
   CreateWalletWithPlotNFTCommand() {
     argParser
       ..addOption('pool-url', defaultsTo: 'https://xch-us-west.flexpool.io')
+      ..addOption('faucet-request-url')
+      ..addOption('faucet-request-payload')
       ..addOption('output-config')
       ..addOption(
         'certificate-bytes-path',
@@ -132,6 +134,9 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
 
   @override
   Future<void> run() async {
+    final faucetRequestURL = argResults!['faucet-request-url'] as String;
+    final faucetRequestPayload = argResults!['faucet-request-payload'] as String;
+
     final outputConfigFile = argResults!['output-config'] as String;
 
     final poolService = _getPoolServiceImpl(
@@ -155,11 +160,30 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
       ChiaNetworkContextWrapper().blockchainNetwork.addressPrefix,
     );
 
-    print(
-      'Please send at least 1 mojo and enough extra XCH to cover the fee to create the PlotNFT to: $coinAddress\n',
-    );
-    print('Press any key when coin has been sent');
-    stdin.readLineSync();
+    if (faucetRequestURL.isNotEmpty && faucetRequestPayload.isNotEmpty) {
+      final theFaucetRequestPayload =
+          faucetRequestPayload.replaceAll(RegExp('SEND_TO_ADDRESS'), coinAddress.address);
+
+      final result = await Process.run('curl', [
+        '-s',
+        '-d',
+        theFaucetRequestPayload,
+        '-H',
+        'Content-Type: application/json',
+        '-X',
+        'POST',
+        faucetRequestURL,
+      ]);
+
+      stdout.write(result.stdout);
+      stderr.write(result.stderr);
+    } else {
+      print(
+        'Please send at least 1 mojo and enough extra XCH to cover the fee to create the PlotNFT to: ${coinAddress.address}\n',
+      );
+      print('Press any key when coin has been sent');
+      stdin.readLineSync();
+    }
 
     var coins = <Coin>[];
     while (coins.isEmpty) {
