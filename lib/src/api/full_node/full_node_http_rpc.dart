@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/api/full_node/exceptions/full_node_error.dart';
 import 'package:chia_crypto_utils/src/api/full_node/exceptions/gateway_timeout_exception.dart';
+import 'package:chia_crypto_utils/src/api/full_node/models/responses/mempool_items_response.dart';
 
 import 'package:meta/meta.dart';
 
@@ -232,6 +233,18 @@ class FullNodeHttpRpc implements FullNode {
     mapResponseToError(response);
 
     return GetBlockRecordsResponse.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
+  @override
+  Future<MempoolItemsResponse> getAllMempoolItems() async {
+    final response = await client.post(
+      Uri.parse('get_all_mempool_items'),
+      <String, dynamic>{},
+    );
+    mapResponseToError(response);
+    return MempoolItemsResponse.fromJson(
       jsonDecode(response.body) as Map<String, dynamic>,
     );
   }
