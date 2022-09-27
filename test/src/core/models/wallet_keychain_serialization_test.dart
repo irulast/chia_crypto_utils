@@ -11,7 +11,6 @@ void main() async {
     keychainSecret,
     walletSize: 20,
     plotNftWalletSize: 0,
-    onProgressUpdate: print,
   );
 
   final assetIds = [Program.fromInt(0).hash(), Program.fromInt(1).hash()];

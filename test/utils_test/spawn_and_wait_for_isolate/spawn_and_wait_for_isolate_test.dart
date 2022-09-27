@@ -39,9 +39,7 @@ Future<void> main() async {
       handleTaskCompletion: (taskMessage) {
         return taskMessage['is_prime'] as bool;
       },
-      onProgressUpdate: (double newProgress) {
-        progressUpdates.add(newProgress);
-      },
+      onProgressUpdate: progressUpdates.add,
     );
 
     expect(result, true);
