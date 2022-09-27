@@ -1,4 +1,3 @@
-import 'package:chia_crypto_utils/src/api/full_node/models/chia_models/npc.dart';
 import 'package:chia_crypto_utils/src/api/full_node/models/chia_models/spend_conditions.dart';
 
 class NpcResult {
