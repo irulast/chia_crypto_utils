@@ -1,6 +1,18 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
-Future<void> createNewWalletWithPlotNFT(
+class PlotNFTDetails {
+  const PlotNFTDetails({
+    required this.contractAddress,
+    required this.payoutAddress,
+    required this.launcherId,
+  });
+
+  final Address contractAddress;
+  final Address payoutAddress;
+  final Bytes launcherId;
+}
+
+Future<PlotNFTDetails> createNewWalletWithPlotNFT(
   KeychainCoreSecret keychainSecret,
   WalletKeychain keychain,
   PoolService poolService,
@@ -88,4 +100,10 @@ Future<void> createNewWalletWithPlotNFT(
   if (farmerInfo != null) {
     print(farmerInfo);
   }
+
+  return PlotNFTDetails(
+    contractAddress: contractAddress,
+    payoutAddress: payoutAddress,
+    launcherId: launcherId,
+  );
 }
