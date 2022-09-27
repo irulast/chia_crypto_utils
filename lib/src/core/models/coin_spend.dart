@@ -123,7 +123,7 @@ class CoinSpend with ToBytesMixin {
     return createCoinConditions.map((e) => e.toPayment()).toList();
   }
 
-  Future<PaymentsAndAdditions> get paymentsAndEditionsAsync async {
+  Future<PaymentsAndAdditions> get paymentsAndAdditionsAsync async {
     final outputProgram = await outputProgramAsync;
     final additions = _getAdditionsFromOutputProgram(outputProgram);
     final payments = _getPaymentsFromOutputProgram(outputProgram);
