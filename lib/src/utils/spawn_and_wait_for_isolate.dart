@@ -2,26 +2,59 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
 
-// wrapper around dart Isolate.spawn to simplify interface and
-// allow the caller to wait for the completion of the isolate
 Future<T> spawnAndWaitForIsolate<T, R>({
   required R taskArgument,
   required FutureOr<Map<String, dynamic>> Function(R taskArgument) isolateTask,
   required FutureOr<T> Function(Map<String, dynamic> taskResultJson) handleTaskCompletion,
+}) {
+  FutureOr<Map<String, dynamic>> task(
+    R taskArgument,
+    void Function(double p) onProgressUpdate,
+  ) {
+    return isolateTask(taskArgument);
+  }
+
+  return spawnAndWaitForIsolateWithProgressUpdates<T, R>(
+    taskArgument: taskArgument,
+    isolateTask: task,
+    handleTaskCompletion: handleTaskCompletion,
+    onProgressUpdate: (progress) {},
+  );
+}
+
+// wrapper around dart Isolate.spawn to simplify interface and
+// allow the caller to wait for the completion of the isolate
+Future<T> spawnAndWaitForIsolateWithProgressUpdates<T, R>({
+  required R taskArgument,
+  required FutureOr<void> Function(double progress) onProgressUpdate,
+  required FutureOr<Map<String, dynamic>> Function(
+    R taskArgument,
+    void Function(double progress) onProgressUpdate,
+  )
+      isolateTask,
+  required FutureOr<T> Function(Map<String, dynamic> taskResultJson) handleTaskCompletion,
 }) async {
   final receivePort = ReceivePort();
   final errorPort = ReceivePort();
-
   final completer = Completer<void>();
 
   T? result;
 
   receivePort.listen(
     (dynamic message) async {
-      result = await handleTaskCompletion(
-        jsonDecode(message as String) as Map<String, dynamic>,
-      );
-      receivePort.close();
+      final messageJson = jsonDecode(message as String) as Map<String, dynamic>;
+      final messageType = getIsolateMessageTypeFromJson(messageJson);
+
+      switch (messageType) {
+        case IsolateMessageType.progressUpdate:
+          final progressUpdateMessage = ProgressUpdateMessage.fromJson(messageJson);
+          onProgressUpdate(progressUpdateMessage.progress);
+          break;
+        case IsolateMessageType.result:
+          final resultMessage = ResultMessage.fromJson(messageJson);
+          result = await handleTaskCompletion(resultMessage.body);
+          receivePort.close();
+      }
     },
     onDone: completer.complete,
   );
@@ -49,13 +82,23 @@ Future<T> spawnAndWaitForIsolate<T, R>({
 // creates the actual isolate task that takes the task argument
 // and sendport as a single parameter and uses the sendport to
 // send the resulting message to the recieve port
+
 Future<void> Function(TaskArgumentAndSendPort<R> taskArgumentAndSendPort) _makeActualTask<R>(
-  FutureOr<Map<String, dynamic>> Function(R taskArgument) task,
+  FutureOr<Map<String, dynamic>> Function(
+    R taskArgument,
+    void Function(double progress) onProgressUpdate,
+  )
+      task,
 ) {
   return (TaskArgumentAndSendPort<R> taskArgumentAndSendPort) async {
-    final taskResultJson = await task(taskArgumentAndSendPort.taskArgument);
+    final taskResultJson = await task(
+      taskArgumentAndSendPort.taskArgument,
+      (progress) {
+        taskArgumentAndSendPort.sendport.send(jsonEncode(ProgressUpdateMessage(progress).toJson()));
+      },
+    );
     taskArgumentAndSendPort.sendport.send(
-      jsonEncode(taskResultJson),
+      jsonEncode(ResultMessage(taskResultJson).toJson()),
     );
   };
 }
@@ -65,4 +108,48 @@ class TaskArgumentAndSendPort<T> {
   final SendPort sendport;
 
   TaskArgumentAndSendPort(this.taskArgument, this.sendport);
+}
+
+class ProgressUpdateMessage {
+  ProgressUpdateMessage(this.progress);
+  ProgressUpdateMessage.fromJson(Map<String, dynamic> json) : progress = json['progress'] as double;
+
+  final double progress;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'type': IsolateMessageType.progressUpdate.name,
+        'progress': progress,
+      };
+}
+
+class ResultMessage {
+  ResultMessage(this.body);
+
+  ResultMessage.fromJson(Map<String, dynamic> json) : body = json['body'] as Map<String, dynamic>;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'type': IsolateMessageType.result.name,
+        'body': body,
+      };
+
+  final Map<String, dynamic> body;
+}
+
+enum IsolateMessageType {
+  result,
+  progressUpdate,
+}
+
+IsolateMessageType getIsolateMessageTypeFromJson(Map<String, dynamic> json) {
+  return isolateMessageTypeFromString(json['type'] as String);
+}
+
+IsolateMessageType isolateMessageTypeFromString(String typeString) {
+  if (typeString == IsolateMessageType.progressUpdate.name) {
+    return IsolateMessageType.progressUpdate;
+  }
+  if (typeString == IsolateMessageType.result.name) {
+    return IsolateMessageType.result;
+  }
+  throw Exception('invalid IsolateMessageType: $typeString');
 }
