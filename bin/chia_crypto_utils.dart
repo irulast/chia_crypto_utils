@@ -117,6 +117,7 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
   CreateWalletWithPlotNFTCommand() {
     argParser
       ..addOption('pool-url', defaultsTo: 'https://xch-us-west.flexpool.io')
+      ..addOption('output-config')
       ..addOption(
         'certificate-bytes-path',
         defaultsTo: 'mozilla-ca/cacert.pem',
@@ -131,6 +132,8 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
 
   @override
   Future<void> run() async {
+    final outputConfigFile = argResults!['output-config'] as String;
+
     final poolService = _getPoolServiceImpl(
       argResults!['pool-url'] as String,
       argResults!['certificate-bytes-path'] as String,
@@ -173,12 +176,27 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
     }
 
     try {
-      await createNewWalletWithPlotNFT(
+      final plotNFTDetails = await createNewWalletWithPlotNFT(
         keychainSecret,
         keychain,
         poolService,
         fullNode,
       );
+
+      if (outputConfigFile.isNotEmpty) {
+        await File(outputConfigFile).writeAsString(
+          '''
+{
+    "mnemonic": "$mnemonicPhrase",
+    "first_address": "${coinAddress.address}",
+    "contract_address": "${plotNFTDetails.contractAddress.address}",
+    "payout_address": "${plotNFTDetails.payoutAddress.address}",
+    "launcher_id": "${plotNFTDetails.launcherId.toHex()}",
+    "worker_name": "Evergreen_v1"
+}
+''',
+        );
+      }
     } catch (e) {
       LoggingContext().error(e.toString());
     }
