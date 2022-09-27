@@ -2,6 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
 
+import 'package:chia_crypto_utils/src/utils/spawn_and_wait_for_isolate/models/isolate_message_type.dart';
+import 'package:chia_crypto_utils/src/utils/spawn_and_wait_for_isolate/models/progress_update_message.dart';
+import 'package:chia_crypto_utils/src/utils/spawn_and_wait_for_isolate/models/result_message.dart';
+
 Future<T> spawnAndWaitForIsolate<T, R>({
   required R taskArgument,
   required FutureOr<Map<String, dynamic>> Function(R taskArgument) isolateTask,
@@ -108,48 +112,4 @@ class TaskArgumentAndSendPort<T> {
   final SendPort sendport;
 
   TaskArgumentAndSendPort(this.taskArgument, this.sendport);
-}
-
-class ProgressUpdateMessage {
-  ProgressUpdateMessage(this.progress);
-  ProgressUpdateMessage.fromJson(Map<String, dynamic> json) : progress = json['progress'] as double;
-
-  final double progress;
-
-  Map<String, dynamic> toJson() => <String, dynamic>{
-        'type': IsolateMessageType.progressUpdate.name,
-        'progress': progress,
-      };
-}
-
-class ResultMessage {
-  ResultMessage(this.body);
-
-  ResultMessage.fromJson(Map<String, dynamic> json) : body = json['body'] as Map<String, dynamic>;
-
-  Map<String, dynamic> toJson() => <String, dynamic>{
-        'type': IsolateMessageType.result.name,
-        'body': body,
-      };
-
-  final Map<String, dynamic> body;
-}
-
-enum IsolateMessageType {
-  result,
-  progressUpdate,
-}
-
-IsolateMessageType getIsolateMessageTypeFromJson(Map<String, dynamic> json) {
-  return isolateMessageTypeFromString(json['type'] as String);
-}
-
-IsolateMessageType isolateMessageTypeFromString(String typeString) {
-  if (typeString == IsolateMessageType.progressUpdate.name) {
-    return IsolateMessageType.progressUpdate;
-  }
-  if (typeString == IsolateMessageType.result.name) {
-    return IsolateMessageType.result;
-  }
-  throw Exception('invalid IsolateMessageType: $typeString');
 }

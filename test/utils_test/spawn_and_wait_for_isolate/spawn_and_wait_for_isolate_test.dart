@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:chia_crypto_utils/src/utils/spawn_and_wait_for_isolate.dart';
+import 'package:chia_crypto_utils/src/utils/spawn_and_wait_for_isolate/spawn_and_wait_for_isolate.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {

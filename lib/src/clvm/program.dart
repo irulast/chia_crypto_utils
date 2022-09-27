@@ -9,7 +9,7 @@ import 'package:chia_crypto_utils/src/clvm/ir.dart';
 import 'package:chia_crypto_utils/src/clvm/keywords.dart';
 import 'package:chia_crypto_utils/src/clvm/parser.dart';
 import 'package:chia_crypto_utils/src/clvm/printable.dart';
-import 'package:chia_crypto_utils/src/utils/spawn_and_wait_for_isolate.dart';
+import 'package:chia_crypto_utils/src/utils/spawn_and_wait_for_isolate/spawn_and_wait_for_isolate.dart';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 import 'package:path/path.dart' as path;
