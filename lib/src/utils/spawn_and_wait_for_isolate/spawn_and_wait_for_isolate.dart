@@ -30,7 +30,7 @@ Future<T> spawnAndWaitForIsolate<T, R>({
 // allow the caller to wait for the completion of the isolate
 Future<T> spawnAndWaitForIsolateWithProgressUpdates<T, R>({
   required R taskArgument,
-  required FutureOr<void> Function(double progress) onProgressUpdate,
+  required void Function(double progress) onProgressUpdate,
   required FutureOr<Map<String, dynamic>> Function(
     R taskArgument,
     void Function(double progress) onProgressUpdate,

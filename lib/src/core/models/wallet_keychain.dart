@@ -4,6 +4,7 @@ import 'dart:collection';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/utils/serialization.dart';
+import 'package:chia_crypto_utils/src/utils/spawn_and_wait_for_isolate/spawn_and_wait_for_isolate.dart';
 
 class WalletKeychain with ToBytesMixin {
   WalletKeychain({
@@ -28,17 +29,63 @@ class WalletKeychain with ToBytesMixin {
     );
   }
 
+  static Map<String, dynamic> _walletKeychainFromCoreSecretTask(
+    WalletKeychainFromCoreSecretIsolateArguments arguments,
+    void Function(double progress) onProgressUpdate,
+  ) {
+    final keychain = WalletKeychain.fromCoreSecret(
+      arguments.coreSecret,
+      walletSize: arguments.walletSize,
+      plotNftWalletSize: arguments.plotNftWalletSize,
+      onProgressUpdate: onProgressUpdate,
+    );
+    return <String, dynamic>{
+      'keychain': keychain.toHex(),
+    };
+  }
+
+  static Future<WalletKeychain> fromCoreSecretAsync(
+    KeychainCoreSecret coreSecret, {
+    int walletSize = 5,
+    int plotNftWalletSize = 2,
+    void Function(double progress)? onProgressUpdate,
+  }) async {
+    return spawnAndWaitForIsolateWithProgressUpdates(
+      taskArgument: WalletKeychainFromCoreSecretIsolateArguments(
+        coreSecret: coreSecret,
+        walletSize: walletSize,
+        plotNftWalletSize: plotNftWalletSize,
+      ),
+      onProgressUpdate: onProgressUpdate ?? (_) {},
+      isolateTask: _walletKeychainFromCoreSecretTask,
+      handleTaskCompletion: (taskResultJson) =>
+          WalletKeychain.fromHex(taskResultJson['keychain'] as String),
+    );
+  }
+
   factory WalletKeychain.fromCoreSecret(
     KeychainCoreSecret coreSecret, {
     int walletSize = 5,
     int plotNftWalletSize = 2,
+    void Function(double progress)? onProgressUpdate,
   }) {
+    final totalWalletVectorsToGenerate = (walletSize * 2) + plotNftWalletSize;
+    var totalWalletVectorsGenerated = 0;
+
+    void incrementAndCallUpdate() {
+      totalWalletVectorsGenerated++;
+      onProgressUpdate?.call(totalWalletVectorsGenerated / totalWalletVectorsToGenerate);
+    }
+
     final masterPrivateKey = coreSecret.masterPrivateKey;
     final walletVectors = LinkedHashMap<Puzzlehash, WalletVector>();
     final unhardenedWalletVectors = LinkedHashMap<Puzzlehash, UnhardenedWalletVector>();
     for (var i = 0; i < walletSize; i++) {
       final walletVector = WalletVector.fromPrivateKey(masterPrivateKey, i);
+      incrementAndCallUpdate();
+
       final unhardenedWalletVector = UnhardenedWalletVector.fromPrivateKey(masterPrivateKey, i);
+      incrementAndCallUpdate();
 
       walletVectors[walletVector.puzzlehash] = walletVector;
       unhardenedWalletVectors[unhardenedWalletVector.puzzlehash] = unhardenedWalletVector;
@@ -47,6 +94,8 @@ class WalletKeychain with ToBytesMixin {
     final singletonVectors = <JacobianPoint, SingletonWalletVector>{};
     for (var i = 0; i < plotNftWalletSize; i++) {
       final singletonWalletVector = SingletonWalletVector.fromMasterPrivateKey(masterPrivateKey, i);
+      incrementAndCallUpdate();
+
       singletonVectors[singletonWalletVector.singletonOwnerPublicKey] = singletonWalletVector;
     }
 
@@ -280,4 +329,16 @@ class WalletPuzzlehash extends Puzzlehash {
         'puzzlehash': toHex(),
         'derivation_index': derivationIndex,
       };
+}
+
+class WalletKeychainFromCoreSecretIsolateArguments {
+  WalletKeychainFromCoreSecretIsolateArguments({
+    required this.coreSecret,
+    required this.walletSize,
+    required this.plotNftWalletSize,
+  });
+
+  final KeychainCoreSecret coreSecret;
+  final int walletSize;
+  final int plotNftWalletSize;
 }
