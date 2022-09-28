@@ -26,6 +26,16 @@ docker run -e TARGET_UID="$(id -u)" -e TARGET_GID="$(id -g)" -e CLIENT_CONFIG_DI
  chia-simulator
 ```
 
+### Evergreen
+```bash
+export FULL_NODE_SIMULATOR_GEN_PATH=$(pwd)
+docker run -e TARGET_UID="$(id -u)" -e TARGET_GID="$(id -g)" -e CLIENT_CONFIG_DIR="/temp/config/" \
+ -p 5000:8555 \
+ -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/test-plots":/root/.chia/test-plots \
+ -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/config:/temp/config" \
+irulast/chia-simulator:evg-enhanced-latest
+```
+
 ### Intel Mac
 ```bash
 export FULL_NODE_SIMULATOR_GEN_PATH=$(pwd)
