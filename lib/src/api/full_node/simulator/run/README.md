@@ -7,8 +7,14 @@ The Chia simulator can be used to write integration tests.
 This starts the simulator running on port 5000 accessible from the host system.
 
 ### Local Build and Run
+#### Standard Full Node
 ```bash
 docker build . -t chia-simulator
+```
+
+#### Enhanced Full Node
+```bash
+docker build -f Dockerfile.enhanced . -t chia-simulator-enhanced
 ```
 
 ```bash
