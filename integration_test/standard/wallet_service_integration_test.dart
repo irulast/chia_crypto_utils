@@ -198,4 +198,41 @@ Future<void> main() async {
     final endingReceiverBalance = await fullNodeSimulator.getBalance([receiverPuzzlehash]);
     expect(endingReceiverBalance - startingReceiverBalance, amountToSend);
   });
+
+  test('should get standard coins by memo', () async {
+    //only works when memo is 32 bytes
+    final coinsToSend = coins.sublist(0, 2);
+    coins.removeWhere(coinsToSend.contains);
+
+    final coinsValue = coinsToSend.fold(
+      0,
+      (int previousValue, element) => previousValue + element.amount,
+    );
+    final amountToSend = (coinsValue * 0.8).round();
+    final fee = (coinsValue * 0.1).round();
+
+    final memo = Program.fromInt(2382973624).hash();
+
+    final spendBundle = walletService.createSpendBundle(
+      payments: [
+        Payment(amountToSend, receiverPuzzlehash, memos: <Bytes>[memo])
+      ],
+      coinsInput: coins,
+      changePuzzlehash: senderPuzzlehash,
+      keychain: keychain,
+      fee: fee,
+    );
+    await fullNodeSimulator.pushTransaction(spendBundle);
+    await fullNodeSimulator.moveToNextBlock();
+
+    final coinsByMemo = await fullNodeSimulator.getCoinsByMemo(memo);
+    final expectedAdditions = spendBundle.additions;
+
+    for (final coin in coinsByMemo) {
+      expect(
+        expectedAdditions.where((expectedAddition) => expectedAddition.id == coin.id).length,
+        equals(1),
+      );
+    }
+  });
 }
