@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/cat/exceptions/mixed_asset_ids_exception.dart';
 import 'package:chia_crypto_utils/src/core/exceptions/change_puzzlehash_needed_exception.dart';
+import 'package:chia_crypto_utils/src/core/exceptions/insufficient_coins_exception.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
@@ -212,6 +213,19 @@ Future<void> main() async {
         );
       },
       throwsA(isA<ChangePuzzlehashNeededException>()),
+    );
+  });
+
+  test('Should throw exception when there are insufficient funds to make payment', () {
+    expect(
+      () {
+        catWalletService.createSpendBundle(
+          payments: [Payment(1000, targetPuzzlehash)],
+          catCoinsInput: catCoins,
+          keychain: walletKeychain,
+        );
+      },
+      throwsA(isA<InsufficientCoinsException>()),
     );
   });
 }
