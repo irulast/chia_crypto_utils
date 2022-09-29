@@ -20,7 +20,7 @@ class CoinPrototype with ToBytesMixin {
   CoinPrototype.fromJson(Map<String, dynamic> json)
       : parentCoinInfo = Bytes.fromHex(json['parent_coin_info'] as String),
         puzzlehash = Puzzlehash.fromHex(json['puzzle_hash'] as String),
-        amount = json['amount'] as int;
+        amount = (json['amount'] as num).toInt();
 
   Bytes get id {
     return (parentCoinInfo + puzzlehash + intToBytesStandard(amount, Endian.big)).sha256Hash();
