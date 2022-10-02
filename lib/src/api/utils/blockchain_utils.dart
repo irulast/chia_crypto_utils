@@ -7,7 +7,10 @@ class BlockchainUtils {
   final ChiaFullNodeInterface fullNode;
   final logger = LoggingContext().info;
 
-  Future<List<Coin>> waitForTransactions(List<Bytes> parentCoinIds) async {
+  Future<List<Coin>> waitForTransactions(
+    List<Bytes> parentCoinIds, {
+    Duration coinSearchWaitPeriod = const Duration(seconds: 19),
+  }) async {
     final unspentIds = Set<Bytes>.from(parentCoinIds);
     final allSpentCoins = <Coin>[];
 
@@ -23,7 +26,7 @@ class BlockchainUtils {
       final spentIds = spentCoins.map((c) => c.id).toSet();
       unspentIds.removeWhere(spentIds.contains);
 
-      await Future<void>.delayed(const Duration(seconds: 19));
+      await Future<void>.delayed(coinSearchWaitPeriod);
     }
     return allSpentCoins;
   }
