@@ -1,5 +1,7 @@
 // ignore_for_file: lines_longer_than_80_chars
 
+import 'dart:async';
+
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class SimulatorFullNodeInterface extends ChiaFullNodeInterface {
@@ -19,5 +21,11 @@ class SimulatorFullNodeInterface extends ChiaFullNodeInterface {
 
   Future<void> farmCoins(Address address) async {
     await fullNode.farmTransactionBlock(address);
+  }
+
+  void run({Duration blockPeriod = const Duration(seconds: 19)}) {
+    Timer.periodic(blockPeriod, (timer) {
+      fullNode.farmTransactionBlock(utilAddress);
+    });
   }
 }

@@ -3,8 +3,9 @@ import 'dart:math';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class CoinSplittingService {
-  CoinSplittingService(this.fullNode) : blockchainUtils = BlockchainUtils(fullNode);
-  CoinSplittingService.fromContext()
+  CoinSplittingService(this.fullNode, {this.coinSearchWaitPeriod = _defaultCoinSearchWaitPeriod})
+      : blockchainUtils = BlockchainUtils(fullNode);
+  CoinSplittingService.fromContext({this.coinSearchWaitPeriod = _defaultCoinSearchWaitPeriod})
       : fullNode = ChiaFullNodeInterface.fromContext(),
         blockchainUtils = BlockchainUtils.fromContext();
 
@@ -13,6 +14,8 @@ class CoinSplittingService {
   final catWalletService = CatWalletService();
   final standardWalletService = StandardWalletService();
   final logger = LoggingContext().info;
+  final Duration coinSearchWaitPeriod;
+  static const _defaultCoinSearchWaitPeriod = Duration(seconds: 19);
 
   Future<int> splitCoins({
     required CatCoin catCoinToSplit,
@@ -327,7 +330,8 @@ class CoinSplittingService {
   }
 
   Future<int> waitForTransactionsAndGetFirstSpentIndex(List<Bytes> parentIds) async {
-    final spentCoins = await blockchainUtils.waitForTransactions(parentIds);
+    final spentCoins = await blockchainUtils.waitForTransactions(parentIds,
+        coinSearchWaitPeriod: coinSearchWaitPeriod);
     return spentCoins.map((c) => c.spentBlockIndex).reduce(min);
   }
 
