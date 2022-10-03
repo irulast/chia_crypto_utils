@@ -21,19 +21,19 @@ class BlockchainState {
 }
 
 class Peak {
-  Bytes farmerPuzzleHash;
+  Puzzlehash farmerPuzzlehash;
   Bytes headerHash;
   int height;
 
   Peak({
-    required this.farmerPuzzleHash,
+    required this.farmerPuzzlehash,
     required this.headerHash,
     required this.height,
   });
 
   factory Peak.fromJson(Map<String, dynamic> json) {
     return Peak(
-      farmerPuzzleHash: Bytes.fromHex(json['farmer_puzzle_hash'] as String),
+      farmerPuzzlehash: Puzzlehash.fromHex(json['farmer_puzzle_hash'] as String),
       headerHash: Bytes.fromHex(json['header_hash'] as String),
       height: json['height'] as int,
     );
