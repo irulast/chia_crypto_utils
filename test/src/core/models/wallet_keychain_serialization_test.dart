@@ -4,18 +4,18 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
-void main() {
-  final keychainSecret = KeychainCoreSecret.generate();
+void main() async {
+  final keychainSecret = await KeychainCoreSecret.generateAsync();
 
-  final walletsSetList = <WalletSet>[];
-  for (var i = 0; i < 20; i++) {
-    final set1 = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, i);
-    walletsSetList.add(set1);
-  }
+  final keychain = await WalletKeychain.fromCoreSecretAsync(
+    keychainSecret,
+    walletSize: 20,
+    plotNftWalletSize: 0,
+  );
 
   final assetIds = [Program.fromInt(0).hash(), Program.fromInt(1).hash()];
 
-  final walletKeychain = WalletKeychain.fromWalletSets(walletsSetList)
+  final walletKeychain = keychain
     ..addOuterPuzzleHashesForAssetId(assetIds[0])
     ..addOuterPuzzleHashesForAssetId(assetIds[1])
     ..getNextSingletonWalletVector(keychainSecret.masterPrivateKey)

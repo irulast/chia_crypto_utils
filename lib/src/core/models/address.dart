@@ -2,6 +2,7 @@
 
 import 'package:bech32m/bech32m.dart';
 import 'package:chia_crypto_utils/src/clvm/bytes.dart';
+import 'package:chia_crypto_utils/src/context/index.dart';
 import 'package:meta/meta.dart';
 
 @immutable
@@ -10,6 +11,11 @@ class Address {
 
   Address.fromPuzzlehash(Puzzlehash puzzlehash, String addressPrefix)
       : address = segwit.encode(Segwit(addressPrefix, puzzlehash));
+
+  factory Address.fromContext(Puzzlehash puzzlehash) {
+    final addressPrefix = NetworkContext().blockchainNetwork.addressPrefix;
+    return Address.fromPuzzlehash(puzzlehash, addressPrefix);
+  }
 
   final String address;
 

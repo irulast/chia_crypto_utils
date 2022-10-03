@@ -1,3 +1,4 @@
+@Timeout(Duration(seconds: 60))
 import 'package:chia_crypto_utils/src/clvm/program.dart';
 import 'package:hex/hex.dart';
 import 'package:test/expect.dart';
@@ -1913,6 +1914,32 @@ void main() {
           var puzzleProgram = Program.parse(puzzle);
           var solutionProgram = Program.parse(solution);
           var result = puzzleProgram.run(solutionProgram,
+              options: RunOptions(maxCost: cost, strict: item.key.strict));
+
+          var expected = item.value!;
+          var output = item.value!.dump
+              ? HexEncoder().convert(result.program.serialize())
+              : result.program.toSource(showKeywords: item.value!.showKeywords);
+          expect(output, equals(expected.output), reason: 'Wrong output');
+          if (expected.cost != null) {
+            expect(result.cost.toInt(), equals(expected.cost! - 9), reason: 'Wrong cost');
+          }
+        }
+      });
+
+      test('$puzzle with $solution async', () async {
+        var cost = item.key.cost == null ? null : BigInt.from(item.key.cost!);
+        if (item.value == null) {
+          expect(() async {
+            var puzzleProgram = Program.parse(puzzle);
+            var solutionProgram = Program.parse(solution);
+            await puzzleProgram.runAsync(solutionProgram,
+                options: RunOptions(maxCost: cost, strict: item.key.strict));
+          }, throwsA(isA<dynamic>()));
+        } else {
+          var puzzleProgram = Program.parse(puzzle);
+          var solutionProgram = Program.parse(solution);
+          var result = await puzzleProgram.runAsync(solutionProgram,
               options: RunOptions(maxCost: cost, strict: item.key.strict));
           var expected = item.value!;
           var output = item.value!.dump

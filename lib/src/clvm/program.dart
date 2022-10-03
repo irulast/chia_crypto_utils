@@ -9,6 +9,7 @@ import 'package:chia_crypto_utils/src/clvm/ir.dart';
 import 'package:chia_crypto_utils/src/clvm/keywords.dart';
 import 'package:chia_crypto_utils/src/clvm/parser.dart';
 import 'package:chia_crypto_utils/src/clvm/printable.dart';
+import 'package:chia_crypto_utils/src/utils/spawn_and_wait_for_isolate/spawn_and_wait_for_isolate.dart';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 import 'package:path/path.dart' as path;
@@ -18,6 +19,15 @@ class Output {
   final Program program;
   final BigInt cost;
   Output(this.program, this.cost);
+
+  Output.fromJson(Map<String, dynamic> json)
+      : cost = BigInt.parse(json['cost'] as String),
+        program = Program.parse(json['program'] as String);
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'cost': cost.toString(),
+        'program': program.toSource(),
+      };
 }
 
 class RunOptions {
@@ -122,6 +132,21 @@ class Program with ToBytesMixin {
       _source = source.replaceFirst('0x', '');
     }
     return Program.deserialize(const HexDecoder().convert(_source));
+  }
+
+  static Map<String, dynamic> runProgramIsolateTask(PuzzleAndSolution puzzleAndSolution) {
+    final puzzle = puzzleAndSolution.puzzle;
+    final solution = puzzleAndSolution.solution;
+    final output = puzzle.run(solution, options: puzzleAndSolution.options);
+    return output.toJson();
+  }
+
+  Future<Output> runAsync(Program args, {RunOptions? options}) async {
+    return spawnAndWaitForIsolate(
+      taskArgument: PuzzleAndSolution(puzzle: this, solution: args, options: options),
+      isolateTask: runProgramIsolateTask,
+      handleTaskCompletion: Output.fromJson,
+    );
   }
 
   Output run(Program args, {RunOptions? options}) {
@@ -494,4 +519,16 @@ class ProgramAndArguments {
   Program program;
 
   ProgramAndArguments(this.arguments, this.program);
+}
+
+class PuzzleAndSolution {
+  final Program puzzle;
+  final Program solution;
+  final RunOptions? options;
+
+  PuzzleAndSolution({
+    required this.puzzle,
+    required this.solution,
+    required this.options,
+  });
 }

@@ -1,10 +1,14 @@
 // ignore_for_file: lines_longer_than_80_chars
 
+import 'dart:typed_data';
+
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/standard/exceptions/invalid_condition_cast_exception.dart';
 
 class CreateCoinCondition implements Condition {
   static int conditionCode = 51;
+  static String conditionCodeHex = '0x33';
+  static String opcode = 'CREATE_COIN';
 
   Puzzlehash destinationPuzzlehash;
   int amount;
@@ -25,6 +29,22 @@ class CreateCoinCondition implements Condition {
           : null,
     );
   }
+
+  factory CreateCoinCondition.fromJsonList(List<dynamic> vars) {
+    final puzzlehash = Puzzlehash.fromHex(vars[0] as String);
+    final amount = vars[1] as int;
+
+    // memo only given in list format if its a hint
+    Bytes? hint;
+    if (vars.length > 2 && vars[2] != Bytes.bytesPrefix) {
+      hint = Bytes.fromHex(vars[2] as String);
+    }
+
+    final memos = hint != null ? [hint] : null;
+    return CreateCoinCondition(puzzlehash, amount, memos: memos);
+  }
+
+  Payment toPayment() => Payment(amount, destinationPuzzlehash, memos: memos);
 
   @override
   Program get program {
