@@ -279,7 +279,7 @@ Future<void> main() async {
 
     expect(
       spentCoinsCheck,
-      equals(true),
+      equals(false),
     );
   });
 
