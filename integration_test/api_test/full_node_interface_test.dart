@@ -100,35 +100,27 @@ Future<void> main() async {
   await fullNodeSimulator.pushTransaction(spendBundle);
   await fullNodeSimulator.moveToNextBlock();
 
+  final blockchainState = await fullNodeSimulator.getBlockchainState();
+  final catPuzzlehash = WalletKeychain.makeOuterPuzzleHash(puzzlehash, assetId);
+
+  // specific parent info values are not used because there is possible variation in parent info in the simulator
   final testStandardCoins = [
     CoinPrototype(
-      parentCoinInfo: Puzzlehash.fromHex(
-        '27ae41e4649b934ca495991b7852b85500000000000000000000000000000001',
-      ),
-      puzzlehash: Puzzlehash.fromHex(
-        '0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad',
-      ),
+      parentCoinInfo: Puzzlehash.zeros(),
+      puzzlehash: puzzlehash,
       amount: 250000000000,
     ),
     CoinPrototype(
-      parentCoinInfo: Puzzlehash.fromHex(
-        'e3b0c44298fc1c149afbf4c8996fb92400000000000000000000000000000001',
-      ),
-      puzzlehash: Puzzlehash.fromHex(
-        '0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad',
-      ),
+      parentCoinInfo: Puzzlehash.zeros(),
+      puzzlehash: puzzlehash,
       amount: 1750000000000,
     ),
   ];
 
   final testCatCoins = [
     CoinPrototype(
-      parentCoinInfo: Puzzlehash.fromHex(
-        '98115571bab29d11253fdced97770c836ffa26fb7a8e2c98ea0f3ae1ef4282a4',
-      ),
-      puzzlehash: Puzzlehash.fromHex(
-        'ed927230abae9189ed736dfdff395a050493ba1502bd2636b8d0e1d0651e18eb',
-      ),
+      parentCoinInfo: Puzzlehash.zeros(),
+      puzzlehash: catPuzzlehash,
       amount: 10000,
     ),
   ];
@@ -256,7 +248,7 @@ Future<void> main() async {
 
   test('should get cat coins by memo', () async {
     final catCoins = await fullNodeSimulator.getCatCoinsByMemo(
-      Bytes.fromHex('0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad'),
+      puzzlehash,
     );
 
     for (final testCatCoin in testCatCoins) {
@@ -287,7 +279,7 @@ Future<void> main() async {
 
     expect(
       spentCoinsCheck,
-      equals(true),
+      equals(false),
     );
   });
 
@@ -303,8 +295,7 @@ Future<void> main() async {
   });
 
   test('should get additions and removals', () async {
-    final blockChainState = await fullNodeSimulator.getBlockchainState();
-    final headerHash = blockChainState?.peak?.headerHash;
+    final headerHash = blockchainState?.peak?.headerHash;
 
     expect(headerHash, isNotNull);
 

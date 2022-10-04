@@ -5,7 +5,7 @@ import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
 Future<void> main() async {
-  const nTests = 4;
+  const nTests = 5;
 
   if (!(await SimulatorUtils.checkIfSimulatorIsRunning())) {
     print(SimulatorUtils.simulatorNotRunningWarning);
@@ -17,6 +17,7 @@ Future<void> main() async {
     certBytes: SimulatorUtils.certBytes,
     keyBytes: SimulatorUtils.keyBytes,
   );
+
   final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
 
   final keychainSecret = KeychainCoreSecret.generate();
@@ -217,7 +218,7 @@ Future<void> main() async {
       payments: [
         Payment(amountToSend, receiverPuzzlehash, memos: <Bytes>[memo])
       ],
-      coinsInput: coins,
+      coinsInput: coinsToSend,
       changePuzzlehash: senderPuzzlehash,
       keychain: keychain,
       fee: fee,
