@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class SimulatorFullNodeInterface extends ChiaFullNodeInterface {
-  const SimulatorFullNodeInterface(this.fullNode) : super(fullNode);
+  SimulatorFullNodeInterface(this.fullNode) : super(fullNode);
 
   @override
   // ignore: overridden_fields
@@ -23,9 +23,16 @@ class SimulatorFullNodeInterface extends ChiaFullNodeInterface {
     await fullNode.farmTransactionBlock(address);
   }
 
+  Timer? blockCreationTimer;
+
   void run({Duration blockPeriod = const Duration(seconds: 19)}) {
-    Timer.periodic(blockPeriod, (timer) {
+    stop();
+    blockCreationTimer = Timer.periodic(blockPeriod, (timer) {
       fullNode.farmTransactionBlock(utilAddress);
     });
+  }
+
+  void stop() {
+    blockCreationTimer?.cancel();
   }
 }
