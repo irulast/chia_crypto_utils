@@ -1,6 +1,7 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/api/full_node/full_node.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
@@ -99,35 +100,27 @@ Future<void> main() async {
   await fullNodeSimulator.pushTransaction(spendBundle);
   await fullNodeSimulator.moveToNextBlock();
 
+  final blockchainState = await fullNodeSimulator.getBlockchainState();
+  final catPuzzlehash = WalletKeychain.makeOuterPuzzleHash(puzzlehash, assetId);
+
+  // specific parent info values are not used because there is possible variation in parent info in the simulator
   final testStandardCoins = [
     CoinPrototype(
-      parentCoinInfo: Puzzlehash.fromHex(
-        '27ae41e4649b934ca495991b7852b85500000000000000000000000000000001',
-      ),
-      puzzlehash: Puzzlehash.fromHex(
-        '0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad',
-      ),
+      parentCoinInfo: Puzzlehash.zeros(),
+      puzzlehash: puzzlehash,
       amount: 250000000000,
     ),
     CoinPrototype(
-      parentCoinInfo: Puzzlehash.fromHex(
-        'e3b0c44298fc1c149afbf4c8996fb92400000000000000000000000000000001',
-      ),
-      puzzlehash: Puzzlehash.fromHex(
-        '0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad',
-      ),
+      parentCoinInfo: Puzzlehash.zeros(),
+      puzzlehash: puzzlehash,
       amount: 1750000000000,
     ),
   ];
 
   final testCatCoins = [
     CoinPrototype(
-      parentCoinInfo: Puzzlehash.fromHex(
-        '0fe40b1ec35f3472c8cf0f244c207c26e7a8678413dceb87cff38dc2c1c95093',
-      ),
-      puzzlehash: Puzzlehash.fromHex(
-        '5db372b6e7577013035b4ee3fced2a7466d6ff1d3716b182afe520d83ee3427a',
-      ),
+      parentCoinInfo: Puzzlehash.zeros(),
+      puzzlehash: catPuzzlehash,
       amount: 10000,
     ),
   ];
@@ -147,7 +140,61 @@ Future<void> main() async {
         returnsNormally,
       );
       expect(
-        () => coins.firstWhere((catCoin) => catCoin.puzzlehash == testCoin.puzzlehash),
+        () => coins.firstWhere((coin) => coin.puzzlehash == testCoin.puzzlehash),
+        returnsNormally,
+      );
+    }
+  });
+
+  test('should get standard coins by id', () async {
+    //get coins by puzzlehash first because sometimes parent info comes back differently
+    final coinsGotByPuzzlehashes = await fullNodeSimulator.getCoinsByPuzzleHashes(
+      testStandardCoins
+          .map(
+            (c) => c.puzzlehash,
+          )
+          .toList(),
+      includeSpentCoins: true,
+    );
+    final coinIds = coinsGotByPuzzlehashes
+        .map(
+          (c) => c.id,
+        )
+        .toList();
+    final coinsGotByIds = await fullNodeSimulator.getCoinsByIds(
+      coinIds,
+      includeSpentCoins: true,
+    );
+    for (final coinGotByPuzzlehash in coinsGotByPuzzlehashes) {
+      expect(
+        () => coinsGotByIds.firstWhere((coin) => coin.id == coinGotByPuzzlehash.id),
+        returnsNormally,
+      );
+    }
+  });
+
+  test('should get standard coins by parent id', () async {
+    //get coins by puzzlehash first because sometimes parent info comes back differently
+    final coinsGotByPuzzlehashes = await fullNodeSimulator.getCoinsByPuzzleHashes(
+      testStandardCoins
+          .map(
+            (c) => c.puzzlehash,
+          )
+          .toList(),
+      includeSpentCoins: true,
+    );
+    final coinParentInfo = coinsGotByPuzzlehashes
+        .map(
+          (c) => c.parentCoinInfo,
+        )
+        .toList();
+    final coinsGotByParentIds = await fullNodeSimulator.getCoinsByParentIds(
+      coinParentInfo,
+      includeSpentCoins: true,
+    );
+    for (final coinGotByPuzzlehash in coinsGotByPuzzlehashes) {
+      expect(
+        () => coinsGotByParentIds.firstWhere((coin) => coin.id == coinGotByPuzzlehash.id),
         returnsNormally,
       );
     }
@@ -184,7 +231,7 @@ Future<void> main() async {
           )
           .toList(),
     );
-    for (final testCatCoin in catCoins) {
+    for (final testCatCoin in testCatCoins) {
       // can't check for parentCoinInfo because it will change based on the coin used to mint the cat
       expect(
         () => catCoins.firstWhere((catCoin) => catCoin.amount == testCatCoin.amount),
@@ -196,6 +243,82 @@ Future<void> main() async {
         ),
         returnsNormally,
       );
+    }
+  });
+
+  test('should get cat coins by memo', () async {
+    final catCoins = await fullNodeSimulator.getCatCoinsByMemo(
+      puzzlehash,
+    );
+
+    for (final testCatCoin in testCatCoins) {
+      expect(
+        () => catCoins.firstWhere((catCoin) => catCoin.amount == testCatCoin.amount),
+        returnsNormally,
+      );
+      expect(
+        () => catCoins.firstWhere(
+          (catCoin) => catCoin.puzzlehash == testCatCoin.puzzlehash,
+        ),
+        returnsNormally,
+      );
+    }
+  });
+
+  test('should correctly check for spent coins when there are spent coins', () async {
+    final spentCoinsCheck = await fullNodeSimulator.checkForSpentCoins(standardCoins);
+
+    expect(
+      spentCoinsCheck,
+      equals(true),
+    );
+  });
+
+  test('should correctly check for spent coins when coins have not been spent', () async {
+    final spentCoinsCheck = await fullNodeSimulator.checkForSpentCoins(testStandardCoins);
+
+    expect(
+      spentCoinsCheck,
+      equals(false),
+    );
+  });
+
+  test('should get block records', () async {
+    final blockRecords = await fullNodeSimulator.getBlockRecords(0, 3);
+    var expectedHeight = 0;
+
+    for (final blockRecord in blockRecords) {
+      expect(blockRecord.headerHash, isA<Bytes>());
+      expect(blockRecord.height, equals(expectedHeight));
+      expectedHeight++;
+    }
+  });
+
+  test('should get additions and removals', () async {
+    final headerHash = blockchainState?.peak?.headerHash;
+
+    expect(headerHash, isNotNull);
+
+    if (headerHash != null) {
+      final additionsAndRemovals = await fullNodeSimulator.getAdditionsAndRemovals(headerHash);
+      final additions = additionsAndRemovals.additions;
+      final removals = additionsAndRemovals.removals;
+      final expectedAdditions = spendBundle.additions;
+      final expectedRemovals = [standardCoins.firstWhere((coin) => coin.amount >= 10000)];
+
+      for (final expectedAddition in expectedAdditions) {
+        expect(
+          () => additions.firstWhere((addition) => addition.id == expectedAddition.id),
+          returnsNormally,
+        );
+      }
+
+      for (final expectedRemoval in expectedRemovals) {
+        expect(
+          () => removals.firstWhere((removal) => removal.id == expectedRemoval.id),
+          returnsNormally,
+        );
+      }
     }
   });
 }
