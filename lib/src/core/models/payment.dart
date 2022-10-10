@@ -32,24 +32,8 @@ class Payment {
     if (memos == null) {
       return [];
     }
-    final _memoStrings = <String>[];
-    for (final memo in memos!) {
-      String? memoString;
-      try {
-        memoString = utf8.decode(memo);
-      } on Exception {
-        try {
-          memoString = memo.toHex();
-        } on Exception {
-          //pass
-        }
-      }
-      if (memoString != null) {
-        _memoStrings.add(memoString);
-      }
-    }
 
-    return _memoStrings;
+    return decodeBytesToStrings(memos!);
   }
 
   Program toProgram() {
@@ -92,4 +76,24 @@ extension PaymentIterable on Iterable<Payment> {
 
   List<String> get memoStrings =>
       fold(<String>[], (previousValue, element) => previousValue + (element.memoStrings));
+}
+
+List<String> decodeBytesToStrings(List<Bytes> listOfBytes) {
+  final decodedStrings = <String>[];
+  for (final bytes in listOfBytes) {
+    String? decodedString;
+    try {
+      decodedString = utf8.decode(bytes);
+    } on Exception {
+      try {
+        decodedString = bytes.toHex();
+      } on Exception {
+        //pass
+      }
+    }
+    if (decodedString != null) {
+      decodedStrings.add(decodedString);
+    }
+  }
+  return decodedStrings;
 }
