@@ -28,6 +28,30 @@ class Payment {
     return CreateCoinCondition(puzzlehash, amount, memos: memos);
   }
 
+  List<String> get memoStrings {
+    if (memos == null) {
+      return [];
+    }
+    final _memoStrings = <String>[];
+    for (final memo in memos!) {
+      String? memoString;
+      try {
+        memoString = utf8.decode(memo);
+      } on Exception {
+        try {
+          memoString = memo.toHex();
+        } on Exception {
+          //pass
+        }
+      }
+      if (memoString != null) {
+        _memoStrings.add(memoString);
+      }
+    }
+
+    return _memoStrings;
+  }
+
   Program toProgram() {
     return Program.list([
       Program.fromBytes(puzzlehash),
