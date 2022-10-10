@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/api/full_node/exceptions/full_node_error.dart';
 import 'package:chia_crypto_utils/src/api/full_node/exceptions/gateway_timeout_exception.dart';
-import 'package:chia_crypto_utils/src/api/full_node/models/responses/mempool_items_response.dart';
 
 import 'package:meta/meta.dart';
 

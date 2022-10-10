@@ -1,5 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/full_node/models/responses/mempool_items_response.dart';
 
 abstract class FullNode {
   const FullNode(this.baseURL);

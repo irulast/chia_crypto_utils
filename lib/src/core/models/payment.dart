@@ -82,8 +82,14 @@ class Payment {
   int get hashCode => puzzlehash.hashCode ^ amount.hashCode;
 }
 
-extension PaymentValue on List<Payment> {
+extension PaymentIterable on Iterable<Payment> {
   int get totalValue {
     return fold(0, (int previousValue, payment) => previousValue + payment.amount);
   }
+
+  List<Bytes> get memos =>
+      fold(<Bytes>[], (previousValue, element) => previousValue + (element.memos ?? []));
+
+  List<String> get memoStrings =>
+      fold(<String>[], (previousValue, element) => previousValue + (element.memoStrings));
 }
