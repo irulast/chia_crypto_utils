@@ -161,4 +161,7 @@ class PaymentsAndAdditions {
 extension PaymentMemos on Iterable<Payment> {
   List<Bytes> get memos =>
       fold(<Bytes>[], (previousValue, element) => previousValue + (element.memos ?? []));
+
+  List<String> get memoStrings =>
+      fold(<String>[], (previousValue, element) => previousValue + (element.memoStrings));
 }
