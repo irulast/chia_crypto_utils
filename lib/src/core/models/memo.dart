@@ -6,7 +6,7 @@ abstract class Memo extends Bytes {
   factory Memo(List<int> bytesList) {
     return LazyMemo(bytesList);
   }
-  factory Memo.precomputed(List<int> bytesList, String memoString) {
+  factory Memo.precomputed(List<int> bytesList, String? memoString) {
     return PrecomputedMemo(bytesList, memoString);
   }
   factory Memo.computed(List<int> bytesList) {
