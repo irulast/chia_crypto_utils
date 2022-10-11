@@ -114,7 +114,7 @@ class CoinSpend with ToBytesMixin {
     return _getPaymentsFromOutputProgram(await outputProgramAsync);
   }
 
-  Future<List<Bytes>> get memos async {
+  Future<List<Memo>> get memos async {
     final payments = await paymentsAsync;
     return payments.memos;
   }

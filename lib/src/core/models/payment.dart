@@ -9,17 +9,17 @@ import 'package:meta/meta.dart';
 class Payment {
   final int amount;
   final Puzzlehash puzzlehash;
-  final List<Bytes>? memos;
+  final List<Memo>? memos;
 
   Payment(this.amount, this.puzzlehash, {List<dynamic>? memos})
       : memos = memos == null
             ? null
             : memos is List<String>
-                ? memos.map((memo) => Bytes(utf8.encode(memo))).toList()
+                ? memos.map((memo) => Memo(utf8.encode(memo))).toList()
                 : memos is List<int>
-                    ? memos.map((memo) => Bytes(utf8.encode(memo.toString()))).toList()
+                    ? memos.map((memo) => Memo(utf8.encode(memo.toString()))).toList()
                     : memos is List<Bytes>
-                        ? memos
+                        ? memos.map((e) => Memo(e.byteList)).toList()
                         : throw ArgumentError(
                             'Unsupported type for memos. Must be Bytes, String, or int',
                           );
@@ -33,7 +33,15 @@ class Payment {
       return [];
     }
 
-    return decodeBytesToStrings(memos!);
+    final _memoStrings = <String>[];
+    for (final memo in memos!) {
+      final decodedString = memo.decodedString;
+      if (decodedString != null) {
+        _memoStrings.add(decodedString);
+      }
+    }
+
+    return _memoStrings;
   }
 
   Program toProgram() {
@@ -71,29 +79,9 @@ extension PaymentIterable on Iterable<Payment> {
     return fold(0, (int previousValue, payment) => previousValue + payment.amount);
   }
 
-  List<Bytes> get memos =>
-      fold(<Bytes>[], (previousValue, element) => previousValue + (element.memos ?? []));
+  List<Memo> get memos =>
+      fold(<Memo>[], (previousValue, element) => previousValue + (element.memos ?? []));
 
   List<String> get memoStrings =>
       fold(<String>[], (previousValue, element) => previousValue + (element.memoStrings));
-}
-
-List<String> decodeBytesToStrings(List<Bytes> listOfBytes) {
-  final decodedStrings = <String>[];
-  for (final bytes in listOfBytes) {
-    String? decodedString;
-    try {
-      decodedString = utf8.decode(bytes);
-    } on Exception {
-      try {
-        decodedString = bytes.toHex();
-      } on Exception {
-        //pass
-      }
-    }
-    if (decodedString != null) {
-      decodedStrings.add(decodedString);
-    }
-  }
-  return decodedStrings;
 }
