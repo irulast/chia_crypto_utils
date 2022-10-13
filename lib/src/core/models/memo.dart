@@ -35,17 +35,12 @@ class PrecomputedMemo extends Bytes implements Memo {
 }
 
 String? decodeStringFromBytes(Bytes bytes) {
-  String? _decodedString;
   try {
-    _decodedString = utf8.decode(bytes);
+    final _decodedString = utf8.decode(bytes);
+    return _decodedString;
   } on Exception {
-    try {
-      _decodedString = bytes.toHex();
-    } on Exception {
-      //pass
-    }
+    return null;
   }
-  return _decodedString;
 }
 
 extension ToPrecomputedMemo on Memo {
