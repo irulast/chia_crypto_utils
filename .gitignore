@@ -31,3 +31,6 @@ mozilla-ca
 
 # Ignore generated plots
 lib/src/api/full_node/simulator/run/temp
+
+# Ignore coverage report
+coverage/
