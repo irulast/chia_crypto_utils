@@ -21,4 +21,24 @@ void main() {
     final payloadSerialized = payload.toBytes().sha256Hash();
     expect(payloadSerialized.toHex(), equals(chiaPayloadHashHex));
   });
+
+  test('should correctly convert post farmer payload to json', () {
+    expect(payload.toJson(), <String, dynamic>{
+      'launcher_id': payload.launcherId.toHexWithPrefix(),
+      'authentication_token': payload.authenticationToken,
+      'authentication_public_key': payload.authenticationPublicKey.toHexWithPrefix(),
+      'payout_instructions': payload.payoutPuzzlehash.toHexWithPrefix(),
+      'suggested_difficulty': payload.suggestedDifficulty,
+    });
+  });
+
+  test('should correctly convert post farmer request to json', () {
+    final signature = JacobianPoint.generateG2();
+    final request = PostFarmerRequest(payload, signature);
+
+    expect(request.toJson(), <String, dynamic>{
+      'payload': payload.toJson(),
+      'signature': signature.toHexWithPrefix(),
+    });
+  });
 }
