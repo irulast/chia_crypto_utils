@@ -1,3 +1,5 @@
+// ignore_for_file: void_checks
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
@@ -68,7 +70,7 @@ Future<T> spawnAndWaitForIsolateWithProgressUpdates<T, R>({
     // second is stacktrace which is not needed
     final errors = message as List<dynamic>;
     errorPort.close();
-    completer.completeError(errors.first as Object);
+    completer.completeError(errors.first as Object, StackTrace.fromString(errors[1].toString()));
   });
 
   final taskArgumentAndSendPort = TaskArgumentAndSendPort(taskArgument, receivePort.sendPort);
@@ -78,8 +80,10 @@ Future<T> spawnAndWaitForIsolateWithProgressUpdates<T, R>({
     taskArgumentAndSendPort,
     onError: errorPort.sendPort,
   );
+  await completer.future.onError((error, stackTrace) {
+    throw IsolateException(error, stackTrace);
+  });
 
-  await Future.wait([completer.future]);
   return result as T;
 }
 
@@ -112,4 +116,16 @@ class TaskArgumentAndSendPort<T> {
   final SendPort sendport;
 
   TaskArgumentAndSendPort(this.taskArgument, this.sendport);
+}
+
+class IsolateException implements Exception {
+  IsolateException(this.error, this.stackTrace);
+
+  final Object? error;
+  final StackTrace stackTrace;
+
+  @override
+  String toString() {
+    return 'An error occurred inside an isolate: $error.\n $stackTrace';
+  }
 }
