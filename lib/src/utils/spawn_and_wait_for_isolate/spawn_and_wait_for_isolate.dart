@@ -126,6 +126,6 @@ class IsolateException implements Exception {
 
   @override
   String toString() {
-    return 'An error occurred inside an isolate: $error.\n $stackTrace';
+    return 'An error occurred inside an isolate: $error';
   }
 }
