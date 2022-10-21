@@ -10,7 +10,7 @@ class Client {
     this.baseURL, {
     Bytes? certBytes,
     Bytes? keyBytes,
-    this.timeout = const Duration(seconds: 20),
+    this.timeout = const Duration(seconds: 7),
   }) {
     final context = (certBytes != null && keyBytes != null)
         ? (SecurityContext.defaultContext
