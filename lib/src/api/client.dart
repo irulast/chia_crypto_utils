@@ -6,20 +6,27 @@ import 'dart:io';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class Client {
-  Client(this.baseURL, {Bytes? certBytes, Bytes? keyBytes}) {
+  Client(
+    this.baseURL, {
+    Bytes? certBytes,
+    Bytes? keyBytes,
+    this.timeout = const Duration(seconds: 20),
+  }) {
     final context = (certBytes != null && keyBytes != null)
         ? (SecurityContext.defaultContext
           ..usePrivateKeyBytes(keyBytes)
           ..useCertificateChainBytes(certBytes))
         : null;
     final httpClient = HttpClient(context: context)
-      ..badCertificateCallback = (cert, host, port) => true;
+      ..badCertificateCallback = ((cert, host, port) => true)
+      ..connectionTimeout = timeout;
 
     this.httpClient = httpClient;
   }
 
   late HttpClient httpClient;
   final String baseURL;
+  final Duration timeout;
 
   Future<Response> get(
     Uri url, {
@@ -39,7 +46,10 @@ class Client {
     });
     request.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
 
-    final response = await request.close();
+    final response = await request.close().timeout(
+          timeout,
+        );
+
     final stringData = await response.transform(utf8.decoder).join();
 
     logResponse(response, stringData);
@@ -65,7 +75,9 @@ class Client {
       request.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
       request.write(jsonEncode(requestBody));
 
-      final response = await request.close();
+      final response = await request.close().timeout(
+            timeout,
+          );
       final stringData = await response.transform(utf8.decoder).join();
 
       logResponse(response, stringData);
