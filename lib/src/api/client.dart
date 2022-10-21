@@ -94,7 +94,7 @@ class Client {
       }
       rethrow;
     } on Exception catch (e) {
-      LoggingContext().error(e.toString());
+      LoggingContext().api(e.toString());
       rethrow;
     }
   }
