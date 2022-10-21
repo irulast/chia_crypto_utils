@@ -84,10 +84,10 @@ class Client {
 
       return Response(stringData, response.statusCode);
     } on SocketException catch (e) {
-      LoggingContext().error(e.toString());
+      LoggingContext().api(e.toString());
       throw NotRunningException(baseURL);
     } on HttpException catch (e) {
-      LoggingContext().error(e.toString());
+      LoggingContext().api(e.toString());
 
       if (e.toString().contains('Connection closed before full header was received')) {
         throw BadAuthenticationException();
