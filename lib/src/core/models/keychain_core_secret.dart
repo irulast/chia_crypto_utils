@@ -1,7 +1,6 @@
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/utils/serialization.dart';
-import 'package:chia_crypto_utils/src/utils/spawn_and_wait_for_isolate/spawn_and_wait_for_isolate.dart';
 import 'package:meta/meta.dart';
 
 @immutable

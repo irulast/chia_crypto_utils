@@ -330,8 +330,10 @@ class CoinSplittingService {
   }
 
   Future<int> waitForTransactionsAndGetFirstSpentIndex(List<Bytes> parentIds) async {
-    final spentCoins = await blockchainUtils.waitForTransactions(parentIds,
-        coinSearchWaitPeriod: coinSearchWaitPeriod);
+    final spentCoins = await blockchainUtils.waitForTransactions(
+      parentIds,
+      coinSearchWaitPeriod: coinSearchWaitPeriod,
+    );
     return spentCoins.map((c) => c.spentBlockIndex).reduce(min);
   }
 

@@ -1,5 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/full_node/models/chia_models/npc_result.dart';
 
 class MempoolItem {
   MempoolItem({
@@ -30,6 +29,13 @@ class MempoolItem {
       spendBundleId: spendBundleId,
     );
   }
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'additions': additions.map((e) => e.toJson()).toList(),
+        'removals': removals.map((e) => e.toJson()).toList(),
+        'spend_bundle': spendBundle.toJson(),
+        'fee': fee,
+        'spend_bundle_name': spendBundleId.toHex(),
+      };
 
   final List<CoinPrototype> additions;
   final List<CoinPrototype> removals;

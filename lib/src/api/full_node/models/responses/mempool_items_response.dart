@@ -1,5 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/full_node/models/chia_models/mempool_item.dart';
 
 class MempoolItemsResponse {
   MempoolItemsResponse(this.mempoolItemMap);

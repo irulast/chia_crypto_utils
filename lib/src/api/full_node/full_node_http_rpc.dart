@@ -5,13 +5,17 @@ import 'dart:convert';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/api/full_node/exceptions/full_node_error.dart';
 import 'package:chia_crypto_utils/src/api/full_node/exceptions/gateway_timeout_exception.dart';
-import 'package:chia_crypto_utils/src/api/full_node/models/responses/mempool_items_response.dart';
 
 import 'package:meta/meta.dart';
 
 @immutable
 class FullNodeHttpRpc implements FullNode {
-  const FullNodeHttpRpc(this.baseURL, {this.certBytes, this.keyBytes});
+  const FullNodeHttpRpc(
+    this.baseURL, {
+    this.certBytes,
+    this.keyBytes,
+    this.timeout = const Duration(seconds: 15),
+  });
 
   factory FullNodeHttpRpc.fromContext() {
     final fullNodeContext = FullNodeContext();
@@ -27,7 +31,14 @@ class FullNodeHttpRpc implements FullNode {
   final Bytes? certBytes;
   final Bytes? keyBytes;
 
-  Client get client => Client(baseURL, certBytes: certBytes, keyBytes: keyBytes);
+  final Duration timeout;
+
+  Client get client => Client(
+        baseURL,
+        certBytes: certBytes,
+        keyBytes: keyBytes,
+        timeout: timeout,
+      );
 
   @override
   Future<CoinRecordsResponse> getCoinRecordsByPuzzleHashes(
