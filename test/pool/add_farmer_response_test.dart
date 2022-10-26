@@ -18,10 +18,9 @@ void main() {
     );
   });
 
-  test('should return the desired string form', () {
-    expect(
-      addFarmerResponse.toString(),
-      'AddFarmerResponse(welcomeMessage: ${addFarmerResponse.welcomeMessage})',
-    );
+  test('should correctly convert to json', () {
+    expect(addFarmerResponse.toJson(), <String, dynamic>{
+      'welcome_message': addFarmerResponse.welcomeMessage,
+    });
   });
 }
