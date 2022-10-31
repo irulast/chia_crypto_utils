@@ -27,7 +27,7 @@ Use this command to create a wallet with a new plotNFT:
 dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --output-config preload.pconf --full-node-url <FULL_NODE_URL> --faucet-request-url <FAUCET_URL> --faucet-request-payload '{"address": "SEND_TO_ADDRESS", "amount": 0.0000000001}'
 ```
 
-Can also omit the faucet url and payload empty if you would like to manually send the XCH needed to create the PlotNFT:
+Can also omit the faucet url and payload if you would like to manually send the XCH needed to create the PlotNFT:
 
 ```console
 dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --output-config preload.pconf --full-node-url <FULL_NODE_URL>
