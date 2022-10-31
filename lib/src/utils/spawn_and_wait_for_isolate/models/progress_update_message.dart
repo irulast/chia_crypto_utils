@@ -11,4 +11,3 @@ class ProgressUpdateMessage {
         'progress': progress,
       };
 }
-

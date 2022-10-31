@@ -6,20 +6,27 @@ import 'dart:io';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class Client {
-  Client(this.baseURL, {Bytes? certBytes, Bytes? keyBytes}) {
+  Client(
+    this.baseURL, {
+    Bytes? certBytes,
+    Bytes? keyBytes,
+    this.timeout = const Duration(seconds: 7),
+  }) {
     final context = (certBytes != null && keyBytes != null)
         ? (SecurityContext.defaultContext
           ..usePrivateKeyBytes(keyBytes)
           ..useCertificateChainBytes(certBytes))
         : null;
     final httpClient = HttpClient(context: context)
-      ..badCertificateCallback = (cert, host, port) => true;
+      ..badCertificateCallback = ((cert, host, port) => true)
+      ..connectionTimeout = timeout;
 
     this.httpClient = httpClient;
   }
 
   late HttpClient httpClient;
   final String baseURL;
+  final Duration timeout;
 
   Future<Response> get(
     Uri url, {
@@ -39,7 +46,10 @@ class Client {
     });
     request.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
 
-    final response = await request.close();
+    final response = await request.close().timeout(
+          timeout,
+        );
+
     final stringData = await response.transform(utf8.decoder).join();
 
     logResponse(response, stringData);
@@ -65,24 +75,26 @@ class Client {
       request.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
       request.write(jsonEncode(requestBody));
 
-      final response = await request.close();
+      final response = await request.close().timeout(
+            timeout,
+          );
       final stringData = await response.transform(utf8.decoder).join();
 
       logResponse(response, stringData);
 
       return Response(stringData, response.statusCode);
     } on SocketException catch (e) {
-      LoggingContext().error(e.toString());
+      LoggingContext().api(e.toString());
       throw NotRunningException(baseURL);
     } on HttpException catch (e) {
-      LoggingContext().error(e.toString());
+      LoggingContext().api(e.toString());
 
       if (e.toString().contains('Connection closed before full header was received')) {
         throw BadAuthenticationException();
       }
       rethrow;
     } on Exception catch (e) {
-      LoggingContext().error(e.toString());
+      LoggingContext().api(e.toString());
       rethrow;
     }
   }

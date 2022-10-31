@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/utils/spawn_and_wait_for_isolate/spawn_and_wait_for_isolate.dart';
 import 'package:test/test.dart';
 
@@ -47,6 +48,29 @@ Future<void> main() async {
     expect(progressUpdates[0], equals(0.33));
     expect(progressUpdates[1], equals(0.66));
     expect(progressUpdates[2], equals(1));
+  });
+
+  test('should catch isolate exception', () async {
+    bool? caught;
+    try {
+      await spawnAndWaitForIsolate<bool, int>(
+        taskArgument: 5,
+        isolateTask: (taskArgument) {
+          taskArgument as bool;
+          final isPrime = checkIsPrime(taskArgument);
+          return <String, dynamic>{
+            'is_prime': isPrime,
+          };
+        },
+        handleTaskCompletion: (taskMessage) {
+          return taskMessage['is_prime'] as bool;
+        },
+      );
+      caught = false;
+    } on Exception {
+      caught = true;
+    }
+    expect(caught == true, true);
   });
 }
 

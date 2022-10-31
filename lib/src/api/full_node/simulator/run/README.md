@@ -7,8 +7,14 @@ The Chia simulator can be used to write integration tests.
 This starts the simulator running on port 5000 accessible from the host system.
 
 ### Local Build and Run
+#### Standard Full Node
 ```bash
 docker build . -t chia-simulator
+```
+
+#### Enhanced Full Node
+```bash
+docker build -f Dockerfile.enhanced . -t chia-simulator-enhanced
 ```
 
 ```bash
@@ -18,6 +24,16 @@ docker run -e TARGET_UID="$(id -u)" -e TARGET_GID="$(id -g)" -e CLIENT_CONFIG_DI
  -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/test-plots":/root/.chia/test-plots \
  -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/config:/temp/config" \
  chia-simulator
+```
+
+### Evergreen
+```bash
+export FULL_NODE_SIMULATOR_GEN_PATH=$(pwd)
+docker run -e TARGET_UID="$(id -u)" -e TARGET_GID="$(id -g)" -e CLIENT_CONFIG_DIR="/temp/config/" \
+ -p 5000:8555 \
+ -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/test-plots":/root/.chia/test-plots \
+ -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/config:/temp/config" \
+irulast/chia-simulator:evg-enhanced-latest
 ```
 
 ### Intel Mac

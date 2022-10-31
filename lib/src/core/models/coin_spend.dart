@@ -107,10 +107,25 @@ class CoinSpend with ToBytesMixin {
     throw UnimplementedError('Unimplemented spend type');
   }
 
+  // TODO(nvjoshi2): make async the default
   List<Payment> get payments => _getPaymentsFromOutputProgram(outputProgram);
 
   Future<List<Payment>> get paymentsAsync async {
     return _getPaymentsFromOutputProgram(await outputProgramAsync);
+  }
+
+  Future<List<Memo>> get memos async {
+    final payments = await paymentsAsync;
+    return payments.memos;
+  }
+
+  Future<List<String>> get memoStrings async {
+    final payments = await paymentsAsync;
+    final _memoStrings = payments.fold(
+      <String>[],
+      (List<String> previousValue, payment) => previousValue + payment.memoStrings,
+    );
+    return _memoStrings;
   }
 
   List<Payment> _getPaymentsFromOutputProgram(Program outputProgram) {
@@ -141,9 +156,4 @@ class PaymentsAndAdditions {
   final List<CoinPrototype> additions;
 
   PaymentsAndAdditions(this.payments, this.additions);
-}
-
-extension PaymentMemos on Iterable<Payment> {
-  List<Bytes> get memos =>
-      fold(<Bytes>[], (previousValue, element) => previousValue + (element.memos ?? []));
 }
