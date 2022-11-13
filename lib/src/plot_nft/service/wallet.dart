@@ -187,6 +187,19 @@ class PlotNftWalletService extends BaseWalletService {
     ).hash();
   }
 
+  static Future<Puzzlehash> launcherIdToP2PuzzlehashAsync(
+    Bytes launcherId,
+    int secondsDelay,
+    Puzzlehash delayedPuzzlehash,
+  ) async {
+    return SingletonService.createP2SingletonPuzzleAsync(
+      singletonModHash: singletonTopLayerProgram.hash(),
+      launcherId: launcherId,
+      secondsDelay: secondsDelay,
+      delayedPuzzlehash: delayedPuzzlehash,
+    ).then((value) => value.hash());
+  }
+
   void validateSingletonPuzzlehash({
     required Puzzlehash singletonPuzzlehash,
     required Bytes launcherId,
