@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/bls/ec/ec.dart';
 import 'package:chia_crypto_utils/src/bls/ec/jacobian_point.dart';
 import 'package:chia_crypto_utils/src/bls/field/extensions/fq12.dart';
@@ -123,6 +124,23 @@ class AugSchemeMPL {
     return coreSignMpl(sk, pk.toBytes() + message, augSchemeDst);
   }
 
+  static Map<String, dynamic> _signTask(SignArguments args) {
+    final signature = sign(args.sk, args.message);
+    return <String, dynamic>{
+      'signature': signature.toHex(),
+    };
+  }
+
+  static Future<JacobianPoint> signAsync(PrivateKey sk, List<int> message) {
+    return spawnAndWaitForIsolate(
+      taskArgument: SignArguments(sk, message),
+      isolateTask: _signTask,
+      handleTaskCompletion: (taskResultJson) {
+        return JacobianPoint.fromHexG2(taskResultJson['signature'] as String);
+      },
+    );
+  }
+
   static bool verify(JacobianPoint pk, List<int> message, JacobianPoint signature) {
     return coreVerifyMpl(pk, pk.toBytes() + message, signature, augSchemeDst);
   }
@@ -238,4 +256,11 @@ class PopSchemeMPL {
   static JacobianPoint deriveChildPkUnhardened(JacobianPoint pk, int index) {
     return hd_keys.deriveChildG1Unhardened(pk, index);
   }
+}
+
+class SignArguments {
+  SignArguments(this.sk, this.message);
+
+  final PrivateKey sk;
+  final List<int> message;
 }
