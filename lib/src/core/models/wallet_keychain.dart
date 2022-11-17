@@ -184,6 +184,54 @@ class WalletKeychain with ToBytesMixin {
     return newSingletonWalletVector;
   }
 
+  Map<String, dynamic> _getSingletonWalletVectorForSingletonOwnerPublicKeyTask(
+      AddsSingletonWalletVectorArguments args) {
+    final masterPrivateKey = args.masterPrivateKey;
+    final singletonOwnerPublicKey = args.singletonOwnerPublicKey;
+    const maxIndexToCheck = 1000;
+    for (var i = 0; i < maxIndexToCheck; i++) {
+      final singletonOwnerSecretKey = masterSkToSingletonOwnerSk(masterPrivateKey, i);
+      if (singletonOwnerSecretKey.getG1() == singletonOwnerPublicKey) {
+        final newSingletonWalletVector =
+            SingletonWalletVector.fromMasterPrivateKey(masterPrivateKey, i);
+
+        return <String, dynamic>{
+          'singleton_wallet_vector': newSingletonWalletVector.toHex(),
+        };
+      }
+    }
+
+    return <String, dynamic>{
+      'singleton_wallet_vector': null,
+    };
+  }
+
+  Future<SingletonWalletVector> addSingletonWalletVectorForSingletonOwnerPublicKeyAsync(
+    JacobianPoint singletonOwnerPublicKey,
+    PrivateKey masterPrivateKey,
+  ) async {
+    final newSingletonWalletVector = await spawnAndWaitForIsolate(
+      taskArgument: AddsSingletonWalletVectorArguments(singletonOwnerPublicKey, masterPrivateKey),
+      isolateTask: _getSingletonWalletVectorForSingletonOwnerPublicKeyTask,
+      handleTaskCompletion: (taskResultJson) {
+        final result = taskResultJson['singleton_wallet_vector'] as String?;
+        if (result == null) {
+          return null;
+        }
+        return SingletonWalletVector.fromHex(result);
+      },
+    );
+
+    if (newSingletonWalletVector == null) {
+      throw Exception(
+        'Given singletonOwnerPublicKey does not match mnemonic up',
+      );
+    }
+
+    singletonWalletVectorsMap[singletonOwnerPublicKey] = newSingletonWalletVector;
+    return newSingletonWalletVector;
+  }
+
   SingletonWalletVector addSingletonWalletVectorForSingletonOwnerPublicKey(
     JacobianPoint singletonOwnerPublicKey,
     PrivateKey masterPrivateKey,
@@ -198,7 +246,7 @@ class WalletKeychain with ToBytesMixin {
         return newSingletonWalletVector;
       }
     }
-    throw ArgumentError(
+    throw Exception(
       'Given singletonOwnerPublicKey does not match mnemonic up to derivation index $maxIndexToCheck',
     );
   }
@@ -340,4 +388,11 @@ class WalletKeychainFromCoreSecretIsolateArguments {
   final KeychainCoreSecret coreSecret;
   final int walletSize;
   final int plotNftWalletSize;
+}
+
+class AddsSingletonWalletVectorArguments {
+  AddsSingletonWalletVectorArguments(this.singletonOwnerPublicKey, this.masterPrivateKey);
+
+  final JacobianPoint singletonOwnerPublicKey;
+  final PrivateKey masterPrivateKey;
 }

@@ -26,6 +26,9 @@ class SingletonWalletVector with ToBytesMixin {
     );
   }
 
+  factory SingletonWalletVector.fromHex(String hex) =>
+      SingletonWalletVector.fromBytes(Bytes.fromHex(hex));
+
   factory SingletonWalletVector.fromBytes(Bytes bytes) {
     final iterator = bytes.iterator;
     return SingletonWalletVector.fromStream(iterator);
