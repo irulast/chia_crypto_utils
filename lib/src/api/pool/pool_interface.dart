@@ -61,7 +61,7 @@ class PoolInterface {
       authenticationToken: authenticationToken,
     );
 
-    final signature = AugSchemeMPL.sign(
+    final signature = await AugSchemeMPL.signAsync(
       authenticationSecretKey,
       authenticationPayload.toBytes().sha256Hash(),
     );

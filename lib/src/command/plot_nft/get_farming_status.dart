@@ -8,7 +8,7 @@ Future<GetFarmerResponse> getFarmingStatus(
   ChiaFullNodeInterface fullNode,
 ) async {
   final singletonWalletVector =
-  keychain.addSingletonWalletVectorForSingletonOwnerPublicKey(
+      await keychain.addSingletonWalletVectorForSingletonOwnerPublicKeyAsync(
     plotNft.poolState.ownerPublicKey,
     keychainSecret.masterPrivateKey,
   );

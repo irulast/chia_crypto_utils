@@ -52,6 +52,21 @@ class SingletonService extends BaseWalletService {
     ]);
   }
 
+  static Future<Program> createP2SingletonPuzzleAsync({
+    required Bytes singletonModHash,
+    required Bytes launcherId,
+    required int secondsDelay,
+    required Puzzlehash delayedPuzzlehash,
+  }) {
+    return p2SingletonOrDelayedPuzhashProgram.curryAsync([
+      Program.fromBytes(singletonModHash),
+      Program.fromBytes(launcherId),
+      Program.fromBytes(singletonLauncherProgram.hash()),
+      Program.fromBytes(intToBytesStandard(secondsDelay, Endian.big)),
+      Program.fromBytes(delayedPuzzlehash),
+    ]);
+  }
+
   static CoinPrototype getMostRecentSingletonCoinFromCoinSpend(CoinSpend coinSpend) {
     final additions = coinSpend.additions;
     // cribbed from https://github.com/Chia-Network/chia-blockchain/blob/4230af1a59768f6a4f9578408f810d7d2114c343/chia/pools/pool_puzzles.py#L284

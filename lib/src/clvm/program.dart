@@ -180,6 +180,22 @@ class Program with ToBytesMixin {
     return Program.parse('(a (q . ${toString()}) ${current.toString()})');
   }
 
+  static Map<String, dynamic> _curryIsolateTask(CurryIsolateArguments arguments) {
+    final curriedProgram = arguments.programToCurryTo.curry(arguments.programsToCurryIn);
+    return <String, dynamic>{
+      'program': curriedProgram.serializeHex(),
+    };
+  }
+
+  Future<Program> curryAsync(List<Program> args) async {
+    return spawnAndWaitForIsolate(
+      taskArgument: CurryIsolateArguments(args, this),
+      isolateTask: _curryIsolateTask,
+      handleTaskCompletion: (taskResultJson) =>
+          Program.deserializeHex(taskResultJson['program'] as String),
+    );
+  }
+
   ProgramAndArguments uncurry() {
     final programList = toList();
     if (programList.length != 3) {
@@ -531,4 +547,11 @@ class PuzzleAndSolution {
     required this.solution,
     required this.options,
   });
+}
+
+class CurryIsolateArguments {
+  CurryIsolateArguments(this.programsToCurryIn, this.programToCurryTo);
+
+  final List<Program> programsToCurryIn;
+  final Program programToCurryTo;
 }

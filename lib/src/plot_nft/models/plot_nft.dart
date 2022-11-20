@@ -33,6 +33,17 @@ class PlotNft with ToBytesMixin {
     );
   }
 
+  Puzzlehash get contractPuzzlehash => PlotNftWalletService.launcherIdToP2Puzzlehash(
+        launcherId,
+        delayTime,
+        delayPuzzlehash,
+      );
+  Future<Puzzlehash> get contractPuzzlehashAsync =>
+      PlotNftWalletService.launcherIdToP2PuzzlehashAsync(
+        launcherId,
+        delayTime,
+        delayPuzzlehash,
+      );
   @override
   Bytes toBytes() {
     return launcherId +
