@@ -65,8 +65,8 @@ List<Coin> myCoins = await fullNode.getCoinsByPuzzleHashes(myPuzzlehashes);
 // creating and pushing spend bundle
 final spendBundle = standardWalletService.createSpendBundle(
     [
-      Payment(amountToSendA, destinstionPuzzlehashA),
-      Payment(amountToSendB, destinstionPuzzlehashB)
+      Payment(amountToSendA, destinationPuzzlehashA),
+      Payment(amountToSendB, destinationPuzzlehashB)
     ],
     myCoins,
     changePuzzlehash,
@@ -115,8 +115,8 @@ List<CatCoin> myCatCoins = await fullNode.getCatCoinsByOuterPuzzleHashes(myOuter
 // creating and pushing spend bundle
 final spendBundle = catWalletService.createSpendBundle(
     [
-      Payment(amountToSendA, destinstionPuzzlehashA),
-      Payment(amountToSendB, destinstionPuzzlehashB)
+      Payment(amountToSendA, destinationPuzzlehashA),
+      Payment(amountToSendB, destinationPuzzlehashB)
     ],
     myCatCoins,
     changePuzzlehash,
