@@ -38,6 +38,20 @@ class RunOptions {
 
 typedef Validator = bool Function(Program);
 
+/// Dart representation of a clvm program
+///
+/// Here are some conversions between the chia-blockchain program.py to ccu Program:
+///
+/// ```dart
+/// Program.to([...]) => Program.list([...])
+/// ```
+///
+/// ```dart
+/// Program.to((...)) => Program.cons(...)
+///  ```
+/// ```dart
+/// Program.to([bytes, 1, "hello"]) => Program.list([Program.fromBytes(bytes), Program.fromInt(1)], Program.fromString("hello"),)
+/// ```
 class Program with ToBytesMixin {
   List<Program>? _cons;
   Bytes? _atom;
