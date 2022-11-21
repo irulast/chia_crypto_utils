@@ -40,7 +40,7 @@ typedef Validator = bool Function(Program);
 
 /// Dart representation of a clvm program
 ///
-/// Here are some conversions between the chia-blockchain program.py to ccu Program:
+/// Here are some example conversions between a chia-blockchain [Program](https://github.com/Chia-Network/chia-blockchain/blob/9a951d835e25187b988e1fcc4af69e948eacfc82/chia/types/blockchain_format/program.py) to a chia-crypto-utils Program:
 ///
 /// ```dart
 /// Program.to([...]) => Program.list([...])
@@ -51,6 +51,9 @@ typedef Validator = bool Function(Program);
 ///  ```
 /// ```dart
 /// Program.to([bytes, 1, "hello"]) => Program.list([Program.fromBytes(bytes), Program.fromInt(1)], Program.fromString("hello"),)
+/// ```
+///  ```dart
+/// program.get_tree_hash() => program.hash()
 /// ```
 class Program with ToBytesMixin {
   List<Program>? _cons;
