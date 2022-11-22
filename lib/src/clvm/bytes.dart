@@ -24,15 +24,13 @@ class Puzzlehash extends Bytes {
     return Puzzlehash(iterator.extractBytesAndAdvance(bytesLength));
   }
 
+  Address toAddress(String ticker) => Address.fromPuzzlehash(this, ticker);
+  Address toAddressWithContext() => Address.fromContext(this);
+
   Puzzlehash.zeros() : super(List.filled(bytesLength, 0));
 
   static const bytesLength = 32;
   static const hexLength = 64;
-}
-
-extension ToAddress on Puzzlehash {
-  Address toAddress(String ticker) => Address.fromPuzzlehash(this, ticker);
-  Address toAddressWithContext() => Address.fromContext(this);
 }
 
 class Bytes extends Comparable<Bytes> with ToBytesMixin implements List<int> {

@@ -370,8 +370,10 @@ class WalletPuzzlehash extends Puzzlehash {
       : derivationIndex = json['derivation_index'] as int,
         super(Bytes.fromHex(json['puzzlehash'] as String));
 
-  WalletAddress toWalletAddressWithContext() => WalletAddress.fromContext(this, derivationIndex);
-  WalletAddress toWalletAddress(String ticker) =>
+  @override
+  WalletAddress toAddressWithContext() => WalletAddress.fromContext(this, derivationIndex);
+  @override
+  WalletAddress toAddress(String ticker) =>
       WalletAddress.fromPuzzlehash(this, ticker, derivationIndex);
 
   final int derivationIndex;
