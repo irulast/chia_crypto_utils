@@ -30,7 +30,12 @@ class Puzzlehash extends Bytes {
   static const hexLength = 64;
 }
 
-class Bytes extends Comparable<Bytes> with ToBytesMixin implements List<int>  {
+extension ToAddress on Puzzlehash {
+  Address toAddress(String ticker) => Address.fromPuzzlehash(this, ticker);
+  Address toAddressWithContext() => Address.fromContext(this);
+}
+
+class Bytes extends Comparable<Bytes> with ToBytesMixin implements List<int> {
   final Uint8List _byteList;
   Bytes(List<int> bytesList) : _byteList = Uint8List.fromList(bytesList);
 

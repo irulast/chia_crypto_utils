@@ -1,11 +1,14 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
-class PoolServiceImpl implements PoolService{
+class PoolServiceImpl implements PoolService {
   const PoolServiceImpl(this.pool, this.fullNode);
 
   PoolServiceImpl.fromContext()
       : pool = PoolInterface.fromContext(),
         fullNode = ChiaFullNodeInterface.fromContext();
+
+  PoolServiceImpl.flexPool(this.fullNode)
+      : pool = PoolInterface.fromURL('https://xch-us-west.flexpool.io');
 
   @override
   final PoolInterface pool;
