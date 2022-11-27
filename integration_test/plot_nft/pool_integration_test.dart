@@ -19,7 +19,7 @@ Future<void> main() async {
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
   final poolWalletService = PlotNftWalletService();
 
-  final nathan = ChiaEnthusiast(fullNodeSimulator, derivations: 2);
+  final nathan = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
   await nathan.farmCoins();
 
   test('should create plot nft', () async {
@@ -99,7 +99,7 @@ Future<void> main() async {
   });
 
   test('should scrounge for plot nfts', () async {
-    final grant = ChiaEnthusiast(fullNodeSimulator, derivations: 5);
+    final grant = ChiaEnthusiast(fullNodeSimulator, walletSize: 5);
     await grant.farmCoins();
 
     final singletonWalletVector =
@@ -139,5 +139,54 @@ Future<void> main() async {
       equals(PlotNftWalletService.defaultDelayTime),
     );
     expect(plotNft.delayPuzzlehash, equals(grant.firstPuzzlehash));
+  });
+
+  test('should create and scrounge for multiple plot nfts', () async {
+    final meera = ChiaEnthusiast(fullNodeSimulator, walletSize: 5);
+
+    for (var i = 0; i < 4; i++) {
+      await meera.farmCoins();
+
+      final singletonWalletVector =
+          meera.keychain.getNextSingletonWalletVector(meera.keychainSecret.masterPrivateKey);
+
+      final genesisCoin = meera.standardCoins[0];
+
+      final initialTargetState = PoolState(
+        poolSingletonState: PoolSingletonState.selfPooling,
+        targetPuzzlehash: meera.puzzlehashes[i],
+        ownerPublicKey: singletonWalletVector.singletonOwnerPublicKey,
+        relativeLockHeight: 100,
+      );
+
+      final plotNftSpendBundle = poolWalletService.createPoolNftSpendBundle(
+        initialTargetState: initialTargetState,
+        keychain: meera.keychain,
+        coins: meera.standardCoins,
+        genesisCoinId: genesisCoin.id,
+        p2SingletonDelayedPuzzlehash: meera.firstPuzzlehash,
+        changePuzzlehash: meera.firstPuzzlehash,
+      );
+
+      await fullNodeSimulator.pushTransaction(plotNftSpendBundle);
+      await fullNodeSimulator.moveToNextBlock();
+      await meera.refreshCoins();
+
+      final launcherCoinPrototype = PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
+
+      final plotNft = await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id);
+      expect(
+        plotNft!.poolState.toHex(),
+        equals(initialTargetState.toHex()),
+      );
+      expect(
+        plotNft.delayTime,
+        equals(PlotNftWalletService.defaultDelayTime),
+      );
+      expect(plotNft.delayPuzzlehash, equals(meera.firstPuzzlehash));
+    }
+
+    final plotNfts = await fullNodeSimulator.scroungeForPlotNfts(meera.puzzlehashes);
+    expect(plotNfts.length, equals(4));
   });
 }

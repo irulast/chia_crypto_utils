@@ -27,7 +27,7 @@ Future<void> main() async {
   late ChiaEnthusiast meera;
 
   setUp(() async {
-    meera = ChiaEnthusiast(fullNodeSimulator, derivations: 10);
+    meera = ChiaEnthusiast(fullNodeSimulator, walletSize: 10);
     await meera.farmCoins();
     await meera.issueMultiIssuanceCat(meera.keychainSecret.masterPrivateKey);
     fullNodeSimulator.run(blockPeriod: const Duration(seconds: 2));
@@ -178,7 +178,7 @@ Future<void> main() async {
 
   test('should throw error when there are not enough puzzlehashes to cover split width', () async {
     // a minimum of 10 puzzlehashes is needed to cover the split width
-    final nathan = ChiaEnthusiast(fullNodeSimulator, derivations: 2);
+    final nathan = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
     await nathan.farmCoins();
     await nathan.issueMultiIssuanceCat(nathan.keychainSecret.masterPrivateKey);
 
@@ -202,7 +202,7 @@ Future<void> main() async {
   test(
       'should throw error when there are is just barely not enough puzzlehashes to cover split width',
       () async {
-    final nathan = ChiaEnthusiast(fullNodeSimulator, derivations: 9);
+    final nathan = ChiaEnthusiast(fullNodeSimulator, walletSize: 9);
     await nathan.farmCoins();
     await nathan.issueMultiIssuanceCat(nathan.keychainSecret.masterPrivateKey);
 
