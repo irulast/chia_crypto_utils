@@ -38,6 +38,23 @@ class RunOptions {
 
 typedef Validator = bool Function(Program);
 
+/// Dart representation of a clvm program
+///
+/// Here are some example translations from a chia-blockchain [Program](https://github.com/Chia-Network/chia-blockchain/blob/9a951d835e25187b988e1fcc4af69e948eacfc82/chia/types/blockchain_format/program.py) to a chia-crypto-utils Program:
+///
+/// ```dart
+/// Program.to([...]) => Program.list([...])
+/// ```
+///
+/// ```dart
+/// Program.to((...)) => Program.cons(...)
+///  ```
+/// ```dart
+/// Program.to([bytes, 1, "hello"]) => Program.list([Program.fromBytes(bytes), Program.fromInt(1)], Program.fromString("hello"),)
+/// ```
+///  ```dart
+/// program.get_tree_hash() => program.hash()
+/// ```
 class Program with ToBytesMixin {
   List<Program>? _cons;
   Bytes? _atom;
