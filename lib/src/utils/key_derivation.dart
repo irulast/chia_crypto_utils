@@ -118,12 +118,37 @@ Program getPuzzleFromPk(JacobianPoint publicKey) {
   return curried;
 }
 
+Program getPuzzleFromPkAndHiddenPuzzle(JacobianPoint publicKey, Program hiddenPuzzleProgram) {
+  final syntheticPubKey = calculateSyntheticPublicKeyProgram.run(
+    Program.list(
+      [
+        Program.fromBytes(publicKey.toBytes()),
+        Program.fromBytes(hiddenPuzzleProgram.hash()),
+      ],
+    ),
+  );
+
+  final curried = p2DelegatedPuzzleOrHiddenPuzzleProgram.curry([syntheticPubKey.program]);
+
+  return curried;
+}
+
 final groupOrder = BigInt.parse(
   '0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001',
 );
 
 BigInt calculateSyntheticOffset(JacobianPoint publicKey) {
   final blob = sha256.convert(publicKey.toBytes() + defaultHiddenPuzzleProgram.hash()).bytes;
+
+  final offset = bytesToBigInt(blob, Endian.big, signed: true);
+
+  final newOffset = offset % groupOrder;
+  return newOffset;
+}
+
+BigInt calculateSyntheticOffsetFromHiddenPuzzle(
+    JacobianPoint publicKey, Program hiddenPuzzleProgram) {
+  final blob = sha256.convert(publicKey.toBytes() + hiddenPuzzleProgram.hash()).bytes;
 
   final offset = bytesToBigInt(blob, Endian.big, signed: true);
 

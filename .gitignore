@@ -34,3 +34,6 @@ lib/src/api/full_node/simulator/run/temp
 
 # Ignore coverage report
 coverage/
+
+# Ignore chialisp 
+main.sym
