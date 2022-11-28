@@ -1,15 +1,16 @@
+import 'dart:typed_data';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/core/exceptions/change_puzzlehash_needed_exception.dart';
 import 'package:chia_crypto_utils/src/standard/exceptions/origin_id_not_in_coins_exception.dart';
 import 'package:chia_crypto_utils/src/standard/puzzles/p2_delayed_or_preimage./p2_delayed_or_preimage.clvm.hex.dart';
 
 class BtcExchangeWalletService extends StandardWalletService {
-  SpendBundle createClawbackSpendBundle({
+  SpendBundle createExchangeSpendBundle({
     required List<Payment> payments,
     required List<CoinPrototype> coinsInput,
     required PrivateKey clawbackPrivateKey,
     required JacobianPoint clawbackPublicKey,
     required Puzzlehash sweepReceiptHash,
+    required PrivateKey sweepPrivateKey,
     required JacobianPoint sweepPublicKey,
     Bytes? sweepPreimage,
     int fee = 0,
@@ -38,18 +39,16 @@ class BtcExchangeWalletService extends StandardWalletService {
       coins.insert(0, originCoin);
     }
 
-    AssertCoinAnnouncementCondition? primaryAssertCoinAnnouncement;
+    final conditions = <Condition>[];
+    // AssertCoinAnnouncementCondition? primaryAssertCoinAnnouncement;
 
     var first = true;
     for (var i = 0; i < coins.length; i++) {
       final coin = coins[i];
 
-      Program? delegatedSolution;
-      Program? p2DelayedOrPreimageSolution;
       // create output for origin coin
       if (first) {
         first = false;
-        final conditions = <Condition>[];
         final createdCoins = <CoinPrototype>[];
         for (final payment in payments) {
           final sendCreateCoinCondition = payment.toCreateCoinCondition();
@@ -63,36 +62,35 @@ class BtcExchangeWalletService extends StandardWalletService {
           );
         }
 
-        if (fee > 0) {
-          conditions.add(ReserveFeeCondition(fee));
-        }
+        // if (fee > 0) {
+        //   conditions.add(ReserveFeeCondition(fee));
+        // }
 
-        conditions
-          ..addAll(coinAnnouncementsToAssert)
-          ..addAll(puzzleAnnouncementsToAssert);
+        // conditions
+        //   ..addAll(coinAnnouncementsToAssert)
+        //   ..addAll(puzzleAnnouncementsToAssert);
 
-        // generate message for coin announcements by appending coin_ids
-        // see https://github.com/Chia-Network/chia-blockchain/blob/4bd5c53f48cb049eff36c87c00d21b1f2dd26b27/chia/wallet/wallet.py#L383
-        //   message: bytes32 = std_hash(b"".join(message_list))
-        final existingCoinsMessage = coins.fold(
-          Bytes.empty,
-          (Bytes previousValue, coin) => previousValue + coin.id,
-        );
-        final createdCoinsMessage = createdCoins.fold(
-          Bytes.empty,
-          (Bytes previousValue, coin) => previousValue + coin.id,
-        );
-        final message = (existingCoinsMessage + createdCoinsMessage).sha256Hash();
-        conditions.add(CreateCoinAnnouncementCondition(message));
+        // // generate message for coin announcements by appending coin_ids
+        // // see https://github.com/Chia-Network/chia-blockchain/blob/4bd5c53f48cb049eff36c87c00d21b1f2dd26b27/chia/wallet/wallet.py#L383
+        // //   message: bytes32 = std_hash(b"".join(message_list))
+        // final existingCoinsMessage = coins.fold(
+        //   Bytes.empty,
+        //   (Bytes previousValue, coin) => previousValue + coin.id,
+        // );
+        // final createdCoinsMessage = createdCoins.fold(
+        //   Bytes.empty,
+        //   (Bytes previousValue, coin) => previousValue + coin.id,
+        // );
+        // final message = (existingCoinsMessage + createdCoinsMessage).sha256Hash();
+        // conditions.add(CreateCoinAnnouncementCondition(message));
 
-        primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition(coin.id, message);
-
-        delegatedSolution = BaseWalletService.makeSolutionFromConditions(conditions);
-      } else {
-        delegatedSolution = BaseWalletService.makeSolutionFromConditions(
-          [primaryAssertCoinAnnouncement!],
-        );
+        // primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition(coin.id, message);
       }
+      // else {
+      //   delegatedSolution = BaseWalletService.makeSolutionFromConditions(
+      //     [primaryAssertCoinAnnouncement!],
+      //   );
+      // }
 
       final puzzle = generateHoldingAddressPuzzle(
         clawbackPublicKey: clawbackPublicKey,
@@ -100,31 +98,18 @@ class BtcExchangeWalletService extends StandardWalletService {
         sweepPublicKey: sweepPublicKey,
       );
 
-      final hiddenPuzzleProgram = generateHiddenPuzzle(
+      final solution = clawbackOrSweepSolution(
+        totalPublicKey: totalPublicKey,
         clawbackPublicKey: clawbackPublicKey,
         sweepReceiptHash: sweepReceiptHash,
         sweepPublicKey: sweepPublicKey,
-      );
-
-      if (sweepPreimage != null) {
-        p2DelayedOrPreimageSolution =
-            Program.list([Program.fromBytes(sweepPreimage), delegatedSolution]);
-      } else {
-        p2DelayedOrPreimageSolution = Program.list([Program.fromInt(0), delegatedSolution]);
-      }
-
-      final solution = Program.list(
-        [
-          Program.fromBytes(totalPublicKey.toBytes()),
-          hiddenPuzzleProgram,
-          p2DelayedOrPreimageSolution
-        ],
+        conditions: conditions,
       );
 
       final coinSpend = CoinSpend(coin: coin, puzzleReveal: puzzle, solution: solution);
       spends.add(coinSpend);
 
-      final signature = makeSignature(clawbackPrivateKey, coinSpend);
+      final signature = makeSignatureForExchange(clawbackPrivateKey, coinSpend);
       signatures.add(signature);
     }
 
@@ -134,11 +119,13 @@ class BtcExchangeWalletService extends StandardWalletService {
   }
 
   Program generateHoldingAddressPuzzle({
+    int clawbackDelaySeconds = 0,
     required JacobianPoint clawbackPublicKey,
     required Puzzlehash sweepReceiptHash,
     required JacobianPoint sweepPublicKey,
   }) {
     final hiddenPuzzleProgram = generateHiddenPuzzle(
+      clawbackDelaySeconds: clawbackDelaySeconds,
       clawbackPublicKey: clawbackPublicKey,
       sweepReceiptHash: sweepReceiptHash,
       sweepPublicKey: sweepPublicKey,
@@ -169,5 +156,42 @@ class BtcExchangeWalletService extends StandardWalletService {
     ]);
 
     return hiddenPuzzleProgram;
+  }
+
+  Program clawbackOrSweepSolution({
+    required JacobianPoint totalPublicKey,
+    int clawbackDelaySeconds = 0,
+    required JacobianPoint clawbackPublicKey,
+    required Puzzlehash sweepReceiptHash,
+    required JacobianPoint sweepPublicKey,
+    required List<Condition> conditions,
+    Bytes? sweepPreimage,
+  }) {
+    Program? p2DelayedOrPreimageSolution;
+
+    final hiddenPuzzleProgram = generateHiddenPuzzle(
+      clawbackPublicKey: clawbackPublicKey,
+      sweepReceiptHash: sweepReceiptHash,
+      sweepPublicKey: sweepPublicKey,
+    );
+
+    final delegatedSolution = BaseWalletService.makeSolutionFromConditions(conditions);
+
+    if (sweepPreimage != null) {
+      p2DelayedOrPreimageSolution =
+          Program.list([Program.fromBytes(sweepPreimage), delegatedSolution]);
+    } else {
+      p2DelayedOrPreimageSolution = Program.list([Program.fromInt(0), delegatedSolution]);
+    }
+
+    final solution = Program.list(
+      [
+        Program.fromBytes(totalPublicKey.toBytes()),
+        hiddenPuzzleProgram,
+        p2DelayedOrPreimageSolution
+      ],
+    );
+
+    return solution;
   }
 }

@@ -23,6 +23,19 @@ class BaseWalletService {
     return signature;
   }
 
+  JacobianPoint makeSignatureForExchange(
+    PrivateKey privateKey,
+    CoinSpend coinSpend,
+  ) {
+    final result = coinSpend.puzzleReveal.run(coinSpend.solution);
+
+    final addsigmessage = getAddSigMeMessageFromResult(result.program, coinSpend.coin);
+
+    final signature = AugSchemeMPL.sign(privateKey, addsigmessage);
+
+    return signature;
+  }
+
   Bytes getAddSigMeMessageFromResult(Program result, CoinPrototype coin) {
     final aggSigMeCondition = result.toList().singleWhere(AggSigMeCondition.isThisCondition);
     return Bytes(aggSigMeCondition.toList()[2].atom) +

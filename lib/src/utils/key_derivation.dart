@@ -147,7 +147,9 @@ BigInt calculateSyntheticOffset(JacobianPoint publicKey) {
 }
 
 BigInt calculateSyntheticOffsetFromHiddenPuzzle(
-    JacobianPoint publicKey, Program hiddenPuzzleProgram) {
+  JacobianPoint publicKey,
+  Program hiddenPuzzleProgram,
+) {
   final blob = sha256.convert(publicKey.toBytes() + hiddenPuzzleProgram.hash()).bytes;
 
   final offset = bytesToBigInt(blob, Endian.big, signed: true);
