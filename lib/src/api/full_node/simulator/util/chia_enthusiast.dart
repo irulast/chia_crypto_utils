@@ -5,17 +5,16 @@ class ChiaEnthusiast {
   ChiaEnthusiast(
     this.fullNodeSimulator, {
     List<String>? mnemonic,
-    int derivations = 1,
+    int walletSize = 1,
+    int plotNftWalletSize = 2,
   }) : keychainSecret = (mnemonic != null)
             ? KeychainCoreSecret.fromMnemonic(mnemonic)
             : KeychainCoreSecret.generate() {
-    final walletsSetList = <WalletSet>[];
-
-    for (var i = 0; i < derivations; i++) {
-      final set = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, i);
-      walletsSetList.add(set);
-    }
-    keychain = WalletKeychain.fromWalletSets(walletsSetList);
+    keychain = WalletKeychain.fromCoreSecret(
+      keychainSecret,
+      walletSize: walletSize,
+      plotNftWalletSize: plotNftWalletSize,
+    );
   }
   final SimulatorFullNodeInterface fullNodeSimulator;
   late WalletKeychain keychain;

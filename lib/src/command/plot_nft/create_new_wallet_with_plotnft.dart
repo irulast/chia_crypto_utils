@@ -23,10 +23,8 @@ Future<PlotNFTDetails> createNewWalletWithPlotNFT(
   );
 
   final delayPh = keychain.puzzlehashes[4];
-  final singletonWalletVector = SingletonWalletVector.fromMasterPrivateKey(
-    keychainSecret.masterPrivateKey,
-    20,
-  );
+  final singletonWalletVector =
+      keychain.getNextSingletonWalletVector(keychainSecret.masterPrivateKey);
 
   final launcherId = await poolService.createPlotNftForPool(
     p2SingletonDelayedPuzzlehash: delayPh,
