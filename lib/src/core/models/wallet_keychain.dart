@@ -370,6 +370,12 @@ class WalletPuzzlehash extends Puzzlehash {
       : derivationIndex = json['derivation_index'] as int,
         super(Bytes.fromHex(json['puzzlehash'] as String));
 
+  @override
+  WalletAddress toAddressWithContext() => WalletAddress.fromContext(this, derivationIndex);
+  @override
+  WalletAddress toAddress(String ticker) =>
+      WalletAddress.fromPuzzlehash(this, ticker, derivationIndex);
+
   final int derivationIndex;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -395,4 +401,24 @@ class AddsSingletonWalletVectorArguments {
 
   final JacobianPoint singletonOwnerPublicKey;
   final PrivateKey masterPrivateKey;
+}
+
+class WalletAddress extends Address {
+  const WalletAddress(
+    String address, {
+    required this.derivationIndex,
+  }) : super(address);
+
+  factory WalletAddress.fromContext(Puzzlehash puzzlehash, int derivationIndex) {
+    final addressPrefix = NetworkContext().blockchainNetwork.addressPrefix;
+    return WalletAddress.fromPuzzlehash(puzzlehash, addressPrefix, derivationIndex);
+  }
+
+  final int derivationIndex;
+
+  factory WalletAddress.fromPuzzlehash(
+      Puzzlehash puzzlehash, String addressPrefix, int derivationIndex) {
+    final address = Address.fromPuzzlehash(puzzlehash, addressPrefix);
+    return WalletAddress(address.address, derivationIndex: derivationIndex);
+  }
 }

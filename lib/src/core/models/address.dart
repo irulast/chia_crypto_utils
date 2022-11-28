@@ -26,7 +26,7 @@ class Address {
   }
 
   @override
-  int get hashCode => runtimeType.hashCode ^ address.hashCode;
+  int get hashCode => address.hashCode;
 
   @override
   bool operator ==(Object other) {
