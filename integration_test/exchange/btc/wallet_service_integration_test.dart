@@ -34,17 +34,19 @@ Future<void> main() async {
   final btcHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
   final sweepPrivateKey = masterSkToWalletSk(btcHolder.keychainSecret.masterPrivateKey, 1);
   final sweepPublicKey = sweepPrivateKey.getG1();
+  final sweepPuzzlehash = btcHolder.firstPuzzlehash;
 
   final sweepPreimage =
       '5c1f10653dc3ff0531b77351dc6676de2e1f5f53c9f0a8867bcb054648f46a32'.hexToBytes();
-  final sweepReceiptHash = Program.fromBytes(sweepPreimage).hash();
-  // Puzzlehash.fromHex('63b49b0dc5f8e216332dabc410d64ee92a8ae73ae0a1d929e76980646d435d98');
-  // Puzzlehash.fromHex('6779d8cca6cb2423d0c55b3511e002e91c95b1f6ea8d93a61a563833e538d797');
+  // final sweepReceiptHash = Program.fromBytes(sweepPreimage).hash();
+  final sweepReceiptHash =
+      Puzzlehash.fromHex('63b49b0dc5f8e216332dabc410d64ee92a8ae73ae0a1d929e76980646d435d98');
 
   test('should transfer xch to holding address and clawback funds', () async {
     final coins = xchHolder.standardCoins;
 
     final holdingAddressPuzzle = walletService.generateHoldingAddressPuzzle(
+      clawbackDelaySeconds: 0,
       clawbackPublicKey: clawbackPublicKey,
       sweepReceiptHash: sweepReceiptHash,
       sweepPublicKey: sweepPublicKey,
@@ -84,6 +86,7 @@ Future<void> main() async {
     final clawbackSpendbundle = walletService.createExchangeSpendBundle(
       payments: [Payment(holdingAddressBalance, clawbackPuzzlehash)],
       coinsInput: clawbackCoinsInput,
+      clawbackDelaySeconds: 0,
       clawbackPrivateKey: clawbackPrivateKey,
       sweepPrivateKey: sweepPrivateKey,
       clawbackPublicKey: clawbackPublicKey,
@@ -101,6 +104,130 @@ Future<void> main() async {
     expect(
       endingClawbackAddressBalance,
       equals(startingClawbackAddressBalance + holdingAddressBalance),
+    );
+  });
+
+  test('should transfer xch to holding address and sweep funds with preimage', () async {
+    final coins = xchHolder.standardCoins;
+
+    final holdingAddressPuzzle = walletService.generateHoldingAddressPuzzle(
+      clawbackPublicKey: clawbackPublicKey,
+      sweepReceiptHash: sweepReceiptHash,
+      sweepPublicKey: sweepPublicKey,
+    );
+
+    final holdingAddressPuzzlehash = holdingAddressPuzzle.hash();
+
+    final coinsToSend = coins.sublist(0, 2);
+    coins.removeWhere(coinsToSend.contains);
+
+    final coinsValue = coinsToSend.fold(
+      0,
+      (int previousValue, element) => previousValue + element.amount,
+    );
+    final amountToSend = (coinsValue * 0.8).round();
+    final fee = (coinsValue * 0.1).round();
+
+    final spendBundle = walletService.createSpendBundle(
+      payments: [Payment(amountToSend, holdingAddressPuzzlehash)],
+      coinsInput: coinsToSend,
+      changePuzzlehash: xchHolder.firstPuzzlehash,
+      keychain: xchHolder.keychain,
+      fee: fee,
+    );
+    await fullNodeSimulator.pushTransaction(spendBundle);
+    await fullNodeSimulator.moveToNextBlock();
+
+    final holdingAddressBalance = await fullNodeSimulator.getBalance([holdingAddressPuzzlehash]);
+
+    expect(holdingAddressBalance, amountToSend);
+
+    final startingSweepAddressBalance = await fullNodeSimulator.getBalance([sweepPuzzlehash]);
+
+    final sweepCoinsInput =
+        await fullNodeSimulator.getCoinsByPuzzleHashes([holdingAddressPuzzlehash]);
+
+    final sweepSpendbundle = walletService.createExchangeSpendBundle(
+      payments: [Payment(holdingAddressBalance, sweepPuzzlehash)],
+      coinsInput: sweepCoinsInput,
+      clawbackPrivateKey: clawbackPrivateKey,
+      sweepPrivateKey: sweepPrivateKey,
+      clawbackPublicKey: clawbackPublicKey,
+      sweepReceiptHash: sweepReceiptHash,
+      sweepPublicKey: sweepPublicKey,
+      sweepPreimage: sweepPreimage,
+    );
+
+    await fullNodeSimulator.pushTransaction(sweepSpendbundle);
+    await fullNodeSimulator.moveToNextBlock();
+
+    final endingSweepAddressBalance = await fullNodeSimulator.getBalance([sweepPuzzlehash]);
+
+    expect(
+      endingSweepAddressBalance,
+      equals(startingSweepAddressBalance + holdingAddressBalance),
+    );
+  });
+
+  test('should transfer xch to holding address and sweep funds with private key', () async {
+    final coins = xchHolder.standardCoins;
+
+    final holdingAddressPuzzle = walletService.generateHoldingAddressPuzzle(
+      clawbackPublicKey: clawbackPublicKey,
+      sweepReceiptHash: sweepReceiptHash,
+      sweepPublicKey: sweepPublicKey,
+    );
+
+    final holdingAddressPuzzlehash = holdingAddressPuzzle.hash();
+
+    final coinsToSend = coins.sublist(0, 2);
+    coins.removeWhere(coinsToSend.contains);
+
+    final coinsValue = coinsToSend.fold(
+      0,
+      (int previousValue, element) => previousValue + element.amount,
+    );
+    final amountToSend = (coinsValue * 0.8).round();
+    final fee = (coinsValue * 0.1).round();
+
+    final spendBundle = walletService.createSpendBundle(
+      payments: [Payment(amountToSend, holdingAddressPuzzlehash)],
+      coinsInput: coinsToSend,
+      changePuzzlehash: xchHolder.firstPuzzlehash,
+      keychain: xchHolder.keychain,
+      fee: fee,
+    );
+    await fullNodeSimulator.pushTransaction(spendBundle);
+    await fullNodeSimulator.moveToNextBlock();
+
+    final holdingAddressBalance = await fullNodeSimulator.getBalance([holdingAddressPuzzlehash]);
+
+    expect(holdingAddressBalance, amountToSend);
+
+    final startingSweepAddressBalance = await fullNodeSimulator.getBalance([sweepPuzzlehash]);
+
+    final sweepCoinsInput =
+        await fullNodeSimulator.getCoinsByPuzzleHashes([holdingAddressPuzzlehash]);
+
+    final sweepSpendbundle = walletService.createCleanSpendBundle(
+      payments: [Payment(holdingAddressBalance, sweepPuzzlehash)],
+      coinsInput: sweepCoinsInput,
+      clawbackPrivateKey: clawbackPrivateKey,
+      sweepPrivateKey: sweepPrivateKey,
+      clawbackPublicKey: clawbackPublicKey,
+      sweepReceiptHash: sweepReceiptHash,
+      sweepPublicKey: sweepPublicKey,
+      sweepPreimage: sweepPreimage,
+    );
+
+    await fullNodeSimulator.pushTransaction(sweepSpendbundle);
+    await fullNodeSimulator.moveToNextBlock();
+
+    final endingSweepAddressBalance = await fullNodeSimulator.getBalance([sweepPuzzlehash]);
+
+    expect(
+      endingSweepAddressBalance,
+      equals(startingSweepAddressBalance + holdingAddressBalance),
     );
   });
 }
