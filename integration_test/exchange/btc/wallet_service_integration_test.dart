@@ -24,25 +24,24 @@ Future<void> main() async {
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
   final walletService = BtcExchangeWalletService();
 
-  final xchHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
-  final clawbackPrivateKey = masterSkToWalletSk(xchHolder.keychainSecret.masterPrivateKey, 1);
-  final clawbackPublicKey = clawbackPrivateKey.getG1();
-  final clawbackPuzzlehash = xchHolder.firstPuzzlehash;
-  await xchHolder.farmCoins();
-  await xchHolder.refreshCoins();
-
-  final btcHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
-  final sweepPrivateKey = masterSkToWalletSk(btcHolder.keychainSecret.masterPrivateKey, 1);
-  final sweepPublicKey = sweepPrivateKey.getG1();
-  final sweepPuzzlehash = btcHolder.firstPuzzlehash;
-
   final sweepPreimage =
       '5c1f10653dc3ff0531b77351dc6676de2e1f5f53c9f0a8867bcb054648f46a32'.hexToBytes();
-  // final sweepReceiptHash = Program.fromBytes(sweepPreimage).hash();
   final sweepReceiptHash =
       Puzzlehash.fromHex('63b49b0dc5f8e216332dabc410d64ee92a8ae73ae0a1d929e76980646d435d98');
 
   test('should transfer xch to holding address and clawback funds', () async {
+    final xchHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
+    final clawbackPrivateKey = masterSkToWalletSk(xchHolder.keychainSecret.masterPrivateKey, 1);
+    final clawbackPublicKey = clawbackPrivateKey.getG1();
+    final clawbackPuzzlehash = xchHolder.firstPuzzlehash;
+    await xchHolder.farmCoins();
+    await xchHolder.refreshCoins();
+
+    final btcHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
+    final sweepPrivateKey = masterSkToWalletSk(btcHolder.keychainSecret.masterPrivateKey, 1);
+    final sweepPublicKey = sweepPrivateKey.getG1();
+    final sweepPuzzlehash = btcHolder.firstPuzzlehash;
+
     final coins = xchHolder.standardCoins;
 
     final holdingAddressPuzzle = walletService.generateHoldingAddressPuzzle(
@@ -108,6 +107,18 @@ Future<void> main() async {
   });
 
   test('should transfer xch to holding address and sweep funds with preimage', () async {
+    final xchHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
+    final clawbackPrivateKey = masterSkToWalletSk(xchHolder.keychainSecret.masterPrivateKey, 1);
+    final clawbackPublicKey = clawbackPrivateKey.getG1();
+    final clawbackPuzzlehash = xchHolder.firstPuzzlehash;
+    await xchHolder.farmCoins();
+    await xchHolder.refreshCoins();
+
+    final btcHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
+    final sweepPrivateKey = masterSkToWalletSk(btcHolder.keychainSecret.masterPrivateKey, 1);
+    final sweepPublicKey = sweepPrivateKey.getG1();
+    final sweepPuzzlehash = btcHolder.firstPuzzlehash;
+
     final coins = xchHolder.standardCoins;
 
     final holdingAddressPuzzle = walletService.generateHoldingAddressPuzzle(
@@ -170,6 +181,18 @@ Future<void> main() async {
   });
 
   test('should transfer xch to holding address and sweep funds with private key', () async {
+    final xchHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
+    final clawbackPrivateKey = masterSkToWalletSk(xchHolder.keychainSecret.masterPrivateKey, 1);
+    final clawbackPublicKey = clawbackPrivateKey.getG1();
+    final clawbackPuzzlehash = xchHolder.firstPuzzlehash;
+    await xchHolder.farmCoins();
+    await xchHolder.refreshCoins();
+
+    final btcHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
+    final sweepPrivateKey = masterSkToWalletSk(btcHolder.keychainSecret.masterPrivateKey, 1);
+    final sweepPublicKey = sweepPrivateKey.getG1();
+    final sweepPuzzlehash = btcHolder.firstPuzzlehash;
+
     final coins = xchHolder.standardCoins;
 
     final holdingAddressPuzzle = walletService.generateHoldingAddressPuzzle(
