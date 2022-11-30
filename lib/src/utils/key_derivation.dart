@@ -106,16 +106,7 @@ PrivateKey masterSkToPoolingAuthenticationSk(
 
 // cribbed from https://github.com/Chia-Network/chia-blockchain/blob/4bd5c53f48cb049eff36c87c00d21b1f2dd26b27/chia/wallet/puzzles/p2_delegated_puzzle_or_hidden_puzzle.py
 Program getPuzzleFromPk(JacobianPoint publicKey) {
-  final syntheticPubKey = calculateSyntheticPublicKeyProgram.run(
-    Program.list([
-      Program.fromBytes(publicKey.toBytes()),
-      Program.fromBytes(defaultHiddenPuzzleProgram.hash())
-    ]),
-  );
-
-  final curried = p2DelegatedPuzzleOrHiddenPuzzleProgram.curry([syntheticPubKey.program]);
-
-  return curried;
+  return getPuzzleFromPkAndHiddenPuzzle(publicKey, defaultHiddenPuzzleProgram);
 }
 
 Program getPuzzleFromPkAndHiddenPuzzle(JacobianPoint publicKey, Program hiddenPuzzleProgram) {
