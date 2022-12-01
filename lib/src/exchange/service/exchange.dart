@@ -1,5 +1,5 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/puzzles/p2_delayed_or_preimage./p2_delayed_or_preimage.clvm.hex.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/puzzles/p2_delayed_or_preimage/p2_delayed_or_preimage.clvm.hex.dart';
 
 class BtcExchangeService {
   final BaseWalletService baseWalletService = BaseWalletService();

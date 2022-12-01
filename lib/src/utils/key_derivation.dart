@@ -164,8 +164,12 @@ PrivateKey calculateSyntheticPrivateKey(PrivateKey privateKey) {
   return syntheticPrivateKey;
 }
 
-PrivateKey calculateTotalPrivateKey(JacobianPoint totalPublicKey, Program hiddenPuzzle,
-    PrivateKey firstPrivateKey, PrivateKey secondPrivateKey) {
+PrivateKey calculateTotalPrivateKey(
+  JacobianPoint totalPublicKey,
+  Program hiddenPuzzle,
+  PrivateKey firstPrivateKey,
+  PrivateKey secondPrivateKey,
+) {
   final syntheticOffset = calculateSyntheticOffsetFromHiddenPuzzle(totalPublicKey, hiddenPuzzle);
 
   final firstSecret = BigInt.parse(firstPrivateKey.toHex(), radix: 16) % groupOrder;

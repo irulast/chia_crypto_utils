@@ -185,7 +185,8 @@ class WalletKeychain with ToBytesMixin {
   }
 
   Map<String, dynamic> _getSingletonWalletVectorForSingletonOwnerPublicKeyTask(
-      AddsSingletonWalletVectorArguments args) {
+    AddsSingletonWalletVectorArguments args,
+  ) {
     final masterPrivateKey = args.masterPrivateKey;
     final singletonOwnerPublicKey = args.singletonOwnerPublicKey;
     const maxIndexToCheck = 1000;
@@ -417,7 +418,10 @@ class WalletAddress extends Address {
   final int derivationIndex;
 
   factory WalletAddress.fromPuzzlehash(
-      Puzzlehash puzzlehash, String addressPrefix, int derivationIndex) {
+    Puzzlehash puzzlehash,
+    String addressPrefix,
+    int derivationIndex,
+  ) {
     final address = Address.fromPuzzlehash(puzzlehash, addressPrefix);
     return WalletAddress(address.address, derivationIndex: derivationIndex);
   }
