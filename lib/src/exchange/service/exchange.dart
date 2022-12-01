@@ -21,6 +21,8 @@ class BtcExchangeService {
     return baseWalletService.createSpendBundleBase(
       payments: payments,
       coinsInput: coinsInput,
+      fee: fee,
+      originId: originId,
       transformStandardSolution: (standardSolution) {
         final totalPublicKey = sweepPublicKey + clawbackPublicKey;
 

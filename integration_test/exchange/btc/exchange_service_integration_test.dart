@@ -26,6 +26,7 @@ Future<void> main() async {
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
   final walletService = StandardWalletService();
 
+  // values taken from sample lightning invoice and payment
   final sweepPreimage =
       '5c1f10653dc3ff0531b77351dc6676de2e1f5f53c9f0a8867bcb054648f46a32'.hexToBytes();
   final sweepReceiptHash =

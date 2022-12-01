@@ -21,6 +21,10 @@ class StandardWalletService extends BaseWalletService {
       payments: payments,
       coinsInput: coinsInput,
       changePuzzlehash: changePuzzlehash,
+      fee: fee,
+      originId: originId,
+      coinAnnouncementsToAssert: coinAnnouncementsToAssert,
+      puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
       makePuzzleRevealFromPuzzlehash: (puzzlehash) {
         final walletVector = keychain.getWalletVector(puzzlehash);
         final publicKey = walletVector!.childPublicKey;
