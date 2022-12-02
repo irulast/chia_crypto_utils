@@ -172,7 +172,7 @@ Future<void> main() async {
         await fullNodeSimulator.getCoinsByPuzzleHashes([chiaswapPuzzleAddress.toPuzzlehash()]);
 
     // the clawback spend bundle can be pushed after the clawback delay has passed in order to reclaim funds
-    // in the event that the other party doens't pay the lightning invoice within that time
+    // in the event that the other party doesn't pay the lightning invoice within that time
     final clawbackSpendbundle = xchToBtcService.createClawbackSpendBundle(
       payments: [Payment(chiaswapAddressBalance, clawbackPuzzlehash)],
       coinsInput: chiaswapAddressCoins,
@@ -429,6 +429,7 @@ Future<void> main() async {
 
     // after the lightning invoice is paid, the XCH holder may share their private key
     // the BTC holder inputs the private key, allowing them to sweep funds from the chiaswap address
+    
     // WARNING: this method effectively burns the private key that is exposed to the
     // other party
     final xchHolderPrivateKey =

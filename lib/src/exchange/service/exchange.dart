@@ -75,8 +75,8 @@ class BtcExchangeService {
 
   String createSignedPublicKey(WalletKeychain keychain) {
     final walletVector = keychain.unhardenedWalletVectors.first;
+    
     final privateKey = walletVector.childPrivateKey;
-    print(privateKey);
     final publicKey = privateKey.getG1();
 
     final message = 'I own this key.'.toBytes();

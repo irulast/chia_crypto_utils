@@ -54,6 +54,9 @@ class BtcToXchService {
     );
   }
 
+  // WARNING: this method effectively burns the private key and/or keychain associated with coin 
+  // that is exposed to the external party. 
+  
   SpendBundle createSweepSpendBundleWithPk({
     required List<Payment> payments,
     required List<CoinPrototype> coinsInput,
@@ -67,9 +70,6 @@ class BtcToXchService {
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
     List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
   }) {
-    // WARNING: this method effectively burns the private key that is exposed to the
-    // external party
-
     final walletVector = requestorKeychain.unhardenedWalletVectors.first;
     final requestorPrivateKey = walletVector.childPrivateKey;
     final requestorPublicKey = requestorPrivateKey.getG1();
