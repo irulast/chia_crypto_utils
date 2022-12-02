@@ -1,34 +1,37 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/exchange/service/exchange.dart';
 
-class BtcToXchExchangeService {
+class BtcToXchService {
   final BtcExchangeService exchangeService = BtcExchangeService();
 
-  Puzzlehash generateHoldingAddressPuzzlehash({
-    required int clawbackDelaySeconds,
-    required JacobianPoint counterpartyPublicKey,
+  Address generateChiaswapPuzzleAddress({
+    required WalletKeychain requestorKeychain,
+    int clawbackDelaySeconds = 86400,
+    required Puzzlehash sweepPuzzlehash,
     required Puzzlehash sweepReceiptHash,
-    required JacobianPoint myPublicKey,
+    required JacobianPoint fulfillerPublicKey,
   }) {
-    final holdingAddressPuzzle = exchangeService.generateHoldingAddressPuzzle(
+    final walletVector = requestorKeychain.unhardenedWalletVectors.first;
+    final requestorPublicKey = walletVector.childPublicKey;
+
+    final chiaswapPuzzle = exchangeService.generateChiaswapPuzzle(
+      clawbackPublicKey: fulfillerPublicKey,
       clawbackDelaySeconds: clawbackDelaySeconds,
-      clawbackPublicKey: counterpartyPublicKey,
       sweepReceiptHash: sweepReceiptHash,
-      sweepPublicKey: myPublicKey,
+      sweepPublicKey: requestorPublicKey,
     );
 
-    return holdingAddressPuzzle.hash();
+    return Address.fromContext(chiaswapPuzzle.hash());
   }
 
-  SpendBundle createSweepSpendBundleWithPreimage({
-    required int amount,
-    required Address sweepAddress,
-    required List<CoinPrototype> holdingAddressCoins,
-    required int clawbackDelaySeconds,
-    required PrivateKey myPrivateKey,
-    required JacobianPoint myPublicKey,
+  SpendBundle createSweepSpendBundle({
+    required List<Payment> payments,
+    required List<CoinPrototype> coinsInput,
+    required WalletKeychain requestorKeychain,
+    Puzzlehash? changePuzzlehash,
+    int clawbackDelaySeconds = 86400,
     required Puzzlehash sweepReceiptHash,
-    required JacobianPoint counterpartyPublicKey,
+    required JacobianPoint fulfillerPublicKey,
     required Bytes sweepPreimage,
     int fee = 0,
     Bytes? originId,
@@ -36,58 +39,74 @@ class BtcToXchExchangeService {
     List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
   }) {
     return exchangeService.createExchangeSpendBundle(
-      payments: [Payment(amount, sweepAddress.toPuzzlehash())],
-      coinsInput: holdingAddressCoins,
+      payments: payments,
+      coinsInput: coinsInput,
+      requestorKeychain: requestorKeychain,
+      changePuzzlehash: changePuzzlehash,
       clawbackDelaySeconds: clawbackDelaySeconds,
-      privateKey: myPrivateKey,
-      clawbackPublicKey: counterpartyPublicKey,
+      fulfillerPublicKey: fulfillerPublicKey,
       sweepReceiptHash: sweepReceiptHash,
-      sweepPublicKey: myPublicKey,
       sweepPreimage: sweepPreimage,
+      fee: fee,
+      originId: originId,
+      coinAnnouncementsToAssert: coinAnnouncementsToAssert,
+      puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
     );
   }
 
   SpendBundle createSweepSpendBundleWithPk({
-    required int amount,
-    required Address sweepAddress,
-    required List<CoinPrototype> holdingAddressCoins,
-    required int clawbackDelaySeconds,
-    required PrivateKey myPrivateKey,
-    required JacobianPoint myPublicKey,
+    required List<Payment> payments,
+    required List<CoinPrototype> coinsInput,
+    required WalletKeychain requestorKeychain,
+    Puzzlehash? changePuzzlehash,
+    int clawbackDelaySeconds = 86400,
     required Puzzlehash sweepReceiptHash,
-    required PrivateKey counterpartyPrivateKey,
-    required JacobianPoint counterpartyPublicKey,
+    required PrivateKey fulfillerPrivateKey,
     int fee = 0,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
     List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
   }) {
+    // WARNING: this method effectively burns the private key that is exposed to the
+    // external party
+
+    final walletVector = requestorKeychain.unhardenedWalletVectors.first;
+    final requestorPrivateKey = walletVector.childPrivateKey;
+    final requestorPublicKey = requestorPrivateKey.getG1();
+
+    final fulfillerPublicKey = fulfillerPrivateKey.getG1();
+
     return BaseWalletService().createSpendBundleBase(
-      payments: [Payment(amount, sweepAddress.toPuzzlehash())],
-      coinsInput: holdingAddressCoins,
+      payments: payments,
+      coinsInput: coinsInput,
+      changePuzzlehash: changePuzzlehash,
+      fee: fee,
+      originId: originId,
+      coinAnnouncementsToAssert: coinAnnouncementsToAssert,
+      puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
       makePuzzleRevealFromPuzzlehash: (puzzlehash) {
-        return exchangeService.generateHoldingAddressPuzzle(
+        return exchangeService.generateChiaswapPuzzle(
           clawbackDelaySeconds: clawbackDelaySeconds,
-          clawbackPublicKey: counterpartyPublicKey,
+          clawbackPublicKey: fulfillerPublicKey,
           sweepReceiptHash: sweepReceiptHash,
-          sweepPublicKey: myPublicKey,
+          sweepPublicKey: requestorPublicKey,
         );
       },
       makeSignatureForCoinSpend: (coinSpend) {
         final hiddenPuzzle = exchangeService.generateHiddenPuzzle(
           clawbackDelaySeconds: clawbackDelaySeconds,
-          clawbackPublicKey: counterpartyPublicKey,
+          clawbackPublicKey: fulfillerPublicKey,
           sweepReceiptHash: sweepReceiptHash,
-          sweepPublicKey: myPublicKey,
+          sweepPublicKey: requestorPublicKey,
         );
 
-        final totalPublicKey = myPublicKey + counterpartyPublicKey;
+        final totalPublicKey = requestorPublicKey + fulfillerPublicKey;
 
         final totalPrivateKey = calculateTotalPrivateKey(
           totalPublicKey,
           hiddenPuzzle,
-          myPrivateKey,
-          counterpartyPrivateKey,
+          requestorPrivateKey,
+          fulfillerPrivateKey,
         );
 
         return BaseWalletService()

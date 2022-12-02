@@ -1,5 +1,6 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/puzzles/p2_delayed_or_preimage/p2_delayed_or_preimage.clvm.hex.dart';
+import 'package:chia_crypto_utils/src/exchange/exceptions/bad_signature_on_public_key.dart';
 
 class BtcExchangeService {
   final BaseWalletService baseWalletService = BaseWalletService();
@@ -7,22 +8,40 @@ class BtcExchangeService {
   SpendBundle createExchangeSpendBundle({
     required List<Payment> payments,
     required List<CoinPrototype> coinsInput,
+    required WalletKeychain requestorKeychain,
+    Puzzlehash? changePuzzlehash,
     required int clawbackDelaySeconds,
-    required PrivateKey privateKey,
-    required JacobianPoint clawbackPublicKey,
     required Puzzlehash sweepReceiptHash,
-    required JacobianPoint sweepPublicKey,
+    required JacobianPoint fulfillerPublicKey,
     Bytes? sweepPreimage,
     int fee = 0,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
     List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
   }) {
+    final walletVector = requestorKeychain.unhardenedWalletVectors.first;
+    final requestorPrivateKey = walletVector.childPrivateKey;
+    final requestorPublicKey = requestorPrivateKey.getG1();
+
+    final JacobianPoint clawbackPublicKey;
+    final JacobianPoint sweepPublicKey;
+
+    if (sweepPreimage == null) {
+      clawbackPublicKey = requestorPublicKey;
+      sweepPublicKey = fulfillerPublicKey;
+    } else {
+      clawbackPublicKey = fulfillerPublicKey;
+      sweepPublicKey = requestorPublicKey;
+    }
+
     return baseWalletService.createSpendBundleBase(
       payments: payments,
       coinsInput: coinsInput,
+      changePuzzlehash: changePuzzlehash,
       fee: fee,
       originId: originId,
+      coinAnnouncementsToAssert: coinAnnouncementsToAssert,
+      puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
       transformStandardSolution: (standardSolution) {
         final totalPublicKey = sweepPublicKey + clawbackPublicKey;
 
@@ -37,7 +56,7 @@ class BtcExchangeService {
         );
       },
       makePuzzleRevealFromPuzzlehash: (puzzlehash) {
-        return generateHoldingAddressPuzzle(
+        return generateChiaswapPuzzle(
           clawbackDelaySeconds: clawbackDelaySeconds,
           clawbackPublicKey: clawbackPublicKey,
           sweepReceiptHash: sweepReceiptHash,
@@ -45,12 +64,45 @@ class BtcExchangeService {
         );
       },
       makeSignatureForCoinSpend: (coinSpend) {
-        return baseWalletService.makeSignature(privateKey, coinSpend, useSyntheticOffset: false);
+        return baseWalletService.makeSignature(
+          requestorPrivateKey,
+          coinSpend,
+          useSyntheticOffset: false,
+        );
       },
     );
   }
 
-  Program generateHoldingAddressPuzzle({
+  String createSignedPublicKey(WalletKeychain keychain) {
+    final walletVector = keychain.unhardenedWalletVectors.first;
+    final privateKey = walletVector.childPrivateKey;
+    print(privateKey);
+    final publicKey = privateKey.getG1();
+
+    final message = 'I own this key.'.toBytes();
+
+    final signature = AugSchemeMPL.sign(privateKey, message);
+
+    return '${publicKey.toHex()}_${signature.toHex()}';
+  }
+
+  JacobianPoint parseSignedPublicKey(String signedPublicKey) {
+    final splitString = signedPublicKey.split('_');
+    final publicKey = JacobianPoint.fromHexG1(splitString[0]);
+    final signature = JacobianPoint.fromHexG2(splitString[1]);
+
+    final message = 'I own this key.'.toBytes();
+
+    final verification = AugSchemeMPL.verify(publicKey, message, signature);
+
+    if (verification == true) {
+      return publicKey;
+    } else {
+      throw BadSignatureOnPublicKeyException();
+    }
+  }
+
+  Program generateChiaswapPuzzle({
     required int clawbackDelaySeconds,
     required JacobianPoint clawbackPublicKey,
     required Puzzlehash sweepReceiptHash,
