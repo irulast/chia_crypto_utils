@@ -5,6 +5,7 @@ import 'package:chia_crypto_utils/src/exchange/exceptions/bad_signature_on_publi
 class BtcExchangeService {
   final BaseWalletService baseWalletService = BaseWalletService();
 
+  // code adapted from https://github.com/richardkiss/chiaswap
   SpendBundle createExchangeSpendBundle({
     required List<Payment> payments,
     required List<CoinPrototype> coinsInput,
@@ -71,35 +72,6 @@ class BtcExchangeService {
         );
       },
     );
-  }
-
-  String createSignedPublicKey(WalletKeychain keychain) {
-    final walletVector = keychain.unhardenedWalletVectors.first;
-    
-    final privateKey = walletVector.childPrivateKey;
-    final publicKey = privateKey.getG1();
-
-    final message = 'I own this key.'.toBytes();
-
-    final signature = AugSchemeMPL.sign(privateKey, message);
-
-    return '${publicKey.toHex()}_${signature.toHex()}';
-  }
-
-  JacobianPoint parseSignedPublicKey(String signedPublicKey) {
-    final splitString = signedPublicKey.split('_');
-    final publicKey = JacobianPoint.fromHexG1(splitString[0]);
-    final signature = JacobianPoint.fromHexG2(splitString[1]);
-
-    final message = 'I own this key.'.toBytes();
-
-    final verification = AugSchemeMPL.verify(publicKey, message, signature);
-
-    if (verification == true) {
-      return publicKey;
-    } else {
-      throw BadSignatureOnPublicKeyException();
-    }
   }
 
   Program generateChiaswapPuzzle({
@@ -176,5 +148,33 @@ class BtcExchangeService {
     );
 
     return solution;
+  }
+
+  String createSignedPublicKey(WalletKeychain keychain) {
+    final walletVector = keychain.unhardenedWalletVectors.first;
+    final privateKey = walletVector.childPrivateKey;
+    final publicKey = privateKey.getG1();
+
+    final message = 'I own this key.'.toBytes();
+
+    final signature = AugSchemeMPL.sign(privateKey, message);
+
+    return '${publicKey.toHex()}_${signature.toHex()}';
+  }
+
+  JacobianPoint parseSignedPublicKey(String signedPublicKey) {
+    final splitString = signedPublicKey.split('_');
+    final publicKey = JacobianPoint.fromHexG1(splitString[0]);
+    final signature = JacobianPoint.fromHexG2(splitString[1]);
+
+    final message = 'I own this key.'.toBytes();
+
+    final verification = AugSchemeMPL.verify(publicKey, message, signature);
+
+    if (verification == true) {
+      return publicKey;
+    } else {
+      throw BadSignatureOnPublicKeyException();
+    }
   }
 }
