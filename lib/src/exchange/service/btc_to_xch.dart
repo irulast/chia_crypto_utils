@@ -7,7 +7,6 @@ class BtcToXchService {
   Address generateChiaswapPuzzleAddress({
     required WalletKeychain requestorKeychain,
     int clawbackDelaySeconds = 86400,
-    required Puzzlehash sweepPuzzlehash,
     required Puzzlehash sweepReceiptHash,
     required JacobianPoint fulfillerPublicKey,
   }) {
@@ -54,9 +53,6 @@ class BtcToXchService {
     );
   }
 
-  // WARNING: this method effectively burns the private key and/or keychain associated with coin 
-  // that is exposed to the external party. 
-  
   SpendBundle createSweepSpendBundleWithPk({
     required List<Payment> payments,
     required List<CoinPrototype> coinsInput,

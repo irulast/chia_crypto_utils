@@ -7,7 +7,6 @@ class XchToBtcService {
   Address generateChiaswapPuzzleAddress({
     required WalletKeychain requestorKeychain,
     int clawbackDelaySeconds = 86400,
-    required Puzzlehash clawbackPuzzlehash,
     required Puzzlehash sweepReceiptHash,
     required JacobianPoint fulfillerPublicKey,
   }) {
