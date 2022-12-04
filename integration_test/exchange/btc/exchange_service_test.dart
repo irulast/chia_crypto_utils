@@ -5,9 +5,9 @@ import 'dart:async';
 
 import 'package:bip39/bip39.dart';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/service/btc_to_xch.dart';
-import 'package:chia_crypto_utils/src/exchange/service/exchange.dart';
-import 'package:chia_crypto_utils/src/exchange/service/xch_to_btc.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/service/btc_to_xch.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/service/exchange.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/service/xch_to_btc.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
@@ -82,14 +82,15 @@ Future<void> main() async {
         'ac72743c39137845af0991c71796206c7784b49b76fa30f216ccdeba84e23b28b81d5af48a6cc754d6438057c084f206_b60876a2f323721d8404935991b2c2e392af7e07d93aeb68317646a4c72b7392c00c88331e1ca90330cc9511cd6f2a510b55ee0918ed4d1d58dbf06c805044b9dc906a58ed5252e9dd95d22ccdc9f3016e1848d95f998a2bfbe6f74f5040f688';
     final btcHolderPublicKey = exchangeService.parseSignedPublicKey(btcHolderSignedPublicKey);
 
-    // user inputs lightning payment request
-    final sweepReceiptHash =
-        Puzzlehash.fromHex('63b49b0dc5f8e216332dabc410d64ee92a8ae73ae0a1d929e76980646d435d98');
+    // user inputs lightning payment request, which is used to get the payment hash
+    const paymentRequest =
+        'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
+    final sweepPaymentHash = exchangeService.getPaymentHash(paymentRequest);
 
     // generate address for XCH holder to send funds to
     final chiaswapPuzzleAddress = xchToBtcService.generateChiaswapPuzzleAddress(
       requestorKeychain: disposableKeychain,
-      sweepReceiptHash: sweepReceiptHash,
+      sweepPaymentHash: sweepPaymentHash,
       fulfillerPublicKey: btcHolderPublicKey,
     );
 
@@ -129,7 +130,7 @@ Future<void> main() async {
       payments: [Payment(chiaswapAddressBalance, clawbackPuzzlehash)],
       coinsInput: chiaswapAddressCoins,
       requestorKeychain: disposableKeychain,
-      sweepReceiptHash: sweepReceiptHash,
+      sweepPaymentHash: sweepPaymentHash,
       fulfillerPublicKey: btcHolderPublicKey,
     );
 
@@ -194,9 +195,10 @@ Future<void> main() async {
         'ac72743c39137845af0991c71796206c7784b49b76fa30f216ccdeba84e23b28b81d5af48a6cc754d6438057c084f206_b60876a2f323721d8404935991b2c2e392af7e07d93aeb68317646a4c72b7392c00c88331e1ca90330cc9511cd6f2a510b55ee0918ed4d1d58dbf06c805044b9dc906a58ed5252e9dd95d22ccdc9f3016e1848d95f998a2bfbe6f74f5040f688';
     final btcHolderPublicKey = exchangeService.parseSignedPublicKey(btcHolderSignedPublicKey);
 
-    // user inputs lightning payment request
-    final sweepReceiptHash =
-        Puzzlehash.fromHex('63b49b0dc5f8e216332dabc410d64ee92a8ae73ae0a1d929e76980646d435d98');
+    // user inputs lightning payment request, which is used to get the payment hash
+    const paymentRequest =
+        'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
+    final sweepPaymentHash = exchangeService.getPaymentHash(paymentRequest);
 
     // shorten delay for testing purposes
     const clawbackDelaySeconds = 5;
@@ -205,7 +207,7 @@ Future<void> main() async {
     final chiaswapPuzzleAddress = xchToBtcService.generateChiaswapPuzzleAddress(
       requestorKeychain: disposableKeychain,
       clawbackDelaySeconds: clawbackDelaySeconds,
-      sweepReceiptHash: sweepReceiptHash,
+      sweepPaymentHash: sweepPaymentHash,
       fulfillerPublicKey: btcHolderPublicKey,
     );
 
@@ -246,7 +248,7 @@ Future<void> main() async {
       coinsInput: chiaswapAddressCoins,
       clawbackDelaySeconds: clawbackDelaySeconds,
       requestorKeychain: disposableKeychain,
-      sweepReceiptHash: sweepReceiptHash,
+      sweepPaymentHash: sweepPaymentHash,
       fulfillerPublicKey: btcHolderPublicKey,
     );
 
@@ -337,14 +339,15 @@ Future<void> main() async {
         'ad6abe3d432ccce5b40995611c4db6d71e2678f142b8635940c32c4b1c35dde7b01ab42581075eaee173aba747373f71_97c0d2c1acea7708df1eb4a75f625ca1fe95a9aa141a86c2e18bdfd1e8716cba2888f6230ea122ce9478a78f8257beaf0dfb81714f4de6337fa671cc29bb2d4e18e9aae31829016fd94f14e99f86a9ad990f2740d02583c6a85dc4b6b0233aaa';
     final xchHolderPublicKey = exchangeService.parseSignedPublicKey(xchHolderSignedPublicKey);
 
-    // user inputs lightning payment request
-    final sweepReceiptHash =
-        Puzzlehash.fromHex('63b49b0dc5f8e216332dabc410d64ee92a8ae73ae0a1d929e76980646d435d98');
+    // user inputs lightning payment request, which is used to get the payment hash
+    const paymentRequest =
+        'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
+    final sweepPaymentHash = exchangeService.getPaymentHash(paymentRequest);
 
     // generate address for XCH holder to send funds to
     final chiaswapPuzzleAddress = btcToXchService.generateChiaswapPuzzleAddress(
       requestorKeychain: btcDisposableKeychain,
-      sweepReceiptHash: sweepReceiptHash,
+      sweepPaymentHash: sweepPaymentHash,
       fulfillerPublicKey: xchHolderPublicKey,
     );
 
@@ -379,6 +382,7 @@ Future<void> main() async {
 
     // the BTC holder inputs the lightning preimage receipt they receive upon payment of the
     // lightning invoice to sweep funds
+    // the payment hash is the hash of the preimage
     final sweepPreimage =
         '5c1f10653dc3ff0531b77351dc6676de2e1f5f53c9f0a8867bcb054648f46a32'.hexToBytes();
 
@@ -386,7 +390,7 @@ Future<void> main() async {
       payments: [Payment(chiaswapAddressBalance, sweepPuzzlehash)],
       coinsInput: chiaswapAddressCoins,
       requestorKeychain: btcDisposableKeychain,
-      sweepReceiptHash: sweepReceiptHash,
+      sweepPaymentHash: sweepPaymentHash,
       sweepPreimage: sweepPreimage,
       fulfillerPublicKey: xchHolderPublicKey,
     );
@@ -471,14 +475,15 @@ Future<void> main() async {
         'ad6abe3d432ccce5b40995611c4db6d71e2678f142b8635940c32c4b1c35dde7b01ab42581075eaee173aba747373f71_97c0d2c1acea7708df1eb4a75f625ca1fe95a9aa141a86c2e18bdfd1e8716cba2888f6230ea122ce9478a78f8257beaf0dfb81714f4de6337fa671cc29bb2d4e18e9aae31829016fd94f14e99f86a9ad990f2740d02583c6a85dc4b6b0233aaa';
     final xchHolderPublicKey = exchangeService.parseSignedPublicKey(xchHolderSignedPublicKey);
 
-    // user inputs lightning payment request
-    final sweepReceiptHash =
-        Puzzlehash.fromHex('63b49b0dc5f8e216332dabc410d64ee92a8ae73ae0a1d929e76980646d435d98');
+    // user inputs lightning payment request, which is used to get the payment hash
+    const paymentRequest =
+        'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
+    final sweepPaymentHash = exchangeService.getPaymentHash(paymentRequest);
 
     // generate address for XCH holder to send funds to
     final chiaswapPuzzleAddress = btcToXchService.generateChiaswapPuzzleAddress(
       requestorKeychain: btcDisposableKeychain,
-      sweepReceiptHash: sweepReceiptHash,
+      sweepPaymentHash: sweepPaymentHash,
       fulfillerPublicKey: xchHolderPublicKey,
     );
 
@@ -519,7 +524,7 @@ Future<void> main() async {
           payments: [Payment(chiaswapAddressBalance, sweepPuzzlehash)],
           coinsInput: chiaswapAddressCoins,
           requestorKeychain: btcHolder.keychain,
-          sweepReceiptHash: sweepReceiptHash,
+          sweepPaymentHash: sweepPaymentHash,
           sweepPreimage: sweepPreimage,
           fulfillerPublicKey: xchHolderPublicKey,
         );
@@ -596,14 +601,15 @@ Future<void> main() async {
     final xchHolderSignedPublicKey = exchangeService.createSignedPublicKey(xchDisposableKeychain);
     final xchHolderPublicKey = exchangeService.parseSignedPublicKey(xchHolderSignedPublicKey);
 
-    // user inputs lightning payment request
-    final sweepReceiptHash =
-        Puzzlehash.fromHex('63b49b0dc5f8e216332dabc410d64ee92a8ae73ae0a1d929e76980646d435d98');
+    // user inputs lightning payment request, which is used to get the payment hash
+    const paymentRequest =
+        'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
+    final sweepPaymentHash = exchangeService.getPaymentHash(paymentRequest);
 
     // generate address for XCH holder to send funds to
     final chiaswapPuzzleAddress = btcToXchService.generateChiaswapPuzzleAddress(
       requestorKeychain: btcDisposableKeychain,
-      sweepReceiptHash: sweepReceiptHash,
+      sweepPaymentHash: sweepPaymentHash,
       fulfillerPublicKey: xchHolderPublicKey,
     );
 
@@ -644,7 +650,7 @@ Future<void> main() async {
       payments: [Payment(chiaswapAddressBalance, sweepPuzzlehash)],
       coinsInput: chiaswapAddressCoins,
       requestorKeychain: btcDisposableKeychain,
-      sweepReceiptHash: sweepReceiptHash,
+      sweepPaymentHash: sweepPaymentHash,
       fulfillerPrivateKey: xchHolderPrivateKey,
     );
 

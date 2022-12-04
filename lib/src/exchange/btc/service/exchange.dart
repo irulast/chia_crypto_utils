@@ -1,18 +1,22 @@
-import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/puzzles/p2_delayed_or_preimage/p2_delayed_or_preimage.clvm.hex.dart';
-import 'package:chia_crypto_utils/src/exchange/exceptions/bad_signature_on_public_key.dart';
+import 'dart:typed_data';
 
+import 'package:bech32/bech32.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/exceptions/bad_signature_on_public_key.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/puzzles/p2_delayed_or_preimage/p2_delayed_or_preimage.clvm.hex.dart';
+import 'package:chia_crypto_utils/src/utils/bech32.dart';
+
+// code adapted from https://github.com/richardkiss/chiaswap
 class BtcExchangeService {
   final BaseWalletService baseWalletService = BaseWalletService();
 
-  // code adapted from https://github.com/richardkiss/chiaswap
   SpendBundle createExchangeSpendBundle({
     required List<Payment> payments,
     required List<CoinPrototype> coinsInput,
     required WalletKeychain requestorKeychain,
     Puzzlehash? changePuzzlehash,
     required int clawbackDelaySeconds,
-    required Puzzlehash sweepReceiptHash,
+    required Bytes sweepPaymentHash,
     required JacobianPoint fulfillerPublicKey,
     Bytes? sweepPreimage,
     int fee = 0,
@@ -50,7 +54,7 @@ class BtcExchangeService {
           totalPublicKey: totalPublicKey,
           clawbackDelaySeconds: clawbackDelaySeconds,
           clawbackPublicKey: clawbackPublicKey,
-          sweepReceiptHash: sweepReceiptHash,
+          sweepPaymentHash: sweepPaymentHash,
           sweepPublicKey: sweepPublicKey,
           delegatedSolution: standardSolution,
           sweepPreimage: sweepPreimage,
@@ -60,7 +64,7 @@ class BtcExchangeService {
         return generateChiaswapPuzzle(
           clawbackDelaySeconds: clawbackDelaySeconds,
           clawbackPublicKey: clawbackPublicKey,
-          sweepReceiptHash: sweepReceiptHash,
+          sweepPaymentHash: sweepPaymentHash,
           sweepPublicKey: sweepPublicKey,
         );
       },
@@ -77,13 +81,13 @@ class BtcExchangeService {
   Program generateChiaswapPuzzle({
     required int clawbackDelaySeconds,
     required JacobianPoint clawbackPublicKey,
-    required Puzzlehash sweepReceiptHash,
+    required Bytes sweepPaymentHash,
     required JacobianPoint sweepPublicKey,
   }) {
     final hiddenPuzzleProgram = generateHiddenPuzzle(
       clawbackDelaySeconds: clawbackDelaySeconds,
       clawbackPublicKey: clawbackPublicKey,
-      sweepReceiptHash: sweepReceiptHash,
+      sweepPaymentHash: sweepPaymentHash,
       sweepPublicKey: sweepPublicKey,
     );
 
@@ -97,7 +101,7 @@ class BtcExchangeService {
   Program generateHiddenPuzzle({
     required int clawbackDelaySeconds,
     required JacobianPoint clawbackPublicKey,
-    required Puzzlehash sweepReceiptHash,
+    required Bytes sweepPaymentHash,
     required JacobianPoint sweepPublicKey,
   }) {
     final hiddenPuzzleProgram = p2DelayedOrPreimageProgram.curry([
@@ -106,7 +110,7 @@ class BtcExchangeService {
         Program.fromBytes(clawbackPublicKey.toBytes()),
       ),
       Program.cons(
-        Program.fromBytes(sweepReceiptHash.toBytes()),
+        Program.fromBytes(sweepPaymentHash),
         Program.fromBytes(sweepPublicKey.toBytes()),
       )
     ]);
@@ -118,7 +122,7 @@ class BtcExchangeService {
     required JacobianPoint totalPublicKey,
     required int clawbackDelaySeconds,
     required JacobianPoint clawbackPublicKey,
-    required Puzzlehash sweepReceiptHash,
+    required Bytes sweepPaymentHash,
     required JacobianPoint sweepPublicKey,
     required Program delegatedSolution,
     Bytes? sweepPreimage,
@@ -128,7 +132,7 @@ class BtcExchangeService {
     final hiddenPuzzleProgram = generateHiddenPuzzle(
       clawbackDelaySeconds: clawbackDelaySeconds,
       clawbackPublicKey: clawbackPublicKey,
-      sweepReceiptHash: sweepReceiptHash,
+      sweepPaymentHash: sweepPaymentHash,
       sweepPublicKey: sweepPublicKey,
     );
 
@@ -176,5 +180,54 @@ class BtcExchangeService {
     } else {
       throw BadSignatureOnPublicKeyException();
     }
+  }
+
+  Map<String, dynamic> parseLightningPaymentRequest(String paymentRequest) {
+    const bech32 = Bech32Codec();
+    final data = bech32.decode(paymentRequest, 2048).data;
+    var tagged = data.sublist(7);
+
+    const overrideSizes = {'1': 256, '16': 256};
+
+    final parsedPaymentRequest = <String, dynamic>{};
+
+    int bitSize;
+    dynamic taggedFieldData;
+
+    while (tagged.length * 5 > 520) {
+      final type = tagged[0].toString();
+      final size = convertBits(tagged.sublist(1, 3), 5, 10, pad: true)[0];
+      final dataBlob = tagged.sublist(3, 3 + size);
+
+      if (overrideSizes.containsKey(type)) {
+        bitSize = overrideSizes[type]!;
+      } else {
+        bitSize = 5 * size;
+      }
+
+      tagged = tagged.sublist(3 + size);
+
+      if (size > 0) {
+        taggedFieldData = convertToLongBitLength(dataBlob, 5, bitSize, pad: true)[0];
+      } else {
+        taggedFieldData = null;
+      }
+
+      if (size > 10) {
+        taggedFieldData = bigIntToBytes(taggedFieldData as BigInt, (bitSize + 7) >> 3, Endian.big);
+      }
+      parsedPaymentRequest[type] = taggedFieldData;
+    }
+
+    final signature = convertToLongBitLength(tagged, 5, 520, pad: true)[0];
+    parsedPaymentRequest['signature'] = signature;
+
+    return parsedPaymentRequest;
+  }
+
+  Bytes getPaymentHash(String paymentRequest) {
+    final parsedPaymentRequest = parseLightningPaymentRequest(paymentRequest);
+
+    return parsedPaymentRequest['1'] as Bytes;
   }
 }

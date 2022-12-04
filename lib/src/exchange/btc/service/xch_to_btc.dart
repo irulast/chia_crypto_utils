@@ -1,5 +1,5 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/service/exchange.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/service/exchange.dart';
 
 class XchToBtcService {
   final BtcExchangeService exchangeService = BtcExchangeService();
@@ -7,7 +7,7 @@ class XchToBtcService {
   Address generateChiaswapPuzzleAddress({
     required WalletKeychain requestorKeychain,
     int clawbackDelaySeconds = 86400,
-    required Puzzlehash sweepReceiptHash,
+    required Bytes sweepPaymentHash,
     required JacobianPoint fulfillerPublicKey,
   }) {
     final walletVector = requestorKeychain.unhardenedWalletVectors.first;
@@ -16,7 +16,7 @@ class XchToBtcService {
     final chiaswapPuzzle = exchangeService.generateChiaswapPuzzle(
       clawbackPublicKey: requestorPublicKey,
       clawbackDelaySeconds: clawbackDelaySeconds,
-      sweepReceiptHash: sweepReceiptHash,
+      sweepPaymentHash: sweepPaymentHash,
       sweepPublicKey: fulfillerPublicKey,
     );
 
@@ -29,7 +29,7 @@ class XchToBtcService {
     required WalletKeychain requestorKeychain,
     Puzzlehash? changePuzzlehash,
     int clawbackDelaySeconds = 86400,
-    required Puzzlehash sweepReceiptHash,
+    required Bytes sweepPaymentHash,
     required JacobianPoint fulfillerPublicKey,
     int fee = 0,
     Bytes? originId,
@@ -42,7 +42,7 @@ class XchToBtcService {
       requestorKeychain: requestorKeychain,
       changePuzzlehash: changePuzzlehash,
       clawbackDelaySeconds: clawbackDelaySeconds,
-      sweepReceiptHash: sweepReceiptHash,
+      sweepPaymentHash: sweepPaymentHash,
       fulfillerPublicKey: fulfillerPublicKey,
       fee: fee,
       originId: originId,
