@@ -4,6 +4,7 @@ abstract class ChiaPriceProvider {
 
 abstract class ChiaPriceResponse {
   num get priceUsd;
+  num get priceBtc;
 
   Map<String, num> get currencyPriceMap;
 }

@@ -107,13 +107,13 @@ Future<void> main() async {
       (int previousValue, element) => previousValue + element.amount,
     );
 
-    final chiaswapTransferSpendbundle = walletService.createSpendBundle(
+    final chiaswapTransferSpendBundle = walletService.createSpendBundle(
       payments: [Payment(amountForChiaswap, chiaswapPuzzlehash)],
       coinsInput: coinsForChiaswap,
       changePuzzlehash: xchHolder.firstPuzzlehash,
       keychain: disposableKeychain,
     );
-    await fullNodeSimulator.pushTransaction(chiaswapTransferSpendbundle);
+    await fullNodeSimulator.pushTransaction(chiaswapTransferSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
     final chiaswapAddressBalance = await fullNodeSimulator.getBalance([chiaswapPuzzlehash]);
@@ -128,7 +128,7 @@ Future<void> main() async {
 
     // the clawback spend bundle will fail if pushed before the clawback delay period passes
     // the default delay is 24 hours
-    final clawbackSpendbundle = xchToBtcService.createClawbackSpendBundle(
+    final clawbackSpendBundle = xchToBtcService.createClawbackSpendBundle(
       payments: [Payment(chiaswapAddressBalance, clawbackPuzzlehash)],
       coinsInput: chiaswapAddressCoins,
       requestorKeychain: disposableKeychain,
@@ -138,7 +138,7 @@ Future<void> main() async {
 
     expect(
       () async {
-        await fullNodeSimulator.pushTransaction(clawbackSpendbundle);
+        await fullNodeSimulator.pushTransaction(clawbackSpendBundle);
       },
       throwsException,
     );
@@ -225,13 +225,13 @@ Future<void> main() async {
       (int previousValue, element) => previousValue + element.amount,
     );
 
-    final chiaswapTransferSpendbundle = walletService.createSpendBundle(
+    final chiaswapTransferSpendBundle = walletService.createSpendBundle(
       payments: [Payment(amountForChiaswap, chiaswapPuzzlehash)],
       coinsInput: coinsForChiaswap,
       changePuzzlehash: xchHolder.firstPuzzlehash,
       keychain: disposableKeychain,
     );
-    await fullNodeSimulator.pushTransaction(chiaswapTransferSpendbundle);
+    await fullNodeSimulator.pushTransaction(chiaswapTransferSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
     final chiaswapAddressBalance = await fullNodeSimulator.getBalance([chiaswapPuzzlehash]);
@@ -246,7 +246,7 @@ Future<void> main() async {
 
     // the clawback spend bundle can be pushed after the clawback delay has passed in order to reclaim funds
     // in the event that the other party doesn't pay the lightning invoice within that time
-    final clawbackSpendbundle = xchToBtcService.createClawbackSpendBundle(
+    final clawbackSpendBundle = xchToBtcService.createClawbackSpendBundle(
       payments: [Payment(chiaswapAddressBalance, clawbackPuzzlehash)],
       coinsInput: chiaswapAddressCoins,
       clawbackDelaySeconds: clawbackDelaySeconds,
@@ -263,7 +263,7 @@ Future<void> main() async {
 
     // wait until clawback delay period has passed
     await Future<void>.delayed(const Duration(seconds: 10), () async {
-      await fullNodeSimulator.pushTransaction(clawbackSpendbundle);
+      await fullNodeSimulator.pushTransaction(clawbackSpendBundle);
       await fullNodeSimulator.moveToNextBlock();
       final endingClawbackAddressBalance = await fullNodeSimulator.getBalance([clawbackPuzzlehash]);
 
@@ -366,13 +366,13 @@ Future<void> main() async {
       (int previousValue, element) => previousValue + element.amount,
     );
 
-    final chiaswapTransferSpendbundle = walletService.createSpendBundle(
+    final chiaswapTransferSpendBundle = walletService.createSpendBundle(
       payments: [Payment(amountForChiaswap, chiaswapPuzzlehash)],
       coinsInput: coinsForChiaswap,
       changePuzzlehash: xchHolder.firstPuzzlehash,
       keychain: btcDisposableKeychain,
     );
-    await fullNodeSimulator.pushTransaction(chiaswapTransferSpendbundle);
+    await fullNodeSimulator.pushTransaction(chiaswapTransferSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
     final chiaswapAddressBalance = await fullNodeSimulator.getBalance([chiaswapPuzzlehash]);
@@ -390,7 +390,7 @@ Future<void> main() async {
     final sweepPreimage =
         '5c1f10653dc3ff0531b77351dc6676de2e1f5f53c9f0a8867bcb054648f46a32'.hexToBytes();
 
-    final sweepSpendbundle = btcToXchService.createSweepSpendBundle(
+    final sweepSpendBundle = btcToXchService.createSweepSpendBundle(
       payments: [Payment(chiaswapAddressBalance, sweepPuzzlehash)],
       coinsInput: chiaswapAddressCoins,
       requestorKeychain: btcDisposableKeychain,
@@ -399,7 +399,7 @@ Future<void> main() async {
       fulfillerPublicKey: xchHolderPublicKey,
     );
 
-    await fullNodeSimulator.pushTransaction(sweepSpendbundle);
+    await fullNodeSimulator.pushTransaction(sweepSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
     final endingSweepAddressBalance = await fullNodeSimulator.getBalance([sweepPuzzlehash]);
@@ -503,13 +503,13 @@ Future<void> main() async {
       (int previousValue, element) => previousValue + element.amount,
     );
 
-    final chiaswapTransferSpendbundle = walletService.createSpendBundle(
+    final chiaswapTransferSpendBundle = walletService.createSpendBundle(
       payments: [Payment(amountForChiaswap, chiaswapPuzzlehash)],
       coinsInput: coinsForChiaswap,
       changePuzzlehash: xchHolder.firstPuzzlehash,
       keychain: btcDisposableKeychain,
     );
-    await fullNodeSimulator.pushTransaction(chiaswapTransferSpendbundle);
+    await fullNodeSimulator.pushTransaction(chiaswapTransferSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
     final chiaswapAddressBalance = await fullNodeSimulator.getBalance([chiaswapPuzzlehash]);
@@ -630,13 +630,13 @@ Future<void> main() async {
       (int previousValue, element) => previousValue + element.amount,
     );
 
-    final chiaswapTransferSpendbundle = walletService.createSpendBundle(
+    final chiaswapTransferSpendBundle = walletService.createSpendBundle(
       payments: [Payment(amountForChiaswap, chiaswapPuzzlehash)],
       coinsInput: coinsForChiaswap,
       changePuzzlehash: xchHolder.firstPuzzlehash,
       keychain: btcDisposableKeychain,
     );
-    await fullNodeSimulator.pushTransaction(chiaswapTransferSpendbundle);
+    await fullNodeSimulator.pushTransaction(chiaswapTransferSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
     final chiaswapAddressBalance = await fullNodeSimulator.getBalance([chiaswapPuzzlehash]);
@@ -652,7 +652,7 @@ Future<void> main() async {
     // the BTC holder inputs the private key, allowing them to sweep funds from the chiaswap address
     final xchHolderPrivateKey = xchDisposableKeychainWalletVector.childPrivateKey;
 
-    final sweepSpendbundle = btcToXchService.createSweepSpendBundleWithPk(
+    final sweepSpendBundle = btcToXchService.createSweepSpendBundleWithPk(
       payments: [Payment(chiaswapAddressBalance, sweepPuzzlehash)],
       coinsInput: chiaswapAddressCoins,
       requestorKeychain: btcDisposableKeychain,
@@ -660,7 +660,7 @@ Future<void> main() async {
       fulfillerPrivateKey: xchHolderPrivateKey,
     );
 
-    await fullNodeSimulator.pushTransaction(sweepSpendbundle);
+    await fullNodeSimulator.pushTransaction(sweepSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
     final endingSweepAddressBalance = await fullNodeSimulator.getBalance([sweepPuzzlehash]);

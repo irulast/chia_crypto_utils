@@ -5,7 +5,11 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:bip39/bip39.dart';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
 import 'package:chia_crypto_utils/src/command/plot_nft/create_new_wallet_with_plotnft.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/service/exchange.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/service/xch_to_btc.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_payment_request.dart';
 
 late final ChiaFullNodeInterface fullNode;
 
@@ -23,7 +27,8 @@ void main(List<String> args) {
     ..argParser.addOption('full-node-url')
     ..addCommand(CreateWalletWithPlotNFTCommand())
     ..addCommand(GetFarmingStatusCommand())
-    ..addCommand(GetCoinRecords());
+    ..addCommand(GetCoinRecords())
+    ..addCommand(ExchangeBtcCommand());
 
   final results = runner.argParser.parse(args);
 
@@ -283,6 +288,32 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
       } catch (e) {
         LoggingContext().error(e.toString());
       }
+    }
+  }
+}
+
+class ExchangeBtcCommand extends Command<Future<void>> {
+  ExchangeBtcCommand();
+
+  @override
+  String get description => 'Initiates an exchange of XCH for BTC or BTC for XCH';
+
+  @override
+  String get name => 'Exchange-Btc';
+
+  @override
+  Future<void> run() async {
+    print('1. Have XCH, want BTC');
+    print('2. Have BTC, want XCH');
+    stdout.write('> ');
+    final choice = stdin.readLineSync();
+
+    if (choice == '1') {
+      await exchangeXchForBtc(fullNode);
+    } else if (choice == '2') {
+      await exchangeBtcForXch(fullNode);
+    } else {
+      throw ArgumentError('Not a valid choice');
     }
   }
 }
