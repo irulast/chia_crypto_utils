@@ -1,179 +1,275 @@
 import 'dart:io';
 import 'package:bip39/bip39.dart';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/exceptions/bad_signature_on_public_key.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/service/btc_to_xch.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/service/exchange.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/service/xch_to_btc.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_payment_request.dart';
 
+final exchangeService = BtcExchangeService();
+
 Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
-  final walletService = StandardWalletService();
-  final exchangeService = BtcExchangeService();
   final xchToBtcService = XchToBtcService();
 
-  final disposableMnemonic = generateMnemonic(strength: 256);
-  final disposableKeychainSecret = KeychainCoreSecret.fromMnemonic(disposableMnemonic.split(' '));
+  // generate disposable mnemonic, derive public key, and create signed public key for user
+  final mnemonic = generateMnemonic(strength: 256);
 
-  final walletsSetList = <WalletSet>[];
-  for (var i = 0; i < 5; i++) {
-    final set1 = WalletSet.fromPrivateKey(disposableKeychainSecret.masterPrivateKey, i);
-    walletsSetList.add(set1);
-  }
+  final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic.split(' '));
 
-  final disposableKeychain = WalletKeychain.fromWalletSets(walletsSetList);
-  final disposableKeychainWalletVector = disposableKeychain.unhardenedMap.values.first;
-  final disposableKeychainPuzzlehash = disposableKeychainWalletVector.puzzlehash;
-  final disposableAddress = Address.fromContext(disposableKeychainPuzzlehash);
-  final disposablePrivateKey = disposableKeychainWalletVector.childPrivateKey;
-  final signedPublicKey = exchangeService.createSignedPublicKey(disposableKeychain);
+  final xchHolderPrivateKey = masterSkToWalletSkUnhardened(keychainSecret.masterPrivateKey, 500);
+  final xchHolderSignedPublicKey = exchangeService.createSignedPublicKey(xchHolderPrivateKey);
 
   print('');
   print('Send the line below to your counter party. It contains your signed public key.');
-  print(signedPublicKey);
+  print(xchHolderSignedPublicKey);
 
+  // validate counter party public key as pasted by user
+  final btcHolderPublicKey = getCounterPartyPublicKey();
+
+  // look up current XCH and BTC prices and get amounts of each being exchanged
+  final amounts = await getAmounts();
+  final xchAmountMojos = (amounts[0] * 1e12).toInt();
+
+  // decode lightning payment request as pasted by user and get payment hash
   print('');
-  print("Enter your counter party's signed public key");
-  stdout.write('> ');
-  final btcHolderSignedPublicKey = stdin.readLineSync();
-  final btcHolderPublicKey = exchangeService.parseSignedPublicKey(btcHolderSignedPublicKey!);
-
-  final response = await XchScan().getChiaPrice();
-  final btcPerXch = response.priceBtc;
-  final xchPerBtc = 1 / btcPerXch;
-  final usdPerXch = response.priceUsd;
-  final usdPerBtc = usdPerXch / btcPerXch;
-
+  print('Create a lightning payment request for ${amounts[1]}');
+  print('There must be a timeout of at least ten minutes');
   print('');
-  print('These are the current prices:');
-  print('1 XCH = $btcPerXch BTC or $usdPerXch USD');
-  print('1 BTC = $xchPerBtc XCH or $usdPerBtc USD');
-
-  print('');
-  print('How much XCH is being traded?');
-  stdout.write('> ');
-  final xchAmountString = stdin.readLineSync();
-  final xchAmount = double.parse(xchAmountString!);
-  final btcAmount = xchAmount * btcPerXch.toInt();
-  final xchAmountMojos = (xchAmount * 1e12).toInt();
-
-  print('');
-  print('Create a lightning payment request for $btcAmount');
-  print('The timeout must be at least ten minutes');
   print('Copy and paste the lightning payment request here:');
-  stdout.write('> ');
-  final paymentRequest = stdin.readLineSync();
-  final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest!);
-  final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
+  final sweepPaymentHash = getPaymentHash();
 
-  final chiaswapPuzzleAddress = xchToBtcService.generateChiaswapPuzzleAddress(
-    requestorKeychain: disposableKeychain,
+  // generate address for user to send coins to for exchange
+  final chiaswapPuzzlehash = xchToBtcService.generateChiaswapPuzzlehash(
+    requestorPrivateKey: xchHolderPrivateKey,
     sweepPaymentHash: sweepPaymentHash,
     fulfillerPublicKey: btcHolderPublicKey,
   );
 
-  print(chiaswapPuzzleAddress.address);
-
-  final chiaswapPuzzlehash = chiaswapPuzzleAddress.toPuzzlehash();
+  final chiaswapAddress = chiaswapPuzzlehash.toAddressWithContext();
 
   print('');
   print('Transfer enough funds for the exchange to the following address: ');
-  print(disposableAddress.address);
-
+  print(chiaswapAddress.address);
+  print('');
   print('Press any key when the funds have been sent.');
   stdin.readLineSync();
 
-  var coins = <Coin>[];
-  while (coins.totalValue < xchAmountMojos) {
+  // wait for user to send XCH
+  var chiaswapCoins = <Coin>[];
+  while (chiaswapCoins.totalValue < xchAmountMojos) {
     print('waiting for XCH...');
-    await Future<void>.delayed(const Duration(seconds: 3));
-    coins = await fullNode.getCoinsByPuzzleHashes(
-      [disposableKeychainPuzzlehash],
+    await Future<void>.delayed(const Duration(seconds: 10));
+    chiaswapCoins = await fullNode.getCoinsByPuzzleHashes(
+      [chiaswapPuzzlehash],
     );
   }
 
+  print('');
   print('XCH received!');
 
+  // get puzzlehash where user can receive XCH back
   print('');
-  print('Enter the address where the XCH will be returned if the exchange fails.');
-  stdout.write('> ');
-  final clawbackAddress = stdin.readLineSync();
-  final clawbackPuzzlehash = Address(clawbackAddress!).toPuzzlehash();
+  print('Enter the address where the XCH will be returned if there is change.');
+  print('or in the event the exchange is aborted or fails.');
+  final clawbackPuzzlehash = getUserPuzzlehash();
 
-  final coinsForChiaswap = await fullNode.getCoinsByPuzzleHashes([disposableKeychainPuzzlehash]);
-
-  final chiaswapTransferSpendBundle = walletService.createSpendBundle(
-    payments: [Payment(xchAmountMojos, chiaswapPuzzlehash)],
-    coinsInput: coinsForChiaswap,
-    changePuzzlehash: clawbackPuzzlehash,
-    keychain: disposableKeychain,
-  );
-  await fullNode.pushTransaction(chiaswapTransferSpendBundle);
-
-  final chiaswapAddressCoins =
-      await fullNode.getCoinsByPuzzleHashes([chiaswapPuzzleAddress.toPuzzlehash()]);
-
+  // create spend bundle for clawing back funds if counter party doesn't pay lightning invoice
   final clawbackSpendBundle = xchToBtcService.createClawbackSpendBundle(
-    payments: [Payment(xchAmountMojos, clawbackPuzzlehash)],
-    coinsInput: chiaswapAddressCoins,
-    requestorKeychain: disposableKeychain,
+    payments: [Payment(chiaswapCoins.totalValue, clawbackPuzzlehash)],
+    coinsInput: chiaswapCoins,
+    requestorPrivateKey: xchHolderPrivateKey,
     sweepPaymentHash: sweepPaymentHash,
     fulfillerPublicKey: btcHolderPublicKey,
   );
 
   print('');
   print('Wait for your counter party to pay the lightning invoice.');
-  print(
-    'When the invoice is paid, share the private key below to allow your counter party to cleanly claim the XCH',
+  print('Once it is paid, share the private key below to allow your counter party to');
+  print('claim the XCH');
+  print(xchHolderPrivateKey.toHex());
+  print('');
+  print('If they never pay the invoice, use the spend bundle below to claw back funds');
+  print('after 24 hours:');
+  print('');
+  print('Warning: if you answer before 24 hours have passed, the spend bundle will');
+  print('be rejected.');
+
+  await confirmSpendBundle(clawbackSpendBundle, fullNode);
+}
+
+Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
+  final btcToXchService = BtcToXchService();
+
+  // generate disposable mnemonic, derive public key, and create signed public key for user
+  final mnemonic = generateMnemonic(strength: 256);
+  final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic.split(' '));
+
+  final btcHolderPrivateKey = masterSkToWalletSkUnhardened(keychainSecret.masterPrivateKey, 500);
+  final btcHolderSignedPublicKey = exchangeService.createSignedPublicKey(btcHolderPrivateKey);
+
+  print('');
+  print('Send the line below to your counter party. It contains your signed public key.');
+  print(btcHolderSignedPublicKey);
+
+  // validate counter party public key as pasted by user
+  final xchHolderPublicKey = getCounterPartyPublicKey();
+
+  // look up current XCH and BTC prices and calculate amounts of each being exchanged
+  final amounts = await getAmounts();
+  final xchAmountMojos = (amounts[0] * 1e12).toInt();
+
+  // decode lightning payment request as pasted by user and get payment hash
+  print('');
+  print('Paste the lightning payment request from your counter party here:');
+  final sweepPaymentHash = getPaymentHash();
+
+  // generate address that counter party will be sending XCH to
+  final chiaswapPuzzlehash = btcToXchService.generateChiaswapPuzzlehash(
+    requestorPrivateKey: btcHolderPrivateKey,
+    sweepPaymentHash: sweepPaymentHash,
+    fulfillerPublicKey: xchHolderPublicKey,
   );
-  print(disposablePrivateKey.toHexWithPrefix());
+
+  final chiaswapAddress = chiaswapPuzzlehash.toAddressWithContext();
+
+  // get puzzlehash where user will receive XCH from the exchange
+  print('');
+  print('Enter the address where you would like the XCH delivered.');
+  final sweepPuzzlehash = getUserPuzzlehash();
+  print('');
+
+  // wait for counter party to send XCH to chiaswap address
+  var chiaswapCoins = <Coin>[];
+  while (chiaswapCoins.totalValue < xchAmountMojos) {
+    print('waiting for counter party to send XCH...');
+    await Future<void>.delayed(const Duration(seconds: 10));
+    chiaswapCoins = await fullNode.getCoinsByPuzzleHashes(
+      [chiaswapPuzzlehash],
+    );
+  }
+
+  print('');
+  print('The XCH from your counter party has been received, which you can verify here:');
+  print('https://xchscan.com/address/${chiaswapAddress.address}');
   print('');
   print(
-    'If the invoice is never paid, use the spend bundle below to claw back funds after 24 hours:',
+    'After the payment has received enough confirmations, pay the lightning invoice.',
   );
-  print(clawbackSpendBundle.toHex());
+
   print('');
-  print('Leave this window open or control-C to exit.');
-  print('Warning: if you answer before 24 hours have passed, the spend bundle will be rejected.');
-  print('Send spend bundle to claw back funds? (Y/N)');
-  stdout.write('> ');
-  final confirmation = stdin.readLineSync();
-  if (confirmation!.toLowerCase() == 'Y') {
-    try {
-      await fullNode.pushTransaction(clawbackSpendBundle);
-    } catch (e) {
-      LoggingContext().error(e.toString());
+  print("To claim funds, you will use either your counter party's private key");
+  print('or the preimage that is revealed after payment of the lightning invoice.');
+  print("If you haven't already received it, ask your counter party to share");
+  print('their private key.');
+  print(
+    'If your counter party is nonresponsive, look up your lightning invoice preimage receipt.',
+  );
+  print('');
+  print("Select whether you are using your counter party's private key or the preimage");
+  print('to claim your XCH');
+
+  print('');
+  print('1. Private key');
+  print('2. Preimage');
+  print('3. Quit');
+
+  String? choice;
+
+  while (choice != '1' && choice != '2' && choice != '3') {
+    stdout.write('> ');
+    choice = stdin.readLineSync();
+
+    // generate spend bundle for user to sweep funds with counter party's private key
+    if (choice == '1') {
+      print("Please enter your counter party's private key:");
+
+      PrivateKey? xchHolderPrivateKey;
+
+      while (xchHolderPrivateKey == null) {
+        try {
+          stdout.write('> ');
+          final privateKeyInput = stdin.readLineSync();
+          final xchHolderPrivateKey = PrivateKey.fromHex(privateKeyInput!);
+
+          assert(
+            xchHolderPrivateKey.getG1() == xchHolderPublicKey,
+            'Could not verify counter party private key. Please try again.',
+          );
+
+          final sweepSpendBundle = btcToXchService.createSweepSpendBundleWithPk(
+            payments: [Payment(chiaswapCoins.totalValue, sweepPuzzlehash)],
+            coinsInput: chiaswapCoins,
+            requestorPrivateKey: btcHolderPrivateKey,
+            sweepPaymentHash: sweepPaymentHash,
+            fulfillerPrivateKey: xchHolderPrivateKey,
+          );
+
+          print('');
+          await confirmSpendBundle(sweepSpendBundle, fullNode);
+        } catch (e) {
+          LoggingContext().error(e.toString());
+        }
+      }
+
+      // generate spend bundle for user to sweep funds with preimage
+    } else if (choice == '2') {
+      print('Please enter the preimage:');
+
+      Bytes? sweepPreimage;
+
+      while (sweepPreimage == null) {
+        try {
+          stdout.write('> ');
+          final preimageInput = stdin.readLineSync();
+          final sweepPreimage = preimageInput.toString().hexToBytes();
+
+          assert(
+            sweepPreimage.sha256Hash() == sweepPaymentHash,
+            'Could not verify preimage. Please try again.',
+          );
+
+          final sweepSpendBundle = btcToXchService.createSweepSpendBundle(
+            payments: [Payment(chiaswapCoins.totalValue, sweepPuzzlehash)],
+            coinsInput: chiaswapCoins,
+            requestorPrivateKey: btcHolderPrivateKey,
+            sweepPaymentHash: sweepPaymentHash,
+            sweepPreimage: sweepPreimage,
+            fulfillerPublicKey: xchHolderPublicKey,
+          );
+
+          print('');
+          await confirmSpendBundle(sweepSpendBundle, fullNode);
+        } catch (e) {
+          LoggingContext().error(e.toString());
+        }
+      }
+    } else if (choice == '3') {
+      exit(exitCode);
+    } else {
+      print('Not a valid choice.');
     }
   }
 }
 
-Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
-  final exchangeService = BtcExchangeService();
-  final btcToXchService = BtcToXchService();
+JacobianPoint getCounterPartyPublicKey() {
+  print('');
+  print("Enter your counter party's signed public key");
 
-  final disposableMnemonic = generateMnemonic(strength: 256);
-  final disposableKeychainSecret = KeychainCoreSecret.fromMnemonic(disposableMnemonic.split(' '));
-
-  final walletsSetList = <WalletSet>[];
-  for (var i = 0; i < 5; i++) {
-    final set1 = WalletSet.fromPrivateKey(disposableKeychainSecret.masterPrivateKey, i);
-    walletsSetList.add(set1);
+  while (true) {
+    stdout.write('> ');
+    try {
+      final btcHolderSignedPublicKey = stdin.readLineSync();
+      final publicKey = exchangeService.parseSignedPublicKey(btcHolderSignedPublicKey!);
+      return publicKey;
+    } catch (e) {
+      print('');
+      print('Could not verify signed public key. Please try again.');
+    }
   }
+}
 
-  final disposableKeychain = WalletKeychain.fromWalletSets(walletsSetList);
-  final disposableKeychainWalletVector = disposableKeychain.unhardenedMap.values.first;
-  final disposablePrivateKey = disposableKeychainWalletVector.childPrivateKey;
-  final signedPublicKey = exchangeService.createSignedPublicKey(disposableKeychain);
-
-  print('');
-  print('Send the line below to your counter party. It contains your signed public key.');
-  print(signedPublicKey);
-
-  print('');
-  print("Enter your counter party's signed public key.");
-  stdout.write('> ');
-  final xchHolderSignedPublicKey = stdin.readLineSync();
-  final xchHolderPublicKey = exchangeService.parseSignedPublicKey(xchHolderSignedPublicKey!);
-
+Future<List<double>> getAmounts() async {
   final response = await XchScan().getChiaPrice();
   final btcPerXch = response.priceBtc;
   final xchPerBtc = 1 / btcPerXch;
@@ -185,116 +281,73 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   print('1 XCH = $btcPerXch BTC or $usdPerXch USD');
   print('1 BTC = $xchPerBtc XCH or $usdPerBtc USD');
 
+  double? xchAmount;
+
   print('');
   print('How much XCH is being traded?');
-  stdout.write('> ');
-  final xchAmount = stdin.readLineSync();
-  final xchAmountMojos = (double.parse(xchAmount!) * 1e12).toInt();
 
-  print('');
-  print('Paste the lightning payment request from your counter party here:');
-  stdout.write('> ');
-  final paymentRequest = stdin.readLineSync();
-  final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest!);
-  final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
-
-  final chiaswapPuzzleAddress = btcToXchService.generateChiaswapPuzzleAddress(
-    requestorKeychain: disposableKeychain,
-    sweepPaymentHash: sweepPaymentHash,
-    fulfillerPublicKey: xchHolderPublicKey,
-  );
-
-  final chiaswapPuzzlehash = chiaswapPuzzleAddress.toPuzzlehash();
-
-  print('');
-  print('Enter the address where you would like the XCH delivered.');
-  stdout.write('> ');
-  final sweepAddress = stdin.readLineSync();
-  final sweepPuzzlehash = Address(sweepAddress!).toPuzzlehash();
-
-  print('');
-  print('The XCH from your counter party will be received at the below address:');
-  print(chiaswapPuzzleAddress.address);
-
-  print('Go to an explorer and watch for payments:');
-  print('https://xchscan.com/address/${chiaswapPuzzleAddress.address}');
-
-  var coins = <Coin>[];
-  while (coins.totalValue < xchAmountMojos) {
-    await Future<void>.delayed(const Duration(seconds: 3));
-    coins = await fullNode.getCoinsByPuzzleHashes(
-      [chiaswapPuzzlehash],
-    );
-  }
-
-  print('');
-  print(
-    'The XCH have been received. Once the payment has enough confirmations, pay the lightning invoice.',
-  );
-  print('');
-  print('If you DO NOT want to complete this transaction, DO NOT pay the lightning invoice.');
-  print(
-    'Instead, send the following private key to your counter party to allow them to reclaim the XCH.',
-  );
-  print(disposablePrivateKey.toHexWithPrefix());
-
-  print('');
-  print(
-    'Once you have paid the lightning invoice, ask your counter party to share their disposable private key',
-  );
-  print(
-    'Also look up your lightning invoice preimage receipt in case your counter party disappears',
-  );
-
-  SpendBundle? sweepSpendBundle;
-
-  print('');
-  print(
-    "Enter the private key from your counter party OR the lightning invoice preimage or 'quit'",
-  );
-  stdout.write('> ');
-  final userInput = stdin.readLineSync();
-  if (userInput == 'quit') {
-    exit(exitCode);
-  } else {
+  while (xchAmount == null) {
+    stdout.write('> ');
     try {
-      final xchHolderPrivateKey = PrivateKey.fromHex(userInput!);
-
-      if (xchHolderPrivateKey.getG1() == xchHolderPublicKey) {
-        sweepSpendBundle = btcToXchService.createSweepSpendBundleWithPk(
-          payments: [Payment(xchAmountMojos, sweepPuzzlehash)],
-          coinsInput: coins,
-          requestorKeychain: disposableKeychain,
-          sweepPaymentHash: sweepPaymentHash,
-          fulfillerPrivateKey: xchHolderPrivateKey,
-        );
-      }
-
-      final sweepPreimage = userInput.hexToBytes();
-
-      if (sweepPreimage.sha256Hash() == sweepPaymentHash) {
-        sweepSpendBundle = btcToXchService.createSweepSpendBundle(
-          payments: [Payment(xchAmountMojos, sweepPuzzlehash)],
-          coinsInput: coins,
-          requestorKeychain: disposableKeychain,
-          sweepPaymentHash: sweepPaymentHash,
-          sweepPreimage: sweepPreimage,
-          fulfillerPublicKey: xchHolderPublicKey,
-        );
-      }
+      final xchAmountString = stdin.readLineSync();
+      xchAmount = double.parse(xchAmountString!);
     } catch (e) {
-      print("Couldn't verify input as either private key or preimage.");
+      print('Please enter the amount of XCH being traded:');
+      print('');
     }
   }
 
-  print('Send spend bundle to claim funds? (Y/N)');
-  stdout.write('> ');
-  final confirmation = stdin.readLineSync();
-  if (confirmation!.toLowerCase() == 'Y') {
+  final btcAmount = xchAmount * btcPerXch;
+
+  return [xchAmount, btcAmount];
+}
+
+Bytes getPaymentHash() {
+  while (true) {
+    stdout.write('> ');
     try {
-      await fullNode.pushTransaction(sweepSpendBundle!);
+      final paymentRequest = stdin.readLineSync();
+      final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest!);
+      final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
+      return sweepPaymentHash;
     } catch (e) {
-      LoggingContext().error(e.toString());
+      print("Couldn't validate the lightning payment request. Please try again:");
     }
+  }
+}
+
+Puzzlehash getUserPuzzlehash() {
+  while (true) {
+    stdout.write('> ');
+    try {
+      final userAddress = stdin.readLineSync();
+      final userPuzzlehash = Address(userAddress!).toPuzzlehash();
+      return userPuzzlehash;
+    } catch (e) {
+      print('');
+      print("Couldn't verify your address. Please truy again:");
+    }
+  }
+}
+
+Future<void> confirmSpendBundle(SpendBundle spendBundle, ChiaFullNodeInterface fullNode) async {
+  var confirmation = '';
+
+  print('Generating file with spend bundle hex in the current directory...');
+  print('You can use this to push the spend bundle manually in case the program closes.');
+  final spendBundleHexFile = File('spendBundleHex.txt').openWrite()..write(spendBundle.toHex());
+  await spendBundleHexFile.flush();
+  await spendBundleHexFile.close();
+
+  print('Push spend bundle to claim funds? (Y/N)');
+  while (confirmation.toLowerCase() != 'y') {
+    stdout.write('> ');
+    final input = stdin.readLineSync();
+    confirmation = input!;
+  }
+  try {
+    await fullNode.pushTransaction(spendBundle);
+  } catch (e) {
+    LoggingContext().error(e.toString());
   }
 }

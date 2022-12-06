@@ -4,14 +4,13 @@ import 'package:chia_crypto_utils/src/exchange/btc/service/exchange.dart';
 class BtcToXchService {
   final BtcExchangeService exchangeService = BtcExchangeService();
 
-  Address generateChiaswapPuzzleAddress({
-    required WalletKeychain requestorKeychain,
-    int clawbackDelaySeconds = 86400,
+  Puzzlehash generateChiaswapPuzzlehash({
+    required PrivateKey requestorPrivateKey,
+    int clawbackDelaySeconds = 10,
     required Bytes sweepPaymentHash,
     required JacobianPoint fulfillerPublicKey,
   }) {
-    final walletVector = requestorKeychain.unhardenedWalletVectors.first;
-    final requestorPublicKey = walletVector.childPublicKey;
+    final requestorPublicKey = requestorPrivateKey.getG1();
 
     final chiaswapPuzzle = exchangeService.generateChiaswapPuzzle(
       clawbackPublicKey: fulfillerPublicKey,
@@ -20,15 +19,15 @@ class BtcToXchService {
       sweepPublicKey: requestorPublicKey,
     );
 
-    return Address.fromContext(chiaswapPuzzle.hash());
+    return chiaswapPuzzle.hash();
   }
 
   SpendBundle createSweepSpendBundle({
     required List<Payment> payments,
     required List<CoinPrototype> coinsInput,
-    required WalletKeychain requestorKeychain,
+    required PrivateKey requestorPrivateKey,
     Puzzlehash? changePuzzlehash,
-    int clawbackDelaySeconds = 86400,
+    int clawbackDelaySeconds = 10,
     required Bytes sweepPaymentHash,
     required JacobianPoint fulfillerPublicKey,
     required Bytes sweepPreimage,
@@ -40,7 +39,7 @@ class BtcToXchService {
     return exchangeService.createExchangeSpendBundle(
       payments: payments,
       coinsInput: coinsInput,
-      requestorKeychain: requestorKeychain,
+      requestorPrivateKey: requestorPrivateKey,
       changePuzzlehash: changePuzzlehash,
       clawbackDelaySeconds: clawbackDelaySeconds,
       fulfillerPublicKey: fulfillerPublicKey,
@@ -56,9 +55,9 @@ class BtcToXchService {
   SpendBundle createSweepSpendBundleWithPk({
     required List<Payment> payments,
     required List<CoinPrototype> coinsInput,
-    required WalletKeychain requestorKeychain,
+    required PrivateKey requestorPrivateKey,
     Puzzlehash? changePuzzlehash,
-    int clawbackDelaySeconds = 86400,
+    int clawbackDelaySeconds = 10,
     required Bytes sweepPaymentHash,
     required PrivateKey fulfillerPrivateKey,
     int fee = 0,
@@ -66,10 +65,7 @@ class BtcToXchService {
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
     List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
   }) {
-    final walletVector = requestorKeychain.unhardenedWalletVectors.first;
-    final requestorPrivateKey = walletVector.childPrivateKey;
     final requestorPublicKey = requestorPrivateKey.getG1();
-
     final fulfillerPublicKey = fulfillerPrivateKey.getG1();
 
     return BaseWalletService().createSpendBundleBase(

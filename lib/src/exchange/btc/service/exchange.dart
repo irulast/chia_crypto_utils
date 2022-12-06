@@ -1,6 +1,7 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/exceptions/bad_signature_on_public_key.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/puzzles/p2_delayed_or_preimage/p2_delayed_or_preimage.clvm.hex.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/exceptions/bad_signature_on_public_key.dart';
+import 'package:chia_crypto_utils/src/utils/bech32.dart';
 
 // code adapted from https://github.com/richardkiss/chiaswap
 class BtcExchangeService {
@@ -9,7 +10,7 @@ class BtcExchangeService {
   SpendBundle createExchangeSpendBundle({
     required List<Payment> payments,
     required List<CoinPrototype> coinsInput,
-    required WalletKeychain requestorKeychain,
+    required PrivateKey requestorPrivateKey,
     Puzzlehash? changePuzzlehash,
     required int clawbackDelaySeconds,
     required Bytes sweepPaymentHash,
@@ -20,8 +21,6 @@ class BtcExchangeService {
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
     List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
   }) {
-    final walletVector = requestorKeychain.unhardenedWalletVectors.first;
-    final requestorPrivateKey = walletVector.childPrivateKey;
     final requestorPublicKey = requestorPrivateKey.getG1();
 
     final JacobianPoint clawbackPublicKey;
@@ -150,9 +149,7 @@ class BtcExchangeService {
     return solution;
   }
 
-  String createSignedPublicKey(WalletKeychain keychain) {
-    final walletVector = keychain.unhardenedWalletVectors.first;
-    final privateKey = walletVector.childPrivateKey;
+  String createSignedPublicKey(PrivateKey privateKey) {
     final publicKey = privateKey.getG1();
 
     final message = 'I own this key.'.toBytes();
@@ -177,10 +174,4 @@ class BtcExchangeService {
       throw BadSignatureOnPublicKeyException();
     }
   }
-
-  // Bytes getPaymentHash(String paymentRequest) {
-  //   final parsedPaymentRequest = parseLightningPaymentRequest(paymentRequest);
-
-  //   return parsedPaymentRequest['1'] as Bytes;
-  // }
 }

@@ -305,15 +305,20 @@ class ExchangeBtcCommand extends Command<Future<void>> {
   Future<void> run() async {
     print('1. Have XCH, want BTC');
     print('2. Have BTC, want XCH');
-    stdout.write('> ');
-    final choice = stdin.readLineSync();
 
-    if (choice == '1') {
-      await exchangeXchForBtc(fullNode);
-    } else if (choice == '2') {
-      await exchangeBtcForXch(fullNode);
-    } else {
-      throw ArgumentError('Not a valid choice');
+    String? choice;
+
+    while (choice != '1' && choice != '2') {
+      stdout.write('> ');
+      choice = stdin.readLineSync();
+
+      if (choice == '1') {
+        await exchangeXchForBtc(fullNode);
+      } else if (choice == '2') {
+        await exchangeBtcForXch(fullNode);
+      } else {
+        print('Not a valid choice.');
+      }
     }
   }
 }
