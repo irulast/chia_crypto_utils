@@ -49,4 +49,59 @@ class XchToBtcService {
       puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
     );
   }
+
+  SpendBundle createClawbackSpendBundleWithPk({
+    required List<Payment> payments,
+    required List<CoinPrototype> coinsInput,
+    required PrivateKey requestorPrivateKey,
+    Puzzlehash? changePuzzlehash,
+    int clawbackDelaySeconds = 10,
+    required Bytes sweepPaymentHash,
+    required PrivateKey fulfillerPrivateKey,
+    int fee = 0,
+    Bytes? originId,
+    List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+  }) {
+    final requestorPublicKey = requestorPrivateKey.getG1();
+    final fulfillerPublicKey = fulfillerPrivateKey.getG1();
+
+    return BaseWalletService().createSpendBundleBase(
+      payments: payments,
+      coinsInput: coinsInput,
+      changePuzzlehash: changePuzzlehash,
+      fee: fee,
+      originId: originId,
+      coinAnnouncementsToAssert: coinAnnouncementsToAssert,
+      puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
+      makePuzzleRevealFromPuzzlehash: (puzzlehash) {
+        return exchangeService.generateChiaswapPuzzle(
+          clawbackDelaySeconds: clawbackDelaySeconds,
+          clawbackPublicKey: requestorPublicKey,
+          sweepPaymentHash: sweepPaymentHash,
+          sweepPublicKey: fulfillerPublicKey,
+        );
+      },
+      makeSignatureForCoinSpend: (coinSpend) {
+        final hiddenPuzzle = exchangeService.generateHiddenPuzzle(
+          clawbackDelaySeconds: clawbackDelaySeconds,
+          clawbackPublicKey: requestorPublicKey,
+          sweepPaymentHash: sweepPaymentHash,
+          sweepPublicKey: fulfillerPublicKey,
+        );
+
+        final totalPublicKey = requestorPublicKey + fulfillerPublicKey;
+
+        final totalPrivateKey = calculateTotalPrivateKey(
+          totalPublicKey,
+          hiddenPuzzle,
+          requestorPrivateKey,
+          fulfillerPrivateKey,
+        );
+
+        return BaseWalletService()
+            .makeSignature(totalPrivateKey, coinSpend, useSyntheticOffset: false);
+      },
+    );
+  }
 }

@@ -20,7 +20,7 @@ void main(List<String> args) {
   )
     ..argParser.addOption(
       'log-level',
-      defaultsTo: 'high',
+      defaultsTo: 'none',
       allowed: ['none', 'low', 'high'],
     )
     ..argParser.addOption('network', defaultsTo: 'mainnet')
