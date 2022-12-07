@@ -104,4 +104,70 @@ class XchToBtcService {
       },
     );
   }
+
+  Puzzlehash generateChiaswapPuzzlehashFromKeychain({
+    required WalletKeychain requestorKeychain,
+    int clawbackDelaySeconds = 10,
+    required Bytes sweepPaymentHash,
+    required JacobianPoint fulfillerPublicKey,
+  }) {
+    final walletVector = requestorKeychain.unhardenedWalletVectors.first;
+    final requestorPrivateKey = walletVector.childPrivateKey;
+
+    return generateChiaswapPuzzlehash(
+      requestorPrivateKey: requestorPrivateKey,
+      sweepPaymentHash: sweepPaymentHash,
+      fulfillerPublicKey: fulfillerPublicKey,
+    );
+  }
+
+  SpendBundle createClawbackSpendBundleFromKeychain({
+    required List<Payment> payments,
+    required List<CoinPrototype> coinsInput,
+    required WalletKeychain requestorKeychain,
+    Puzzlehash? changePuzzlehash,
+    int clawbackDelaySeconds = 10,
+    required Bytes sweepPaymentHash,
+    required JacobianPoint fulfillerPublicKey,
+    int fee = 0,
+    Bytes? originId,
+    List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+  }) {
+    final walletVector = requestorKeychain.unhardenedWalletVectors.first;
+    final requestorPrivateKey = walletVector.childPrivateKey;
+
+    return createClawbackSpendBundle(
+      payments: payments,
+      coinsInput: coinsInput,
+      requestorPrivateKey: requestorPrivateKey,
+      sweepPaymentHash: sweepPaymentHash,
+      fulfillerPublicKey: fulfillerPublicKey,
+    );
+  }
+
+  SpendBundle createClawbackSpendBundleWithPkFromKeychain({
+    required List<Payment> payments,
+    required List<CoinPrototype> coinsInput,
+    required WalletKeychain requestorKeychain,
+    Puzzlehash? changePuzzlehash,
+    int clawbackDelaySeconds = 10,
+    required Bytes sweepPaymentHash,
+    required PrivateKey fulfillerPrivateKey,
+    int fee = 0,
+    Bytes? originId,
+    List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+  }) {
+    final walletVector = requestorKeychain.unhardenedWalletVectors.first;
+    final requestorPrivateKey = walletVector.childPrivateKey;
+
+    return createClawbackSpendBundleWithPk(
+      payments: payments,
+      coinsInput: coinsInput,
+      requestorPrivateKey: requestorPrivateKey,
+      sweepPaymentHash: sweepPaymentHash,
+      fulfillerPrivateKey: fulfillerPrivateKey,
+    );
+  }
 }

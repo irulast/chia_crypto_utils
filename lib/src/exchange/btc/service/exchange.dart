@@ -159,6 +159,13 @@ class BtcExchangeService {
     return '${publicKey.toHex()}_${signature.toHex()}';
   }
 
+  String createSignedPublicKeyFromKeychain(WalletKeychain keychain) {
+    final walletVector = keychain.unhardenedWalletVectors.first;
+    final privateKey = walletVector.childPrivateKey;
+
+    return createSignedPublicKey(privateKey);
+  }
+
   JacobianPoint parseSignedPublicKey(String signedPublicKey) {
     final splitString = signedPublicKey.split('_');
     final publicKey = JacobianPoint.fromHexG1(splitString[0]);
