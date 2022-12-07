@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:bip39/bip39.dart';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/exceptions/bad_signature_on_public_key.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/service/btc_to_xch.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/service/exchange.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/service/xch_to_btc.dart';
@@ -182,13 +181,14 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
 
     // generate spend bundle for user to sweep funds with counter party's private key
     if (choice == '1') {
+      print('');
       print("Please enter your counter party's private key:");
 
       PrivateKey? xchHolderPrivateKey;
 
       while (xchHolderPrivateKey == null) {
+        stdout.write('> ');
         try {
-          stdout.write('> ');
           final privateKeyInput = stdin.readLineSync();
           final xchHolderPrivateKey = PrivateKey.fromHex(privateKeyInput!);
 
@@ -205,8 +205,9 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
             fulfillerPrivateKey: xchHolderPrivateKey,
           );
 
-          print('');
-          await confirmSpendBundle(sweepSpendBundle, fullNode);
+          // print('');
+          // await confirmSpendBundle(sweepSpendBundle, fullNode);
+          await fullNode.pushTransaction(sweepSpendBundle);
         } catch (e) {
           LoggingContext().error(e.toString());
         }
@@ -214,13 +215,14 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
 
       // generate spend bundle for user to sweep funds with preimage
     } else if (choice == '2') {
+      print('');
       print('Please enter the preimage:');
 
       Bytes? sweepPreimage;
 
       while (sweepPreimage == null) {
+        stdout.write('> ');
         try {
-          stdout.write('> ');
           final preimageInput = stdin.readLineSync();
           final sweepPreimage = preimageInput.toString().hexToBytes();
 
@@ -238,8 +240,9 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
             fulfillerPublicKey: xchHolderPublicKey,
           );
 
-          print('');
-          await confirmSpendBundle(sweepSpendBundle, fullNode);
+          // print('');
+          // await confirmSpendBundle(sweepSpendBundle, fullNode);
+          await fullNode.pushTransaction(sweepSpendBundle);
         } catch (e) {
           LoggingContext().error(e.toString());
         }
@@ -259,8 +262,8 @@ JacobianPoint getCounterPartyPublicKey() {
   while (true) {
     stdout.write('> ');
     try {
-      final btcHolderSignedPublicKey = stdin.readLineSync();
-      final publicKey = exchangeService.parseSignedPublicKey(btcHolderSignedPublicKey!);
+      final signedPublicKey = stdin.readLineSync();
+      final publicKey = exchangeService.parseSignedPublicKey(signedPublicKey!);
       return publicKey;
     } catch (e) {
       print('');
@@ -335,9 +338,9 @@ Future<void> confirmSpendBundle(SpendBundle spendBundle, ChiaFullNodeInterface f
 
   print('Generating file with spend bundle hex in the current directory...');
   print('You can use this to push the spend bundle manually in case the program closes.');
-  final spendBundleHexFile = File('spendBundleHex.txt').openWrite()..write(spendBundle.toHex());
-  await spendBundleHexFile.flush();
-  await spendBundleHexFile.close();
+  // final spendBundleHexFile = File('spend_bundle_hex.txt').openWrite()..write(spendBundle.toHex());
+  // await spendBundleHexFile.flush();
+  // await spendBundleHexFile.close();
 
   print('Push spend bundle to claim funds? (Y/N)');
   while (confirmation.toLowerCase() != 'y') {
@@ -345,6 +348,7 @@ Future<void> confirmSpendBundle(SpendBundle spendBundle, ChiaFullNodeInterface f
     final input = stdin.readLineSync();
     confirmation = input!;
   }
+
   try {
     await fullNode.pushTransaction(spendBundle);
   } catch (e) {
