@@ -309,7 +309,7 @@ class ExchangeBtcCommand extends Command<Future<void>> {
 
     while (choice != '1' && choice != '2') {
       stdout.write('> ');
-      choice = stdin.readLineSync();
+      choice = stdin.readLineSync()!.trim();
 
       if (choice == '1') {
         await exchangeXchForBtc(fullNode);
