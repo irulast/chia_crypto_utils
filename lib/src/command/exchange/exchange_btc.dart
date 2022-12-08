@@ -69,7 +69,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
   // wait for user to send XCH
   var chiaswapCoins = <Coin>[];
   while (chiaswapCoins.totalValue < xchAmountMojos) {
-    print('waiting for XCH...');
+    print('Waiting for XCH...');
     await Future<void>.delayed(const Duration(seconds: 10));
     chiaswapCoins = await fullNode.getCoinsByPuzzleHashes(
       [chiaswapPuzzlehash],
@@ -232,7 +232,7 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   // wait for counter party to send XCH to chiaswap address
   var chiaswapCoins = <Coin>[];
   while (chiaswapCoins.totalValue < xchAmountMojos) {
-    print('waiting for counter party to send XCH...');
+    print('Waiting for counter party to send XCH...');
     await Future<void>.delayed(const Duration(seconds: 10));
     chiaswapCoins = await fullNode.getCoinsByPuzzleHashes(
       [chiaswapPuzzlehash],
@@ -457,9 +457,9 @@ Puzzlehash getUserPuzzlehash() {
 }
 
 Future<void> generateSpendBundleFile(SpendBundle spendBundle) async {
-  print('');
   await Future<void>.delayed(const Duration(seconds: 2));
-  print('Also generating file with spend bundle JSON in the current directory...');
+  print('');
+  print('Generating file with spend bundle JSON in the current directory...');
   print('You can use this to push the spend bundle in case the program closes before');
   print('completing the transaction.');
   print('Use a command in the same format as shown here:');
@@ -498,9 +498,11 @@ Future<void> confirmClawback(
         print('keep waiting and manually push the transaction using the generated file.');
       }
     } else if (confirmation.toLowerCase().startsWith('n')) {
+      print('');
       print('Once 24 hours have passed, you may reclaim the XCH either by responding');
       print("with 'Y' here or by manually pushing the spend bundle using the");
       print('generated hex file.');
+      await Future<void>.delayed(const Duration(seconds: 3));
       print('');
       print('Have 24 hours passed? If so, push spend bundle to claw back funds?');
     } else {
@@ -520,7 +522,7 @@ Future<void> verifyTransaction(
 
   print('');
   while (!chiaswapCoinIds.any((id) => recipientParentIds.contains(id))) {
-    print('waiting for transaction to complete...');
+    print('Waiting for transaction to complete...');
     await Future<void>.delayed(const Duration(seconds: 10));
     final recipientCoins = await fullNode.getCoinsByPuzzleHashes(
       [recipientPuzzlehash],
