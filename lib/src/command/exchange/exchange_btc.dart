@@ -103,7 +103,6 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
   print('');
   print('Press any key to continue.');
   stdin.readLineSync();
-  print('');
   print('If the invoice is paid and you have shared your pivate key, you may');
   print('safely exit the program. The exchange is complete.');
   await Future<void>.delayed(const Duration(seconds: 3));
