@@ -7,9 +7,6 @@ import 'package:bip39/bip39.dart';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
 import 'package:chia_crypto_utils/src/command/plot_nft/create_new_wallet_with_plotnft.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/service/exchange.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/service/xch_to_btc.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_payment_request.dart';
 
 late final ChiaFullNodeInterface fullNode;
 
