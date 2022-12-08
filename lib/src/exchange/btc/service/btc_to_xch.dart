@@ -6,7 +6,7 @@ class BtcToXchService {
 
   Puzzlehash generateChiaswapPuzzlehash({
     required PrivateKey requestorPrivateKey,
-    int clawbackDelaySeconds = 10,
+    int clawbackDelaySeconds = 3600,
     required Bytes sweepPaymentHash,
     required JacobianPoint fulfillerPublicKey,
   }) {
@@ -27,7 +27,7 @@ class BtcToXchService {
     required List<CoinPrototype> coinsInput,
     required PrivateKey requestorPrivateKey,
     Puzzlehash? changePuzzlehash,
-    int clawbackDelaySeconds = 10,
+    int clawbackDelaySeconds = 3600,
     required Bytes sweepPaymentHash,
     required JacobianPoint fulfillerPublicKey,
     required Bytes sweepPreimage,
@@ -57,7 +57,7 @@ class BtcToXchService {
     required List<CoinPrototype> coinsInput,
     required PrivateKey requestorPrivateKey,
     Puzzlehash? changePuzzlehash,
-    int clawbackDelaySeconds = 10,
+    int clawbackDelaySeconds = 3600,
     required Bytes sweepPaymentHash,
     required PrivateKey fulfillerPrivateKey,
     int fee = 0,
@@ -104,74 +104,6 @@ class BtcToXchService {
         return BaseWalletService()
             .makeSignature(totalPrivateKey, coinSpend, useSyntheticOffset: false);
       },
-    );
-  }
-
-  Puzzlehash generateChiaswapPuzzlehashFromKeychain({
-    required WalletKeychain requestorKeychain,
-    int clawbackDelaySeconds = 10,
-    required Bytes sweepPaymentHash,
-    required JacobianPoint fulfillerPublicKey,
-  }) {
-    final walletVector = requestorKeychain.unhardenedWalletVectors.first;
-    final requestorPrivateKey = walletVector.childPrivateKey;
-
-    return generateChiaswapPuzzlehash(
-      requestorPrivateKey: requestorPrivateKey,
-      sweepPaymentHash: sweepPaymentHash,
-      fulfillerPublicKey: fulfillerPublicKey,
-    );
-  }
-
-  SpendBundle createSweepSpendBundleFromKeychain({
-    required List<Payment> payments,
-    required List<CoinPrototype> coinsInput,
-    required WalletKeychain requestorKeychain,
-    Puzzlehash? changePuzzlehash,
-    int clawbackDelaySeconds = 10,
-    required Bytes sweepPaymentHash,
-    required JacobianPoint fulfillerPublicKey,
-    required Bytes sweepPreimage,
-    int fee = 0,
-    Bytes? originId,
-    List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
-  }) {
-    final walletVector = requestorKeychain.unhardenedWalletVectors.first;
-    final requestorPrivateKey = walletVector.childPrivateKey;
-
-    return createSweepSpendBundle(
-      payments: payments,
-      coinsInput: coinsInput,
-      requestorPrivateKey: requestorPrivateKey,
-      sweepPaymentHash: sweepPaymentHash,
-      fulfillerPublicKey: fulfillerPublicKey,
-      sweepPreimage: sweepPreimage,
-    );
-  }
-
-  SpendBundle createSweepSpendBundleWithPkFromKeychain({
-    required List<Payment> payments,
-    required List<CoinPrototype> coinsInput,
-    required WalletKeychain requestorKeychain,
-    Puzzlehash? changePuzzlehash,
-    int clawbackDelaySeconds = 10,
-    required Bytes sweepPaymentHash,
-    required PrivateKey fulfillerPrivateKey,
-    int fee = 0,
-    Bytes? originId,
-    List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
-  }) {
-    final walletVector = requestorKeychain.unhardenedWalletVectors.first;
-    final requestorPrivateKey = walletVector.childPrivateKey;
-
-    return createSweepSpendBundleWithPk(
-      payments: payments,
-      coinsInput: coinsInput,
-      requestorPrivateKey: requestorPrivateKey,
-      sweepPaymentHash: sweepPaymentHash,
-      fulfillerPrivateKey: fulfillerPrivateKey,
     );
   }
 }

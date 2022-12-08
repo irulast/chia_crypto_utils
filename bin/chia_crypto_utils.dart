@@ -300,11 +300,9 @@ class ExchangeBtcCommand extends Command<Future<void>> {
 
   @override
   Future<void> run() async {
-    print('');
-    print('Do you have XCH that you want to exchange for BTC, or do you have BTC that');
+    print('\nDo you have XCH that you want to exchange for BTC, or do you have BTC that');
     print('you want to exchange for XCH?');
-    print('');
-    print('1. Exchange XCH for BTC');
+    print('\n1. Exchange XCH for BTC');
     print('2. Exchange BTC for XCH');
 
     String? choice;
