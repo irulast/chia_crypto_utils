@@ -303,8 +303,12 @@ class ExchangeBtcCommand extends Command<Future<void>> {
 
   @override
   Future<void> run() async {
-    print('1. Have XCH, want BTC');
-    print('2. Have BTC, want XCH');
+    print('');
+    print('Do you have XCH that you want to exchange for BTC, or do you have BTC that');
+    print('you want to exchange for XCH?');
+    print('');
+    print('1. Exchange XCH for BTC');
+    print('2. Exchange BTC for XCH');
 
     String? choice;
 
@@ -317,6 +321,7 @@ class ExchangeBtcCommand extends Command<Future<void>> {
       } else if (choice == '2') {
         await exchangeBtcForXch(fullNode);
       } else {
+        print('');
         print('Not a valid choice.');
       }
     }
