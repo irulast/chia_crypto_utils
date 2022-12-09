@@ -39,24 +39,26 @@ PaymentRequestTags decodeTags(Map<int, dynamic> encodedTags) {
         expirationTime = expirationTimeData.toInt();
         break;
       case 9:
-        fallbackAddress = data as Bytes;
+        fallbackAddress = data != null ? (data as Bytes) : null;
         break;
       case 13:
-        description = data.toString();
+        description = data?.toString();
         break;
       case 16:
         paymentSecret = data as Bytes;
         break;
       case 19:
-        final payeePublicKeyData = data as Bytes;
-        payeePublicKey = JacobianPoint.fromBytesG1(payeePublicKeyData);
+        if (data != null) {
+          final payeePublicKeyData = data as Bytes;
+          payeePublicKey = JacobianPoint.fromBytesG1(payeePublicKeyData);
+        }
         break;
       case 23:
-        purposeCommitHash = data as Bytes;
+        purposeCommitHash = data != null ? (data as Bytes) : null;
         break;
       case 24:
-        final minFinalCltvExpiryData = data as BigInt;
-        minFinalCltvExpiry = minFinalCltvExpiryData.toInt();
+        final minFinalCltvExpiryData = data != null ? (data as BigInt) : null;
+        minFinalCltvExpiry = minFinalCltvExpiryData?.toInt();
         break;
       default:
         unknownTags[tag] = data;

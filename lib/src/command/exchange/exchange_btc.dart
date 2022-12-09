@@ -173,7 +173,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
           await verifyTransaction(chiaswapCoins, clawbackPuzzlehash, fullNode);
         }
       } catch (e) {
-        print("Couldn't verify input as private key. Please try again or enter '2' to");
+        print("\nCouldn't verify input as private key. Please try again or enter '2' to");
         print(
           'instead claw back funds without private key after $clawbackDelayMinutes minutes have passed.',
         );
@@ -236,7 +236,10 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   // get puzzlehash where user will receive XCH from the exchange
   print('\nEnter the address where you would like the XCH delivered.');
   final sweepPuzzlehash = getRequestorPuzzlehash();
-  print('\n Your counter party will soon send XCH for the exchange to a holding address.\n');
+  print('\nYour counter party should be sending XCH for the exchange to a holding address.');
+  await Future<void>.delayed(const Duration(seconds: 2));
+  print('\nPress any key to continue once they have send the XCH.\n');
+  stdin.readLineSync();
 
   // wait for counter party to send XCH to chiaswap address
   var chiaswapCoins = <Coin>[];
@@ -248,7 +251,8 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
     );
   }
 
-  print('\nThe XCH from your counter party has been received, which you can verify here:');
+  print('\nThe XCH from your counter party has been received at the holding address, which');
+  print('you can verify here:');
   print('https://xchscan.com/address/${chiaswapAddress.address}');
   print('\nPay the lightning invoice after the payment has received sufficient');
   print('confirmations.');
@@ -424,11 +428,12 @@ Future<Amounts> getAmounts() async {
 }
 
 Future<int> getClawbackDelay() async {
-  print('You and your counter party must agree on how much time you want to allow for the');
+  print('\nYou and your counter party must agree on how much time you want to allow for the');
   print('exchange before it expires. It should be at least ten minutes');
-  print('WARNING: if you and your counter party input different times, the exchange will fail.');
   await Future<void>.delayed(const Duration(seconds: 3));
-  print('\nIndicate your chosen expiry time in minutes or hit enter to default to 1 hour');
+  print('\nWARNING: if you and your counter party input different times, the exchange will fail.');
+  await Future<void>.delayed(const Duration(seconds: 2));
+  print('\nIndicate your chosen expiry time in minutes or hit enter to default to 60 minutes.');
   while (true) {
     stdout.write('> ');
     final input = stdin.readLineSync()!.trim();
@@ -437,10 +442,10 @@ Future<int> getClawbackDelay() async {
     } else {
       try {
         final minutes = int.parse(input);
-        if (minutes > 10) {
-          return minutes;
-        } else {
+        if (minutes < 10) {
           print('\nMust be at least 10 minutes.');
+        } else {
+          return minutes;
         }
       } catch (e) {
         print('\nPlease enter a number.');
@@ -513,7 +518,7 @@ Future<void> confirmClawback({
       } catch (e) {
         print('\nTRANSACTION FAILED. The spend bundle was rejected. If the clawback delay period');
         print("hasn't passed yet, keep waiting and manually push the transaction using the");
-        print('generated file');
+        print('generated file. If it has, your counter party may have already claimed funds.');
       }
     } else if (confirmation.toLowerCase().startsWith('n')) {
       print(
@@ -539,16 +544,27 @@ Future<void> verifyTransaction(
   final chiaswapCoinIds = chiaswapCoins.map((coin) => coin.id).toList();
   final removalIds = <Bytes>[];
 
-  print('');
+  print('\nChecking mempool for coin spend...');
+
   while (chiaswapCoinIds.every(removalIds.contains)) {
-    print('Checking mempool for coin spend...');
     final mempoolItemsResponse = await fullNode.getAllMempoolItems();
     mempoolItemsResponse.mempoolItemMap.forEach((key, mempoolItem) {
       removalIds.addAll(mempoolItem.removals.map((removal) => removal.id));
     });
-    await Future<void>.delayed(const Duration(seconds: 10));
+    await Future<void>.delayed(const Duration(seconds: 3));
   }
 
-  print('\nSuccess! Your transaction was validated and is now in the mempool.');
-  print('Please allow a few more minutes for the XCH to arrive in your wallet');
+  print('\nYour transaction was validated and is now in the mempool.\n');
+
+  var recipientParentIds = <Bytes>[];
+  while (!chiaswapCoinIds.any((id) => recipientParentIds.contains(id))) {
+    print('Waiting for transaction to complete...');
+    await Future<void>.delayed(const Duration(seconds: 10));
+    final recipientCoins = await fullNode.getCoinsByPuzzleHashes(
+      [requestorPuzzlehash],
+    );
+    recipientParentIds = recipientCoins.map((coin) => coin.parentCoinInfo).toList();
+  }
+
+  print('\nSuccess! The transaction has been completed.');
 }
