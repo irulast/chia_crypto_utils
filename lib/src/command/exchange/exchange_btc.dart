@@ -114,8 +114,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
   print('\nAlternatively, if both parties agree to abort the exchange, you may receive');
   print('the XCH back sooner if your counter party provides their private key.');
   await Future<void>.delayed(const Duration(seconds: 3));
-  print('\nSelect an option below.\n');
-
+  print('\nSelect an option below.');
   print('1. The lightning invoice has been paid. Quit program.');
   print('2. $clawbackDelayMinutes minutes have passed. Claw back funds.');
   print('3. Exchange has been aborted or failed. Use counter party private key to');
@@ -218,7 +217,7 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   print(
     '\nYour counter party will create a lightning payment request for ${(amounts.satoshis > 1) ? ((amounts.satoshis > 1000) ? '${amounts.btc.toStringAsFixed(5)} BTC' : '${amounts.satoshis} satoshis') : '1 satoshi'} with a',
   );
-  print('timeout of $clawbackDelayMinutes minutes');
+  print('timeout of $clawbackDelayMinutes minutes.');
   await Future<void>.delayed(const Duration(seconds: 2));
 
   // decode lightning payment request as pasted by user and get payment hash
@@ -239,9 +238,6 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   print('\nEnter the address where you would like the XCH delivered.');
   final sweepPuzzlehash = getRequestorPuzzlehash();
   print('\nYour counter party should be sending XCH for the exchange to a holding address.');
-  print('You can follow along and watch for payments to the holding address here:');
-  print('https://xchscan.com/address/${chiaswapAddress.address}');
-  await Future<void>.delayed(const Duration(seconds: 2));
   print('\nPress any key to continue once your counter party lets you know that they have');
   print('sent the XCH.');
   stdin.readLineSync();
@@ -255,7 +251,7 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
     chiaswapCoins = await fullNode.getCoinsByPuzzleHashes(
       [chiaswapPuzzlehash],
     );
-    if (i == 5) {
+    if (i == 25) {
       print("\nFunds haven't been received at the holding address yet. Ask your counter");
       print("party if their transaction has completed. If it hasn't, press any key to");
       print('continue waiting.');
@@ -273,6 +269,7 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   }
 
   print('\nThe XCH from your counter party has been received at the holding address!');
+  print('You can verify this here: https://xchscan.com/address/${chiaswapAddress.address}');
   print('\nPay the lightning invoice after the payment has received sufficient');
   print('confirmations.');
   await Future<void>.delayed(const Duration(seconds: 3));
