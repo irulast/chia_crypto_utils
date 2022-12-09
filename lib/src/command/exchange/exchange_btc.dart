@@ -71,7 +71,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
   stdin.readLineSync();
 
   // verify transaction and wait for XCH to arrive at the exchange address
-  final exchangeCoins = await verifyExchangeTransfer(
+  final exchangeCoins = await verifyTransferToExchangeAddress(
     amountMojos: amounts.mojos,
     exchangePuzzlehash: exchangePuzzlehash,
     fullNode: fullNode,
@@ -242,7 +242,7 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   stdin.readLineSync();
 
   // verify transaction and wait for XCH to arrive at the exchange address
-  final exchangeCoins = await verifyExchangeTransfer(
+  final exchangeCoins = await verifyTransferToExchangeAddress(
     amountMojos: amounts.mojos,
     exchangePuzzlehash: exchangePuzzlehash,
     fullNode: fullNode,
@@ -485,13 +485,13 @@ Puzzlehash getRequestorPuzzlehash() {
 Future<void> generateSpendBundleFile(SpendBundle spendBundle) async {
   await Future<void>.delayed(const Duration(seconds: 2));
   print('\nGenerating file with spend bundle JSON in the current directory...');
+  final spendBundleHexFile = File('spend_bundle_hex.txt').openWrite()..write(spendBundle.toJson());
+  await spendBundleHexFile.flush();
+  await spendBundleHexFile.close();
   print('This is a last resort for you to use ONLY IF there is some problem with the');
   print('program closing before the transaction completes. In this case, you can use');
   print('a command in the same format as shown here:');
   print('https://docs.chia.net/full-node-rpc/#push_tx');
-  final spendBundleHexFile = File('spend_bundle_hex.txt').openWrite()..write(spendBundle.toJson());
-  await spendBundleHexFile.flush();
-  await spendBundleHexFile.close();
 }
 
 Future<void> confirmClawback({
@@ -536,28 +536,29 @@ Future<void> confirmClawback({
   }
 }
 
-Future<List<Coin>> verifyExchangeTransfer({
+Future<List<Coin>> verifyTransferToExchangeAddress({
   required int amountMojos,
   required Puzzlehash exchangePuzzlehash,
   required ChiaFullNodeInterface fullNode,
   PrivateKey? btcHolderPrivateKey,
 }) async {
-  final waitingStartTime = DateTime.now();
   final additionPuzzlehashes = <Puzzlehash>[];
+  var i = 0;
 
   // check mempool for transfer to exchange address
   while (!additionPuzzlehashes.contains(exchangePuzzlehash)) {
+    print('Checking mempool for transaction...');
     await Future<void>.delayed(const Duration(seconds: 10));
-    print('\nChecking mempool for transaction...');
 
     additionPuzzlehashes.clear();
+    i++;
 
     final mempoolItemsResponse = await fullNode.getAllMempoolItems();
     mempoolItemsResponse.mempoolItemMap.forEach((key, item) {
       additionPuzzlehashes.addAll(item.additions.map((addition) => addition.puzzlehash));
     });
 
-    if (DateTime.now().isAtSameMomentAs(waitingStartTime.add(const Duration(minutes: 5)))) {
+    if (i == 30) {
       if (btcHolderPrivateKey != null) {
         // if BTC holder is still waiting, something might have gone wrong with transaction
         // give information to the user to allow them to cleanly abort the exchange
@@ -578,13 +579,13 @@ Future<List<Coin>> verifyExchangeTransfer({
         // correct address
         print('\nStill waiting for a transaction sending XCH to the exchange address to');
         print('be validated. Please double check that the amount and address are correct.');
-        print('\n Press any key to continue.');
+        print('\nPress any key to continue.');
         stdin.readLineSync();
       }
     }
   }
 
-  print('\nThe transaction has been validated and is now in the mempool.');
+  print('\nThe transaction has been validated and is now in the mempool.\n');
 
   // wait for XCH to arrive at the exchange address
   var exchangeCoins = <Coin>[];
@@ -605,12 +606,14 @@ Future<void> verifyTransaction(
   Puzzlehash requestorPuzzlehash,
   ChiaFullNodeInterface fullNode,
 ) async {
+  print('');
+
   // check mempool
   final exchangeCoinIds = exchangeCoins.map((coin) => coin.id).toList();
   final removalIds = <Bytes>[];
 
   while (!exchangeCoinIds.every(removalIds.contains)) {
-    print('\nChecking mempool for transaction...');
+    print('Checking mempool for transaction...');
     await Future<void>.delayed(const Duration(seconds: 5));
 
     removalIds.clear();
