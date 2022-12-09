@@ -53,32 +53,29 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
   final sweepPaymentHash = getPaymentHash();
 
   // generate address for user to send coins to for exchange
-  final chiaswapPuzzlehash = xchToBtcService.generateChiaswapPuzzlehash(
+  final exchangePuzzlehash = xchToBtcService.generateExchangePuzzlehash(
     requestorPrivateKey: xchHolderPrivateKey,
     clawbackDelaySeconds: clawbackDelaySeconds,
     sweepPaymentHash: sweepPaymentHash,
     fulfillerPublicKey: btcHolderPublicKey,
   );
 
-  final chiaswapAddress = chiaswapPuzzlehash.toAddressWithContext();
+  final exchangeAddress = exchangePuzzlehash.toAddressWithContext();
 
   print(
-    '\nTransfer ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos'} for the exchange to the following holding address:',
+    '\nTransfer ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos'} for the exchange to the following exchange address:',
   );
-  print(chiaswapAddress.address);
+  print(exchangeAddress.address);
   await Future<void>.delayed(const Duration(seconds: 2));
   print('\nPress any key when the funds have been sent.');
   stdin.readLineSync();
 
-  // wait for user to send XCH
-  var chiaswapCoins = <Coin>[];
-  while (chiaswapCoins.totalValue < amounts.mojos) {
-    print('Waiting for XCH...');
-    await Future<void>.delayed(const Duration(seconds: 10));
-    chiaswapCoins = await fullNode.getCoinsByPuzzleHashes(
-      [chiaswapPuzzlehash],
-    );
-  }
+  // verify transaction and wait for XCH to arrive at the exchange address
+  final exchangeCoins = await verifyExchangeTransfer(
+    amountMojos: amounts.mojos,
+    exchangePuzzlehash: exchangePuzzlehash,
+    fullNode: fullNode,
+  );
 
   print('\nXCH received!');
 
@@ -89,8 +86,8 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
 
   // create spend bundle for clawing back funds if counter party doesn't pay lightning invoice
   final clawbackSpendBundle = xchToBtcService.createClawbackSpendBundle(
-    payments: [Payment(chiaswapCoins.totalValue, clawbackPuzzlehash)],
-    coinsInput: chiaswapCoins,
+    payments: [Payment(exchangeCoins.totalValue, clawbackPuzzlehash)],
+    coinsInput: exchangeCoins,
     requestorPrivateKey: xchHolderPrivateKey,
     clawbackDelaySeconds: clawbackDelaySeconds,
     sweepPaymentHash: sweepPaymentHash,
@@ -120,18 +117,19 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
   print('3. Exchange has been aborted or failed. Use counter party private key to');
   print('receive funds back early.');
 
-  String? choice;
-  PrivateKey? btcHolderPrivateKey;
-  SpendBundle? clawbackSpendBundleWithPk;
-
   // determine how to conclude exchange based on user input
+
+  stdout.write('> ');
+  var choice = stdin.readLineSync()!.trim();
+
   while (choice != '1' && choice != '2' && choice != '3') {
     stdout.write('> ');
     choice = stdin.readLineSync()!.trim();
-    if (choice != '1' && choice != '2' && choice != '3') {
-      print('\nNot a valid choice.');
-    }
+    print('\nNot a valid choice.');
   }
+
+  PrivateKey? btcHolderPrivateKey;
+  SpendBundle? clawbackSpendBundleWithPk;
 
   if (choice == '1') {
     exit(exitCode);
@@ -139,7 +137,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
     await confirmClawback(
       clawbackSpendBundle: clawbackSpendBundle,
       clawbackDelayMinutes: clawbackDelayMinutes,
-      chiaswapCoins: chiaswapCoins,
+      exchangeCoins: exchangeCoins,
       clawbackPuzzlehash: clawbackPuzzlehash,
       fullNode: fullNode,
     );
@@ -157,8 +155,8 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
         if (privateKeyInput.getG1() == btcHolderPublicKey) {
           btcHolderPrivateKey = privateKeyInput;
           clawbackSpendBundleWithPk = xchToBtcService.createClawbackSpendBundleWithPk(
-            payments: [Payment(chiaswapCoins.totalValue, clawbackPuzzlehash)],
-            coinsInput: chiaswapCoins,
+            payments: [Payment(exchangeCoins.totalValue, clawbackPuzzlehash)],
+            coinsInput: exchangeCoins,
             requestorPrivateKey: xchHolderPrivateKey,
             clawbackDelaySeconds: clawbackDelaySeconds,
             sweepPaymentHash: sweepPaymentHash,
@@ -176,7 +174,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
         await confirmClawback(
           clawbackSpendBundle: clawbackSpendBundle,
           clawbackDelayMinutes: clawbackDelayMinutes,
-          chiaswapCoins: chiaswapCoins,
+          exchangeCoins: exchangeCoins,
           clawbackPuzzlehash: clawbackPuzzlehash,
           fullNode: fullNode,
         );
@@ -186,7 +184,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
         print('\nPushing spend bundle to claw back XCH to your address...');
         await generateSpendBundleFile(clawbackSpendBundleWithPk!);
         await fullNode.pushTransaction(clawbackSpendBundleWithPk);
-        await verifyTransaction(chiaswapCoins, clawbackPuzzlehash, fullNode);
+        await verifyTransaction(exchangeCoins, clawbackPuzzlehash, fullNode);
       }
     }
   }
@@ -225,51 +223,34 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   final sweepPaymentHash = getPaymentHash();
 
   // generate address that counter party will be sending XCH to
-  final chiaswapPuzzlehash = btcToXchService.generateChiaswapPuzzlehash(
+  final exchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
     requestorPrivateKey: btcHolderPrivateKey,
     clawbackDelaySeconds: clawbackDelaySeconds,
     sweepPaymentHash: sweepPaymentHash,
     fulfillerPublicKey: xchHolderPublicKey,
   );
 
-  final chiaswapAddress = chiaswapPuzzlehash.toAddressWithContext();
+  final exchangeAddress = exchangePuzzlehash.toAddressWithContext();
 
   // get puzzlehash where user will receive XCH from the exchange
   print('\nEnter the address where you would like the XCH delivered.');
   final sweepPuzzlehash = getRequestorPuzzlehash();
-  print('\nYour counter party should be sending XCH for the exchange to a holding address.');
+  print('\nYour counter party should be sending XCH to the exchange address, where it will');
+  print('be temporarily held until the next step.');
   print('\nPress any key to continue once your counter party lets you know that they have');
   print('sent the XCH.');
   stdin.readLineSync();
 
-  // wait for counter party to send XCH to chiaswap address
-  var chiaswapCoins = <Coin>[];
-  var i = 0;
-  while (chiaswapCoins.totalValue < amounts.mojos) {
-    print('Waiting for counter party to send XCH...');
-    await Future<void>.delayed(const Duration(seconds: 15));
-    chiaswapCoins = await fullNode.getCoinsByPuzzleHashes(
-      [chiaswapPuzzlehash],
-    );
-    if (i == 25) {
-      print("\nFunds haven't been received at the holding address yet. Ask your counter");
-      print("party if their transaction has completed. If it hasn't, press any key to");
-      print('continue waiting.');
-      print('\nIf the transaction looks complete on their end, something might have gone');
-      print("wrong. It's possible that one of the two parties inputted an incorrect value");
-      print("or that your selected amounts to exchange or expiration times didn't match.");
-      print('\nIf this might be the case, please share your disposable private key below with');
-      print('your counter party to allow them to cleanly reclaim their XCH:');
-      print(btcHolderPrivateKey.toHex());
-      print('\nPress any key to keep waiting or exit the program using Ctrl+C and reattempt');
-      print('the exchange.');
-      stdin.readLineSync();
-    }
-    i++;
-  }
+  // verify transaction and wait for XCH to arrive at the exchange address
+  final exchangeCoins = await verifyExchangeTransfer(
+    amountMojos: amounts.mojos,
+    exchangePuzzlehash: exchangePuzzlehash,
+    fullNode: fullNode,
+    btcHolderPrivateKey: btcHolderPrivateKey,
+  );
 
-  print('\nThe XCH from your counter party has been received at the holding address!');
-  print('You can verify this here: https://xchscan.com/address/${chiaswapAddress.address}');
+  print('\nThe XCH from your counter party has been received at the exchange address!');
+  print('You can verify this here: https://xchscan.com/address/${exchangeAddress.address}');
   print('\nPay the lightning invoice after the payment has received sufficient');
   print('confirmations.');
   await Future<void>.delayed(const Duration(seconds: 3));
@@ -308,8 +289,8 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
       if (inputAsPrivateKey.getG1() == xchHolderPublicKey) {
         xchHolderPrivateKey = inputAsPrivateKey;
         sweepSpendBundle = btcToXchService.createSweepSpendBundleWithPk(
-          payments: [Payment(chiaswapCoins.totalValue, sweepPuzzlehash)],
-          coinsInput: chiaswapCoins,
+          payments: [Payment(exchangeCoins.totalValue, sweepPuzzlehash)],
+          coinsInput: exchangeCoins,
           requestorPrivateKey: btcHolderPrivateKey,
           clawbackDelaySeconds: clawbackDelaySeconds,
           sweepPaymentHash: sweepPaymentHash,
@@ -319,8 +300,8 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
         sweepPreimage = inputAsPreimage;
 
         sweepSpendBundle = btcToXchService.createSweepSpendBundle(
-          payments: [Payment(chiaswapCoins.totalValue, sweepPuzzlehash)],
-          coinsInput: chiaswapCoins,
+          payments: [Payment(exchangeCoins.totalValue, sweepPuzzlehash)],
+          coinsInput: exchangeCoins,
           requestorPrivateKey: btcHolderPrivateKey,
           clawbackDelaySeconds: clawbackDelaySeconds,
           sweepPaymentHash: sweepPaymentHash,
@@ -351,7 +332,7 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   await generateSpendBundleFile(sweepSpendBundle!);
   try {
     await fullNode.pushTransaction(sweepSpendBundle);
-    await verifyTransaction(chiaswapCoins, sweepPuzzlehash, fullNode);
+    await verifyTransaction(exchangeCoins, sweepPuzzlehash, fullNode);
   } catch (e) {
     print('\nTRANSACTION FAILED. The spend bundle was rejected.');
     print('The clawback delay period may have already passed.');
@@ -516,7 +497,7 @@ Future<void> generateSpendBundleFile(SpendBundle spendBundle) async {
 Future<void> confirmClawback({
   required SpendBundle clawbackSpendBundle,
   required int clawbackDelayMinutes,
-  required List<Coin> chiaswapCoins,
+  required List<Coin> exchangeCoins,
   required Puzzlehash clawbackPuzzlehash,
   required ChiaFullNodeInterface fullNode,
 }) async {
@@ -533,7 +514,7 @@ Future<void> confirmClawback({
       await generateSpendBundleFile(clawbackSpendBundle);
       try {
         await fullNode.pushTransaction(clawbackSpendBundle);
-        await verifyTransaction(chiaswapCoins, clawbackPuzzlehash, fullNode);
+        await verifyTransaction(exchangeCoins, clawbackPuzzlehash, fullNode);
       } catch (e) {
         print('\nTRANSACTION FAILED. The spend bundle was rejected. If the clawback delay period');
         print("hasn't passed yet, keep waiting and manually push the transaction using the");
@@ -555,33 +536,103 @@ Future<void> confirmClawback({
   }
 }
 
+Future<List<Coin>> verifyExchangeTransfer({
+  required int amountMojos,
+  required Puzzlehash exchangePuzzlehash,
+  required ChiaFullNodeInterface fullNode,
+  PrivateKey? btcHolderPrivateKey,
+}) async {
+  final waitingStartTime = DateTime.now();
+  final additionPuzzlehashes = <Puzzlehash>[];
+
+  // check mempool for transfer to exchange address
+  while (!additionPuzzlehashes.contains(exchangePuzzlehash)) {
+    await Future<void>.delayed(const Duration(seconds: 10));
+    print('\nChecking mempool for transaction...');
+
+    additionPuzzlehashes.clear();
+
+    final mempoolItemsResponse = await fullNode.getAllMempoolItems();
+    mempoolItemsResponse.mempoolItemMap.forEach((key, item) {
+      additionPuzzlehashes.addAll(item.additions.map((addition) => addition.puzzlehash));
+    });
+
+    if (DateTime.now().isAtSameMomentAs(waitingStartTime.add(const Duration(minutes: 5)))) {
+      if (btcHolderPrivateKey != null) {
+        // if BTC holder is still waiting, something might have gone wrong with transaction
+        // give information to the user to allow them to cleanly abort the exchange
+        print('\nStill waiting for a transaction sending XCH to the exchange address to');
+        print('be validated. Ask your countery party whether their transaction is complete.');
+        print("If it isn't, press any key to continue waiting.");
+        print('\nIf the transaction looks complete on their end, something might have gone');
+        print("wrong. It's possible that one of the two parties inputted an incorrect value");
+        print("or that your selected amounts to exchange or expiration times didn't match.");
+        print('\nIf this might be the case, please share your disposable private key below with');
+        print('your counter party to allow them to cleanly reclaim their XCH:');
+        print(btcHolderPrivateKey.toHex());
+        print('\nPress any key to keep waiting or exit the program using Ctrl+C and reattempt');
+        print('the exchange.');
+        stdin.readLineSync();
+      } else {
+        // if XCH holder is still waiting, they might not have sent the correct amount to the
+        // correct address
+        print('\nStill waiting for a transaction sending XCH to the exchange address to');
+        print('be validated. Please double check that the amount and address are correct.');
+        print('\n Press any key to continue.');
+        stdin.readLineSync();
+      }
+    }
+  }
+
+  print('\nThe transaction has been validated and is now in the mempool.');
+
+  // wait for XCH to arrive at the exchange address
+  var exchangeCoins = <Coin>[];
+  while (exchangeCoins.totalValue < amountMojos) {
+    print('Waiting XCH to arrive...');
+    await Future<void>.delayed(const Duration(seconds: 10));
+
+    exchangeCoins = await fullNode.getCoinsByPuzzleHashes(
+      [exchangePuzzlehash],
+    );
+  }
+
+  return exchangeCoins;
+}
+
 Future<void> verifyTransaction(
-  List<Coin> chiaswapCoins,
+  List<Coin> exchangeCoins,
   Puzzlehash requestorPuzzlehash,
   ChiaFullNodeInterface fullNode,
 ) async {
-  final chiaswapCoinIds = chiaswapCoins.map((coin) => coin.id).toList();
+  // check mempool
+  final exchangeCoinIds = exchangeCoins.map((coin) => coin.id).toList();
   final removalIds = <Bytes>[];
 
-  print('\nChecking mempool for transaction...');
+  while (!exchangeCoinIds.every(removalIds.contains)) {
+    print('\nChecking mempool for transaction...');
+    await Future<void>.delayed(const Duration(seconds: 5));
 
-  while (chiaswapCoinIds.every(removalIds.contains)) {
+    removalIds.clear();
+
     final mempoolItemsResponse = await fullNode.getAllMempoolItems();
-    mempoolItemsResponse.mempoolItemMap.forEach((key, mempoolItem) {
-      removalIds.addAll(mempoolItem.removals.map((removal) => removal.id));
+    mempoolItemsResponse.mempoolItemMap.forEach((key, value) {
+      removalIds.addAll(value.removals.map((removal) => removal.id));
     });
-    await Future<void>.delayed(const Duration(seconds: 3));
   }
 
   print('\nYour transaction was validated and is now in the mempool.\n');
 
+  // verify receipt of XCH
   var recipientParentIds = <Bytes>[];
-  while (!chiaswapCoinIds.any((id) => recipientParentIds.contains(id))) {
+  while (!exchangeCoinIds.any((id) => recipientParentIds.contains(id))) {
     print('Waiting for transaction to complete...');
     await Future<void>.delayed(const Duration(seconds: 10));
+
     final recipientCoins = await fullNode.getCoinsByPuzzleHashes(
       [requestorPuzzlehash],
     );
+
     recipientParentIds = recipientCoins.map((coin) => coin.parentCoinInfo).toList();
   }
 

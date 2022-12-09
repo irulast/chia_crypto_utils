@@ -120,8 +120,8 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
     argParser
       ..addOption('pool-url', defaultsTo: 'https://xch-us-west.flexpool.io')
       ..addOption('faucet-request-url')
-      ..addOption('faucet-request-payload')
-      ..addOption('output-config')
+      ..addOption('faucet-request-payload', defaultsTo: '')
+      ..addOption('output-config', defaultsTo: '')
       ..addOption(
         'certificate-bytes-path',
         defaultsTo: 'mozilla-ca/cacert.pem',
@@ -293,7 +293,7 @@ class ExchangeBtcCommand extends Command<Future<void>> {
   ExchangeBtcCommand();
 
   @override
-  String get description => 'Initiates an exchange of XCH for BTC or BTC for XCH';
+  String get description => 'Initiates an atomic swap between XCH and BTC';
 
   @override
   String get name => 'Exchange-Btc';
@@ -301,7 +301,8 @@ class ExchangeBtcCommand extends Command<Future<void>> {
   @override
   Future<void> run() async {
     print('\nDo you have XCH that you want to exchange for BTC, or do you have BTC that');
-    print('you want to exchange for XCH?');
+    print('you want to exchange for XCH? Please note that you and your counter party must');
+    print('select reciprocal paths.');
     print('\n1. Exchange XCH for BTC');
     print('2. Exchange BTC for XCH');
 
@@ -316,8 +317,7 @@ class ExchangeBtcCommand extends Command<Future<void>> {
       } else if (choice == '2') {
         await exchangeBtcForXch(fullNode);
       } else {
-        print('');
-        print('Not a valid choice.');
+        print('\nNot a valid choice.');
       }
     }
   }

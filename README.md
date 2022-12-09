@@ -8,6 +8,7 @@ This repository provides an object model for working with Chia primitives servin
 - PlotNFT
 - Integration tests using the Chia simulator
 - Serialization and deserialization to and from Bytes for easy integration into secure storage
+- Atomic swap between Chia and Bitcoin
 
 ## Dependencies
 

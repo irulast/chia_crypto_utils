@@ -4,7 +4,7 @@ import 'package:chia_crypto_utils/src/exchange/btc/service/exchange.dart';
 class BtcToXchService {
   final BtcExchangeService exchangeService = BtcExchangeService();
 
-  Puzzlehash generateChiaswapPuzzlehash({
+  Puzzlehash generateExchangePuzzlehash({
     required PrivateKey requestorPrivateKey,
     int clawbackDelaySeconds = 3600,
     required Bytes sweepPaymentHash,
@@ -12,14 +12,14 @@ class BtcToXchService {
   }) {
     final requestorPublicKey = requestorPrivateKey.getG1();
 
-    final chiaswapPuzzle = exchangeService.generateChiaswapPuzzle(
+    final exchangePuzzle = exchangeService.generateExchangePuzzle(
       clawbackPublicKey: fulfillerPublicKey,
       clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash,
       sweepPublicKey: requestorPublicKey,
     );
 
-    return chiaswapPuzzle.hash();
+    return exchangePuzzle.hash();
   }
 
   SpendBundle createSweepSpendBundle({
@@ -77,7 +77,7 @@ class BtcToXchService {
       coinAnnouncementsToAssert: coinAnnouncementsToAssert,
       puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
       makePuzzleRevealFromPuzzlehash: (puzzlehash) {
-        return exchangeService.generateChiaswapPuzzle(
+        return exchangeService.generateExchangePuzzle(
           clawbackDelaySeconds: clawbackDelaySeconds,
           clawbackPublicKey: fulfillerPublicKey,
           sweepPaymentHash: sweepPaymentHash,

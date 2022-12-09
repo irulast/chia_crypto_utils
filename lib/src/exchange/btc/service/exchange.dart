@@ -55,7 +55,7 @@ class BtcExchangeService {
         );
       },
       makePuzzleRevealFromPuzzlehash: (puzzlehash) {
-        return generateChiaswapPuzzle(
+        return generateExchangePuzzle(
           clawbackDelaySeconds: clawbackDelaySeconds,
           clawbackPublicKey: clawbackPublicKey,
           sweepPaymentHash: sweepPaymentHash,
@@ -72,7 +72,7 @@ class BtcExchangeService {
     );
   }
 
-  Program generateChiaswapPuzzle({
+  Program generateExchangePuzzle({
     required int clawbackDelaySeconds,
     required JacobianPoint clawbackPublicKey,
     required Bytes sweepPaymentHash,

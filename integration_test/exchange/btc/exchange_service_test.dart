@@ -30,7 +30,7 @@ Future<void> main() async {
   final exchangeService = BtcExchangeService();
 
   test(
-      'should transfer XCH to chiaswap address and fail to clawback funds to XCH holder before delay has passed',
+      'should transfer XCH to exchange address and fail to claw back funds to XCH holder before delay has passed',
       () async {
     final xchToBtcService = XchToBtcService();
 
@@ -54,17 +54,17 @@ Future<void> main() async {
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
     // generate address for XCH holder to send funds to
-    final chiaswapPuzzlehash = xchToBtcService.generateChiaswapPuzzlehash(
+    final exchangePuzzlehash = xchToBtcService.generateExchangePuzzlehash(
       requestorPrivateKey: xchHolderPrivateKey,
       sweepPaymentHash: sweepPaymentHash,
       fulfillerPublicKey: btcHolderPublicKey,
     );
 
-    // XCH holder transfers funds to chiaswap address
+    // XCH holder transfers funds to exchange address
     final xchHolderCoins = xchHolder.standardCoins;
 
     final spendBundle = walletService.createSpendBundle(
-      payments: [Payment(xchHolderCoins.totalValue, chiaswapPuzzlehash)],
+      payments: [Payment(xchHolderCoins.totalValue, exchangePuzzlehash)],
       coinsInput: xchHolderCoins,
       changePuzzlehash: xchHolder.firstPuzzlehash,
       keychain: xchHolder.keychain,
@@ -72,7 +72,7 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final chiaswapCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([chiaswapPuzzlehash]);
+    final exchangeCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([exchangePuzzlehash]);
 
     // user specifies where they want to receive coins in clawback case
     final clawbackPuzzlehash = xchHolder.firstPuzzlehash;
@@ -80,8 +80,8 @@ Future<void> main() async {
     // the clawback spend bundle will fail if pushed before the clawback delay period passes
     // the default delay is 1 hour
     final clawbackSpendBundle = xchToBtcService.createClawbackSpendBundle(
-      payments: [Payment(chiaswapCoins.totalValue, clawbackPuzzlehash)],
-      coinsInput: chiaswapCoins,
+      payments: [Payment(exchangeCoins.totalValue, clawbackPuzzlehash)],
+      coinsInput: exchangeCoins,
       requestorPrivateKey: xchHolderPrivateKey,
       sweepPaymentHash: sweepPaymentHash,
       fulfillerPublicKey: btcHolderPublicKey,
@@ -96,7 +96,7 @@ Future<void> main() async {
   });
 
   test(
-      'should transfer XCH to chiaswap address and clawback funds to XCH holder after delay has passed',
+      'should transfer XCH to exchange address and claw back funds to XCH holder after delay has passed',
       () async {
     final xchToBtcService = XchToBtcService();
 
@@ -123,18 +123,18 @@ Future<void> main() async {
     const clawbackDelaySeconds = 5;
 
     // generate address for XCH holder to send funds to
-    final chiaswapPuzzlehash = xchToBtcService.generateChiaswapPuzzlehash(
+    final exchangePuzzlehash = xchToBtcService.generateExchangePuzzlehash(
       requestorPrivateKey: xchHolderPrivateKey,
       clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash,
       fulfillerPublicKey: btcHolderPublicKey,
     );
 
-    // XCH holder transfers funds to chiaswap address
+    // XCH holder transfers funds to exchange address
     final xchHolderCoins = xchHolder.standardCoins;
 
     final spendBundle = walletService.createSpendBundle(
-      payments: [Payment(xchHolderCoins.totalValue, chiaswapPuzzlehash)],
+      payments: [Payment(xchHolderCoins.totalValue, exchangePuzzlehash)],
       coinsInput: xchHolderCoins,
       changePuzzlehash: xchHolder.firstPuzzlehash,
       keychain: xchHolder.keychain,
@@ -142,7 +142,7 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final chiaswapCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([chiaswapPuzzlehash]);
+    final exchangeCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([exchangePuzzlehash]);
 
     // user specifies where they want to receive coins in clawback case
     final clawbackPuzzlehash = xchHolder.firstPuzzlehash;
@@ -152,8 +152,8 @@ Future<void> main() async {
     // the clawback spend bundle can be pushed after the clawback delay has passed in order to reclaim funds
     // in the event that the other party doesn't pay the lightning invoice within that time
     final clawbackSpendBundle = xchToBtcService.createClawbackSpendBundle(
-      payments: [Payment(chiaswapCoins.totalValue, clawbackPuzzlehash)],
-      coinsInput: chiaswapCoins,
+      payments: [Payment(exchangeCoins.totalValue, clawbackPuzzlehash)],
+      coinsInput: exchangeCoins,
       clawbackDelaySeconds: clawbackDelaySeconds,
       requestorPrivateKey: xchHolderPrivateKey,
       sweepPaymentHash: sweepPaymentHash,
@@ -174,12 +174,91 @@ Future<void> main() async {
 
       expect(
         endingClawbackAddressBalance,
-        equals(startingClawbackAddressBalance + chiaswapCoins.totalValue),
+        equals(startingClawbackAddressBalance + exchangeCoins.totalValue),
       );
     });
   });
 
-  test('should transfer XCH to chiaswap address and sweep funds to BTC holder using preimage',
+  test(
+      'should transfer XCH to exchange address and claw back funds to XCH holder early using private key before delay has passed',
+      () async {
+    final xchToBtcService = XchToBtcService();
+
+    final xchHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
+    await xchHolder.farmCoins();
+    await xchHolder.refreshCoins();
+
+    // generate disposable private key for user
+    final xchHolderPrivateKey = PrivateKey.generate();
+
+    // user inputs signed public key of counter party, which is parsed and validated to ensure that
+    // it was generated by our exchange service
+    const btcHolderSignedPublicKey =
+        'a83e5abe134e3d871f48bbbab7e0bd571700ca4a50694573dd301158f3458bdeb5d1e8c742558448f4d247118a21d4a5_a81d9d56a3514821c80a012819456b7eda8a9db4558a26811570ccff723deeb0dc4c2866f53455141b4853b80b515d4707726b8dbbb68cd9b478e0e93675e183cef0e03e97401f1ab02f9eea38d4caccdcf9b43ac0486a7d4792a35be6890b18';
+    final btcHolderPublicKey = exchangeService.parseSignedPublicKey(btcHolderSignedPublicKey);
+
+    // user inputs lightning payment request, which is decoded to get the payment hash
+    const paymentRequest =
+        'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
+    final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
+    final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
+
+    // shorten delay for testing purposes
+    const clawbackDelaySeconds = 5;
+
+    // generate address for XCH holder to send funds to
+    final exchangePuzzlehash = xchToBtcService.generateExchangePuzzlehash(
+      requestorPrivateKey: xchHolderPrivateKey,
+      clawbackDelaySeconds: clawbackDelaySeconds,
+      sweepPaymentHash: sweepPaymentHash,
+      fulfillerPublicKey: btcHolderPublicKey,
+    );
+
+    // XCH holder transfers funds to exchange address
+    final xchHolderCoins = xchHolder.standardCoins;
+
+    final spendBundle = walletService.createSpendBundle(
+      payments: [Payment(xchHolderCoins.totalValue, exchangePuzzlehash)],
+      coinsInput: xchHolderCoins,
+      changePuzzlehash: xchHolder.firstPuzzlehash,
+      keychain: xchHolder.keychain,
+    );
+    await fullNodeSimulator.pushTransaction(spendBundle);
+    await fullNodeSimulator.moveToNextBlock();
+
+    final exchangeCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([exchangePuzzlehash]);
+
+    // user specifies where they want to receive coins in clawback case
+    final clawbackPuzzlehash = xchHolder.firstPuzzlehash;
+
+    final startingClawbackAddressBalance = await fullNodeSimulator.getBalance([clawbackPuzzlehash]);
+
+    // in the event that something goes wrong with the exchange or the two parties mutually decide to
+    // abort the exchange, the XCH holder may receive funds back before the clawback delay passes
+    // if the BTC holder provides them with their private key
+    final btcHolderPrivateKey =
+        PrivateKey.fromHex('308f34305ed545c7b6bdefe9fff88176dc3b1a68c40f9065e2cf24c98bf6a4e1');
+
+    final clawbackSpendBundle = xchToBtcService.createClawbackSpendBundleWithPk(
+      payments: [Payment(exchangeCoins.totalValue, clawbackPuzzlehash)],
+      coinsInput: exchangeCoins,
+      clawbackDelaySeconds: clawbackDelaySeconds,
+      requestorPrivateKey: xchHolderPrivateKey,
+      sweepPaymentHash: sweepPaymentHash,
+      fulfillerPrivateKey: btcHolderPrivateKey,
+    );
+
+    await fullNodeSimulator.pushTransaction(clawbackSpendBundle);
+    await fullNodeSimulator.moveToNextBlock();
+    final endingClawbackAddressBalance = await fullNodeSimulator.getBalance([clawbackPuzzlehash]);
+
+    expect(
+      endingClawbackAddressBalance,
+      equals(startingClawbackAddressBalance + exchangeCoins.totalValue),
+    );
+  });
+
+  test('should transfer XCH to exchange address and sweep funds to BTC holder using preimage',
       () async {
     final btcToXchService = BtcToXchService();
     final xchHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
@@ -203,17 +282,17 @@ Future<void> main() async {
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
     // generate address for XCH holder to send funds to
-    final chiaswapPuzzlehash = btcToXchService.generateChiaswapPuzzlehash(
+    final exchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
       sweepPaymentHash: sweepPaymentHash,
       fulfillerPublicKey: xchHolderPublicKey,
     );
 
-    // XCH holder transfers funds to chiaswap address
+    // XCH holder transfers funds to exchange address
     final xchHolderCoins = xchHolder.standardCoins;
 
     final spendBundle = walletService.createSpendBundle(
-      payments: [Payment(xchHolderCoins.totalValue, chiaswapPuzzlehash)],
+      payments: [Payment(xchHolderCoins.totalValue, exchangePuzzlehash)],
       coinsInput: xchHolderCoins,
       changePuzzlehash: xchHolder.firstPuzzlehash,
       keychain: xchHolder.keychain,
@@ -221,7 +300,7 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final chiaswapCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([chiaswapPuzzlehash]);
+    final exchangeCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([exchangePuzzlehash]);
 
     // user specifies where they want to receive funds
     final sweepPuzzlehash = btcHolder.firstPuzzlehash;
@@ -234,8 +313,8 @@ Future<void> main() async {
         '5c1f10653dc3ff0531b77351dc6676de2e1f5f53c9f0a8867bcb054648f46a32'.hexToBytes();
 
     final sweepSpendBundle = btcToXchService.createSweepSpendBundle(
-      payments: [Payment(chiaswapCoins.totalValue, sweepPuzzlehash)],
-      coinsInput: chiaswapCoins,
+      payments: [Payment(exchangeCoins.totalValue, sweepPuzzlehash)],
+      coinsInput: exchangeCoins,
       requestorPrivateKey: btcHolderPrivateKey,
       sweepPaymentHash: sweepPaymentHash,
       sweepPreimage: sweepPreimage,
@@ -249,12 +328,12 @@ Future<void> main() async {
 
     expect(
       endingSweepAddressBalance,
-      equals(startingSweepAddressBalance + chiaswapCoins.totalValue),
+      equals(startingSweepAddressBalance + exchangeCoins.totalValue),
     );
   });
 
   test(
-      'should transfer XCH to chiaswap address and fail to sweep funds to BTC holder when preimage is incorrect',
+      'should transfer XCH to exchange address and fail to sweep funds to BTC holder when preimage is incorrect',
       () async {
     final btcToXchService = BtcToXchService();
     final xchHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
@@ -278,17 +357,17 @@ Future<void> main() async {
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
     // generate address for XCH holder to send funds to
-    final chiaswapPuzzlehash = btcToXchService.generateChiaswapPuzzlehash(
+    final exchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
       sweepPaymentHash: sweepPaymentHash,
       fulfillerPublicKey: xchHolderPublicKey,
     );
 
-    // XCH holder transfers funds to chiaswap address
+    // XCH holder transfers funds to exchange address
     final xchHolderCoins = xchHolder.standardCoins;
 
     final spendBundle = walletService.createSpendBundle(
-      payments: [Payment(xchHolderCoins.totalValue, chiaswapPuzzlehash)],
+      payments: [Payment(xchHolderCoins.totalValue, exchangePuzzlehash)],
       coinsInput: xchHolderCoins,
       changePuzzlehash: xchHolder.firstPuzzlehash,
       keychain: xchHolder.keychain,
@@ -296,7 +375,7 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final chiaswapCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([chiaswapPuzzlehash]);
+    final exchangeCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([exchangePuzzlehash]);
 
     // user specifies where they want to receive funds
     final sweepPuzzlehash = btcHolder.firstPuzzlehash;
@@ -307,8 +386,8 @@ Future<void> main() async {
     expect(
       () {
         btcToXchService.createSweepSpendBundle(
-          payments: [Payment(chiaswapCoins.totalValue, sweepPuzzlehash)],
-          coinsInput: chiaswapCoins,
+          payments: [Payment(exchangeCoins.totalValue, sweepPuzzlehash)],
+          coinsInput: exchangeCoins,
           requestorPrivateKey: btcHolderPrivateKey,
           sweepPaymentHash: sweepPaymentHash,
           sweepPreimage: sweepPreimage,
@@ -319,7 +398,7 @@ Future<void> main() async {
     );
   });
 
-  test('should transfer XCH to chiaswap address and sweep funds to BTC holder using private key',
+  test('should transfer XCH to exchange address and sweep funds to BTC holder using private key',
       () async {
     final btcToXchService = BtcToXchService();
     final xchHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
@@ -343,17 +422,17 @@ Future<void> main() async {
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
     // generate address for XCH holder to send funds to
-    final chiaswapPuzzlehash = btcToXchService.generateChiaswapPuzzlehash(
+    final exchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
       sweepPaymentHash: sweepPaymentHash,
       fulfillerPublicKey: xchHolderPublicKey,
     );
 
-    // XCH holder transfers funds to chiaswap address
+    // XCH holder transfers funds to exchange address
     final xchHolderCoins = xchHolder.standardCoins;
 
     final spendBundle = walletService.createSpendBundle(
-      payments: [Payment(xchHolderCoins.totalValue, chiaswapPuzzlehash)],
+      payments: [Payment(xchHolderCoins.totalValue, exchangePuzzlehash)],
       coinsInput: xchHolderCoins,
       changePuzzlehash: xchHolder.firstPuzzlehash,
       keychain: xchHolder.keychain,
@@ -361,20 +440,20 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final chiaswapCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([chiaswapPuzzlehash]);
+    final exchangeCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([exchangePuzzlehash]);
 
     // user specifies where they want to receive funds
     final sweepPuzzlehash = btcHolder.firstPuzzlehash;
     final startingSweepAddressBalance = await fullNodeSimulator.getBalance([sweepPuzzlehash]);
 
     // after the lightning invoice is paid, the XCH holder may share their disposable private key
-    // the BTC holder inputs the private key, allowing them to sweep funds from the chiaswap address
+    // the BTC holder inputs the private key, allowing them to sweep funds from the exchange address
     final xchHolderPrivateKey =
         PrivateKey.fromHex('308f34305ed545c7b6bdefe9fff88176dc3b1a68c40f9065e2cf24c98bf6a4e1');
 
     final sweepSpendBundle = btcToXchService.createSweepSpendBundleWithPk(
-      payments: [Payment(chiaswapCoins.totalValue, sweepPuzzlehash)],
-      coinsInput: chiaswapCoins,
+      payments: [Payment(exchangeCoins.totalValue, sweepPuzzlehash)],
+      coinsInput: exchangeCoins,
       requestorPrivateKey: btcHolderPrivateKey,
       sweepPaymentHash: sweepPaymentHash,
       fulfillerPrivateKey: xchHolderPrivateKey,
@@ -387,7 +466,7 @@ Future<void> main() async {
 
     expect(
       endingSweepAddressBalance,
-      equals(startingSweepAddressBalance + chiaswapCoins.totalValue),
+      equals(startingSweepAddressBalance + exchangeCoins.totalValue),
     );
   });
 }
