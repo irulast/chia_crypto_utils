@@ -145,11 +145,10 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
       fullNode: fullNode,
     );
   } else if (choice == '3') {
-    var input = '';
-
     print("\nIf you haven't already received it, ask your counter party to share their");
     print('private key and paste it below:');
 
+    var input = '';
     while (input != '2' && btcHolderPrivateKey == null) {
       stdout.write('> ');
       input = stdin.readLineSync()!.trim().toLowerCase();
@@ -237,8 +236,11 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   print('\nEnter the address where you would like the XCH delivered.');
   final sweepPuzzlehash = getRequestorPuzzlehash();
   print('\nYour counter party should be sending XCH for the exchange to a holding address.');
+  print('You can follow along and watch for payments to the holding address here:');
+  print('https://xchscan.com/address/${chiaswapAddress.address}');
   await Future<void>.delayed(const Duration(seconds: 2));
-  print('\nPress any key to continue once they have send the XCH.\n');
+  print('\nPress any key to continue once your counter party lets you know that they');
+  print('have sent the XCH.');
   stdin.readLineSync();
 
   // wait for counter party to send XCH to chiaswap address
@@ -251,9 +253,7 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
     );
   }
 
-  print('\nThe XCH from your counter party has been received at the holding address, which');
-  print('you can verify here:');
-  print('https://xchscan.com/address/${chiaswapAddress.address}');
+  print('\nThe XCH from your counter party has been received at the holding address!');
   print('\nPay the lightning invoice after the payment has received sufficient');
   print('confirmations.');
   await Future<void>.delayed(const Duration(seconds: 3));
@@ -279,54 +279,57 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   PrivateKey? xchHolderPrivateKey;
   Bytes? sweepPreimage;
   SpendBundle? sweepSpendBundle;
+  var input = '';
 
   // determine how to conclude exchange based on user input
-  while (xchHolderPrivateKey == null && sweepPreimage == null) {
+  while (xchHolderPrivateKey == null && sweepPreimage == null && !input.startsWith('q')) {
     stdout.write('> ');
-    final input = stdin.readLineSync()!.trim().toLowerCase();
+    input = stdin.readLineSync()!.trim().toLowerCase();
 
-    if (input.startsWith('q')) {
-      print('\nPlease share your disposable private key below with your counter party to allow');
-      print('them to cleanly reclaim their XCH:');
-      print(btcHolderPrivateKey.toHex());
-      await Future<void>.delayed(const Duration(seconds: 3));
-      print('\nAfter you have done so, you may use Ctrl+C to exit the program.');
-    } else {
-      try {
-        final inputAsPrivateKey = PrivateKey.fromHex(input);
-        final inputAsPreimage = input.hexToBytes();
+    try {
+      final inputAsPrivateKey = PrivateKey.fromHex(input);
+      final inputAsPreimage = input.hexToBytes();
 
-        if (inputAsPrivateKey.getG1() == xchHolderPublicKey) {
-          xchHolderPrivateKey = inputAsPrivateKey;
-          sweepSpendBundle = btcToXchService.createSweepSpendBundleWithPk(
-            payments: [Payment(chiaswapCoins.totalValue, sweepPuzzlehash)],
-            coinsInput: chiaswapCoins,
-            requestorPrivateKey: btcHolderPrivateKey,
-            clawbackDelaySeconds: clawbackDelaySeconds,
-            sweepPaymentHash: sweepPaymentHash,
-            fulfillerPrivateKey: xchHolderPrivateKey,
-          );
-        } else if (inputAsPreimage.sha256Hash() == sweepPaymentHash) {
-          sweepPreimage = inputAsPreimage;
+      if (inputAsPrivateKey.getG1() == xchHolderPublicKey) {
+        xchHolderPrivateKey = inputAsPrivateKey;
+        sweepSpendBundle = btcToXchService.createSweepSpendBundleWithPk(
+          payments: [Payment(chiaswapCoins.totalValue, sweepPuzzlehash)],
+          coinsInput: chiaswapCoins,
+          requestorPrivateKey: btcHolderPrivateKey,
+          clawbackDelaySeconds: clawbackDelaySeconds,
+          sweepPaymentHash: sweepPaymentHash,
+          fulfillerPrivateKey: xchHolderPrivateKey,
+        );
+      } else if (inputAsPreimage.sha256Hash() == sweepPaymentHash) {
+        sweepPreimage = inputAsPreimage;
 
-          sweepSpendBundle = btcToXchService.createSweepSpendBundle(
-            payments: [Payment(chiaswapCoins.totalValue, sweepPuzzlehash)],
-            coinsInput: chiaswapCoins,
-            requestorPrivateKey: btcHolderPrivateKey,
-            clawbackDelaySeconds: clawbackDelaySeconds,
-            sweepPaymentHash: sweepPaymentHash,
-            sweepPreimage: sweepPreimage,
-            fulfillerPublicKey: xchHolderPublicKey,
-          );
-        } else {
-          print("\nCouldn't verify input as either private key or preimage. Please try again.");
-          print("If you tried inputting the your counter party's private key, try using");
-          print('your preimage instead.');
-        }
-      } catch (e) {
-        LoggingContext().error(e.toString());
+        sweepSpendBundle = btcToXchService.createSweepSpendBundle(
+          payments: [Payment(chiaswapCoins.totalValue, sweepPuzzlehash)],
+          coinsInput: chiaswapCoins,
+          requestorPrivateKey: btcHolderPrivateKey,
+          clawbackDelaySeconds: clawbackDelaySeconds,
+          sweepPaymentHash: sweepPaymentHash,
+          sweepPreimage: sweepPreimage,
+          fulfillerPublicKey: xchHolderPublicKey,
+        );
+      } else {
+        print("\nCouldn't verify input as either private key or preimage. Please try again.");
+        print("If you tried inputting the your counter party's private key, try using");
+        print('your preimage instead.');
       }
+    } catch (e) {
+      LoggingContext().error(e.toString());
     }
+  }
+
+  if (input.startsWith('q')) {
+    print('\nPlease share your disposable private key below with your counter party to allow');
+    print('them to cleanly reclaim their XCH:');
+    print(btcHolderPrivateKey.toHex());
+    await Future<void>.delayed(const Duration(seconds: 3));
+    print('\nAfter you have done so, press any key to quit.');
+    stdin.readLineSync();
+    exit(exitCode);
   }
 
   print('\nPushing spend bundle to sweep XCH to your address...');
@@ -350,7 +353,7 @@ JacobianPoint getFulfillerPublicKey(String requestorSignedPublicKey) {
       if (signedPublicKey == requestorSignedPublicKey) {
         print("\nThat's your signed public key. Ask your counter party for theirs.");
       } else {
-        final publicKey = exchangeService.parseSignedPublicKey(signedPublicKey!);
+        final publicKey = exchangeService.parseSignedPublicKey(signedPublicKey);
         return publicKey;
       }
     } catch (e) {
@@ -429,11 +432,12 @@ Future<Amounts> getAmounts() async {
 
 Future<int> getClawbackDelay() async {
   print('\nYou and your counter party must agree on how much time you want to allow for the');
-  print('exchange before it expires. It should be at least ten minutes');
+  print('exchange before it expires. It should be at least 10 minutes.');
   await Future<void>.delayed(const Duration(seconds: 3));
-  print('\nWARNING: if you and your counter party input different times, the exchange will fail.');
+  print('\nWARNING: if you and your counter party input different times, the exchange');
+  print('will fail.');
   await Future<void>.delayed(const Duration(seconds: 2));
-  print('\nIndicate your chosen expiry time in minutes or hit enter to default to 60 minutes.');
+  print('\nIndicate your chosen expiry time in minutes or hit enter to default to 60.');
   while (true) {
     stdout.write('> ');
     final input = stdin.readLineSync()!.trim();
