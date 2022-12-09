@@ -128,7 +128,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
   // determine how to conclude exchange based on user input
   while (choice != '1' && choice != '2' && choice != '3') {
     stdout.write('> ');
-    choice = stdin.readLineSync();
+    choice = stdin.readLineSync()!.trim();
     if (choice != '1' && choice != '2' && choice != '3') {
       print('\nNot a valid choice.');
     }
@@ -145,16 +145,16 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
       fullNode: fullNode,
     );
   } else if (choice == '3') {
-    var userInput = '';
+    var input = '';
 
     print("\nIf you haven't already received it, ask your counter party to share their");
     print('private key and paste it below:');
 
-    while (userInput != '2' && btcHolderPrivateKey == null) {
+    while (input != '2' && btcHolderPrivateKey == null) {
       stdout.write('> ');
-      userInput = stdin.readLineSync()!;
+      input = stdin.readLineSync()!.trim().toLowerCase();
       try {
-        final privateKeyInput = PrivateKey.fromHex(userInput);
+        final privateKeyInput = PrivateKey.fromHex(input);
 
         if (privateKeyInput.getG1() == btcHolderPublicKey) {
           btcHolderPrivateKey = privateKeyInput;
@@ -179,7 +179,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
         );
       }
 
-      if (userInput.startsWith('2')) {
+      if (input == '2') {
         await confirmClawback(
           clawbackSpendBundle: clawbackSpendBundle,
           clawbackDelayMinutes: clawbackDelayMinutes,
@@ -283,9 +283,9 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   // determine how to conclude exchange based on user input
   while (xchHolderPrivateKey == null && sweepPreimage == null) {
     stdout.write('> ');
-    final userInput = stdin.readLineSync();
+    final input = stdin.readLineSync()!.trim().toLowerCase();
 
-    if (userInput!.toLowerCase().startsWith('q')) {
+    if (input.startsWith('q')) {
       print('\nPlease share your disposable private key below with your counter party to allow');
       print('them to cleanly reclaim their XCH:');
       print(btcHolderPrivateKey.toHex());
@@ -293,8 +293,8 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
       print('\nAfter you have done so, you may use Ctrl+C to exit the program.');
     } else {
       try {
-        final inputAsPrivateKey = PrivateKey.fromHex(userInput);
-        final inputAsPreimage = userInput.hexToBytes();
+        final inputAsPrivateKey = PrivateKey.fromHex(input);
+        final inputAsPreimage = input.hexToBytes();
 
         if (inputAsPrivateKey.getG1() == xchHolderPublicKey) {
           xchHolderPrivateKey = inputAsPrivateKey;
@@ -346,7 +346,7 @@ JacobianPoint getFulfillerPublicKey(String requestorSignedPublicKey) {
   while (true) {
     stdout.write('> ');
     try {
-      final signedPublicKey = stdin.readLineSync();
+      final signedPublicKey = stdin.readLineSync()!.trim().toLowerCase();
       if (signedPublicKey == requestorSignedPublicKey) {
         print("\nThat's your signed public key. Ask your counter party for theirs.");
       } else {
@@ -393,8 +393,8 @@ Future<Amounts> getAmounts() async {
     while (xchAmount == null) {
       stdout.write('> ');
       try {
-        final xchAmountString = stdin.readLineSync();
-        xchAmount = double.parse(xchAmountString!);
+        final xchAmountString = stdin.readLineSync()!.trim();
+        xchAmount = double.parse(xchAmountString);
         xchAmountMojos = (xchAmount * 1e12).toInt();
       } catch (e) {
         print('\nPlease enter the amount of XCH being exchanged:');
@@ -405,8 +405,8 @@ Future<Amounts> getAmounts() async {
     while (xchAmountMojos == null) {
       stdout.write('> ');
       try {
-        final xchAmountMojosString = stdin.readLineSync();
-        xchAmountMojos = int.parse(xchAmountMojosString!);
+        final xchAmountMojosString = stdin.readLineSync()!.trim();
+        xchAmountMojos = int.parse(xchAmountMojosString);
         xchAmount = xchAmountMojos / 1e12;
       } catch (e) {
         print('\nPlease enter the amount of mojos being exchanged:');
@@ -458,8 +458,8 @@ Bytes getPaymentHash() {
   while (true) {
     stdout.write('> ');
     try {
-      final paymentRequest = stdin.readLineSync();
-      final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest!);
+      final paymentRequest = stdin.readLineSync()!.trim().toLowerCase();
+      final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
       final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
       return sweepPaymentHash;
     } catch (e) {
@@ -472,8 +472,8 @@ Puzzlehash getRequestorPuzzlehash() {
   while (true) {
     stdout.write('> ');
     try {
-      final userAddress = stdin.readLineSync();
-      final userPuzzlehash = Address(userAddress!).toPuzzlehash();
+      final userAddress = stdin.readLineSync()!.trim().toLowerCase();
+      final userPuzzlehash = Address(userAddress).toPuzzlehash();
       return userPuzzlehash;
     } catch (e) {
       print("\nCouldn't verify your address. Please try again:");
@@ -504,10 +504,9 @@ Future<void> confirmClawback({
   print('Proceed? Y/N');
 
   var confirmation = '';
-  while (!confirmation.toLowerCase().startsWith('y')) {
+  while (!confirmation.startsWith('y')) {
     stdout.write('> ');
-    final input = stdin.readLineSync();
-    confirmation = input!;
+    confirmation = stdin.readLineSync()!.trim().toLowerCase();
     if (confirmation.toLowerCase().startsWith('y')) {
       print('\nPushing spend bundle to claw back XCH to your address...');
 
@@ -520,7 +519,7 @@ Future<void> confirmClawback({
         print("hasn't passed yet, keep waiting and manually push the transaction using the");
         print('generated file. If it has, your counter party may have already claimed funds.');
       }
-    } else if (confirmation.toLowerCase().startsWith('n')) {
+    } else if (confirmation.startsWith('n')) {
       print(
         '\nOnce $clawbackDelayMinutes minutes have passed, you may reclaim the XCH either by responding',
       );
