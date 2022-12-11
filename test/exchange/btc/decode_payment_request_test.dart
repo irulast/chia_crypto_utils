@@ -8,8 +8,6 @@ void main() {
 
     final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
 
-    decodeRoutingInfo(decodedPaymentRequest.tags.routingInfo!);
-
     expect(decodedPaymentRequest.prefix, equals('lnbc'));
 
     expect(decodedPaymentRequest.amount, equals(0.000001));
