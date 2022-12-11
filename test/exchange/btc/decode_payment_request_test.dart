@@ -32,16 +32,72 @@ void main() {
     );
 
     expect(
-      decodedPaymentRequest.tags.routingInfo![0].toHex(),
+      decodedPaymentRequest.tags.routingInfo![0].publicKey,
       equals(
-        '000e9b3987f2ab34e34c7538f38b541980a0638e15ad2d13ebfc777a590ae9c165da3358c8fae802347c00000190000017700024',
+        '03a6ce61fcaacd38d31d4e3ce2d506602818e3856b4b44faff1dde9642ba705976',
       ),
     );
 
     expect(
-      decodedPaymentRequest.tags.routingInfo![1].toHex(),
+      decodedPaymentRequest.tags.routingInfo![0].shortChannelId,
       equals(
-        '000e3e3c44f1600123611f5a524dc5c9994f80ae4a065aeb4c438fb68e7fd85c8fda3358c8fae802347c00000190000017700024',
+        '8cd6323eba008d1f',
+      ),
+    );
+
+    expect(
+      decodedPaymentRequest.tags.routingInfo![0].feeBaseMsat,
+      equals(
+        100,
+      ),
+    );
+
+    expect(
+      decodedPaymentRequest.tags.routingInfo![0].feeProportionalMillionths,
+      equals(
+        1500,
+      ),
+    );
+
+    expect(
+      decodedPaymentRequest.tags.routingInfo![0].cltvExpiryDelta,
+      equals(
+        9,
+      ),
+    );
+
+    expect(
+      decodedPaymentRequest.tags.routingInfo![1].publicKey,
+      equals(
+        '038f8f113c580048d847d6949371726653e02b928196bad310e3eda39ff61723f6',
+      ),
+    );
+
+    expect(
+      decodedPaymentRequest.tags.routingInfo![1].shortChannelId,
+      equals(
+        '8cd6323eba008d1f',
+      ),
+    );
+
+    expect(
+      decodedPaymentRequest.tags.routingInfo![1].feeBaseMsat,
+      equals(
+        100,
+      ),
+    );
+
+    expect(
+      decodedPaymentRequest.tags.routingInfo![1].feeProportionalMillionths,
+      equals(
+        1500,
+      ),
+    );
+
+    expect(
+      decodedPaymentRequest.tags.routingInfo![1].cltvExpiryDelta,
+      equals(
+        9,
       ),
     );
 

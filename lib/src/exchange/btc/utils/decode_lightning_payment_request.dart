@@ -4,6 +4,7 @@ import 'package:bech32/bech32.dart';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/models/lightning_payment_request.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/models/payment_request_tags.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/models/routing_info.dart';
 
 import 'package:chia_crypto_utils/src/utils/bech32.dart';
 
@@ -46,7 +47,7 @@ LightningPaymentRequest decodeLightningPaymentRequest(String paymentRequest) {
   const overrideSizes = {1: 256, 16: 256};
 
   final encodedTags = <int, dynamic>{};
-  final routingInfoData = <Bytes>[];
+  final routingInfoData = <List<int>>[];
 
   int bitSize;
   dynamic taggedFieldData;
@@ -75,7 +76,7 @@ LightningPaymentRequest decodeLightningPaymentRequest(String paymentRequest) {
     }
 
     if (type == 3) {
-      routingInfoData.add(taggedFieldData as Bytes);
+      routingInfoData.add(dataBlob);
       taggedFieldData = routingInfoData;
     }
 
@@ -102,7 +103,7 @@ LightningPaymentRequest decodeLightningPaymentRequest(String paymentRequest) {
 PaymentRequestTags decodeTags(Map<int, dynamic> encodedTags) {
   Bytes? paymentHash;
   Bytes? paymentSecret;
-  final routingInfo = <Bytes>[];
+  final routingInfo = <RoutingInfo>[];
   int? featureBits;
   int? expirationTime;
   Bytes? fallbackAddress;
@@ -120,7 +121,7 @@ PaymentRequestTags decodeTags(Map<int, dynamic> encodedTags) {
         break;
       case 3:
         for (final route in data) {
-          routingInfo.add(route as Bytes);
+          routingInfo.add(decodeRoute(route as List<int>));
         }
         break;
       case 5:
@@ -174,8 +175,23 @@ PaymentRequestTags decodeTags(Map<int, dynamic> encodedTags) {
   );
 }
 
-void decodeRoutingInfo(List<Bytes> data) {
-  for (final route in data) {
-    print(route.length);
-  }
+RoutingInfo decodeRoute(List<int> dataBlob) {
+  final routeData = convertBits(dataBlob, 5, 8, pad: true);
+
+  final publicKey = convertBitsBigInt(routeData.sublist(0, 33), 8, 264, pad: true)[0]
+      .toRadixString(16)
+      .padLeft(66, '0');
+  final shortChannelId =
+      convertBitsBigInt(routeData.sublist(33, 41), 8, 64, pad: true)[0].toRadixString(16);
+  final feeBaseMsats = convertBits(routeData.sublist(41, 45), 8, 32, pad: true)[0];
+  final feeProportionalMillionths = convertBits(routeData.sublist(45, 49), 8, 32, pad: true)[0];
+  final cltvExpiryDelta = convertBits(routeData.sublist(49, 51), 8, 16, pad: true)[0];
+
+  return RoutingInfo(
+    publicKey: publicKey,
+    shortChannelId: shortChannelId,
+    feeBaseMsat: feeBaseMsats,
+    feeProportionalMillionths: feeProportionalMillionths,
+    cltvExpiryDelta: cltvExpiryDelta,
+  );
 }

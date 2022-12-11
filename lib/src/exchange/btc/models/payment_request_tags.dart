@@ -1,4 +1,5 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/models/routing_info.dart';
 
 class PaymentRequestTags {
   // according to Bolt #11 protocol, tagged fields are optional
@@ -20,7 +21,7 @@ class PaymentRequestTags {
 
   Bytes? paymentHash;
   Bytes? paymentSecret;
-  List<Bytes>? routingInfo;
+  List<RoutingInfo>? routingInfo;
   int? featureBits;
   int? expirationTime;
   Bytes? fallbackAddress;
