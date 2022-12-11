@@ -28,12 +28,12 @@ Future<void> main() async {
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
   final walletService = StandardWalletService();
   final exchangeService = BtcExchangeService();
+  final btcToXchService = BtcToXchService();
+  final xchToBtcService = XchToBtcService();
 
   test(
       'should transfer XCH to exchange address and fail to claw back funds to XCH holder before delay has passed',
       () async {
-    final xchToBtcService = XchToBtcService();
-
     final xchHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
     await xchHolder.farmCoins();
     await xchHolder.refreshCoins();
@@ -56,7 +56,7 @@ Future<void> main() async {
     // generate address for XCH holder to send funds to
     final exchangePuzzlehash = xchToBtcService.generateExchangePuzzlehash(
       requestorPrivateKey: xchHolderPrivateKey,
-      sweepPaymentHash: sweepPaymentHash,
+      sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: btcHolderPublicKey,
     );
 
@@ -98,8 +98,6 @@ Future<void> main() async {
   test(
       'should transfer XCH to exchange address and claw back funds to XCH holder after delay has passed',
       () async {
-    final xchToBtcService = XchToBtcService();
-
     final xchHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
     await xchHolder.farmCoins();
     await xchHolder.refreshCoins();
@@ -126,7 +124,7 @@ Future<void> main() async {
     final exchangePuzzlehash = xchToBtcService.generateExchangePuzzlehash(
       requestorPrivateKey: xchHolderPrivateKey,
       clawbackDelaySeconds: clawbackDelaySeconds,
-      sweepPaymentHash: sweepPaymentHash,
+      sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: btcHolderPublicKey,
     );
 
@@ -182,8 +180,6 @@ Future<void> main() async {
   test(
       'should transfer XCH to exchange address and claw back funds to XCH holder early using private key before delay has passed',
       () async {
-    final xchToBtcService = XchToBtcService();
-
     final xchHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
     await xchHolder.farmCoins();
     await xchHolder.refreshCoins();
@@ -210,7 +206,7 @@ Future<void> main() async {
     final exchangePuzzlehash = xchToBtcService.generateExchangePuzzlehash(
       requestorPrivateKey: xchHolderPrivateKey,
       clawbackDelaySeconds: clawbackDelaySeconds,
-      sweepPaymentHash: sweepPaymentHash,
+      sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: btcHolderPublicKey,
     );
 
@@ -260,7 +256,6 @@ Future<void> main() async {
 
   test('should transfer XCH to exchange address and sweep funds to BTC holder using preimage',
       () async {
-    final btcToXchService = BtcToXchService();
     final xchHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
     final btcHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
     await xchHolder.farmCoins();
@@ -284,7 +279,7 @@ Future<void> main() async {
     // generate address for XCH holder to send funds to
     final exchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
-      sweepPaymentHash: sweepPaymentHash,
+      sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: xchHolderPublicKey,
     );
 
@@ -335,7 +330,6 @@ Future<void> main() async {
   test(
       'should transfer XCH to exchange address and fail to sweep funds to BTC holder when preimage is incorrect',
       () async {
-    final btcToXchService = BtcToXchService();
     final xchHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
     final btcHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
     await xchHolder.farmCoins();
@@ -359,7 +353,7 @@ Future<void> main() async {
     // generate address for XCH holder to send funds to
     final exchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
-      sweepPaymentHash: sweepPaymentHash,
+      sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: xchHolderPublicKey,
     );
 
@@ -381,7 +375,7 @@ Future<void> main() async {
     final sweepPuzzlehash = btcHolder.firstPuzzlehash;
 
     // the BTC holder inputs an incorrect lightning preimage
-    final sweepPreimage = Puzzlehash.zeros().toBytes();
+    final incorrectPreimage = Puzzlehash.zeros().toBytes();
 
     expect(
       () {
@@ -390,7 +384,7 @@ Future<void> main() async {
           coinsInput: exchangeCoins,
           requestorPrivateKey: btcHolderPrivateKey,
           sweepPaymentHash: sweepPaymentHash,
-          sweepPreimage: sweepPreimage,
+          sweepPreimage: incorrectPreimage,
           fulfillerPublicKey: xchHolderPublicKey,
         );
       },
@@ -400,7 +394,6 @@ Future<void> main() async {
 
   test('should transfer XCH to exchange address and sweep funds to BTC holder using private key',
       () async {
-    final btcToXchService = BtcToXchService();
     final xchHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
     final btcHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
     await xchHolder.farmCoins();
@@ -424,7 +417,7 @@ Future<void> main() async {
     // generate address for XCH holder to send funds to
     final exchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
-      sweepPaymentHash: sweepPaymentHash,
+      sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: xchHolderPublicKey,
     );
 
@@ -468,5 +461,198 @@ Future<void> main() async {
       endingSweepAddressBalance,
       equals(startingSweepAddressBalance + exchangeCoins.totalValue),
     );
+  });
+
+  test(
+      'should transfer XCH to exchange address and fail to sweep funds to BTC holder when private key is incorrect',
+      () async {
+    final xchHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
+    final btcHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
+    await xchHolder.farmCoins();
+    await xchHolder.refreshCoins();
+
+    // generate disposable private key for user
+    final btcHolderPrivateKey = PrivateKey.generate();
+
+    // user inputs signed public key of counter party, which is parsed and validated to ensure that
+    // it was generated by our exchange service
+    const xchHolderSignedPublicKey =
+        'ad6abe3d432ccce5b40995611c4db6d71e2678f142b8635940c32c4b1c35dde7b01ab42581075eaee173aba747373f71_97c0d2c1acea7708df1eb4a75f625ca1fe95a9aa141a86c2e18bdfd1e8716cba2888f6230ea122ce9478a78f8257beaf0dfb81714f4de6337fa671cc29bb2d4e18e9aae31829016fd94f14e99f86a9ad990f2740d02583c6a85dc4b6b0233aaa';
+    final xchHolderPublicKey = exchangeService.parseSignedPublicKey(xchHolderSignedPublicKey);
+
+    // user inputs lightning payment request, which is decoded to get the payment hash
+    const paymentRequest =
+        'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
+    final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
+    final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
+
+    // generate address for XCH holder to send funds to
+    final exchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
+      requestorPrivateKey: btcHolderPrivateKey,
+      sweepPaymentHash: sweepPaymentHash!,
+      fulfillerPublicKey: xchHolderPublicKey,
+    );
+
+    // XCH holder transfers funds to exchange address
+    final xchHolderCoins = xchHolder.standardCoins;
+
+    final spendBundle = walletService.createSpendBundle(
+      payments: [Payment(xchHolderCoins.totalValue, exchangePuzzlehash)],
+      coinsInput: xchHolderCoins,
+      changePuzzlehash: xchHolder.firstPuzzlehash,
+      keychain: xchHolder.keychain,
+    );
+    await fullNodeSimulator.pushTransaction(spendBundle);
+    await fullNodeSimulator.moveToNextBlock();
+
+    final exchangeCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([exchangePuzzlehash]);
+
+    // user specifies where they want to receive funds
+    final sweepPuzzlehash = btcHolder.firstPuzzlehash;
+
+    // the BTC holder inputs an incorrect private key
+    final incorrectPrivateKey = PrivateKey.generate();
+
+    expect(
+      () async {
+        final sweepSpendBundle = btcToXchService.createSweepSpendBundleWithPk(
+          payments: [Payment(exchangeCoins.totalValue, sweepPuzzlehash)],
+          coinsInput: exchangeCoins,
+          requestorPrivateKey: btcHolderPrivateKey,
+          sweepPaymentHash: sweepPaymentHash,
+          fulfillerPrivateKey: incorrectPrivateKey,
+        );
+
+        await fullNodeSimulator.pushTransaction(sweepSpendBundle);
+      },
+      throwsException,
+    );
+  });
+
+  test('exchange should fail if parties input different timeouts', () async {
+    final xchHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
+    await xchHolder.farmCoins();
+    await xchHolder.refreshCoins();
+
+    // disposable private keys are generated for each user
+    final btcHolderPrivateKey = PrivateKey.generate();
+    final btcHolderPublicKey = btcHolderPrivateKey.getG1();
+
+    final xchHolderPrivateKey = PrivateKey.generate();
+    final xchHolderPublicKey = xchHolderPrivateKey.getG1();
+
+    // XCH holder creates a lightning payment request, which both users paste into the program
+    const paymentRequest =
+        'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
+    final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
+    final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
+
+    // exchange address is generated on BTC holder's side
+    final btcHolderExchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
+      requestorPrivateKey: btcHolderPrivateKey,
+      clawbackDelaySeconds: 60,
+      sweepPaymentHash: sweepPaymentHash!,
+      fulfillerPublicKey: xchHolderPublicKey,
+    );
+
+    // exchange address is generated on XCH holder's side, but they input a different clawback delay
+    final xchHolderExchangePuzzlehash = xchToBtcService.generateExchangePuzzlehash(
+      requestorPrivateKey: xchHolderPrivateKey,
+      clawbackDelaySeconds: 40,
+      sweepPaymentHash: sweepPaymentHash,
+      fulfillerPublicKey: btcHolderPublicKey,
+    );
+
+    // exchange puzzlehashes do not match
+    expect(btcHolderExchangePuzzlehash, isNot(xchHolderExchangePuzzlehash));
+
+    // XCH holder sends funds to their version of the exchange address, but they aren't available at the
+    // BTC holder's version exchange address
+    final xchHolderCoins = xchHolder.standardCoins;
+
+    final spendBundle = walletService.createSpendBundle(
+      payments: [Payment(xchHolderCoins.totalValue, xchHolderExchangePuzzlehash)],
+      coinsInput: xchHolderCoins,
+      changePuzzlehash: xchHolder.firstPuzzlehash,
+      keychain: xchHolder.keychain,
+    );
+    await fullNodeSimulator.pushTransaction(spendBundle);
+    await fullNodeSimulator.moveToNextBlock();
+
+    final xchHolderExchangeCoins =
+        await fullNodeSimulator.getCoinsByPuzzleHashes([xchHolderExchangePuzzlehash]);
+    final btcHolderExchangeCoins =
+        await fullNodeSimulator.getCoinsByPuzzleHashes([btcHolderExchangePuzzlehash]);
+
+    expect(xchHolderExchangeCoins.totalValue, equals(xchHolderCoins.totalValue));
+    expect(btcHolderExchangeCoins, isEmpty);
+  });
+
+  test('exchange should fail if user shares wrong signed public key', () async {
+    final xchHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
+    await xchHolder.farmCoins();
+    await xchHolder.refreshCoins();
+
+    // disposable private keys are generated for each user
+    final btcHolderPrivateKey = PrivateKey.generate();
+    final btcHolderPublicKey = btcHolderPrivateKey.getG1();
+
+    final xchHolderPrivateKey = PrivateKey.generate();
+
+    // XCH holder accidentally shares the wrong signed public key
+    // although it has the correct format, it was signed by the wrong private key
+    final xchHolderWrongPrivateKey =
+        PrivateKey.fromHex('308f34305ed545c7b6bdefe9fff88176dc3b1a68c40f9065e2cf24c98bf6a4e1');
+    final xchHolderWrongSignedPublicKey =
+        exchangeService.createSignedPublicKey(xchHolderWrongPrivateKey);
+
+    // BTC holder inputs the wrong signed public key that the XCH holder shared with them, which
+    // is validated and parsed by the program because it has the correct format
+    final xchHolderWrongPublicKey =
+        exchangeService.parseSignedPublicKey(xchHolderWrongSignedPublicKey);
+
+    // XCH holder creates a lightning payment request, which both users paste into the program
+    const paymentRequest =
+        'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
+    final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
+    final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
+
+    // exchange address is generated on BTC holder's side
+    final btcHolderExchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
+      requestorPrivateKey: btcHolderPrivateKey,
+      sweepPaymentHash: sweepPaymentHash!,
+      fulfillerPublicKey: xchHolderWrongPublicKey,
+    );
+
+    // exchange address is generated on XCH holder's side
+    final xchHolderExchangePuzzlehash = xchToBtcService.generateExchangePuzzlehash(
+      requestorPrivateKey: xchHolderPrivateKey,
+      sweepPaymentHash: sweepPaymentHash,
+      fulfillerPublicKey: btcHolderPublicKey,
+    );
+
+    // exchange puzzlehashes do not match
+    expect(btcHolderExchangePuzzlehash, isNot(xchHolderExchangePuzzlehash));
+
+    // XCH holder sends funds to their version of the exchange address, but they aren't available at the
+    // BTC holder's version exchange address and the BTC holder cannot sweep the funds
+    final xchHolderCoins = xchHolder.standardCoins;
+
+    final spendBundle = walletService.createSpendBundle(
+      payments: [Payment(xchHolderCoins.totalValue, xchHolderExchangePuzzlehash)],
+      coinsInput: xchHolderCoins,
+      changePuzzlehash: xchHolder.firstPuzzlehash,
+      keychain: xchHolder.keychain,
+    );
+    await fullNodeSimulator.pushTransaction(spendBundle);
+    await fullNodeSimulator.moveToNextBlock();
+
+    final xchHolderExchangeCoins =
+        await fullNodeSimulator.getCoinsByPuzzleHashes([xchHolderExchangePuzzlehash]);
+    final btcHolderExchangeCoins =
+        await fullNodeSimulator.getCoinsByPuzzleHashes([btcHolderExchangePuzzlehash]);
+
+    expect(xchHolderExchangeCoins.totalValue, equals(xchHolderCoins.totalValue));
+    expect(btcHolderExchangeCoins, isEmpty);
   });
 }

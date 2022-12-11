@@ -462,7 +462,7 @@ Bytes getPaymentHash() {
       final paymentRequest = stdin.readLineSync()!.trim().toLowerCase();
       final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
       final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
-      return sweepPaymentHash;
+      return sweepPaymentHash!;
     } catch (e) {
       print("\nCouldn't validate the lightning payment request. Please try again:");
     }

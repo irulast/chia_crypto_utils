@@ -8,53 +8,55 @@ void main() {
 
     final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
 
-    final paymentHash = decodedPaymentRequest.tags.paymentHash;
-    final description = decodedPaymentRequest.tags.description;
-    final minFinalCltvExpiry = decodedPaymentRequest.tags.minFinalCltvExpiry;
-    final expirationTime = decodedPaymentRequest.tags.expirationTime;
-    final routingInfo = decodedPaymentRequest.tags.routingInfo;
-    final paymentSecret = decodedPaymentRequest.tags.paymentSecret;
-    final featureBits = decodedPaymentRequest.tags.featureBits;
-    final signature = decodedPaymentRequest.signature;
+    expect(decodedPaymentRequest.prefix, equals('lnbc'));
+
+    expect(decodedPaymentRequest.amount, equals(0.000001));
 
     expect(
-      paymentHash.toHex(),
+      decodedPaymentRequest.tags.paymentHash!.toHex(),
       equals(
         '63b49b0dc5f8e216332dabc410d64ee92a8ae73ae0a1d929e76980646d435d98',
       ),
     );
 
-    expect(description, isNull);
+    expect(decodedPaymentRequest.tags.description, isNull);
 
     expect(
-      minFinalCltvExpiry,
+      decodedPaymentRequest.tags.minFinalCltvExpiry,
       equals(72),
     );
 
     expect(
-      expirationTime,
+      decodedPaymentRequest.tags.expirationTime,
       equals(86400),
     );
 
     expect(
-      routingInfo.toHex(),
+      decodedPaymentRequest.tags.routingInfo![0].toHex(),
+      equals(
+        '000e9b3987f2ab34e34c7538f38b541980a0638e15ad2d13ebfc777a590ae9c165da3358c8fae802347c00000190000017700024',
+      ),
+    );
+
+    expect(
+      decodedPaymentRequest.tags.routingInfo![1].toHex(),
       equals(
         '000e3e3c44f1600123611f5a524dc5c9994f80ae4a065aeb4c438fb68e7fd85c8fda3358c8fae802347c00000190000017700024',
       ),
     );
 
     expect(
-      paymentSecret.toHex(),
+      decodedPaymentRequest.tags.paymentSecret!.toHex(),
       equals('90901954a57e2eb915254293addd8858bb2162c6f7aa4e5df6fcc71bed8302e4'),
     );
 
     expect(
-      featureBits,
+      decodedPaymentRequest.tags.featureBits,
       equals(33280),
     );
 
     expect(
-      signature,
+      decodedPaymentRequest.signature,
       equals(
         '2371190298897753049932765642821337431726569419501471916101239177565213090033171301461855787167292412780963216525100198721191441428010383701341990407766187009',
       ),
