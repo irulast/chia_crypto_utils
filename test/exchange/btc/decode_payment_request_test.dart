@@ -8,6 +8,8 @@ void main() {
 
     final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
 
+    decodeRoutingInfo(decodedPaymentRequest.tags.routingInfo!);
+
     expect(decodedPaymentRequest.prefix, equals('lnbc'));
 
     expect(decodedPaymentRequest.amount, equals(0.000001));
@@ -58,8 +60,20 @@ void main() {
     expect(
       decodedPaymentRequest.signature,
       equals(
-        '2371190298897753049932765642821337431726569419501471916101239177565213090033171301461855787167292412780963216525100198721191441428010383701341990407766187009',
+        'b0d9f8c00da82add97a65ad3dd2468f21294701118b8c66d490f010420affd662389188b8de4211b7d4cb702856257b5533b704bb5b36c923d4d34829a9bb29c',
       ),
+    );
+  });
+
+  test('should throw exception if prefix is wrong', () {
+    const paymentRequest =
+        'lnjc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
+
+    expect(
+      () {
+        decodeLightningPaymentRequest(paymentRequest);
+      },
+      throwsException,
     );
   });
 }

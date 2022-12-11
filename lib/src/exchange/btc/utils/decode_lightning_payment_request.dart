@@ -85,7 +85,9 @@ LightningPaymentRequest decodeLightningPaymentRequest(String paymentRequest) {
   final decodedTags = decodeTags(encodedTags);
 
   // signature
-  final signature = convertBitsBigInt(taggedFields, 5, 520, pad: true)[0].toString();
+  final signatureData = convertBitsBigInt(taggedFields, 5, 520, pad: true)[0].toRadixString(16);
+  final signature = signatureData.substring(0, signatureData.length - 2);
+  final recoveryFlag = int.parse(signatureData[signatureData.length - 1]);
 
   return LightningPaymentRequest(
     prefix: prefix,
@@ -93,6 +95,7 @@ LightningPaymentRequest decodeLightningPaymentRequest(String paymentRequest) {
     timestamp: timestamp,
     tags: decodedTags,
     signature: signature,
+    recoveryFlag: recoveryFlag,
   );
 }
 
@@ -169,4 +172,10 @@ PaymentRequestTags decodeTags(Map<int, dynamic> encodedTags) {
     metadata: metadata,
     unknownTags: unknownTags,
   );
+}
+
+void decodeRoutingInfo(List<Bytes> data) {
+  for (final route in data) {
+    print(route.length);
+  }
 }

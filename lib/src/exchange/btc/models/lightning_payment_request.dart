@@ -7,6 +7,7 @@ class LightningPaymentRequest {
     required this.timestamp,
     required this.tags,
     required this.signature,
+    required this.recoveryFlag,
   });
 
   String prefix;
@@ -14,4 +15,5 @@ class LightningPaymentRequest {
   int timestamp;
   PaymentRequestTags tags;
   String signature;
+  int recoveryFlag;
 }
