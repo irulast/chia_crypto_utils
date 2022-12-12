@@ -1,4 +1,5 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/models/fallback_address.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/models/routing_info.dart';
 
 class PaymentRequestTags {
@@ -24,7 +25,7 @@ class PaymentRequestTags {
   List<RouteInfo>? routingInfo;
   int? featureBits;
   int? expirationTime;
-  Bytes? fallbackAddress;
+  FallbackAddress? fallbackAddress;
   String? description;
   Bytes? payeePublicKey;
   Bytes? purposeCommitHash;

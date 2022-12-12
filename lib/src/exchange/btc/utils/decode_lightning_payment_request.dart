@@ -1,15 +1,19 @@
+import 'dart:ffi';
 import 'dart:typed_data';
 import 'package:bech32/bech32.dart';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/models/fallback_address.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/models/lightning_payment_request.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/models/payment_request_signature.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/models/payment_request_tags.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/models/routing_info.dart';
 
 import 'package:chia_crypto_utils/src/utils/bech32.dart';
+import 'package:hex/hex.dart';
 
 const bech32 = Bech32Codec();
+String? network;
 
 LightningPaymentRequest decodeLightningPaymentRequest(String paymentRequest) {
   final bech32DecodedPaymentRequest = bech32.decode(paymentRequest, 2048);
@@ -98,11 +102,16 @@ LightningPaymentRequest decodeLightningPaymentRequest(String paymentRequest) {
 
   // signature
   final signatureData = convertBitsBigInt(taggedFields, 5, 520, pad: true)[0].toRadixString(16);
-  final rValue = signatureData.substring(0, 64);
-  final sValue = signatureData.substring(64, signatureData.length - 2);
+  final fullSignature = signatureData.substring(0, signatureData.length - 2);
+  final rValue = fullSignature.substring(0, 64);
+  final sValue = fullSignature.substring(64);
   final recoveryFlag = int.parse(signatureData[signatureData.length - 1]);
-  final signature =
-      PaymentRequestSignature(rValue: rValue, sValue: sValue, recoveryFlag: recoveryFlag);
+  final signature = PaymentRequestSignature(
+    fullSignature: fullSignature,
+    rValue: rValue,
+    sValue: sValue,
+    recoveryFlag: recoveryFlag,
+  );
 
   return LightningPaymentRequest(
     prefix: prefix,
@@ -120,7 +129,7 @@ PaymentRequestTags decodeTags(Map<int, dynamic> encodedTags) {
   final routingInfo = <RouteInfo>[];
   int? featureBits;
   int? expirationTime;
-  Bytes? fallbackAddress;
+  FallbackAddress? fallbackAddress;
   String? description;
   Bytes? payeePublicKey;
   Bytes? purposeCommitHash;
@@ -139,15 +148,19 @@ PaymentRequestTags decodeTags(Map<int, dynamic> encodedTags) {
         }
         break;
       case 5:
-        final featureBitsData = data != null ? (data as BigInt) : null;
-        featureBits = featureBitsData?.toInt();
+        featureBits = data != null ? int.parse((data as BigInt).toRadixString(2)) : null;
         break;
       case 6:
         final expirationTimeData = data != null ? (data as BigInt) : null;
         expirationTime = expirationTimeData?.toInt();
         break;
       case 9:
-        fallbackAddress = data != null ? (data as Bytes) : null;
+        if (data != null) {
+          final fallbackAddressData = data as Bytes;
+          final version = fallbackAddressData[0];
+          final addressHash = fallbackAddressData.sublist(1).toHex();
+          fallbackAddress = FallbackAddress(version: version, addressHash: addressHash);
+        }
         break;
       case 13:
         description = data?.toString();
@@ -189,8 +202,8 @@ PaymentRequestTags decodeTags(Map<int, dynamic> encodedTags) {
   );
 }
 
-RouteInfo decodeRouteInfo(List<int> dataBlob) {
-  final routeData = convertBits(dataBlob, 5, 8, pad: true);
+RouteInfo decodeRouteInfo(List<int> data) {
+  final routeData = convertBits(data, 5, 8, pad: true);
 
   final publicKey = convertBitsBigInt(routeData.sublist(0, 33), 8, 264, pad: true)[0]
       .toRadixString(16)
@@ -209,7 +222,3 @@ RouteInfo decodeRouteInfo(List<int> dataBlob) {
     cltvExpiryDelta: cltvExpiryDelta,
   );
 }
-
-// FeatureBits decodeFeatureBits(Bytes data) {
-//   final flags = data.reversed.map((e) => null);
-// }

@@ -2,13 +2,18 @@ import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_paymen
 import 'package:test/test.dart';
 
 void main() {
-  test('should correctly decode lightning payment request', () {
-    const paymentRequest =
-        'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
+  const paymentRequest =
+      'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
 
+  const paymentRequestWithFallback =
+      'lntb20m1pvjluezsp5zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zygshp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqspp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqfpp3x9et2e20v6pu37c5d9vax37wxq72un989qrsgqdj545axuxtnfemtpwkc45hx9d2ft7x04mt8q7y6t0k2dge9e7h8kpy9p34ytyslj3yu569aalz2xdk8xkd7ltxqld94u8h2esmsmacgpghe9k8';
+
+  test('should correctly decode lightning payment request', () {
     final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
 
     expect(decodedPaymentRequest.prefix, equals('lnbc'));
+
+    expect(decodedPaymentRequest.network, equals('mainnet'));
 
     expect(decodedPaymentRequest.amount, equals(0.000001));
 
@@ -102,13 +107,20 @@ void main() {
     );
 
     expect(
+      decodedPaymentRequest.tags.featureBits,
+      equals(00001000001000000000),
+    );
+
+    expect(
       decodedPaymentRequest.tags.paymentSecret!.toHex(),
       equals('90901954a57e2eb915254293addd8858bb2162c6f7aa4e5df6fcc71bed8302e4'),
     );
 
     expect(
-      decodedPaymentRequest.tags.featureBits,
-      equals(33280),
+      decodedPaymentRequest.signature.fullSignature,
+      equals(
+        'b0d9f8c00da82add97a65ad3dd2468f21294701118b8c66d490f010420affd662389188b8de4211b7d4cb702856257b5533b704bb5b36c923d4d34829a9bb29c',
+      ),
     );
 
     expect(
@@ -122,6 +134,68 @@ void main() {
       decodedPaymentRequest.signature.sValue,
       equals(
         '2389188b8de4211b7d4cb702856257b5533b704bb5b36c923d4d34829a9bb29c',
+      ),
+    );
+
+    expect(
+      decodedPaymentRequest.signature.recoveryFlag,
+      equals(1),
+    );
+  });
+
+  test('should correctly decode lightning payment request fallback address', () {
+    final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequestWithFallback);
+
+    expect(decodedPaymentRequest.prefix, equals('lntb'));
+
+    expect(decodedPaymentRequest.network, equals('testnet'));
+
+    expect(decodedPaymentRequest.amount, equals(0.02));
+
+    expect(decodedPaymentRequest.timestamp, equals(1496314658));
+
+    expect(
+      decodedPaymentRequest.tags.paymentHash!.toHex(),
+      equals(
+        '0001020304050607080900010203040506070809000102030405060708090102',
+      ),
+    );
+
+    expect(decodedPaymentRequest.tags.fallbackAddress!.version, equals(17));
+
+    expect(
+      decodedPaymentRequest.tags.fallbackAddress!.addressHash,
+      equals('3172b5654f6683c8fb146959d347ce303cae4ca7'),
+    );
+
+    expect(
+      decodedPaymentRequest.tags.featureBits,
+      equals(100000100000000),
+    );
+
+    expect(
+      decodedPaymentRequest.tags.paymentSecret!.toHex(),
+      equals('1111111111111111111111111111111111111111111111111111111111111111'),
+    );
+
+    expect(
+      decodedPaymentRequest.signature.fullSignature,
+      equals(
+        '6ca95a74dc32e69ced6175b15a5cc56a92bf19f5dace0f134b7d94d464b9f5cf6090a18d48b243f289394d17bdf89466d8e6b37df5981f696bc3dd5986e1bee1',
+      ),
+    );
+
+    expect(
+      decodedPaymentRequest.signature.rValue,
+      equals(
+        '6ca95a74dc32e69ced6175b15a5cc56a92bf19f5dace0f134b7d94d464b9f5cf',
+      ),
+    );
+
+    expect(
+      decodedPaymentRequest.signature.sValue,
+      equals(
+        '6090a18d48b243f289394d17bdf89466d8e6b37df5981f696bc3dd5986e1bee1',
       ),
     );
 
