@@ -423,3 +423,10 @@ extension ExtractBytesFromIterator on Iterator<int> {
     return Bytes(extractedBytes);
   }
 }
+
+void decodeRoutingInfo(List<int> data) {
+  // final routeData = convertBits(dataBlob, 5, 8, pad: true);
+  // final publicKeyData = routeData.sublist(0, 33);
+  // final publicKey = convertBitsBigInt(publicKeyData, 8, 264, pad: true)[0].toRadixString(16);
+  // print(publicKey);
+}

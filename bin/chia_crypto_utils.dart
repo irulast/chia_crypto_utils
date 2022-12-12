@@ -5,6 +5,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:bip39/bip39.dart';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
 import 'package:chia_crypto_utils/src/command/plot_nft/create_new_wallet_with_plotnft.dart';
 
 late final ChiaFullNodeInterface fullNode;
@@ -23,7 +24,8 @@ void main(List<String> args) {
     ..argParser.addOption('full-node-url')
     ..addCommand(CreateWalletWithPlotNFTCommand())
     ..addCommand(GetFarmingStatusCommand())
-    ..addCommand(GetCoinRecords());
+    ..addCommand(GetCoinRecords())
+    ..addCommand(ExchangeBtcCommand());
 
   final results = runner.argParser.parse(args);
 
@@ -118,8 +120,8 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
     argParser
       ..addOption('pool-url', defaultsTo: 'https://xch-us-west.flexpool.io')
       ..addOption('faucet-request-url')
-      ..addOption('faucet-request-payload')
-      ..addOption('output-config')
+      ..addOption('faucet-request-payload', defaultsTo: '')
+      ..addOption('output-config', defaultsTo: '')
       ..addOption(
         'certificate-bytes-path',
         defaultsTo: 'mozilla-ca/cacert.pem',
@@ -282,6 +284,40 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
         print(farmingStatus);
       } catch (e) {
         LoggingContext().error(e.toString());
+      }
+    }
+  }
+}
+
+class ExchangeBtcCommand extends Command<Future<void>> {
+  ExchangeBtcCommand();
+
+  @override
+  String get description => 'Initiates an atomic swap between XCH and BTC';
+
+  @override
+  String get name => 'Exchange-Btc';
+
+  @override
+  Future<void> run() async {
+    print('\nDo you have XCH that you want to exchange for BTC, or do you have BTC that');
+    print('you want to exchange for XCH? Please note that you and your counter party must');
+    print('select reciprocal paths.');
+    print('\n1. Exchange XCH for BTC');
+    print('2. Exchange BTC for XCH');
+
+    String? choice;
+
+    while (choice != '1' && choice != '2') {
+      stdout.write('> ');
+      choice = stdin.readLineSync()!.trim();
+
+      if (choice == '1') {
+        await exchangeXchForBtc(fullNode);
+      } else if (choice == '2') {
+        await exchangeBtcForXch(fullNode);
+      } else {
+        print('\nNot a valid choice.');
       }
     }
   }

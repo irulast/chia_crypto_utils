@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
@@ -28,6 +29,11 @@ class PrivateKey with ToBytesMixin {
       [0, L],
     );
     return PrivateKey(bytesToBigInt(okm, Endian.big) % defaultEc.n);
+  }
+
+  factory PrivateKey.generate() {
+    final bytes = List<int>.generate(32, (index) => Random.secure().nextInt(256));
+    return PrivateKey.fromBytes(bytes);
   }
 
   PrivateKey.fromBigInt(BigInt n) : this(n % defaultEc.n);

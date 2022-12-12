@@ -106,11 +106,17 @@ PrivateKey masterSkToPoolingAuthenticationSk(
 
 // cribbed from https://github.com/Chia-Network/chia-blockchain/blob/4bd5c53f48cb049eff36c87c00d21b1f2dd26b27/chia/wallet/puzzles/p2_delegated_puzzle_or_hidden_puzzle.py
 Program getPuzzleFromPk(JacobianPoint publicKey) {
+  return getPuzzleFromPkAndHiddenPuzzle(publicKey, defaultHiddenPuzzleProgram);
+}
+
+Program getPuzzleFromPkAndHiddenPuzzle(JacobianPoint publicKey, Program hiddenPuzzleProgram) {
   final syntheticPubKey = calculateSyntheticPublicKeyProgram.run(
-    Program.list([
-      Program.fromBytes(publicKey.toBytes()),
-      Program.fromBytes(defaultHiddenPuzzleProgram.hash())
-    ]),
+    Program.list(
+      [
+        Program.fromBytes(publicKey.toBytes()),
+        Program.fromBytes(hiddenPuzzleProgram.hash()),
+      ],
+    ),
   );
 
   final curried = p2DelegatedPuzzleOrHiddenPuzzleProgram.curry([syntheticPubKey.program]);
@@ -131,6 +137,18 @@ BigInt calculateSyntheticOffset(JacobianPoint publicKey) {
   return newOffset;
 }
 
+BigInt calculateSyntheticOffsetFromHiddenPuzzle(
+  JacobianPoint publicKey,
+  Program hiddenPuzzleProgram,
+) {
+  final blob = sha256.convert(publicKey.toBytes() + hiddenPuzzleProgram.hash()).bytes;
+
+  final offset = bytesToBigInt(blob, Endian.big, signed: true);
+
+  final newOffset = offset % groupOrder;
+  return newOffset;
+}
+
 PrivateKey calculateSyntheticPrivateKey(PrivateKey privateKey) {
   final secretExponent = bytesToBigInt(privateKey.toBytes(), Endian.big);
 
@@ -144,4 +162,22 @@ PrivateKey calculateSyntheticPrivateKey(PrivateKey privateKey) {
   final syntheticPrivateKey = PrivateKey.fromBytes(blob);
 
   return syntheticPrivateKey;
+}
+
+PrivateKey calculateTotalPrivateKey(
+  JacobianPoint totalPublicKey,
+  Program hiddenPuzzle,
+  PrivateKey firstPrivateKey,
+  PrivateKey secondPrivateKey,
+) {
+  final syntheticOffset = calculateSyntheticOffsetFromHiddenPuzzle(totalPublicKey, hiddenPuzzle);
+
+  final firstSecret = BigInt.parse(firstPrivateKey.toHex(), radix: 16) % groupOrder;
+  final secondSecret = BigInt.parse(secondPrivateKey.toHex(), radix: 16) % groupOrder;
+
+  final totalSecret = firstSecret + secondSecret + syntheticOffset;
+
+  final totalPrivateKey = PrivateKey.fromBigInt(totalSecret);
+
+  return totalPrivateKey;
 }

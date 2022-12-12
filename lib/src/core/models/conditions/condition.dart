@@ -6,3 +6,7 @@ abstract class Condition {
 
 typedef ConditionChecker<T> = bool Function(Program program);
 typedef ConditionFromProgramConstructor<T> = T Function(Program program);
+
+extension ToProgram on Iterable<Condition> {
+  Program toProgram() => Program.list(map((condition) => condition.program).toList());
+}

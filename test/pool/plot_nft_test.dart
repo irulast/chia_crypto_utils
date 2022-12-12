@@ -16,7 +16,8 @@ void main() {
     targetPuzzlehash:
         Puzzlehash.fromHex('6bde1e0c6f9d3b93dc5e7e878723257ede573deeed59e3b4a90f5c86de1a0bd3'),
     ownerPublicKey: JacobianPoint.fromHexG1(
-        '0x95b96e957115f0bc3858163c9d89b948b895d1296dc660030f635ebc62d5d99cbdb38c6e0c995d5d92ef907e34195e8e'),
+      '0x95b96e957115f0bc3858163c9d89b948b895d1296dc660030f635ebc62d5d99cbdb38c6e0c995d5d92ef907e34195e8e',
+    ),
     relativeLockHeight: 100,
   );
 

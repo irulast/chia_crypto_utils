@@ -40,3 +40,11 @@ Use this command to get the farming status of a mnemonic:
 ```console
 echo "the mnemonic seed" | dart bin/chia_crypto_utils.dart Get-FarmingStatus --full-node-url <FULL_NODE_URL>
 ```
+
+## Exchange BTC and XCH
+
+Use the below command to initiate an atomic swap between XCH and BTC. You must coordinate with your counter party such that they synchronously run the same command. This feature is adapted from https://github.com/richardkiss/chiaswap
+
+```console
+dart bin/chia_crypto_utils.dart Exchange-Btc --full-node-url https://chia.irulast-prod.com
+```
