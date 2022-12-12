@@ -21,7 +21,7 @@ class PaymentRequestTags {
 
   Bytes? paymentHash;
   Bytes? paymentSecret;
-  List<RoutingInfo>? routingInfo;
+  List<RouteInfo>? routingInfo;
   int? featureBits;
   int? expirationTime;
   Bytes? fallbackAddress;

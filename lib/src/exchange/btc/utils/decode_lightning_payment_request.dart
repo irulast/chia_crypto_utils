@@ -3,6 +3,7 @@ import 'package:bech32/bech32.dart';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/models/lightning_payment_request.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/models/payment_request_signature.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/models/payment_request_tags.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/models/routing_info.dart';
 
@@ -17,6 +18,16 @@ LightningPaymentRequest decodeLightningPaymentRequest(String paymentRequest) {
   // prefix
   final prefixes = ['lnbcrt', 'lnbc', 'lntb', 'lnsb'];
   final prefix = prefixes.firstWhere(hrp.startsWith);
+
+  // network
+  final networks = {
+    'bc': 'mainnet',
+    'tb': 'testnet',
+    'bcrt': 'regtest',
+    'sb': 'simnet',
+  };
+
+  final network = networks[prefix.substring(2)];
 
   // amount
   final multiplierMap = {
@@ -87,23 +98,26 @@ LightningPaymentRequest decodeLightningPaymentRequest(String paymentRequest) {
 
   // signature
   final signatureData = convertBitsBigInt(taggedFields, 5, 520, pad: true)[0].toRadixString(16);
-  final signature = signatureData.substring(0, signatureData.length - 2);
+  final rValue = signatureData.substring(0, 64);
+  final sValue = signatureData.substring(64, signatureData.length - 2);
   final recoveryFlag = int.parse(signatureData[signatureData.length - 1]);
+  final signature =
+      PaymentRequestSignature(rValue: rValue, sValue: sValue, recoveryFlag: recoveryFlag);
 
   return LightningPaymentRequest(
     prefix: prefix,
+    network: network!,
     amount: amount,
     timestamp: timestamp,
     tags: decodedTags,
     signature: signature,
-    recoveryFlag: recoveryFlag,
   );
 }
 
 PaymentRequestTags decodeTags(Map<int, dynamic> encodedTags) {
   Bytes? paymentHash;
   Bytes? paymentSecret;
-  final routingInfo = <RoutingInfo>[];
+  final routingInfo = <RouteInfo>[];
   int? featureBits;
   int? expirationTime;
   Bytes? fallbackAddress;
@@ -121,7 +135,7 @@ PaymentRequestTags decodeTags(Map<int, dynamic> encodedTags) {
         break;
       case 3:
         for (final route in data) {
-          routingInfo.add(decodeRoute(route as List<int>));
+          routingInfo.add(decodeRouteInfo(route as List<int>));
         }
         break;
       case 5:
@@ -175,7 +189,7 @@ PaymentRequestTags decodeTags(Map<int, dynamic> encodedTags) {
   );
 }
 
-RoutingInfo decodeRoute(List<int> dataBlob) {
+RouteInfo decodeRouteInfo(List<int> dataBlob) {
   final routeData = convertBits(dataBlob, 5, 8, pad: true);
 
   final publicKey = convertBitsBigInt(routeData.sublist(0, 33), 8, 264, pad: true)[0]
@@ -187,7 +201,7 @@ RoutingInfo decodeRoute(List<int> dataBlob) {
   final feeProportionalMillionths = convertBits(routeData.sublist(45, 49), 8, 32, pad: true)[0];
   final cltvExpiryDelta = convertBits(routeData.sublist(49, 51), 8, 16, pad: true)[0];
 
-  return RoutingInfo(
+  return RouteInfo(
     publicKey: publicKey,
     shortChannelId: shortChannelId,
     feeBaseMsat: feeBaseMsats,
@@ -195,3 +209,7 @@ RoutingInfo decodeRoute(List<int> dataBlob) {
     cltvExpiryDelta: cltvExpiryDelta,
   );
 }
+
+// FeatureBits decodeFeatureBits(Bytes data) {
+//   final flags = data.reversed.map((e) => null);
+// }
