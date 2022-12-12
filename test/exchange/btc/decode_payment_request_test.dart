@@ -2,13 +2,9 @@ import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_paymen
 import 'package:test/test.dart';
 
 void main() {
-  const paymentRequest =
-      'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
-
-  const paymentRequestWithFallback =
-      'lntb20m1pvjluezsp5zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zygshp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqspp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqfpp3x9et2e20v6pu37c5d9vax37wxq72un989qrsgqdj545axuxtnfemtpwkc45hx9d2ft7x04mt8q7y6t0k2dge9e7h8kpy9p34ytyslj3yu569aalz2xdk8xkd7ltxqld94u8h2esmsmacgpghe9k8';
-
   test('should correctly decode lightning payment request', () {
+    const paymentRequest =
+        'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
     final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
 
     expect(decodedPaymentRequest.prefix, equals('lnbc'));
@@ -144,7 +140,9 @@ void main() {
   });
 
   test('should correctly decode lightning payment request fallback address', () {
-    final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequestWithFallback);
+    const paymentRequest =
+        'lntb20m1pvjluezsp5zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zygshp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqspp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqfpp3x9et2e20v6pu37c5d9vax37wxq72un989qrsgqdj545axuxtnfemtpwkc45hx9d2ft7x04mt8q7y6t0k2dge9e7h8kpy9p34ytyslj3yu569aalz2xdk8xkd7ltxqld94u8h2esmsmacgpghe9k8';
+    final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
 
     expect(decodedPaymentRequest.prefix, equals('lntb'));
 
@@ -203,6 +201,14 @@ void main() {
       decodedPaymentRequest.signature.recoveryFlag,
       equals(1),
     );
+  });
+
+  test('should correctly parse lightning payment request with amount of zero', () {
+    const paymentRequest =
+        'lnbc1p3ew0wkpp5wcexslrr63jqvyfs7t5ezmnq3qgs9ccd5p5eraz0q4y7yh6akupsdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdgdwxf5j48jf5qqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldgdwxf5j48jf5qqqqqryqqqqthqqpysp5vr7uvzl0y00elhqp3erw3r0zmf04g96q4vwmq4cmnwl8axr9fx7q9qypqsqarzs9hjd9gm5p84sllx26hpukelfkzujx07dxgzdyffdfsugazq9gk6ds2l8eyr5fa574xyer249hcazcqvyeewr0yjy2r6j3258cfgqrurvr4';
+    final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
+
+    expect(decodedPaymentRequest.amount, equals(0));
   });
 
   test('should throw exception if prefix is invalid', () {

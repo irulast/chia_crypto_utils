@@ -1,4 +1,3 @@
-import 'dart:ffi';
 import 'dart:typed_data';
 import 'package:bech32/bech32.dart';
 
@@ -10,7 +9,6 @@ import 'package:chia_crypto_utils/src/exchange/btc/models/payment_request_tags.d
 import 'package:chia_crypto_utils/src/exchange/btc/models/routing_info.dart';
 
 import 'package:chia_crypto_utils/src/utils/bech32.dart';
-import 'package:hex/hex.dart';
 
 const bech32 = Bech32Codec();
 String? network;
