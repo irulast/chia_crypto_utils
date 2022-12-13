@@ -6,6 +6,9 @@ import 'package:chia_crypto_utils/src/exchange/btc/service/xch_to_btc.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_payment_request.dart';
 
 final exchangeService = BtcExchangeService();
+final xchToBtcService = XchToBtcService();
+final btcToXchService = BtcToXchService();
+File? logFile;
 
 class Amounts {
   const Amounts({
@@ -21,12 +24,70 @@ class Amounts {
   final int satoshis;
 }
 
+Future<File> getLogFile() async {
+  final currentDirFiles = await Directory.current.list().toList();
+  final logFileEntities = currentDirFiles
+      .where((file) => File(file.path).uri.pathSegments.last.startsWith('exchange-log'))
+      .toList();
+
+  if (logFileEntities.isEmpty) {
+    return File('exchange-log-${DateTime.now().toString().replaceAll(' ', '-')}.txt');
+  }
+
+  final logFiles = <File>[];
+  print('\nInitiate new exchange or resume previous exchange?');
+  print('0. New exchange');
+  for (var i = 0; i < logFileEntities.length; i++) {
+    final file = File(logFileEntities[i].path);
+    logFiles.add(file);
+    print('${i + 1}. ${file.uri.pathSegments.last.replaceAll('.txt', '')}');
+  }
+
+  while (true) {
+    stdout.write('> ');
+    final choice = stdin.readLineSync()!.trim();
+    if (choice == '0') {
+      return File('exchange-log-${DateTime.now().toString().replaceAll(' ', '-')}.txt');
+    } else if (logFiles.asMap().containsKey(int.parse(choice) - 1)) {
+      return logFiles[int.parse(choice) - 1];
+    } else {
+      print('Not a valid choice.');
+    }
+  }
+}
+
+Future<void> chooseExchangePath(ChiaFullNodeInterface fullNode) async {
+  logFile = await getLogFile();
+
+  print('\nDo you have XCH that you want to exchange for BTC, or do you have BTC that');
+  print('you want to exchange for XCH? Please note that you and your counter party must');
+  print('select reciprocal paths.');
+  print('\n1. Exchange XCH for BTC');
+  print('2. Exchange BTC for XCH');
+
+  String? choice;
+
+  while (choice != '1' && choice != '2') {
+    stdout.write('> ');
+    choice = stdin.readLineSync()!.trim();
+
+    if (choice == '1') {
+      await exchangeXchForBtc(fullNode);
+    } else if (choice == '2') {
+      await exchangeBtcForXch(fullNode);
+    } else {
+      print('\nNot a valid choice.');
+    }
+  }
+}
+
 Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
-  final xchToBtcService = XchToBtcService();
+  await updateLogFile('1');
 
   // generate disposable private key and create signed public key for user
   final xchHolderPrivateKey = PrivateKey.generate();
   final xchHolderSignedPublicKey = exchangeService.createSignedPublicKey(xchHolderPrivateKey);
+  await updateLogFile(xchHolderPrivateKey.toHex());
 
   print('\nSend the following line with your signed public key to your counter party.');
   print(xchHolderSignedPublicKey);
@@ -34,6 +95,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
 
   // get and validate counter party public key as pasted by user
   final btcHolderPublicKey = getFulfillerPublicKey(xchHolderSignedPublicKey);
+  await updateLogFile(btcHolderPublicKey.toHex());
 
   // look up current XCH and BTC prices and get amounts of each being exchanged in terms of
   // XCH, BTC, mojos, and satoshis
@@ -189,8 +251,6 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
 }
 
 Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
-  final btcToXchService = BtcToXchService();
-
   // generate disposable private key and create signed public key for user
   final btcHolderPrivateKey = PrivateKey.generate();
   final btcHolderSignedPublicKey = exchangeService.createSignedPublicKey(btcHolderPrivateKey);
@@ -338,6 +398,10 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
     print('\nTRANSACTION FAILED. The spend bundle was rejected. You may have responded');
     print('after the agreed upon expiration time.');
   }
+}
+
+Future<void> updateLogFile(String input) async {
+  await logFile?.writeAsString('$input\n', mode: FileMode.append);
 }
 
 JacobianPoint getFulfillerPublicKey(String requestorSignedPublicKey) {
@@ -489,7 +553,7 @@ Puzzlehash getRequestorPuzzlehash() {
 Future<void> generateSpendBundleFile(SpendBundle spendBundle) async {
   await Future<void>.delayed(const Duration(seconds: 2));
   print('\nGenerating file with spend bundle JSON in the current directory...');
-  final spendBundleHexFile = File('spend_bundle_hex.txt').openWrite()..write(spendBundle.toJson());
+  final spendBundleHexFile = File('spend-bundle-hex.txt').openWrite()..write(spendBundle.toJson());
   await spendBundleHexFile.flush();
   await spendBundleHexFile.close();
   print('This is a last resort for you to use ONLY IF the program closes prematurely');
