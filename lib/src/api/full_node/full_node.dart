@@ -39,7 +39,9 @@ abstract class FullNode {
   Future<GetAdditionsAndRemovalsResponse> getAdditionsAndRemovals(Bytes headerHash);
 
   Future<GetBlockRecordByHeightResponse> getBlockRecordByHeight(int height);
-  Future<GetBlockRecordsResponse> getBlockRecords(int start,int end);
+  Future<GetBlockRecordsResponse> getBlockRecords(int start, int end);
 
   Future<MempoolItemsResponse> getAllMempoolItems();
+
+  Future<HealthResponse> checkHealth();
 }

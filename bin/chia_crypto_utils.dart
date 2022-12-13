@@ -290,7 +290,12 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
 }
 
 class ExchangeBtcCommand extends Command<Future<void>> {
-  ExchangeBtcCommand();
+  ExchangeBtcCommand() {
+    argParser.addOption(
+      'certificate-bytes-path',
+      defaultsTo: 'mozilla-ca/cacert.pem',
+    );
+  }
 
   @override
   String get description => 'Initiates an atomic swap between XCH and BTC';
@@ -300,25 +305,32 @@ class ExchangeBtcCommand extends Command<Future<void>> {
 
   @override
   Future<void> run() async {
-    print('\nDo you have XCH that you want to exchange for BTC, or do you have BTC that');
-    print('you want to exchange for XCH? Please note that you and your counter party must');
-    print('select reciprocal paths.');
-    print('\n1. Exchange XCH for BTC');
-    print('2. Exchange BTC for XCH');
+    try {
+      final healthResponse = await fullNode.checkHealth();
+      if (healthResponse.success == 'true') {
+        print('\nDo you have XCH that you want to exchange for BTC, or do you have BTC that');
+        print('you want to exchange for XCH? Please note that you and your counter party must');
+        print('select reciprocal paths.');
+        print('\n1. Exchange XCH for BTC');
+        print('2. Exchange BTC for XCH');
 
-    String? choice;
+        String? choice;
 
-    while (choice != '1' && choice != '2') {
-      stdout.write('> ');
-      choice = stdin.readLineSync()!.trim();
+        while (choice != '1' && choice != '2') {
+          stdout.write('> ');
+          choice = stdin.readLineSync()!.trim();
 
-      if (choice == '1') {
-        await exchangeXchForBtc(fullNode);
-      } else if (choice == '2') {
-        await exchangeBtcForXch(fullNode);
-      } else {
-        print('\nNot a valid choice.');
+          if (choice == '1') {
+            await exchangeXchForBtc(fullNode);
+          } else if (choice == '2') {
+            await exchangeBtcForXch(fullNode);
+          } else {
+            print('\nNot a valid choice.');
+          }
+        }
       }
+    } catch (e) {
+      print('\nThere is a problem with the full node URL you provided. Please try again.');
     }
   }
 }

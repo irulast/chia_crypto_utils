@@ -259,4 +259,17 @@ class FullNodeHttpRpc implements FullNode {
       jsonDecode(response.body) as Map<String, dynamic>,
     );
   }
+
+  @override
+  Future<HealthResponse> checkHealth() async {
+    final response = await client.post(
+      Uri.parse('healthz'),
+      <String, dynamic>{},
+    );
+    mapResponseToError(response);
+
+    return HealthResponse.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
 }
