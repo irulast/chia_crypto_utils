@@ -42,6 +42,4 @@ abstract class FullNode {
   Future<GetBlockRecordsResponse> getBlockRecords(int start, int end);
 
   Future<MempoolItemsResponse> getAllMempoolItems();
-
-  Future<HealthResponse> checkHealth();
 }

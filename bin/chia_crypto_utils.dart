@@ -121,11 +121,7 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
       ..addOption('pool-url', defaultsTo: 'https://xch-us-west.flexpool.io')
       ..addOption('faucet-request-url')
       ..addOption('faucet-request-payload', defaultsTo: '')
-      ..addOption('output-config', defaultsTo: '')
-      ..addOption(
-        'certificate-bytes-path',
-        defaultsTo: 'mozilla-ca/cacert.pem',
-      );
+      ..addOption('output-config', defaultsTo: '');
   }
 
   @override
@@ -305,13 +301,6 @@ class ExchangeBtcCommand extends Command<Future<void>> {
 
   @override
   Future<void> run() async {
-    try {
-      await fullNode.checkHealth();
-    } catch (e) {
-      print('\nThere is a problem with the full node URL you provided. Please try again.');
-      exit(exitCode);
-    }
-
     await chooseExchangePath(fullNode);
   }
 }

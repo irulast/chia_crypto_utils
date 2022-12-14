@@ -256,11 +256,6 @@ class ChiaFullNodeInterface {
     return response;
   }
 
-  Future<HealthResponse> checkHealth() async {
-    final response = await fullNode.checkHealth();
-    return response;
-  }
-
   static void mapResponseToError(ChiaBaseResponse baseResponse) {
     if (baseResponse.success && baseResponse.error == null) {
       return;

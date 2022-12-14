@@ -302,64 +302,108 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
 }
 
 Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
-  // generate disposable private key and create signed public key for user
-  final btcHolderPrivateKey = await generateRequestorDisposableKeys();
+  // get disposable private key for user
+  PrivateKey? btcHolderPrivateKey;
+  if (logList!.length > 1) {
+    btcHolderPrivateKey = PrivateKey.fromHex(logList![2]);
+  } else {
+    btcHolderPrivateKey = await generateRequestorDisposableKeys();
+  }
 
-  // validate counter party public key as pasted by user
-  final xchHolderPublicKey = await getFulfillerPublicKey(btcHolderPrivateKey);
+  // get XCH holder public key
+  JacobianPoint? xchHolderPublicKey;
+  if (logList!.length > 2) {
+    xchHolderPublicKey = JacobianPoint.fromHexG1(logList![3]);
+  } else {
+    xchHolderPublicKey = await getFulfillerPublicKey(btcHolderPrivateKey);
+  }
 
-  // look up current XCH and BTC prices and get amounts of each being exchanged in terms of
-  // XCH, BTC, mojos, and satoshis
-  final amounts = await getAmounts();
+  // get amounts being exchanged in terms of XCH, BTC, mojos, and satoshis
+  Amounts? amounts;
+  if (logList!.length > 3) {
+    final amountList = logList![4].split(',');
+    amounts = Amounts(
+      xch: double.parse(amountList[0]),
+      btc: double.parse(amountList[1]),
+      mojos: int.parse(amountList[2]),
+      satoshis: int.parse(amountList[3]),
+    );
+  } else {
+    amounts = await getAmounts();
+  }
 
-  // get clawback delay from user
-  final clawbackDelayMinutes = await getClawbackDelay();
+  // get clawback delay
+  int? clawbackDelayMinutes;
+  if (logList!.length > 4) {
+    clawbackDelayMinutes = int.parse(logList![5]);
+  } else {
+    clawbackDelayMinutes = await getClawbackDelay();
+  }
   final clawbackDelaySeconds = clawbackDelayMinutes * 60;
 
-  print(
-    '\nYour counter party will create a lightning payment request for ${(amounts.satoshis > 1) ? ((amounts.satoshis > 1000) ? '${amounts.btc.toStringAsFixed(5)} BTC' : '${amounts.satoshis} satoshis') : '1 satoshi'} with',
-  );
-  print('a timeout of $clawbackDelayMinutes minutes.');
-  await Future<void>.delayed(const Duration(seconds: 2));
+  // get lightning payment hash
+  Bytes? sweepPaymentHash;
+  if (logList!.length > 5) {
+    sweepPaymentHash = logList![6].toBytes();
+  } else {
+    print(
+      '\nYour counter party will create a lightning payment request for ${(amounts.satoshis > 1) ? ((amounts.satoshis > 1000) ? '${amounts.btc.toStringAsFixed(5)} BTC' : '${amounts.satoshis} satoshis') : '1 satoshi'} with',
+    );
+    print('a timeout of $clawbackDelayMinutes minutes.');
+    await Future<void>.delayed(const Duration(seconds: 2));
+    print('\nPaste the lightning payment request from your counter party here:');
+    sweepPaymentHash = await getPaymentHash();
+  }
 
-  // decode lightning payment request as pasted by user and get payment hash
-  print('\nPaste the lightning payment request from your counter party here:');
-  final sweepPaymentHash = await getPaymentHash();
-
-  // generate address that counter party will be sending XCH to
-  final exchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
-    requestorPrivateKey: btcHolderPrivateKey,
-    clawbackDelaySeconds: clawbackDelaySeconds,
-    sweepPaymentHash: sweepPaymentHash,
-    fulfillerPublicKey: xchHolderPublicKey,
-  );
-
+  // get exchange puzzlehash
+  Puzzlehash? exchangePuzzlehash;
+  if (logList!.length > 6) {
+    exchangePuzzlehash = Puzzlehash.fromHex(logList![7]);
+  } else {
+    exchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
+      requestorPrivateKey: btcHolderPrivateKey,
+      clawbackDelaySeconds: clawbackDelaySeconds,
+      sweepPaymentHash: sweepPaymentHash,
+      fulfillerPublicKey: xchHolderPublicKey,
+    );
+    await updateLogFile(exchangePuzzlehash.toHex());
+  }
   final exchangeAddress = exchangePuzzlehash.toAddressWithContext();
-  await updateLogFile(exchangeAddress.address);
 
-  // get puzzlehash where user will receive XCH from the exchange
-  print('\nEnter the address where you would like the XCH delivered.');
-  final sweepPuzzlehash = await getRequestorPuzzlehash();
-  print(
-    '\nYour counter party should be sending ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to an exchange',
-  );
-  print('address, where it will be temporarily held for you until the next step.');
-  await Future<void>.delayed(const Duration(seconds: 1));
-  print('\nPress any key to continue once your counter party lets you know that they have');
-  print('sent the XCH.');
-  stdin.readLineSync();
+  // get puzzlehash where XCH holder will receive funds back in clawback case
+  Puzzlehash? sweepPuzzlehash;
+  if (logList!.length > 7) {
+    sweepPuzzlehash = Puzzlehash.fromHex(logList![8]);
+  } else {
+    print('\nEnter the address where you would like the XCH delivered.');
+    sweepPuzzlehash = await getRequestorPuzzlehash();
+  }
 
-  // verify transaction and wait for XCH to arrive at the exchange address
-  final exchangeCoins = await verifyTransferToExchangeAddress(
-    amounts: amounts,
-    exchangePuzzlehash: exchangePuzzlehash,
-    fullNode: fullNode,
-    btcHolderPrivateKey: btcHolderPrivateKey,
-  );
+  // get coins XCH holder has sent to exchange puzzlehash
+  List<Coin>? exchangeCoins;
+  if (logList!.length > 8) {
+    exchangeCoins = await fullNode.getCoinsByPuzzleHashes([exchangePuzzlehash]);
+  } else {
+    print(
+      '\nYour counter party should be sending ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to an exchange',
+    );
+    print('address, where it will be temporarily held for you until the next step.');
+    await Future<void>.delayed(const Duration(seconds: 1));
+    print('\nPress any key to continue once your counter party lets you know that they have');
+    print('sent the XCH.');
+    stdin.readLineSync();
 
-  print('\nYou can verify this here: https://xchscan.com/address/${exchangeAddress.address}');
-  print('\nPay the lightning payment request after the payment has received sufficient');
-  print('confirmations.');
+    exchangeCoins = await verifyTransferToExchangeAddress(
+      amounts: amounts,
+      exchangePuzzlehash: exchangePuzzlehash,
+      fullNode: fullNode,
+      btcHolderPrivateKey: btcHolderPrivateKey,
+    );
+  }
+
+  print('\nPay the lightning payment request after the payment from your counter party');
+  print('has received sufficient confirmations:');
+  print('https://xchscan.com/address/${exchangeAddress.address}');
   await Future<void>.delayed(const Duration(seconds: 2));
   print(
     '\nYou must pay and complete this exchange within $clawbackDelayMinutes minutes, or else the XCH will',
