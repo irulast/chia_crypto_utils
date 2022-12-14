@@ -22,8 +22,8 @@ Future<void> main(List<String> args) async {
     )
     ..argParser.addOption('network', defaultsTo: 'mainnet')
     ..argParser.addOption('full-node-url')
-    ..argParser.addOption('cert-bytes-path', defaultsTo: '')
-    ..argParser.addOption('key-bytes-path', defaultsTo: '')
+    ..argParser.addOption('cert-path', defaultsTo: '')
+    ..argParser.addOption('key-path', defaultsTo: '')
     ..addCommand(CreateWalletWithPlotNFTCommand())
     ..addCommand(GetFarmingStatusCommand())
     ..addCommand(GetCoinRecords())
@@ -45,12 +45,12 @@ Future<void> main(List<String> args) async {
 
   // construct the Chia full node interface
   final fullNodeUrl = results['full-node-url'] as String;
-  final certBytesPath = results['cert-bytes-path'] as String;
-  final keyBytesPath = results['key-bytes-path'] as String;
+  final certBytesPath = results['cert-path'] as String;
+  final keyBytesPath = results['key-path'] as String;
 
   if ((certBytesPath.isEmpty && keyBytesPath.isNotEmpty) ||
       (certBytesPath.isNotEmpty && keyBytesPath.isEmpty)) {
-    print('\nTo use options cert-bytes-path and key-bytes-path both parameter must be provided.');
+    print('\nTo use options cert-path and key-path both parameters must be provided.');
   } else if (certBytesPath.isNotEmpty && keyBytesPath.isNotEmpty) {
     try {
       fullNode = ChiaFullNodeInterface.fromURL(
