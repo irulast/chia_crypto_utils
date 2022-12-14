@@ -121,7 +121,11 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
       ..addOption('pool-url', defaultsTo: 'https://xch-us-west.flexpool.io')
       ..addOption('faucet-request-url')
       ..addOption('faucet-request-payload', defaultsTo: '')
-      ..addOption('output-config', defaultsTo: '');
+      ..addOption('output-config', defaultsTo: '')
+      ..addOption(
+        'certificate-bytes-path',
+        defaultsTo: 'mozilla-ca/cacert.pem',
+      );
   }
 
   @override
@@ -286,12 +290,7 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
 }
 
 class ExchangeBtcCommand extends Command<Future<void>> {
-  ExchangeBtcCommand() {
-    argParser.addOption(
-      'certificate-bytes-path',
-      defaultsTo: 'mozilla-ca/cacert.pem',
-    );
-  }
+  ExchangeBtcCommand();
 
   @override
   String get description => 'Initiates an atomic swap between XCH and BTC';
