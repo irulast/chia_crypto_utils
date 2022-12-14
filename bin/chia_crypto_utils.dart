@@ -10,7 +10,7 @@ import 'package:chia_crypto_utils/src/command/plot_nft/create_new_wallet_with_pl
 
 late final ChiaFullNodeInterface fullNode;
 
-void main(List<String> args) {
+Future<void> main(List<String> args) async {
   final runner = CommandRunner<Future<void>>(
     'ccu',
     'Chia Crypto Utils Command Line Tools',
@@ -22,6 +22,8 @@ void main(List<String> args) {
     )
     ..argParser.addOption('network', defaultsTo: 'mainnet')
     ..argParser.addOption('full-node-url')
+    ..argParser.addOption('cert-bytes-path', defaultsTo: '')
+    ..argParser.addOption('key-bytes-path', defaultsTo: '')
     ..addCommand(CreateWalletWithPlotNFTCommand())
     ..addCommand(GetFarmingStatusCommand())
     ..addCommand(GetCoinRecords())
@@ -32,7 +34,7 @@ void main(List<String> args) {
   parseHelp(results, runner);
 
   if (results['full-node-url'] == null) {
-    print('Option full-node-url is mandatory.');
+    print('\nOption full-node-url is mandatory.');
     printUsage(runner);
     exit(126);
   }
@@ -40,12 +42,38 @@ void main(List<String> args) {
   // Configure environment based on user selections
   LoggingContext().setLogLevel(stringToLogLevel(results['log-level'] as String));
   ChiaNetworkContextWrapper().registerNetworkContext(stringToNetwork(results['network'] as String));
-  // construct the Chia full node interface
-  fullNode = ChiaFullNodeInterface.fromURL(
-    results['full-node-url'] as String,
-  );
 
-  runner.run(args);
+  // construct the Chia full node interface
+  final fullNodeUrl = results['full-node-url'] as String;
+  final certBytesPath = results['cert-bytes-path'] as String;
+  final keyBytesPath = results['key-bytes-path'] as String;
+
+  if ((certBytesPath.isEmpty && keyBytesPath.isNotEmpty) ||
+      (certBytesPath.isNotEmpty && keyBytesPath.isEmpty)) {
+    print('\nTo use options cert-bytes-path and key-bytes-path both parameter must be provided.');
+  } else if (certBytesPath.isNotEmpty && keyBytesPath.isNotEmpty) {
+    try {
+      fullNode = ChiaFullNodeInterface.fromURL(
+        fullNodeUrl,
+        certBytes: Bytes(File(certBytesPath).readAsBytesSync()),
+        keyBytes: Bytes(File(keyBytesPath).readAsBytesSync()),
+      );
+    } catch (e) {
+      print('\nThere is a problem with the full node information you provided. Please try again.');
+      exit(126);
+    }
+  } else {
+    fullNode = ChiaFullNodeInterface.fromURL(fullNodeUrl);
+  }
+
+  try {
+    await fullNode.getBlockchainState();
+  } catch (e) {
+    print("\nCouldn't verify full node running at URL you provided. Please try again.");
+    exit(126);
+  }
+
+  unawaited(runner.run(args));
 }
 
 class GetCoinRecords extends Command<Future<void>> {
