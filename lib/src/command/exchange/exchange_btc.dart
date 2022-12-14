@@ -9,7 +9,7 @@ final exchangeService = BtcExchangeService();
 final xchToBtcService = XchToBtcService();
 final btcToXchService = BtcToXchService();
 File? logFile;
-List<String>? logList;
+final logList = <String>[];
 
 class Amounts {
   const Amounts({
@@ -34,7 +34,9 @@ Future<File> getLogFile() async {
 
   // if there aren't any, generate a new log file
   if (logFileEntities.isEmpty) {
-    return File('exchange-log-${DateTime.now().toString().replaceAll(' ', '-')}.txt');
+    final logFilePath = 'exchange-log-${DateTime.now().toString().replaceAll(' ', '-')}.txt';
+    File(logFilePath).createSync(recursive: true);
+    return File(logFilePath);
   }
 
   // if there are, let user choose between initiating a new exchange or resuming a previous one
@@ -51,8 +53,15 @@ Future<File> getLogFile() async {
     stdout.write('> ');
     final choice = stdin.readLineSync()!.trim();
     if (choice == '0') {
-      return File('exchange-log-${DateTime.now().toString().replaceAll(' ', '-')}.txt');
+      final logFilePath = 'exchange-log-${DateTime.now().toString().replaceAll(' ', '-')}.txt';
+      File(logFilePath).createSync(recursive: true);
+      return File(logFilePath);
     } else if (logFiles.asMap().containsKey(int.parse(choice) - 1)) {
+      final logFile = logFiles[int.parse(choice) - 1];
+
+      // convert selected log file to a list of variables
+      logList.addAll(logFile.readAsStringSync().split('\n').toList());
+
       return logFiles[int.parse(choice) - 1];
     } else {
       print('Not a valid choice.');
@@ -61,15 +70,14 @@ Future<File> getLogFile() async {
 }
 
 Future<void> chooseExchangePath(ChiaFullNodeInterface fullNode) async {
-  // convert selected log file to a list of variables
   logFile = await getLogFile();
-  logList = logFile!.readAsStringSync().split('\n').toList();
 
-  // select exchange path based on log file or input from user
-  if (logList![1] == '1') {
-    await exchangeXchForBtc(fullNode);
-  } else if (logList![1] == '2') {
-    await exchangeBtcForXch(fullNode);
+  if (logList.isNotEmpty) {
+    if (logList[0] == '1') {
+      await exchangeXchForBtc(fullNode);
+    } else if (logList[0] == '2') {
+      await exchangeBtcForXch(fullNode);
+    }
   } else {
     print('\nDo you have XCH that you want to exchange for BTC, or do you have BTC that');
     print('you want to exchange for XCH? Please note that you and your counter party must');
@@ -84,11 +92,11 @@ Future<void> chooseExchangePath(ChiaFullNodeInterface fullNode) async {
       choice = stdin.readLineSync()!.trim();
 
       if (choice == '1') {
+        await updateLogFile(choice);
         await exchangeXchForBtc(fullNode);
-        await updateLogFile(choice);
       } else if (choice == '2') {
-        await exchangeBtcForXch(fullNode);
         await updateLogFile(choice);
+        await exchangeBtcForXch(fullNode);
       } else {
         print('\nNot a valid choice.');
       }
@@ -99,24 +107,24 @@ Future<void> chooseExchangePath(ChiaFullNodeInterface fullNode) async {
 Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
   // get disposable private key for user
   PrivateKey? xchHolderPrivateKey;
-  if (logList!.length > 1) {
-    xchHolderPrivateKey = PrivateKey.fromHex(logList![2]);
+  if (logList.length > 1) {
+    xchHolderPrivateKey = PrivateKey.fromHex(logList[1]);
   } else {
     xchHolderPrivateKey = await generateRequestorDisposableKeys();
   }
 
   // get BTC holder public key
   JacobianPoint? btcHolderPublicKey;
-  if (logList!.length > 2) {
-    btcHolderPublicKey = JacobianPoint.fromHexG1(logList![3]);
+  if (logList.length > 2) {
+    btcHolderPublicKey = JacobianPoint.fromHexG1(logList[2]);
   } else {
     btcHolderPublicKey = await getFulfillerPublicKey(xchHolderPrivateKey);
   }
 
   // get amounts being exchanged in terms of XCH, BTC, mojos, and satoshis
   Amounts? amounts;
-  if (logList!.length > 3) {
-    final amountList = logList![4].split(',');
+  if (logList.length > 3) {
+    final amountList = logList[3].split(',');
     amounts = Amounts(
       xch: double.parse(amountList[0]),
       btc: double.parse(amountList[1]),
@@ -129,8 +137,8 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
 
   // get clawback delay
   int? clawbackDelayMinutes;
-  if (logList!.length > 4) {
-    clawbackDelayMinutes = int.parse(logList![5]);
+  if (logList.length > 4) {
+    clawbackDelayMinutes = int.parse(logList[4]);
   } else {
     clawbackDelayMinutes = await getClawbackDelay();
   }
@@ -138,8 +146,8 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
 
   // get lightning payment hash
   Bytes? sweepPaymentHash;
-  if (logList!.length > 5) {
-    sweepPaymentHash = logList![6].toBytes();
+  if (logList.length > 5) {
+    sweepPaymentHash = logList[5].toBytes();
   } else {
     print(
       '\nCreate a lightning payment request for ${(amounts.satoshis > 1) ? ((amounts.satoshis > 1000) ? '${amounts.btc.toStringAsFixed(5)} BTC' : '${amounts.satoshis} satoshis') : '1 satoshi'} with a timeout of $clawbackDelayMinutes minutes',
@@ -152,8 +160,8 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
 
   // get exchange puzzlehash
   Puzzlehash? exchangePuzzlehash;
-  if (logList!.length > 6) {
-    exchangePuzzlehash = Puzzlehash.fromHex(logList![7]);
+  if (logList.length > 6) {
+    exchangePuzzlehash = Puzzlehash.fromHex(logList[6]);
   } else {
     exchangePuzzlehash = xchToBtcService.generateExchangePuzzlehash(
       requestorPrivateKey: xchHolderPrivateKey,
@@ -167,8 +175,8 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
 
   // get puzzlehash where XCH holder will receive funds back in clawback case
   Puzzlehash? clawbackPuzzlehash;
-  if (logList!.length > 7) {
-    clawbackPuzzlehash = Puzzlehash.fromHex(logList![8]);
+  if (logList.length > 7) {
+    clawbackPuzzlehash = Puzzlehash.fromHex(logList[7]);
   } else {
     print('\nEnter the address where the XCH will be returned in the event the exchange');
     print('is aborted or fails.');
@@ -177,7 +185,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
 
   // get coins XCH holder has sent to exchange puzzlehash
   List<Coin>? exchangeCoins;
-  if (logList!.length > 8) {
+  if (logList.length > 8) {
     exchangeCoins = await fullNode.getCoinsByPuzzleHashes([exchangePuzzlehash]);
   } else {
     print(
@@ -304,24 +312,24 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
 Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   // get disposable private key for user
   PrivateKey? btcHolderPrivateKey;
-  if (logList!.length > 1) {
-    btcHolderPrivateKey = PrivateKey.fromHex(logList![2]);
+  if (logList.length > 1) {
+    btcHolderPrivateKey = PrivateKey.fromHex(logList[1]);
   } else {
     btcHolderPrivateKey = await generateRequestorDisposableKeys();
   }
 
   // get XCH holder public key
   JacobianPoint? xchHolderPublicKey;
-  if (logList!.length > 2) {
-    xchHolderPublicKey = JacobianPoint.fromHexG1(logList![3]);
+  if (logList.length > 2) {
+    xchHolderPublicKey = JacobianPoint.fromHexG1(logList[2]);
   } else {
     xchHolderPublicKey = await getFulfillerPublicKey(btcHolderPrivateKey);
   }
 
   // get amounts being exchanged in terms of XCH, BTC, mojos, and satoshis
   Amounts? amounts;
-  if (logList!.length > 3) {
-    final amountList = logList![4].split(',');
+  if (logList.length > 3) {
+    final amountList = logList[3].split(',');
     amounts = Amounts(
       xch: double.parse(amountList[0]),
       btc: double.parse(amountList[1]),
@@ -334,8 +342,8 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
 
   // get clawback delay
   int? clawbackDelayMinutes;
-  if (logList!.length > 4) {
-    clawbackDelayMinutes = int.parse(logList![5]);
+  if (logList.length > 4) {
+    clawbackDelayMinutes = int.parse(logList[4]);
   } else {
     clawbackDelayMinutes = await getClawbackDelay();
   }
@@ -343,8 +351,8 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
 
   // get lightning payment hash
   Bytes? sweepPaymentHash;
-  if (logList!.length > 5) {
-    sweepPaymentHash = logList![6].toBytes();
+  if (logList.length > 5) {
+    sweepPaymentHash = logList[5].toBytes();
   } else {
     print(
       '\nYour counter party will create a lightning payment request for ${(amounts.satoshis > 1) ? ((amounts.satoshis > 1000) ? '${amounts.btc.toStringAsFixed(5)} BTC' : '${amounts.satoshis} satoshis') : '1 satoshi'} with',
@@ -357,8 +365,8 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
 
   // get exchange puzzlehash
   Puzzlehash? exchangePuzzlehash;
-  if (logList!.length > 6) {
-    exchangePuzzlehash = Puzzlehash.fromHex(logList![7]);
+  if (logList.length > 6) {
+    exchangePuzzlehash = Puzzlehash.fromHex(logList[6]);
   } else {
     exchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
@@ -372,8 +380,8 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
 
   // get puzzlehash where XCH holder will receive funds back in clawback case
   Puzzlehash? sweepPuzzlehash;
-  if (logList!.length > 7) {
-    sweepPuzzlehash = Puzzlehash.fromHex(logList![8]);
+  if (logList.length > 7) {
+    sweepPuzzlehash = Puzzlehash.fromHex(logList[7]);
   } else {
     print('\nEnter the address where you would like the XCH delivered.');
     sweepPuzzlehash = await getRequestorPuzzlehash();
@@ -381,7 +389,7 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
 
   // get coins XCH holder has sent to exchange puzzlehash
   List<Coin>? exchangeCoins;
-  if (logList!.length > 8) {
+  if (logList.length > 8) {
     exchangeCoins = await fullNode.getCoinsByPuzzleHashes([exchangePuzzlehash]);
   } else {
     print(
@@ -492,7 +500,11 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
 }
 
 Future<void> updateLogFile(String input) async {
-  await logFile?.writeAsString('\n$input', mode: FileMode.append);
+  if (logFile!.readAsStringSync().isEmpty) {
+    await logFile!.writeAsString(input, mode: FileMode.append);
+  } else {
+    await logFile!.writeAsString('\n$input', mode: FileMode.append);
+  }
 }
 
 Future<PrivateKey> generateRequestorDisposableKeys() async {
