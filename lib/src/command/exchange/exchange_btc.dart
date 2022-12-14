@@ -608,7 +608,7 @@ Future<Amounts> getAmounts() async {
   var btcAmountSatoshis = (btcAmount * 1e8).toInt();
   if (btcAmountSatoshis == 0) btcAmountSatoshis = 1;
 
-  await updateLogFile('$xchAmount,$xchAmountMojos,$btcAmount,$btcAmountSatoshis');
+  await updateLogFile('$xchAmount,$btcAmount,$xchAmount,$btcAmountSatoshis');
 
   final amounts = Amounts(
     xch: xchAmount,
