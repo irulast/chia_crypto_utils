@@ -202,7 +202,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
       fullNode: fullNode,
     );
   } else {
-    print('\nXCH from your counter party has arrived at the exchange address!');
+    print('\nYour XCH has arrived at the exchange address!');
   }
 
   // create spend bundle for clawing back funds if counter party doesn't pay lightning payment request
@@ -355,7 +355,6 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   Bytes? sweepPaymentHash;
   if (logList.length > 5) {
     sweepPaymentHash = logList[5].hexToBytes();
-    ;
   } else {
     print(
       '\nYour counter party will create a lightning payment request for ${(amounts.satoshis > 1) ? ((amounts.satoshis > 1000) ? '${amounts.btc.toStringAsFixed(5)} BTC' : '${amounts.satoshis} satoshis') : '1 satoshi'} with',
@@ -690,7 +689,7 @@ Future<List<Coin>> verifyTransferToExchangePuzzlehash({
       additionPuzzlehashes.addAll(item.additions.map((addition) => addition.puzzlehash));
     });
 
-    if (i == 35) {
+    if (i == 25) {
       if (btcHolderPrivateKey != null) {
         // if BTC holder is still waiting, something might have gone wrong with transaction
         // give information to the user to allow them to cleanly abort the exchange
@@ -743,9 +742,7 @@ Future<List<Coin>> verifyTransferToExchangePuzzlehash({
     print('Waiting XCH to arrive...');
     await Future<void>.delayed(const Duration(seconds: 10));
 
-    exchangeCoins = await fullNode.getCoinsByPuzzleHashes(
-      [exchangePuzzlehash],
-    );
+    exchangeCoins = await fullNode.getCoinsByPuzzleHashes([exchangePuzzlehash]);
   }
 
   print('\nThe exchange address has received sufficient XCH!');
