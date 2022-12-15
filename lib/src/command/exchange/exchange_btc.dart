@@ -149,7 +149,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
   // get lightning payment hash
   Bytes? sweepPaymentHash;
   if (logList.length > 5) {
-    sweepPaymentHash = logList[5].toBytes();
+    sweepPaymentHash = logList[5].hexToBytes();
   } else {
     print(
       '\nCreate a lightning payment request for ${(amounts.satoshis > 1) ? ((amounts.satoshis > 1000) ? '${amounts.btc.toStringAsFixed(5)} BTC' : '${amounts.satoshis} satoshis') : '1 satoshi'} with a timeout of $clawbackDelayMinutes minutes',
@@ -369,7 +369,8 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   // get lightning payment hash
   Bytes? sweepPaymentHash;
   if (logList.length > 5) {
-    sweepPaymentHash = logList[5].toBytes();
+    sweepPaymentHash = logList[5].hexToBytes();
+    ;
   } else {
     print(
       '\nYour counter party will create a lightning payment request for ${(amounts.satoshis > 1) ? ((amounts.satoshis > 1000) ? '${amounts.btc.toStringAsFixed(5)} BTC' : '${amounts.satoshis} satoshis') : '1 satoshi'} with',
@@ -664,7 +665,7 @@ Future<int> getClawbackDelay() async {
     stdout.write('> ');
     final input = stdin.readLineSync()!.trim();
     if (input == '') {
-      return 60;
+      return 0;
     } else {
       try {
         final minutes = int.parse(input);
