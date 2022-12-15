@@ -188,34 +188,19 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
   // get coins XCH holder has sent to exchange puzzlehash
   var exchangeCoins = await fullNode.getCoinsByPuzzleHashes([exchangePuzzlehash]);
   if (exchangeCoins.isEmpty) {
-    final additionPuzzlehashes = <Puzzlehash>[];
-    final mempoolItemsResponse = await fullNode.getAllMempoolItems();
-    mempoolItemsResponse.mempoolItemMap.forEach((key, item) {
-      additionPuzzlehashes.addAll(item.additions.map((addition) => addition.puzzlehash));
-    });
-    if (!additionPuzzlehashes.contains(exchangePuzzlehash)) {
-      print(
-        '\nTransfer ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to the following exchange address:',
-      );
-      print(exchangeAddress.address);
-      await Future<void>.delayed(const Duration(seconds: 2));
-      print('\nPress any key when the funds have been sent.');
-      stdin.readLineSync();
+    print(
+      '\nTransfer ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to the following exchange address:',
+    );
+    print(exchangeAddress.address);
+    await Future<void>.delayed(const Duration(seconds: 2));
+    print('\nPress any key when the funds have been sent.');
+    stdin.readLineSync();
 
-      exchangeCoins = await verifyTransferToExchangeAddress(
-        amounts: amounts,
-        exchangePuzzlehash: exchangePuzzlehash,
-        fullNode: fullNode,
-      );
-    } else {
-      while (exchangeCoins.totalValue < amounts.mojos) {
-        print('Waiting XCH to arrive...');
-        await Future<void>.delayed(const Duration(seconds: 10));
-        exchangeCoins = await fullNode.getCoinsByPuzzleHashes([exchangePuzzlehash]);
-      }
-
-      print('\nThe exchange address has received sufficient XCH!');
-    }
+    exchangeCoins = await verifyTransferToExchangePuzzlehash(
+      amounts: amounts,
+      exchangePuzzlehash: exchangePuzzlehash,
+      fullNode: fullNode,
+    );
   } else {
     print('\nXCH from your counter party has arrived at the exchange address!');
   }
@@ -408,36 +393,21 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   // get coins XCH holder has sent to exchange puzzlehash
   var exchangeCoins = await fullNode.getCoinsByPuzzleHashes([exchangePuzzlehash]);
   if (exchangeCoins.isEmpty) {
-    final additionPuzzlehashes = <Puzzlehash>[];
-    final mempoolItemsResponse = await fullNode.getAllMempoolItems();
-    mempoolItemsResponse.mempoolItemMap.forEach((key, item) {
-      additionPuzzlehashes.addAll(item.additions.map((addition) => addition.puzzlehash));
-    });
-    if (!additionPuzzlehashes.contains(exchangePuzzlehash)) {
-      print(
-        '\nYour counter party should be sending ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to an exchange',
-      );
-      print('address, where it will be temporarily held for you until the next step.');
-      await Future<void>.delayed(const Duration(seconds: 1));
-      print('\nPress any key to continue once your counter party lets you know that they have');
-      print('sent the XCH.');
-      stdin.readLineSync();
+    print(
+      '\nYour counter party should be sending ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to an exchange',
+    );
+    print('address, where it will be temporarily held for you until the next step.');
+    await Future<void>.delayed(const Duration(seconds: 1));
+    print('\nPress any key to continue once your counter party lets you know that they have');
+    print('sent the XCH.');
+    stdin.readLineSync();
 
-      exchangeCoins = await verifyTransferToExchangeAddress(
-        amounts: amounts,
-        exchangePuzzlehash: exchangePuzzlehash,
-        fullNode: fullNode,
-        btcHolderPrivateKey: btcHolderPrivateKey,
-      );
-    } else {
-      while (exchangeCoins.totalValue < amounts.mojos) {
-        print('Waiting XCH to arrive...');
-        await Future<void>.delayed(const Duration(seconds: 10));
-        exchangeCoins = await fullNode.getCoinsByPuzzleHashes([exchangePuzzlehash]);
-      }
-
-      print('\nThe exchange address has received sufficient XCH!');
-    }
+    exchangeCoins = await verifyTransferToExchangePuzzlehash(
+      amounts: amounts,
+      exchangePuzzlehash: exchangePuzzlehash,
+      fullNode: fullNode,
+      btcHolderPrivateKey: btcHolderPrivateKey,
+    );
   } else {
     print('\nXCH from your counter party has arrived at the exchange address!');
   }
@@ -665,7 +635,7 @@ Future<int> getClawbackDelay() async {
     stdout.write('> ');
     final input = stdin.readLineSync()!.trim();
     if (input == '') {
-      return 0;
+      return 60;
     } else {
       try {
         final minutes = int.parse(input);
@@ -697,13 +667,14 @@ Future<Bytes> getPaymentHash() async {
   }
 }
 
-Future<List<Coin>> verifyTransferToExchangeAddress({
+Future<List<Coin>> verifyTransferToExchangePuzzlehash({
   required Amounts amounts,
   required Puzzlehash exchangePuzzlehash,
   required ChiaFullNodeInterface fullNode,
   PrivateKey? btcHolderPrivateKey,
 }) async {
   final additionPuzzlehashes = <Puzzlehash>[];
+  var exchangeCoins = <Coin>[];
   var i = 0;
 
   // check mempool for transfer to exchange address
@@ -719,7 +690,7 @@ Future<List<Coin>> verifyTransferToExchangeAddress({
       additionPuzzlehashes.addAll(item.additions.map((addition) => addition.puzzlehash));
     });
 
-    if (i == 30) {
+    if (i == 35) {
       if (btcHolderPrivateKey != null) {
         // if BTC holder is still waiting, something might have gone wrong with transaction
         // give information to the user to allow them to cleanly abort the exchange
@@ -753,12 +724,21 @@ Future<List<Coin>> verifyTransferToExchangeAddress({
       }
       i = 0;
     }
+
+    // occasionally check to see if coins have already arrived just in case the user started the
+    // waiting period too late or the users are slightly out of sync
+    if (i % 3 == 0) {
+      exchangeCoins = await fullNode.getCoinsByPuzzleHashes([exchangePuzzlehash]);
+      if (exchangeCoins.isNotEmpty) {
+        print('\nThe exchange address has received sufficient XCH!');
+        return exchangeCoins;
+      }
+    }
   }
 
   print('\nThe transaction has been validated and is now in the mempool.\n');
 
-  // wait for XCH to arrive at the exchange address
-  var exchangeCoins = <Coin>[];
+// wait for XCH to arrive at the exchange address
   while (exchangeCoins.totalValue < amounts.mojos) {
     print('Waiting XCH to arrive...');
     await Future<void>.delayed(const Duration(seconds: 10));
