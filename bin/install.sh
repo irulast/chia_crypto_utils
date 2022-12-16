@@ -7,3 +7,5 @@ echo 'deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.go
 
 sudo apt update -y
 sudo apt install dart -y
+
+dart pub get
