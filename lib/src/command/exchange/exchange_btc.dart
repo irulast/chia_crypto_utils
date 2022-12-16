@@ -555,7 +555,7 @@ Future<List<Coin>> verifyTransferToExchangeAddress({
 
   while (exchangeCoins.totalValue < amounts.mojos) {
     if (transactionValidated == false) {
-      print('Waiting for XCH...');
+      print('Waiting for transfer to exchange address...');
     } else {
       print('Waiting for transaction to complete...');
     }
