@@ -44,7 +44,7 @@ Future<void> main(List<String> args) async {
   ChiaNetworkContextWrapper().registerNetworkContext(stringToNetwork(results['network'] as String));
 
   // construct the Chia full node interface
-  var fullNodeUrl = (results['full-node-url'] as String).trim();
+  var fullNodeUrl = results['full-node-url'] as String;
   if (fullNodeUrl.endsWith('/')) fullNodeUrl = fullNodeUrl.substring(0, fullNodeUrl.length - 1);
 
   final certBytesPath = results['cert-path'] as String;
