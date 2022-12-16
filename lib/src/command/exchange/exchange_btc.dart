@@ -547,65 +547,68 @@ Future<List<Coin>> verifyTransferToExchangeAddress({
   required ChiaFullNodeInterface fullNode,
   PrivateKey? btcHolderPrivateKey,
 }) async {
+  // wait for XCH to arrive at the exchange address
   final additionPuzzlehashes = <Puzzlehash>[];
+  var transactionValidated = false;
+  var exchangeCoins = <Coin>[];
   var i = 0;
 
-  // check mempool for transfer to exchange address
-  while (!additionPuzzlehashes.contains(exchangePuzzlehash)) {
-    print('Checking mempool for transaction...');
-    await Future<void>.delayed(const Duration(seconds: 10));
-
-    additionPuzzlehashes.clear();
-    i++;
-
-    final mempoolItemsResponse = await fullNode.getAllMempoolItems();
-    mempoolItemsResponse.mempoolItemMap.forEach((key, item) {
-      additionPuzzlehashes.addAll(item.additions.map((addition) => addition.puzzlehash));
-    });
-
-    if (i == 30) {
-      if (btcHolderPrivateKey != null) {
-        // if BTC holder is still waiting, something might have gone wrong with transaction
-        // give information to the user to allow them to cleanly abort the exchange
-        print('\nStill waiting for a transaction sending XCH to the exchange address to be');
-        print('validated. Ask your countery party whether their transaction is complete.');
-        print("If it isn't, press any key to continue waiting.");
-        await Future<void>.delayed(const Duration(seconds: 2));
-        print('\nIf the transaction looks complete on their end, something might have gone');
-        print("wrong. It's possible that one of the two parties inputted an incorrect value");
-        print("or that your selected amounts to exchange or expiration times didn't match.");
-        await Future<void>.delayed(const Duration(seconds: 2));
-        print('\nIf this might be the case, please share your disposable private key below with');
-        print('your counter party to abort the exchange and allow them to cleanly reclaim');
-        print('their XCH from the exchange address:');
-        print(btcHolderPrivateKey.toHex());
-        await Future<void>.delayed(const Duration(seconds: 1));
-        print('\nPress any key to keep waiting or exit the program using Ctrl+C and reattempt');
-        print('the exchange by running the command again.');
-        stdin.readLineSync();
-      } else {
-        // if XCH holder is still waiting, they might not have sent the correct amount to the
-        // correct address
-        print('\nStill waiting for a transaction sending XCH to the exchange address to be');
-        print(
-          'validated. Please double check that you sent ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to the',
-        );
-        print('following address:');
-        print(exchangePuzzlehash.toAddressWithContext().address);
-        print('\nPress any key to continue waiting after you have done so.');
-        stdin.readLineSync();
-      }
-      i = 0;
-    }
-  }
-
-  print('\nThe transaction has been validated and is now in the mempool.\n');
-
-  // wait for XCH to arrive at the exchange address
-  var exchangeCoins = <Coin>[];
   while (exchangeCoins.totalValue < amounts.mojos) {
-    print('Waiting XCH to arrive...');
+    if (transactionValidated == false) {
+      print('Waiting for XCH...');
+    } else {
+      print('Waiting for transaction to complete...');
+    }
     await Future<void>.delayed(const Duration(seconds: 10));
+
+    if (transactionValidated == false) {
+      final mempoolItemsResponse = await fullNode.getAllMempoolItems();
+      mempoolItemsResponse.mempoolItemMap.forEach((key, item) {
+        additionPuzzlehashes.addAll(item.additions.map((addition) => addition.puzzlehash));
+      });
+
+      if (additionPuzzlehashes.contains(exchangePuzzlehash)) {
+        print('\nThe transaction has been validated and is now in the mempool.\n');
+        transactionValidated = true;
+      }
+
+      i++;
+
+      if (i == 30) {
+        i = 0;
+        if (btcHolderPrivateKey != null) {
+          // if BTC holder is still waiting, something might have gone wrong with transaction
+          // give information to the user to allow them to cleanly abort the exchange
+          print('\nStill waiting for a transaction sending XCH to the exchange address.');
+          print('Ask your countery party whether their transaction is validated or complete');
+          print("If it isn't, press any key to continue waiting.");
+          await Future<void>.delayed(const Duration(seconds: 2));
+          print('\nIf the transaction looks complete on their end, something might have gone');
+          print("wrong. It's possible that one of the two parties inputted an incorrect value");
+          print("or that your selected amounts to exchange or expiration times didn't match.");
+          await Future<void>.delayed(const Duration(seconds: 2));
+          print('\nIf this might be the case, please share your disposable private key below with');
+          print('your counter party to abort the exchange and allow them to cleanly reclaim');
+          print('their XCH from the exchange address:');
+          print(btcHolderPrivateKey.toHex());
+          await Future<void>.delayed(const Duration(seconds: 1));
+          print('\nPress any key to keep waiting or exit the program using Ctrl+C and reattempt');
+          print('the exchange by running the command again.');
+          stdin.readLineSync();
+        } else {
+          // if XCH holder is still waiting, they might not have sent the correct amount to the
+          // correct address
+          print('\nStill waiting for a transaction sending XCH to the exchange address to be');
+          print(
+            'validated. Please double check that you sent ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to the',
+          );
+          print('following address:');
+          print(exchangePuzzlehash.toAddressWithContext().address);
+          print('\nPress any key to continue waiting after you have done so.');
+          stdin.readLineSync();
+        }
+      }
+    }
 
     exchangeCoins = await fullNode.getCoinsByPuzzleHashes(
       [exchangePuzzlehash],
