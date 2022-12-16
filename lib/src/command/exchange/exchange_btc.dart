@@ -561,6 +561,7 @@ Future<List<Coin>> verifyTransferToExchangeAddress({
     }
     await Future<void>.delayed(const Duration(seconds: 10));
 
+    // if transaction hasn't been validated yet, keep checking mempool
     if (transactionValidated == false) {
       final mempoolItemsResponse = await fullNode.getAllMempoolItems();
       mempoolItemsResponse.mempoolItemMap.forEach((key, item) {
