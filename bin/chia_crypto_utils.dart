@@ -62,6 +62,8 @@ Future<void> main(List<String> args) async {
       );
     } catch (e) {
       print('\nThere is a problem with the full node information you provided. Please try again.');
+      print('\nThe full node should be in the form https://<SERVER_NAME>.\n');
+      print('\nex: When using a locally synced full node you can specify https://localhost:8555');
       exit(126);
     }
   } else {
