@@ -112,6 +112,7 @@ LightningPaymentRequest decodeLightningPaymentRequest(String paymentRequest) {
   );
 
   return LightningPaymentRequest(
+    paymentRequest: paymentRequest,
     prefix: prefix,
     network: network!,
     amount: amount,
@@ -189,7 +190,7 @@ PaymentRequestTags decodeTags(Map<int, dynamic> encodedTags) {
     paymentSecret: paymentSecret,
     routingInfo: routingInfo,
     featureBits: featureBits,
-    expirationTime: expirationTime,
+    timeout: expirationTime,
     fallbackAddress: fallbackAddress,
     description: description,
     payeePublicKey: payeePublicKey,
