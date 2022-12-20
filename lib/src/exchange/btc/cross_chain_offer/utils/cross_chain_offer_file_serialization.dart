@@ -22,7 +22,6 @@ String serializeCrossChainOfferFile(CrossChainOfferFile offerFile, PrivateKey pr
 
   final signature = AugSchemeMPL.sign(privateKey, utf8.encode(base64EncodedData));
   final signedData = utf8.encode('$base64EncodedData.${signature.toHex()}');
-
   return bech32Encode(offerFile.prefix.name, Bytes(signedData));
 }
 

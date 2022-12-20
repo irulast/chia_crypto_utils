@@ -1,18 +1,22 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/exchange_amount.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/validity_time.dart';
 
 class BtcToXchOfferFile implements CrossChainOfferFile {
   BtcToXchOfferFile({
     required this.offeredAmount,
     required this.requestedAmount,
     required this.messageAddress,
+    required this.validityTime,
     required this.publicKey,
   });
 
   ExchangeAmount offeredAmount;
   ExchangeAmount requestedAmount;
   Address messageAddress;
+  @override
+  ValidityTime validityTime;
   @override
   JacobianPoint publicKey;
 
@@ -25,6 +29,7 @@ class BtcToXchOfferFile implements CrossChainOfferFile {
           'type': messageAddress.prefix,
           'address': messageAddress.address
         },
+        'validity_time': validityTime.toJson(),
         'public_key': publicKey.toHex(),
       };
 
@@ -34,6 +39,7 @@ class BtcToXchOfferFile implements CrossChainOfferFile {
       requestedAmount: ExchangeAmount.fromJson(json['requested'] as Map<String, dynamic>),
       messageAddress:
           Address((json['message_address'] as Map<String, dynamic>)['address'] as String),
+      validityTime: ValidityTime.fromJson(json['validity_time'] as Map<String, dynamic>),
       publicKey: JacobianPoint.fromHexG1(json['public_key'] as String),
     );
   }

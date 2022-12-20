@@ -2,28 +2,31 @@ import 'package:meta/meta.dart';
 
 @immutable
 class ExchangeAmount {
-  const ExchangeAmount({required this.type, required this.amount});
+  const ExchangeAmount({required this.type, required this.value});
 
-  final String type;
-  final int amount;
+  final ExchangeAmountType type;
+  final int value;
 
   factory ExchangeAmount.fromJson(Map<String, dynamic> json) {
     return ExchangeAmount(
-      type: json['type'] as String,
-      amount: json['amount'] as int,
+      type: ExchangeAmountType.values.firstWhere((type) => type.name == json['type'] as String),
+      value: json['value'] as int,
     );
   }
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'type': type,
-        'amount': amount,
+        'type': type.name,
+        'value': value,
       };
 
   @override
   bool operator ==(Object other) {
-    return other is ExchangeAmount && other.type == type && other.amount == amount;
+    return other is ExchangeAmount && other.type == type && other.value == value;
   }
 
   @override
-  int get hashCode => type.hashCode ^ amount.hashCode;
+  int get hashCode => type.hashCode ^ value.hashCode;
 }
+
+// ignore: constant_identifier_names
+enum ExchangeAmountType { XCH, BTC }

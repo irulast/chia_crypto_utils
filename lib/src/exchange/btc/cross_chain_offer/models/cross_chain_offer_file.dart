@@ -1,9 +1,11 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/exceptions/invalid_cross_chain_offer_file_type.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/validity_time.dart';
 
 abstract class CrossChainOfferFile {
   CrossChainOfferFilePrefix get prefix;
   CrossChainOfferFileType get type;
+  ValidityTime get validityTime;
   JacobianPoint get publicKey;
 
   Map<String, dynamic> toJson();

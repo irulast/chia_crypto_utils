@@ -54,27 +54,27 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
   final sweepPaymentHash = getPaymentHash();
 
   // generate address for user to send coins to for exchange
-  final exchangePuzzlehash = xchToBtcService.generateExchangePuzzlehash(
+  final escrowPuzzlehash = xchToBtcService.generateEscrowPuzzlehash(
     requestorPrivateKey: xchHolderPrivateKey,
     clawbackDelaySeconds: clawbackDelaySeconds,
     sweepPaymentHash: sweepPaymentHash,
     fulfillerPublicKey: btcHolderPublicKey,
   );
 
-  final exchangeAddress = exchangePuzzlehash.toAddressWithContext();
+  final escrowAddress = escrowPuzzlehash.toAddressWithContext();
 
   print(
-    '\nTransfer ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to the following exchange address:',
+    '\nTransfer ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to the following escrow address:',
   );
-  print(exchangeAddress.address);
+  print(escrowAddress.address);
   await Future<void>.delayed(const Duration(seconds: 2));
   print('\nPress any key when the funds have been sent.');
   stdin.readLineSync();
 
-  // verify transaction and wait for XCH to arrive at the exchange address
-  final exchangeCoins = await verifyTransferToExchangeAddress(
+  // verify transaction and wait for XCH to arrive at the escrow address
+  final escrowCoins = await verifyTransferToEscrowAddress(
     amounts: amounts,
-    exchangePuzzlehash: exchangePuzzlehash,
+    escrowPuzzlehash: escrowPuzzlehash,
     fullNode: fullNode,
   );
 
@@ -85,8 +85,8 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
 
   // create spend bundle for clawing back funds if counter party doesn't pay lightning payment request
   final clawbackSpendBundle = xchToBtcService.createClawbackSpendBundle(
-    payments: [Payment(exchangeCoins.totalValue, clawbackPuzzlehash)],
-    coinsInput: exchangeCoins,
+    payments: [Payment(escrowCoins.totalValue, clawbackPuzzlehash)],
+    coinsInput: escrowCoins,
     requestorPrivateKey: xchHolderPrivateKey,
     clawbackDelaySeconds: clawbackDelaySeconds,
     sweepPaymentHash: sweepPaymentHash,
@@ -135,7 +135,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
     await confirmClawback(
       clawbackSpendBundle: clawbackSpendBundle,
       clawbackDelayMinutes: clawbackDelayMinutes,
-      exchangeCoins: exchangeCoins,
+      escrowCoins: escrowCoins,
       clawbackPuzzlehash: clawbackPuzzlehash,
       fullNode: fullNode,
     );
@@ -153,8 +153,8 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
         if (privateKeyInput.getG1() == btcHolderPublicKey) {
           btcHolderPrivateKey = privateKeyInput;
           clawbackSpendBundleWithPk = xchToBtcService.createClawbackSpendBundleWithPk(
-            payments: [Payment(exchangeCoins.totalValue, clawbackPuzzlehash)],
-            coinsInput: exchangeCoins,
+            payments: [Payment(escrowCoins.totalValue, clawbackPuzzlehash)],
+            coinsInput: escrowCoins,
             requestorPrivateKey: xchHolderPrivateKey,
             clawbackDelaySeconds: clawbackDelaySeconds,
             sweepPaymentHash: sweepPaymentHash,
@@ -172,7 +172,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
         await confirmClawback(
           clawbackSpendBundle: clawbackSpendBundle,
           clawbackDelayMinutes: clawbackDelayMinutes,
-          exchangeCoins: exchangeCoins,
+          escrowCoins: escrowCoins,
           clawbackPuzzlehash: clawbackPuzzlehash,
           fullNode: fullNode,
         );
@@ -182,7 +182,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
         print('\nPushing spend bundle to claw back XCH to your address...');
         await generateSpendBundleFile(clawbackSpendBundleWithPk!);
         await fullNode.pushTransaction(clawbackSpendBundleWithPk);
-        await verifyTransaction(exchangeCoins, clawbackPuzzlehash, fullNode);
+        await verifyTransaction(escrowCoins, clawbackPuzzlehash, fullNode);
       }
     }
   }
@@ -221,14 +221,14 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   final sweepPaymentHash = getPaymentHash();
 
   // generate address that counter party will be sending XCH to
-  final exchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
+  final escrowPuzzlehash = btcToXchService.generateEscrowPuzzlehash(
     requestorPrivateKey: btcHolderPrivateKey,
     clawbackDelaySeconds: clawbackDelaySeconds,
     sweepPaymentHash: sweepPaymentHash,
     fulfillerPublicKey: xchHolderPublicKey,
   );
 
-  final exchangeAddress = exchangePuzzlehash.toAddressWithContext();
+  final escrowAddress = escrowPuzzlehash.toAddressWithContext();
 
   // get puzzlehash where user will receive XCH from the exchange
   print('\nEnter the address where you would like the XCH delivered.');
@@ -242,15 +242,15 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   print('sent the XCH.');
   stdin.readLineSync();
 
-  // verify transaction and wait for XCH to arrive at the exchange address
-  final exchangeCoins = await verifyTransferToExchangeAddress(
+  // verify transaction and wait for XCH to arrive at the escrow address
+  final escrowCoins = await verifyTransferToEscrowAddress(
     amounts: amounts,
-    exchangePuzzlehash: exchangePuzzlehash,
+    escrowPuzzlehash: escrowPuzzlehash,
     fullNode: fullNode,
     btcHolderPrivateKey: btcHolderPrivateKey,
   );
 
-  print('\nYou can verify this here: https://xchscan.com/address/${exchangeAddress.address}');
+  print('\nYou can verify this here: https://xchscan.com/address/${escrowAddress.address}');
   print('\nPay the lightning payment request after the payment has received sufficient');
   print('confirmations.');
   await Future<void>.delayed(const Duration(seconds: 2));
@@ -290,8 +290,8 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
       if (inputAsPrivateKey.getG1() == xchHolderPublicKey) {
         xchHolderPrivateKey = inputAsPrivateKey;
         sweepSpendBundle = btcToXchService.createSweepSpendBundleWithPk(
-          payments: [Payment(exchangeCoins.totalValue, sweepPuzzlehash)],
-          coinsInput: exchangeCoins,
+          payments: [Payment(escrowCoins.totalValue, sweepPuzzlehash)],
+          coinsInput: escrowCoins,
           requestorPrivateKey: btcHolderPrivateKey,
           clawbackDelaySeconds: clawbackDelaySeconds,
           sweepPaymentHash: sweepPaymentHash,
@@ -301,8 +301,8 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
         sweepPreimage = inputAsPreimage;
 
         sweepSpendBundle = btcToXchService.createSweepSpendBundle(
-          payments: [Payment(exchangeCoins.totalValue, sweepPuzzlehash)],
-          coinsInput: exchangeCoins,
+          payments: [Payment(escrowCoins.totalValue, sweepPuzzlehash)],
+          coinsInput: escrowCoins,
           requestorPrivateKey: btcHolderPrivateKey,
           clawbackDelaySeconds: clawbackDelaySeconds,
           sweepPaymentHash: sweepPaymentHash,
@@ -321,7 +321,7 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
 
   if (input.startsWith('q')) {
     print('\nPlease share your disposable private key below with your counter party to');
-    print('allow them to cleanly reclaim their XCH from the exchange address:');
+    print('allow them to cleanly reclaim their XCH from the escrow address:');
     print(btcHolderPrivateKey.toHex());
     await Future<void>.delayed(const Duration(seconds: 2));
     print('\nAfter you have done so, press any key to quit.');
@@ -333,7 +333,7 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   await generateSpendBundleFile(sweepSpendBundle!);
   try {
     await fullNode.pushTransaction(sweepSpendBundle);
-    await verifyTransaction(exchangeCoins, sweepPuzzlehash, fullNode);
+    await verifyTransaction(escrowCoins, sweepPuzzlehash, fullNode);
   } catch (e) {
     print('\nTRANSACTION FAILED. The spend bundle was rejected. You may have responded');
     print('after the agreed upon expiration time.');
@@ -501,7 +501,7 @@ Future<void> generateSpendBundleFile(SpendBundle spendBundle) async {
 Future<void> confirmClawback({
   required SpendBundle clawbackSpendBundle,
   required int clawbackDelayMinutes,
-  required List<Coin> exchangeCoins,
+  required List<Coin> escrowCoins,
   required Puzzlehash clawbackPuzzlehash,
   required ChiaFullNodeInterface fullNode,
 }) async {
@@ -518,12 +518,12 @@ Future<void> confirmClawback({
       await generateSpendBundleFile(clawbackSpendBundle);
       try {
         await fullNode.pushTransaction(clawbackSpendBundle);
-        await verifyTransaction(exchangeCoins, clawbackPuzzlehash, fullNode);
+        await verifyTransaction(escrowCoins, clawbackPuzzlehash, fullNode);
       } catch (e) {
         print('\nTRANSACTION FAILED. The spend bundle was rejected. If the clawback delay period');
         print("hasn't passed yet, keep waiting and manually push the transaction using the");
         print('generated file. If it has, your counter party may have already claimed funds');
-        print('from the exchange address.');
+        print('from the escrow address.');
       }
     } else if (confirmation.startsWith('n')) {
       print(
@@ -541,21 +541,21 @@ Future<void> confirmClawback({
   }
 }
 
-Future<List<Coin>> verifyTransferToExchangeAddress({
+Future<List<Coin>> verifyTransferToEscrowAddress({
   required Amounts amounts,
-  required Puzzlehash exchangePuzzlehash,
+  required Puzzlehash escrowPuzzlehash,
   required ChiaFullNodeInterface fullNode,
   PrivateKey? btcHolderPrivateKey,
 }) async {
-  // wait for XCH to arrive at the exchange address
+  // wait for XCH to arrive at the escrow address
   final additionPuzzlehashes = <Puzzlehash>[];
   var transactionValidated = false;
-  var exchangeCoins = <Coin>[];
+  var escrowCoins = <Coin>[];
   var i = 0;
 
-  while (exchangeCoins.totalValue < amounts.mojos) {
+  while (escrowCoins.totalValue < amounts.mojos) {
     if (transactionValidated == false) {
-      print('Waiting for transfer to exchange address...');
+      print('Waiting for transfer to escrow address...');
     } else {
       print('Waiting for transaction to complete...');
     }
@@ -568,7 +568,7 @@ Future<List<Coin>> verifyTransferToExchangeAddress({
         additionPuzzlehashes.addAll(item.additions.map((addition) => addition.puzzlehash));
       });
 
-      if (additionPuzzlehashes.contains(exchangePuzzlehash)) {
+      if (additionPuzzlehashes.contains(escrowPuzzlehash)) {
         print('\nThe transaction has been validated and is now in the mempool.\n');
         transactionValidated = true;
       }
@@ -580,7 +580,7 @@ Future<List<Coin>> verifyTransferToExchangeAddress({
         if (btcHolderPrivateKey != null) {
           // if BTC holder is still waiting, something might have gone wrong with transaction
           // give information to the user to allow them to cleanly abort the exchange
-          print('\nStill waiting for a transaction sending XCH to the exchange address.');
+          print('\nStill waiting for a transaction sending XCH to the escrow address.');
           print('Ask your countery party whether their transaction is validated or complete');
           print("If it isn't, press any key to continue waiting.");
           await Future<void>.delayed(const Duration(seconds: 2));
@@ -590,7 +590,7 @@ Future<List<Coin>> verifyTransferToExchangeAddress({
           await Future<void>.delayed(const Duration(seconds: 2));
           print('\nIf this might be the case, please share your disposable private key below with');
           print('your counter party to abort the exchange and allow them to cleanly reclaim');
-          print('their XCH from the exchange address:');
+          print('their XCH from the escrow address:');
           print(btcHolderPrivateKey.toHex());
           await Future<void>.delayed(const Duration(seconds: 1));
           print('\nPress any key to keep waiting or exit the program using Ctrl+C and reattempt');
@@ -599,40 +599,40 @@ Future<List<Coin>> verifyTransferToExchangeAddress({
         } else {
           // if XCH holder is still waiting, they might not have sent the correct amount to the
           // correct address
-          print('\nStill waiting for a transaction sending XCH to the exchange address to be');
+          print('\nStill waiting for a transaction sending XCH to the escrow address to be');
           print(
             'validated. Please double check that you sent ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to the',
           );
           print('following address:');
-          print(exchangePuzzlehash.toAddressWithContext().address);
+          print(escrowPuzzlehash.toAddressWithContext().address);
           print('\nPress any key to continue waiting after you have done so.');
           stdin.readLineSync();
         }
       }
     }
 
-    exchangeCoins = await fullNode.getCoinsByPuzzleHashes(
-      [exchangePuzzlehash],
+    escrowCoins = await fullNode.getCoinsByPuzzleHashes(
+      [escrowPuzzlehash],
     );
   }
 
-  print('\nThe exchange address has received sufficient XCH!');
+  print('\nThe escrow address has received sufficient XCH!');
 
-  return exchangeCoins;
+  return escrowCoins;
 }
 
 Future<void> verifyTransaction(
-  List<Coin> exchangeCoins,
+  List<Coin> escrowCoins,
   Puzzlehash requestorPuzzlehash,
   ChiaFullNodeInterface fullNode,
 ) async {
   print('');
 
   // check mempool
-  final exchangeCoinIds = exchangeCoins.map((coin) => coin.id).toList();
+  final escrowCoinIds = escrowCoins.map((coin) => coin.id).toList();
   final removalIds = <Bytes>[];
 
-  while (!exchangeCoinIds.every(removalIds.contains)) {
+  while (!escrowCoinIds.every(removalIds.contains)) {
     print('Checking mempool for transaction...');
     await Future<void>.delayed(const Duration(seconds: 5));
 
@@ -648,7 +648,7 @@ Future<void> verifyTransaction(
 
   // verify receipt of XCH
   var recipientParentIds = <Bytes>[];
-  while (!exchangeCoinIds.any((id) => recipientParentIds.contains(id))) {
+  while (!escrowCoinIds.any((id) => recipientParentIds.contains(id))) {
     print('Waiting for transaction to complete...');
     await Future<void>.delayed(const Duration(seconds: 10));
 
