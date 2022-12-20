@@ -5,6 +5,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:bip39/bip39.dart';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/command/exchange/cross_chain_offer_exchange.dart';
 import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
 import 'package:chia_crypto_utils/src/command/plot_nft/create_new_wallet_with_plotnft.dart';
 
@@ -27,7 +28,8 @@ Future<void> main(List<String> args) async {
     ..addCommand(CreateWalletWithPlotNFTCommand())
     ..addCommand(GetFarmingStatusCommand())
     ..addCommand(GetCoinRecords())
-    ..addCommand(ExchangeBtcCommand());
+    ..addCommand(ExchangeBtcCommand())
+    ..addCommand(CrossChainOfferExchangeCommand());
 
   final results = runner.argParser.parse(args);
 
@@ -348,6 +350,42 @@ class ExchangeBtcCommand extends Command<Future<void>> {
         await exchangeXchForBtc(fullNode);
       } else if (choice == '2') {
         await exchangeBtcForXch(fullNode);
+      } else {
+        print('\nNot a valid choice.');
+      }
+    }
+  }
+}
+
+class CrossChainOfferExchangeCommand extends Command<Future<void>> {
+  CrossChainOfferExchangeCommand();
+
+  @override
+  String get description => 'Initiates a cross chain offer exchange between XCH and BTC';
+
+  @override
+  String get name => 'Make-CrossChainOfferExchange';
+
+  @override
+  Future<void> run() async {
+    print('\nAre you making a new cross chain offer, accepting an existing one, or');
+    print('continuing an ongoing exchange?');
+    print('\n1. Making cross chain offer');
+    print('2. Accepting cross chain offer');
+    print('3. Continuing ongoing exchange');
+
+    String? choice;
+
+    while (choice != '1' && choice != '2' && choice != '3') {
+      stdout.write('> ');
+      choice = stdin.readLineSync()!.trim();
+
+      if (choice == '1') {
+        await makeCrossChainOffer(fullNode);
+      } else if (choice == '2') {
+        await acceptCrossChainOffer(fullNode);
+      } else if (choice == '3') {
+        await resumeCrossChainOfferExchange(fullNode);
       } else {
         print('\nNot a valid choice.');
       }
