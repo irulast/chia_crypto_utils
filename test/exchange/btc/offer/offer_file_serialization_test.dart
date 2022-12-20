@@ -1,12 +1,11 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/offer/models/exchange_amount.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/offer/models/xch_to_btc_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/offer/service/xch_to_btc_offer.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/offer/utils/offer_serialization.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_payment_request.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final offerService = XchToBtcOfferService();
   test('should correctly serialize and deserialize XCH to BTC offer file', () {
     final privateKey =
         PrivateKey.fromHex('308f34305ed545c7b6bdefe9fff88176dc3b1a68c40f9065e2cf24c98bf6a4e1');
@@ -33,8 +32,8 @@ void main() {
       lightningPaymentRequest: decodedPaymentRequest,
     );
 
-    final serializedOffer = offerService.serialize(offer, privateKey);
-    final deserializedOffer = offerService.deserialize(serializedOffer);
+    final serializedOffer = serializeOfferFile(offer, privateKey);
+    final deserializedOffer = deserializeOfferFile(serializedOffer);
 
     expect(deserializedOffer.offeredAmount, equals(offeredAmount));
     expect(deserializedOffer.requestedAmount, equals(requestedAmount));
