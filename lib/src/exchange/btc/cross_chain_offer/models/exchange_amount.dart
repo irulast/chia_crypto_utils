@@ -10,13 +10,13 @@ class ExchangeAmount {
   factory ExchangeAmount.fromJson(Map<String, dynamic> json) {
     return ExchangeAmount(
       type: ExchangeAmountType.values.firstWhere((type) => type.name == json['type'] as String),
-      value: json['value'] as double,
+      value: json['amount'] as double,
     );
   }
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'type': type.name,
-        'value': value,
+        'amount': value,
       };
 
   @override
