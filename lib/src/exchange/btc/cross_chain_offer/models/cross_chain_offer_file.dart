@@ -1,11 +1,10 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/exceptions/invalid_cross_chain_offer_file_type.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/validity_time.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/exchange_amount.dart';
 
 abstract class CrossChainOfferFile {
   CrossChainOfferFilePrefix get prefix;
   CrossChainOfferFileType get type;
-  ValidityTime get validityTime;
+  int get validityTime;
   JacobianPoint get publicKey;
 
   Map<String, dynamic> toJson();
@@ -16,10 +15,19 @@ enum CrossChainOfferFileType { xchToBtc, xchToBtcAccept, btcToXch, btcToXchAccep
 // ignore: constant_identifier_names
 enum CrossChainOfferFilePrefix { ccoffer, ccoffer_accept }
 
-CrossChainOfferFileType parseCrossChainOfferFileTypeFromName(String name) {
-  for (final type in CrossChainOfferFileType.values) {
-    if (type.name == name) return type;
+CrossChainOfferFileType parseCrossChainOfferFileTypeFromJson(Map<String, dynamic> json) {
+  if (json.containsKey('offered')) {
+    final offeredAmount = ExchangeAmount.fromJson(json['offered'] as Map<String, dynamic>);
+    if (offeredAmount.type == ExchangeAmountType.XCH) {
+      return CrossChainOfferFileType.xchToBtc;
+    } else {
+      return CrossChainOfferFileType.btcToXch;
+    }
+  } else {
+    if (json.containsKey('lightning_payment_request')) {
+      return CrossChainOfferFileType.xchToBtcAccept;
+    } else {
+      return CrossChainOfferFileType.btcToXchAccept;
+    }
   }
-
-  throw InvalidCrossChainOfferFileType();
 }

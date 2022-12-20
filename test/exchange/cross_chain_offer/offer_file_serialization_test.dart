@@ -1,6 +1,5 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/exchange_amount.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/validity_time.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/utils/cross_chain_offer_file_serialization.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_payment_request.dart';
@@ -23,7 +22,7 @@ void main() {
     const paymentRequest =
         'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
 
-    final validityTime = ValidityTime(type: ValidityTimeType.unix_epoch, value: 1671649043);
+    const validityTime = 1671649043;
 
     final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
 
@@ -39,6 +38,8 @@ void main() {
     final serializedOfferFile = serializeCrossChainOfferFile(offerFile, privateKey);
     final deserializedOfferFile =
         deserializeCrossChainOfferFile(serializedOfferFile) as XchToBtcOfferFile;
+
+    print(serializedOfferFile);
 
     expect(deserializedOfferFile.offeredAmount, equals(offeredAmount));
     expect(deserializedOfferFile.requestedAmount, equals(requestedAmount));

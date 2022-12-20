@@ -4,7 +4,6 @@ import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/exchange_amount.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/validity_time.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_accept_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/utils/cross_chain_offer_file_serialization.dart';
@@ -120,7 +119,7 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNode) async {
       offeredAmount: ExchangeAmount(type: offeredAmountType, value: offeredAmountValue),
       requestedAmount: ExchangeAmount(type: requestedAmountType, value: requestedAmountValue),
       messageAddress: messageAddress,
-      validityTime: ValidityTime(type: ValidityTimeType.unix_epoch, value: validityTime),
+      validityTime: validityTime,
       publicKey: publicKey,
       lightningPaymentRequest: paymentRequest,
     );
@@ -129,29 +128,19 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNode) async {
       offeredAmount: ExchangeAmount(type: offeredAmountType, value: offeredAmountValue),
       requestedAmount: ExchangeAmount(type: requestedAmountType, value: requestedAmountValue),
       messageAddress: messageAddress,
-      validityTime: ValidityTime(type: ValidityTimeType.unix_epoch, value: validityTime),
+      validityTime: validityTime,
       publicKey: publicKey,
     );
   }
 
   final serializedOfferFile = serializeCrossChainOfferFile(offerFile, privateKey);
 
-  // XCH TO BTC
-  // send to dexie endpoint
-  // when message coin with public key arrives
-  // parse out public key and validation time
-  // construct escrow address for xch holder to send coins to
+  // send serialized offer file to dexie endpoint
+  // when message coin arrives, parse out public key and validation time
+  // construct escrow address
   // wait for coins to arrive at escrow address
-  // past validity time, try pushing clawback spend bundle
-
-  // BTC TO XCH
-  // send offer file to dexie endpoint
-  // when message coin with public key arrives
-  // parse out public key, validation time, lightning invoice
-  // output lightning invoice so user can pay it
-  // construct escrow address to watch
-  // wait for coins to arrive at escrow address
-  // push sweep spend bundle
+  // BTC: when coins have arrived, ask user to pay payment request and input for preimage, then push sweep spend bundle
+  // XCH: push clawback spend bundle if validity time passes and there are still coins at escrow address
 }
 
 Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNode) async {
@@ -208,31 +197,34 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNode) async {
     }
 
     acceptOfferFile = XchToBtcAcceptOfferFile(
-      validityTime: ValidityTime(type: ValidityTimeType.seconds, value: validityTime),
+      validityTime: validityTime,
       publicKey: publicKey,
       lightningPaymentRequest: paymentRequest,
     );
   } else {
     acceptOfferFile = BtcToXchAcceptOfferFile(
-      validityTime: ValidityTime(type: ValidityTimeType.seconds, value: validityTime),
+      validityTime: validityTime,
       publicKey: publicKey,
     );
   }
 
   final serializedAcceptOfferFile = serializeCrossChainOfferFile(acceptOfferFile, privateKey);
 
-  // BTC TO XCH
-  // send coin with accept offer file as memo to message address
+  print('\nA coin with a memo containing your serialized accept offer file below must be sent');
+  print('to the message address indicated in the original offer file.');
+  print(serializedAcceptOfferFile);
+  print('\nPlease either send a coin with the above memo to the following address:');
+  print(deserializedOfferFile);
+  print('\n OR send at least 1 mojo and enough extra XCH to cover the fee to the');
+  print('following address:');
+
+  // prompt user to either send coin with serialized accept offer file as memo to message address
+  // or to send some XCH to an address and program will send it on your behalf
+
   // construct escrow address
   // wait for coins to arrive at escrow address
-  // when coins have arrived ask user for preimage
-  // push sweep spend bundle
-
-  // XCH TO BTC
-  // send coin with accept offer file as memo to message address
-  // construct escrow address for xch holder to send coins to
-  // wait for coins to arrive at escrow address
-  // past validity time, try pushing clawback spend bundle
+  // BTC: when coins have arrived, ask user to pay payment request and input for preimage, then push sweep spend bundle
+  // XCH: push clawback spend bundle if validity time passes and there are still coins at escrow address
 }
 
 Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNode) async {

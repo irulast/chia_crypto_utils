@@ -42,7 +42,7 @@ CrossChainOfferFile deserializeCrossChainOfferFile(String serializedOfferFile) {
   final base64DecodedData = base64.decode(data);
   final jsonString = utf8.decode(base64DecodedData);
   final json = jsonDecode(jsonString) as Map<String, dynamic>;
-  final type = parseCrossChainOfferFileTypeFromName(json['type'] as String);
+  final type = parseCrossChainOfferFileTypeFromJson(json);
 
   CrossChainOfferFile deserializedOfferFile;
 
