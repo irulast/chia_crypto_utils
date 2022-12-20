@@ -1,7 +1,7 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/offer/models/exchange_amount.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/offer/models/xch_to_btc_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/offer/utils/offer_serialization.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/exchange_amount.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_offer_file.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/utils/cross_chain_offer_file_serialization.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_payment_request.dart';
 import 'package:test/test.dart';
 
@@ -24,7 +24,7 @@ void main() {
 
     final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
 
-    final offer = XchToBtcOfferFile(
+    final offerFile = XchToBtcOfferFile(
       offeredAmount: offeredAmount,
       requestedAmount: requestedAmount,
       messageAddress: messageAddress,
@@ -32,15 +32,16 @@ void main() {
       lightningPaymentRequest: decodedPaymentRequest,
     );
 
-    final serializedOffer = serializeOfferFile(offer, privateKey);
-    final deserializedOffer = deserializeOfferFile(serializedOffer);
+    final serializedOfferFile = serializeCrossChainOfferFile(offerFile, privateKey);
+    final deserializedOfferFile =
+        deserializeCrossChainOfferFile(serializedOfferFile) as XchToBtcOfferFile;
 
-    expect(deserializedOffer.offeredAmount, equals(offeredAmount));
-    expect(deserializedOffer.requestedAmount, equals(requestedAmount));
-    expect(deserializedOffer.messageAddress, equals(messageAddress));
-    expect(deserializedOffer.publicKey, equals(publicKey));
+    expect(deserializedOfferFile.offeredAmount, equals(offeredAmount));
+    expect(deserializedOfferFile.requestedAmount, equals(requestedAmount));
+    expect(deserializedOfferFile.messageAddress, equals(messageAddress));
+    expect(deserializedOfferFile.publicKey, equals(publicKey));
     expect(
-      deserializedOffer.lightningPaymentRequest.paymentRequest,
+      deserializedOfferFile.lightningPaymentRequest.paymentRequest,
       decodedPaymentRequest.paymentRequest,
     );
   });
