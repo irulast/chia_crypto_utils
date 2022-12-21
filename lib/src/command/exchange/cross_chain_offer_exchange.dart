@@ -161,8 +161,8 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNode) async {
   //     print('\nNot a valid choice.');
   //   }
   // }
-  // print('\nPress any key to start waiting for message coin to arrive.');
-  // stdin.readLineSync();
+  print('\nPress any key to start waiting for message coin to arrive.');
+  stdin.readLineSync();
 
   final serializedOfferAcceptFile =
       await waitForMessageCoin(messageAddress.toPuzzlehash(), fullNode);
@@ -309,7 +309,7 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNode) async {
     } else if (choice == '2') {
       print('\nSend at least 100 mojos the following address, and the program will');
       print('send the coin with memo on your behalf:');
-      print('${coinAddress.address}\n');
+      print(coinAddress.address);
 
       print('\nPress any key to continue once you have done so.');
       stdin.readLineSync();
@@ -423,7 +423,9 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNode) async
   while (deserializedOfferAcceptFile == null) {
     stdout.write('> ');
     try {
+      stdin.lineMode = false;
       deserializedOfferAcceptFile = deserializeCrossChainOfferFile(stdin.readLineSync()!.trim());
+      stdin.lineMode = true;
       if (deserializedOfferAcceptFile.prefix.name == 'ccoffer') {
         print(
           "Wrong offer file type. The prefix should be 'ccoffer_accept,' not 'ccoffer.'",
