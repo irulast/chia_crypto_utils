@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
@@ -97,8 +98,11 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNode) async {
     stdout.write('> ');
     try {
       validityTime = int.parse(stdin.readLineSync()!.trim());
+      if (validityTime < (DateTime.now().millisecondsSinceEpoch / 1000)) {
+        print('\nPlease enter a unix epoch timestamp greater than the current time:');
+      }
     } catch (e) {
-      print('\nPlease enter a valid unix epoch timestamp greater than the current time:');
+      print('\nPlease enter a valid unix epoch timestamp:');
     }
   }
 
@@ -137,7 +141,7 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNode) async {
 
   final serializedOfferFile = serializeCrossChainOfferFile(offerFile, requestorPrivateKey);
 
-  // print to file
+  await generateLogFile(requestorPrivateKey, serializedOfferFile);
 
   print('\nSend serialized offer file to dexie?');
 
@@ -182,11 +186,15 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNode) async {
   final requestorPublicKey = requestorPrivateKey.getG1();
 
   print('\nPaste in the serialized cross chain offer file you want to accept:');
+  String? offerFile;
   CrossChainOfferFile? deserializedOfferFile;
   while (deserializedOfferFile == null) {
     stdout.write('> ');
     try {
-      deserializedOfferFile = deserializeCrossChainOfferFile(stdin.readLineSync()!.trim());
+      stdin.lineMode = false;
+      offerFile = stdin.readLineSync()!.trim();
+      stdin.lineMode = true;
+      deserializedOfferFile = deserializeCrossChainOfferFile(offerFile);
       if (deserializedOfferFile.prefix.name == 'ccoffer_accept') {
         print(
           "Wrong offer file type. The prefix should be 'ccoffer,' not 'ccoffer_accept.'",
@@ -198,16 +206,21 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNode) async {
     }
   }
 
+  if (deserializedOfferFile.validityTime < (DateTime.now().millisecondsSinceEpoch / 1000)) {
+    print('\nThis cross chain offer has expired. Try again with a still valid offer.');
+    exit(exitCode);
+  }
+
   print('\nEnter how long you want to allow for the exchange to complete before it is');
-  print('aborted in terms of seconds.');
+  print('aborted in terms of minutes.');
   int? validityTime;
   while (validityTime == null) {
     stdout.write('> ');
     try {
-      validityTime = int.parse(stdin.readLineSync()!.trim());
+      validityTime = int.parse(stdin.readLineSync()!.trim()) * 60;
     } catch (e) {
       print(
-        '\nPlease enter a valid duration in terms of seconds:',
+        '\nPlease enter a valid duration in terms of minutes:',
       );
     }
   }
@@ -252,6 +265,8 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNode) async {
   final serializedOfferAcceptFile =
       serializeCrossChainOfferFile(offerAcceptFile, requestorPrivateKey);
 
+  await generateLogFile(requestorPrivateKey, offerFile!, serializedOfferAcceptFile);
+
   final keychainCoreSecret = KeychainCoreSecret.generate();
   final keychain = WalletKeychain.fromCoreSecret(keychainCoreSecret);
   final coinPuzzlehash = keychain.puzzlehashes.first;
@@ -263,8 +278,8 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNode) async {
   print(serializedOfferAcceptFile);
   print('\nPlease either send a coin with the above memo to the following address:');
   print(messageAddress.address);
-  print('\n OR send at least 100 mojos the following');
-  print('address, and the program will send the coin with memo on your behalf:');
+  print('\nOR send at least 100 mojos the following address, and the program will');
+  print('send the coin with memo on your behalf:');
   print(coinAddress.address);
 
   print('\nPress any key when coin has been sent');
@@ -354,7 +369,9 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNode) async
   while (deserializedOfferFile == null) {
     stdout.write('> ');
     try {
+      stdin.lineMode = false;
       deserializedOfferFile = deserializeCrossChainOfferFile(stdin.readLineSync()!.trim());
+      stdin.lineMode = true;
       if (deserializedOfferFile.prefix.name == 'ccoffer_accept') {
         print(
           "Wrong offer file type. The prefix should be 'ccoffer,' not 'ccoffer_accept.'",
@@ -366,12 +383,19 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNode) async
     }
   }
 
+  if (deserializedOfferFile.validityTime < (DateTime.now().millisecondsSinceEpoch / 1000)) {
+    print('\nThis cross chain offer has expired. Try again with a still valid offer.');
+    exit(exitCode);
+  }
+
   print('\nPlease paste in the cross chain offer accept file:');
   CrossChainOfferFile? deserializedOfferAcceptFile;
   while (deserializedOfferAcceptFile == null) {
     stdout.write('> ');
     try {
+      stdin.lineMode = false;
       deserializedOfferFile = deserializeCrossChainOfferFile(stdin.readLineSync()!.trim());
+      stdin.lineMode = true;
       if (deserializedOfferFile.prefix.name == 'ccoffer') {
         print(
           "Wrong offer file type. The prefix should be 'ccoffer_accept,' not 'ccoffer.'",
@@ -384,16 +408,70 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNode) async
   }
 
   print('\nPlease paste in the private key you used for this exchange:');
-  PrivateKey? privateKey;
-  while (privateKey == null) {
+  PrivateKey? requestorPrivateKey;
+  while (requestorPrivateKey == null) {
     stdout.write('> ');
     try {
       final privateKeyInput = PrivateKey.fromHex(stdin.readLineSync()!.trim());
-
-      if (deserializedOfferFile!.publicKey == privateKeyInput.getG1()) {
+      if (deserializedOfferFile!.publicKey == privateKeyInput.getG1() &&
+          deserializedOfferAcceptFile != null) {
         // user made offer
-      } else if (deserializedOfferAcceptFile.publicKey == privateKeyInput.getG1()) {
+        requestorPrivateKey = privateKeyInput;
+
+        if (deserializedOfferFile.type == CrossChainOfferFileType.xchToBtc) {
+          deserializedOfferFile = deserializedOfferFile as XchToBtcOfferFile;
+          deserializedOfferAcceptFile = deserializedOfferAcceptFile as BtcToXchOfferAcceptFile;
+
+          await pushClawbackSpendBundle(
+            amountXch: deserializedOfferFile.offeredAmount.amount,
+            requestorPrivateKey: requestorPrivateKey,
+            validityTime: deserializedOfferAcceptFile.validityTime,
+            paymentRequest: deserializedOfferFile.lightningPaymentRequest,
+            fulfillerPublicKey: deserializedOfferAcceptFile.publicKey,
+            fullNode: fullNode,
+          );
+        } else {
+          deserializedOfferFile = deserializedOfferFile as BtcToXchOfferFile;
+          deserializedOfferAcceptFile = deserializedOfferAcceptFile as XchToBtcOfferAcceptFile;
+
+          await pushSweepSpendBundle(
+            amountXch: deserializedOfferFile.requestedAmount.amount,
+            requestorPrivateKey: requestorPrivateKey,
+            validityTime: deserializedOfferAcceptFile.validityTime,
+            paymentRequest: deserializedOfferAcceptFile.lightningPaymentRequest,
+            fulfillerPublicKey: deserializedOfferAcceptFile.publicKey,
+            fullNode: fullNode,
+          );
+        }
+      } else if (deserializedOfferAcceptFile!.publicKey == privateKeyInput.getG1()) {
         // user is accepting offer
+        requestorPrivateKey = privateKeyInput;
+
+        if (deserializedOfferAcceptFile.type == CrossChainOfferFileType.xchToBtcAccept) {
+          deserializedOfferFile = deserializedOfferFile as BtcToXchOfferFile;
+          deserializedOfferAcceptFile = deserializedOfferAcceptFile as XchToBtcOfferAcceptFile;
+
+          await pushClawbackSpendBundle(
+            amountXch: deserializedOfferFile.requestedAmount.amount,
+            requestorPrivateKey: requestorPrivateKey,
+            validityTime: deserializedOfferAcceptFile.validityTime,
+            paymentRequest: deserializedOfferAcceptFile.lightningPaymentRequest,
+            fulfillerPublicKey: deserializedOfferFile.publicKey,
+            fullNode: fullNode,
+          );
+        } else {
+          deserializedOfferFile = deserializedOfferFile as XchToBtcOfferFile;
+          deserializedOfferAcceptFile = deserializedOfferAcceptFile as BtcToXchOfferAcceptFile;
+
+          await pushSweepSpendBundle(
+            amountXch: deserializedOfferFile.offeredAmount.amount,
+            requestorPrivateKey: requestorPrivateKey,
+            validityTime: deserializedOfferAcceptFile.validityTime,
+            paymentRequest: deserializedOfferFile.lightningPaymentRequest,
+            fulfillerPublicKey: deserializedOfferFile.publicKey,
+            fullNode: fullNode,
+          );
+        }
       }
     } catch (e) {
       print('\nInvalid key. Please try again:');
@@ -434,7 +512,7 @@ Future<String> waitForMessageCoin(
       final parentCoin = await fullNode.getCoinById(coin.parentCoinInfo);
       final coinSpend = await fullNode.getCoinSpend(parentCoin!);
 
-      final memos = coinSpend!.memoStrings as List<String>;
+      final memos = await coinSpend!.memoStrings;
 
       for (final memo in memos) {
         if (memo.startsWith('ccoffer_accept')) {
@@ -610,22 +688,22 @@ Future<void> pushClawbackSpendBundle({
 }
 
 Future<void> generateLogFile(
-  PrivateKey privateKey,
-  String serializedOfferFile,
+  PrivateKey requestorPrivateKey,
+  String serializedOfferFile, [
   String? serializedOfferAcceptFile,
-) async {
+]) async {
   final logFile = File('exchange-log-${DateTime.now().toString().replaceAll(' ', '-')}.txt')
     ..createSync(recursive: true)
     ..writeAsStringSync(serializedOfferFile, mode: FileMode.append);
 
   if (serializedOfferAcceptFile == null) {
     print('\nPrinting serialized offer file and disposable private key to a file...');
-    logFile.writeAsStringSync('\n\n${privateKey.toHex()}', mode: FileMode.append);
+    logFile.writeAsStringSync('\n\n${requestorPrivateKey.toHex()}', mode: FileMode.append);
   } else {
     print('\nPrinting serialized offer file, serialized offer accept file, and');
     print('disposable private key to a file...');
     logFile
       ..writeAsStringSync('\n\n$serializedOfferAcceptFile', mode: FileMode.append)
-      ..writeAsStringSync('\n\n${privateKey.toHex()}', mode: FileMode.append);
+      ..writeAsStringSync('\n\n${requestorPrivateKey.toHex()}', mode: FileMode.append);
   }
 }
