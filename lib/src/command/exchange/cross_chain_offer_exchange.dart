@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/dexie/dexie_offers.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_accept_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_file.dart';
@@ -141,14 +142,27 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNode) async {
 
   final serializedOfferFile = serializeCrossChainOfferFile(offerFile, requestorPrivateKey);
 
+  print('\nBelow is your serialized offer file.');
+  print(serializedOfferFile);
+
   await generateLogFile(requestorPrivateKey, serializedOfferFile);
 
-  print('\nSend serialized offer file to dexie?');
+  // print('\nSend serialized offer file to dexie? Y/N');
 
-  // send offer file to dexie endpoint
-
-  print('\nPress any key to start waiting for message coin to arrive.');
-  stdin.readLineSync();
+  // var confirmation = '';
+  // while (!confirmation.startsWith('y') && !confirmation.startsWith('n')) {
+  //   stdout.write('> ');
+  //   confirmation = stdin.readLineSync()!.trim().toLowerCase();
+  //   if (confirmation.startsWith('y')) {
+  //     // post request to dexie
+  //   } else if (confirmation.startsWith('n')) {
+  //     continue;
+  //   } else {
+  //     print('\nNot a valid choice.');
+  //   }
+  // }
+  // print('\nPress any key to start waiting for message coin to arrive.');
+  // stdin.readLineSync();
 
   final serializedOfferAcceptFile =
       await waitForMessageCoin(messageAddress.toPuzzlehash(), fullNode);
@@ -158,7 +172,7 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNode) async {
     offerFile = offerFile as XchToBtcOfferFile;
     deserializedOfferAcceptFile = deserializedOfferAcceptFile as BtcToXchOfferAcceptFile;
 
-    await pushClawbackSpendBundle(
+    await completeXchToBtcExchange(
       amountXch: offeredAmountValue,
       requestorPrivateKey: requestorPrivateKey,
       validityTime: deserializedOfferAcceptFile.validityTime,
@@ -170,7 +184,7 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNode) async {
     offerFile = offerFile as BtcToXchOfferFile;
     deserializedOfferAcceptFile = deserializedOfferAcceptFile as XchToBtcOfferAcceptFile;
 
-    await pushSweepSpendBundle(
+    await completeBtcToXchExchange(
       amountXch: requestedAmountValue,
       requestorPrivateKey: requestorPrivateKey,
       validityTime: deserializedOfferAcceptFile.validityTime,
@@ -273,60 +287,76 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNode) async {
   final coinAddress = Address.fromContext(coinPuzzlehash);
   final messagePuzzlehash = messageAddress.toPuzzlehash();
 
-  print('\nA coin with a memo containing your serialized offer accept file below must be sent');
-  print('to the message address indicated in the original offer file.');
+  print('\nA coin with a memo containing your serialized offer accept file below must');
+  print('be sent to the message address indicated in the original offer file.');
   print(serializedOfferAcceptFile);
-  print('\nPlease either send a coin with the above memo to the following address:');
-  print(messageAddress.address);
-  print('\nOR send at least 100 mojos the following address, and the program will');
+  print('\nYou may either send a coin with the above memo yourself, OR you may');
+  print('send at least 100 mojos the following address, and the program will');
   print('send the coin with memo on your behalf:');
-  print(coinAddress.address);
 
-  print('\nPress any key when coin has been sent');
-  stdin.readLineSync();
+  print('\nPlease indicate your choice:');
+  print('1. Manually send coin with memo');
+  print('2. Have program send coin with memo');
+  String? choice;
+  while (choice != '1' && choice != '2') {
+    stdout.write('> ');
+    choice = stdin.readLineSync()!.trim();
+    if (choice == '1') {
+      print('\nSend a coin with the above memo to the this address:');
+      print(messageAddress.address);
+      print('\nPress any key to continue once you have done so.');
+      stdin.readLineSync();
+    } else if (choice == '2') {
+      print('\nSend at least 100 mojos the following address, and the program will');
+      print('send the coin with memo on your behalf:');
+      print('${coinAddress.address}\n');
 
-  final additionPuzzlehashes = <Puzzlehash>[];
-  var transactionValidated = false;
-  var coins = <Coin>[];
+      print('\nPress any key to continue once you have done so.');
+      stdin.readLineSync();
 
-  while (coins.totalValue < 100) {
-    print('Waiting for coin...');
-    await Future<void>.delayed(const Duration(seconds: 10));
+      final additionPuzzlehashes = <Puzzlehash>[];
+      var transactionValidated = false;
+      var coins = <Coin>[];
 
-    // if transaction hasn't been validated yet, keep checking mempool
-    if (transactionValidated == false) {
-      final mempoolItemsResponse = await fullNode.getAllMempoolItems();
-      mempoolItemsResponse.mempoolItemMap.forEach((key, item) {
-        additionPuzzlehashes.addAll(item.additions.map((addition) => addition.puzzlehash));
-      });
+      while (coins.totalValue < 100) {
+        print('Waiting for coin...');
+        await Future<void>.delayed(const Duration(seconds: 10));
 
-      if (additionPuzzlehashes.contains(coinPuzzlehash) ||
-          additionPuzzlehashes.contains(messagePuzzlehash)) {
-        print('\nThe transaction has been validated and is now in the mempool.\n');
-        transactionValidated = true;
+        // if transaction hasn't been validated yet, keep checking mempool
+        if (transactionValidated == false) {
+          final mempoolItemsResponse = await fullNode.getAllMempoolItems();
+          mempoolItemsResponse.mempoolItemMap.forEach((key, item) {
+            additionPuzzlehashes.addAll(item.additions.map((addition) => addition.puzzlehash));
+          });
+
+          if (additionPuzzlehashes.contains(coinPuzzlehash)) {
+            print('\nThe transaction has been validated and is now in the mempool.\n');
+            transactionValidated = true;
+          }
+        }
+
+        coins = await fullNode.getCoinsByPuzzleHashes(
+          [coinPuzzlehash],
+        );
       }
+
+      print('\nXCH received!');
+
+      final messageSpendBundle = standardWalletService.createSpendBundle(
+        payments: [
+          Payment(50, messagePuzzlehash, memos: <String>[serializedOfferAcceptFile])
+        ],
+        coinsInput: coins,
+        keychain: keychain,
+        fee: 50,
+      );
+
+      await fullNode.pushTransaction(messageSpendBundle);
+
+      print('\nSending coin with memo to message address...\n');
+    } else {
+      print('\nNot a valid choice.');
     }
-
-    coins = await fullNode.getCoinsByPuzzleHashes(
-      [coinPuzzlehash, messagePuzzlehash],
-    );
-  }
-
-  if (coins[0].puzzlehash == coinPuzzlehash) {
-    print('\nXCH received!\n');
-
-    final messageSpendBundle = standardWalletService.createSpendBundle(
-      payments: [
-        Payment(50, messagePuzzlehash, memos: <String>[serializedOfferAcceptFile])
-      ],
-      coinsInput: coins,
-      keychain: keychain,
-      fee: 50,
-    );
-
-    await fullNode.pushTransaction(messageSpendBundle);
-
-    print('Sending coin with memo to message address...');
   }
 
   var offerAcceptFileMemo = await waitForMessageCoin(messagePuzzlehash, fullNode);
@@ -340,7 +370,7 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNode) async {
     deserializedOfferFile = deserializedOfferFile as BtcToXchOfferFile;
     offerAcceptFile = offerAcceptFile as XchToBtcOfferAcceptFile;
 
-    await pushClawbackSpendBundle(
+    await completeXchToBtcExchange(
       amountXch: deserializedOfferFile.requestedAmount.amount,
       requestorPrivateKey: requestorPrivateKey,
       validityTime: validityTime,
@@ -352,7 +382,7 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNode) async {
     deserializedOfferFile = deserializedOfferFile as XchToBtcOfferFile;
     offerAcceptFile = offerAcceptFile as BtcToXchOfferAcceptFile;
 
-    await pushSweepSpendBundle(
+    await completeBtcToXchExchange(
       amountXch: deserializedOfferFile.offeredAmount.amount,
       requestorPrivateKey: requestorPrivateKey,
       validityTime: validityTime,
@@ -393,14 +423,12 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNode) async
   while (deserializedOfferAcceptFile == null) {
     stdout.write('> ');
     try {
-      stdin.lineMode = false;
-      deserializedOfferFile = deserializeCrossChainOfferFile(stdin.readLineSync()!.trim());
-      stdin.lineMode = true;
-      if (deserializedOfferFile.prefix.name == 'ccoffer') {
+      deserializedOfferAcceptFile = deserializeCrossChainOfferFile(stdin.readLineSync()!.trim());
+      if (deserializedOfferAcceptFile.prefix.name == 'ccoffer') {
         print(
           "Wrong offer file type. The prefix should be 'ccoffer_accept,' not 'ccoffer.'",
         );
-        deserializedOfferFile = null;
+        deserializedOfferAcceptFile = null;
       }
     } catch (e) {
       print('\nPlease enter a valid cross chain offer accept file:');
@@ -422,7 +450,7 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNode) async
           deserializedOfferFile = deserializedOfferFile as XchToBtcOfferFile;
           deserializedOfferAcceptFile = deserializedOfferAcceptFile as BtcToXchOfferAcceptFile;
 
-          await pushClawbackSpendBundle(
+          await completeXchToBtcExchange(
             amountXch: deserializedOfferFile.offeredAmount.amount,
             requestorPrivateKey: requestorPrivateKey,
             validityTime: deserializedOfferAcceptFile.validityTime,
@@ -434,7 +462,7 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNode) async
           deserializedOfferFile = deserializedOfferFile as BtcToXchOfferFile;
           deserializedOfferAcceptFile = deserializedOfferAcceptFile as XchToBtcOfferAcceptFile;
 
-          await pushSweepSpendBundle(
+          await completeBtcToXchExchange(
             amountXch: deserializedOfferFile.requestedAmount.amount,
             requestorPrivateKey: requestorPrivateKey,
             validityTime: deserializedOfferAcceptFile.validityTime,
@@ -451,7 +479,7 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNode) async
           deserializedOfferFile = deserializedOfferFile as BtcToXchOfferFile;
           deserializedOfferAcceptFile = deserializedOfferAcceptFile as XchToBtcOfferAcceptFile;
 
-          await pushClawbackSpendBundle(
+          await completeXchToBtcExchange(
             amountXch: deserializedOfferFile.requestedAmount.amount,
             requestorPrivateKey: requestorPrivateKey,
             validityTime: deserializedOfferAcceptFile.validityTime,
@@ -463,7 +491,7 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNode) async
           deserializedOfferFile = deserializedOfferFile as XchToBtcOfferFile;
           deserializedOfferAcceptFile = deserializedOfferAcceptFile as BtcToXchOfferAcceptFile;
 
-          await pushSweepSpendBundle(
+          await completeBtcToXchExchange(
             amountXch: deserializedOfferFile.offeredAmount.amount,
             requestorPrivateKey: requestorPrivateKey,
             validityTime: deserializedOfferAcceptFile.validityTime,
@@ -564,7 +592,7 @@ Future<List<Coin>> waitForEscrowCoins({
   return escrowCoins;
 }
 
-Future<void> pushSweepSpendBundle({
+Future<void> completeBtcToXchExchange({
   required double amountXch,
   required PrivateKey requestorPrivateKey,
   required int validityTime,
@@ -576,11 +604,17 @@ Future<void> pushSweepSpendBundle({
 
   final escrowPuzzlehash = btcToXchService.generateEscrowPuzzlehash(
     requestorPrivateKey: requestorPrivateKey,
+    clawbackDelaySeconds: validityTime,
     sweepPaymentHash: paymentHash,
     fulfillerPublicKey: fulfillerPublicKey,
   );
 
   final amountMojos = (amountXch * 1e12).toInt();
+
+  print('\nYour counter party should be sending XCH to the following escrow address:');
+  print(Address.fromContext(escrowPuzzlehash).address);
+  print('\nPress any key to start waiting for the XCH from your counter party.');
+  stdin.readLineSync();
 
   final escrowCoins = await waitForEscrowCoins(
     amountMojos: amountMojos,
@@ -589,16 +623,14 @@ Future<void> pushSweepSpendBundle({
   );
 
   print('\nPlease paste the following lightning invoice into your BTC wallet and pay it.');
-  print('Note that you must use a wallet that supports preimage reveal, such as Muun..');
-  print(paymentRequest);
-  print('\nAfter you haev done so, you can find your lightning payment request');
+  print('Note that you must use a wallet that supports preimage reveal, such as Muun.');
+  print(paymentRequest.paymentRequest);
+  print('\nAfter you have done so, you can find your lightning payment request');
   print('preimage by navigating to transaction history in your lightning wallet,');
   print('clicking on the transaction, and viewing the payment details.');
-  print('\nPaste in the preimage below');
+  print('\nPaste in the preimage below.');
 
   Bytes? preimage;
-  Puzzlehash? sweepPuzzlehash;
-  SpendBundle? sweepSpendBundle;
 
   while (preimage == null) {
     stdout.write('> ');
@@ -606,20 +638,7 @@ Future<void> pushSweepSpendBundle({
 
     try {
       if (preimageInput.hexToBytes().sha256Hash() == paymentRequest.tags.paymentHash) {
-        final preimage = preimageInput.hexToBytes();
-
-        print('\nPlease enter the address where you want to receive the XCH:');
-        sweepPuzzlehash = getRequestorPuzzlehash();
-
-        sweepSpendBundle = btcToXchService.createSweepSpendBundle(
-          payments: [Payment(escrowCoins.totalValue, sweepPuzzlehash)],
-          coinsInput: escrowCoins,
-          requestorPrivateKey: requestorPrivateKey,
-          clawbackDelaySeconds: validityTime,
-          sweepPaymentHash: paymentHash,
-          sweepPreimage: preimage,
-          fulfillerPublicKey: fulfillerPublicKey,
-        );
+        preimage = preimageInput.hexToBytes();
       } else {
         print("\nCouldn't verify input as preimage. Please try again.");
       }
@@ -628,18 +647,31 @@ Future<void> pushSweepSpendBundle({
     }
   }
 
+  print('\nPlease enter the address where you want to receive the XCH:');
+  final sweepPuzzlehash = getRequestorPuzzlehash();
+
+  final sweepSpendBundle = btcToXchService.createSweepSpendBundle(
+    payments: [Payment(escrowCoins.totalValue, sweepPuzzlehash)],
+    coinsInput: escrowCoins,
+    requestorPrivateKey: requestorPrivateKey,
+    clawbackDelaySeconds: validityTime,
+    sweepPaymentHash: paymentHash,
+    sweepPreimage: preimage,
+    fulfillerPublicKey: fulfillerPublicKey,
+  );
+
   print('\nPushing spend bundle to sweep XCH to your address...');
-  await generateSpendBundleFile(sweepSpendBundle!);
+  await generateSpendBundleFile(sweepSpendBundle);
   try {
     await fullNode.pushTransaction(sweepSpendBundle);
-    await verifyTransaction(escrowCoins, sweepPuzzlehash!, fullNode);
+    await verifyTransaction(escrowCoins, sweepPuzzlehash, fullNode);
   } catch (e) {
     print('\nTRANSACTION FAILED. The spend bundle was rejected. You may have responded');
     print('after the agreed upon expiration time.');
   }
 }
 
-Future<void> pushClawbackSpendBundle({
+Future<void> completeXchToBtcExchange({
   required double amountXch,
   required PrivateKey requestorPrivateKey,
   required int validityTime,
@@ -649,14 +681,18 @@ Future<void> pushClawbackSpendBundle({
 }) async {
   final paymentHash = paymentRequest.tags.paymentHash!;
 
-  final escrowPuzzlehash = btcToXchService.generateEscrowPuzzlehash(
+  final escrowPuzzlehash = xchToBtcService.generateEscrowPuzzlehash(
     requestorPrivateKey: requestorPrivateKey,
+    clawbackDelaySeconds: validityTime,
     sweepPaymentHash: paymentRequest.tags.paymentHash!,
     fulfillerPublicKey: fulfillerPublicKey,
   );
 
-  print('\n Please send $amountXch XCH to the following address:');
+  print('\nPlease send $amountXch XCH to the following escrow address:');
   print(escrowPuzzlehash.toAddressWithContext().address);
+
+  print('\nPress any key to continue once you have done so.');
+  stdin.readLineSync();
 
   final amountMojos = (amountXch * 1e12).toInt();
 
@@ -678,9 +714,14 @@ Future<void> pushClawbackSpendBundle({
     fulfillerPublicKey: fulfillerPublicKey,
   );
 
+  final validityTimeMinutes = (validityTime / 60).round();
+
+  print('\nAfter $validityTimeMinutes, you may claw back your XCH if your counter');
+  print('party does not pay the lightning invoice.');
+
   await confirmClawback(
     clawbackSpendBundle: clawbackSpendBundle,
-    clawbackDelayMinutes: (validityTime / 60).round(),
+    clawbackDelayMinutes: validityTimeMinutes,
     escrowCoins: escrowCoins,
     clawbackPuzzlehash: clawbackPuzzlehash,
     fullNode: fullNode,
