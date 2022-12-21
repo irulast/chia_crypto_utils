@@ -51,13 +51,13 @@ CrossChainOfferFile deserializeCrossChainOfferFile(String serializedOfferFile) {
       deserializedOfferFile = XchToBtcOfferFile.fromJson(json);
       break;
     case CrossChainOfferFileType.xchToBtcAccept:
-      deserializedOfferFile = XchToBtcAcceptOfferFile.fromJson(json);
+      deserializedOfferFile = XchToBtcOfferAcceptFile.fromJson(json);
       break;
     case CrossChainOfferFileType.btcToXch:
       deserializedOfferFile = BtcToXchOfferFile.fromJson(json);
       break;
     case CrossChainOfferFileType.btcToXchAccept:
-      deserializedOfferFile = BtcToXchAcceptOfferFile.fromJson(json);
+      deserializedOfferFile = BtcToXchOfferAcceptFile.fromJson(json);
       break;
   }
 

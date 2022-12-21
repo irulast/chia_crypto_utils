@@ -10,9 +10,9 @@ void main() {
     final privateKey =
         PrivateKey.fromHex('308f34305ed545c7b6bdefe9fff88176dc3b1a68c40f9065e2cf24c98bf6a4e1');
 
-    const offeredAmount = ExchangeAmount(type: ExchangeAmountType.XCH, value: 1000);
+    const offeredAmount = ExchangeAmount(type: ExchangeAmountType.XCH, amount: 1000);
 
-    const requestedAmount = ExchangeAmount(type: ExchangeAmountType.BTC, value: 1);
+    const requestedAmount = ExchangeAmount(type: ExchangeAmountType.BTC, amount: 1);
 
     const messageAddress =
         Address('xch1m29jusdya59y5g3qhsqqd2tqwn0kgh2fg8ux7xt9x4vzs7927rmqmhsu02');

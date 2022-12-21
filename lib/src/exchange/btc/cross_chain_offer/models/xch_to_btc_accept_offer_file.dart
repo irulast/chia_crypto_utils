@@ -3,8 +3,8 @@ import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cros
 import 'package:chia_crypto_utils/src/exchange/btc/models/lightning_payment_request.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_payment_request.dart';
 
-class XchToBtcAcceptOfferFile implements CrossChainOfferFile {
-  XchToBtcAcceptOfferFile({
+class XchToBtcOfferAcceptFile implements CrossChainOfferFile {
+  XchToBtcOfferAcceptFile({
     required this.validityTime,
     required this.publicKey,
     required this.lightningPaymentRequest,
@@ -26,8 +26,8 @@ class XchToBtcAcceptOfferFile implements CrossChainOfferFile {
         }
       };
 
-  factory XchToBtcAcceptOfferFile.fromJson(Map<String, dynamic> json) {
-    return XchToBtcAcceptOfferFile(
+  factory XchToBtcOfferAcceptFile.fromJson(Map<String, dynamic> json) {
+    return XchToBtcOfferAcceptFile(
       validityTime: json['validity_time'] as int,
       publicKey: JacobianPoint.fromHexG1(json['public_key'] as String),
       lightningPaymentRequest: decodeLightningPaymentRequest(
