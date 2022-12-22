@@ -44,6 +44,8 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNode) async {
   String? choice;
   ExchangeAmountType? offeredAmountType;
   ExchangeAmountType? requestedAmountType;
+  String? offeredDenomination;
+  String? requestedDenomination;
 
   while (choice != '1' && choice != '2') {
     stdout.write('> ');
@@ -52,34 +54,56 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNode) async {
     if (choice == '1') {
       offeredAmountType = ExchangeAmountType.XCH;
       requestedAmountType = ExchangeAmountType.BTC;
+      offeredDenomination = 'mojos';
+      requestedDenomination = 'satoshis';
     } else if (choice == '2') {
       offeredAmountType = ExchangeAmountType.BTC;
       requestedAmountType = ExchangeAmountType.XCH;
+      offeredDenomination = 'satoshis';
+      requestedDenomination = 'satoshis';
     } else {
       print('\nNot a valid choice.');
     }
   }
 
-  print('\nHow much ${offeredAmountType!.name} are you offering?');
-  double? offeredAmountValue;
-  while (offeredAmountValue == null) {
+  print(
+    '\nHow much ${offeredAmountType!.name} are you offering in terms of $offeredDenomination?',
+  );
+  int? offeredAmountInput;
+  while (offeredAmountInput == null) {
     stdout.write('> ');
     try {
-      offeredAmountValue = double.parse(stdin.readLineSync()!.trim());
+      offeredAmountInput = int.parse(stdin.readLineSync()!.trim());
     } catch (e) {
       print('\nPlease enter the amount of ${offeredAmountType.name} being exchanged:');
     }
   }
 
-  print('\nHow much ${requestedAmountType!.name} are you requesting in exchange?');
-  double? requestedAmountValue;
-  while (requestedAmountValue == null) {
+  double? offeredAmountValue;
+  if (offeredDenomination == 'mojos') {
+    offeredAmountValue = offeredAmountInput / 1e12;
+  } else {
+    offeredAmountValue = offeredAmountInput / 1e8;
+  }
+
+  print(
+    '\nHow much ${requestedAmountType!.name} are you requesting in exchange in terms of $requestedDenomination?',
+  );
+  int? requestedAmountInput;
+  while (requestedAmountInput == null) {
     stdout.write('> ');
     try {
-      requestedAmountValue = double.parse(stdin.readLineSync()!.trim());
+      requestedAmountInput = int.parse(stdin.readLineSync()!.trim());
     } catch (e) {
       print('\nPlease enter the amount of ${requestedAmountType.name} being exchanged:');
     }
+  }
+
+  double? requestedAmountValue;
+  if (requestedDenomination == 'mojos') {
+    requestedAmountValue = requestedAmountInput / 1e12;
+  } else {
+    requestedAmountValue = requestedAmountInput / 1e8;
   }
 
   print('\nEnter an XCH address for interested parties to send message coins to.');
@@ -93,24 +117,25 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNode) async {
     }
   }
 
-  print('\nEnter when you want the offer to expire as a unix epoch timestamp:');
-  int? validityTime;
-  while (validityTime == null || validityTime < (DateTime.now().millisecondsSinceEpoch / 1000)) {
+  print('\nEnter how long you want this offer to be valid for in hours:');
+  int? validityTimeHours;
+  while (validityTimeHours == null) {
     stdout.write('> ');
     try {
-      validityTime = int.parse(stdin.readLineSync()!.trim());
-      if (validityTime < (DateTime.now().millisecondsSinceEpoch / 1000)) {
-        print('\nPlease enter a unix epoch timestamp greater than the current time:');
-      }
+      validityTimeHours = int.parse(stdin.readLineSync()!.trim());
     } catch (e) {
-      print('\nPlease enter a valid unix epoch timestamp:');
+      print('\nPlease enter the number of hours this offer will be valid for:');
     }
   }
+
+  final currentUnixTimeStamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  final validityTime = currentUnixTimeStamp + (validityTimeHours * 60);
 
   CrossChainOfferFile? offerFile;
 
   if (requestedAmountType == ExchangeAmountType.BTC) {
-    print('\nCreate a lightning payment request for $requestedAmountValue BTC and paste it here:');
+    print(
+        '\nCreate a lightning payment request for $requestedAmountInput satoshis and paste it here:');
     LightningPaymentRequest? paymentRequest;
     while (paymentRequest == null) {
       stdout.write('> ');
@@ -248,7 +273,8 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNode) async {
     messageAddress = deserializedOfferFile.messageAddress;
 
     print(
-        '\nCreate a lightning payment request for ${deserializedOfferFile.offeredAmount.amount} BTC and paste it here:');
+      '\nCreate a lightning payment request for ${deserializedOfferFile.offeredAmount.amount * 1e8} satoshis and paste it here:',
+    );
     LightningPaymentRequest? paymentRequest;
     while (paymentRequest == null) {
       stdout.write('> ');
