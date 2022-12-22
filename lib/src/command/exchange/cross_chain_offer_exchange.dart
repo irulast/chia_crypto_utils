@@ -5,6 +5,7 @@ import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/dexie/dexie.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_accept_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_offer_file.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_accept_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/exchange_amount.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_accept_offer_file.dart';
@@ -187,8 +188,8 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   print('file to arrive at the address you supplied.');
   stdin.readLineSync();
 
-  final serializedOfferAcceptFile = await waitForMessageCoin(messagePuzzlehash);
-  final deserializedOfferAcceptFile = deserializeCrossChainOfferFile(serializedOfferAcceptFile);
+  final offerAcceptFileMemo = await waitForMessageCoin(messagePuzzlehash, serializedOfferFile);
+  final deserializedOfferAcceptFile = deserializeCrossChainOfferFile(offerAcceptFileMemo);
 
   await completeMakeOfferSide(
     offerFile: offerFile,
@@ -242,7 +243,9 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
     }
   }
 
-  CrossChainOfferFile? offerAcceptFile;
+  final acceptedOfferHash = Bytes.encodeFromString(offerFile!).sha256Hash();
+
+  CrossChainOfferAcceptFile? offerAcceptFile;
   Address? messageAddress;
 
   if (deserializedOfferFile.type == CrossChainOfferFileType.btcToXch) {
@@ -268,6 +271,7 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
       validityTime: validityTime,
       publicKey: requestorPublicKey,
       lightningPaymentRequest: paymentRequest,
+      acceptedOfferHash: acceptedOfferHash,
     );
   } else {
     deserializedOfferFile = deserializedOfferFile as XchToBtcOfferFile;
@@ -277,13 +281,14 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
     offerAcceptFile = BtcToXchOfferAcceptFile(
       validityTime: validityTime,
       publicKey: requestorPublicKey,
+      acceptedOfferHash: acceptedOfferHash,
     );
   }
 
   final serializedOfferAcceptFile =
       serializeCrossChainOfferFile(offerAcceptFile, requestorPrivateKey);
 
-  await generateLogFile(requestorPrivateKey, offerFile!, serializedOfferAcceptFile);
+  await generateLogFile(requestorPrivateKey, offerFile, serializedOfferAcceptFile);
 
   final keychainCoreSecret = KeychainCoreSecret.generate();
   final keychain = WalletKeychain.fromCoreSecret(keychainCoreSecret);
@@ -296,9 +301,9 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
   print(serializedOfferAcceptFile);
   print('\nYou may either send a coin with the above memo yourself, OR you may send at');
   print('least 100 mojos the following address, and the program will send the coin');
-  print('with the memo on your behalf:');
+  print('with the memo on your behalf.');
 
-  print('\nPlease indicate your choice:');
+  print('\nPlease indicate which method you would like to use:');
   print('1. Manually send coin with memo');
   print('2. Have program send coin with memo');
   String? choice;
@@ -363,12 +368,7 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
     }
   }
 
-  final offerAcceptFileMemo = await waitForMessageCoin(messagePuzzlehash);
-
-  if (offerAcceptFileMemo != serializedOfferAcceptFile) {
-    print('The coin send to the message address has the wrong memo. Please try again.');
-    exit(exitCode);
-  }
+  await waitForMessageCoin(messagePuzzlehash, serializedOfferAcceptFile);
 
   await completeAcceptOfferSide(
     offerFile: deserializedOfferFile,
@@ -455,6 +455,7 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNodeFromUrl
 
 Future<String> waitForMessageCoin(
   Puzzlehash messagePuzzlehash,
+  String serializedCrossChainOfferFile,
 ) async {
   final additionPuzzlehashes = <Puzzlehash>[];
   var transactionValidated = false;
@@ -484,12 +485,24 @@ Future<String> waitForMessageCoin(
     for (final coin in coins) {
       final parentCoin = await fullNode.getCoinById(coin.parentCoinInfo);
       final coinSpend = await fullNode.getCoinSpend(parentCoin!);
-
       final memos = await coinSpend!.memoStrings;
 
       for (final memo in memos) {
         if (memo.startsWith('ccoffer_accept')) {
-          return memo;
+          if (serializedCrossChainOfferFile.startsWith('ccoffer_accept')) {
+            // in the case of the sender: the memo is the correct one if it matches the serialized offer accept file
+
+            if (memo == serializedCrossChainOfferFile) return memo;
+          } else {
+            // in the case of the receiver: the memo is the correct one if the accepted offer hash matches the hash of the original offer file
+            try {
+              final deserializedMemo = deserializeCrossChainOfferFile(memo);
+              if ((deserializedMemo as CrossChainOfferAcceptFile).acceptedOfferHash ==
+                  Bytes.encodeFromString(serializedCrossChainOfferFile).sha256Hash()) return memo;
+            } catch (e) {
+              continue;
+            }
+          }
         }
       }
     }
