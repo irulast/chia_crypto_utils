@@ -6,7 +6,6 @@ import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/exceptions/
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/exceptions/invalid_cross_chain_offer_prefix.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_accept_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_accept_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_accept_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_offer_file.dart';
@@ -17,9 +16,9 @@ String serializeCrossChainOfferFile(CrossChainOfferFile offerFile, PrivateKey pr
   final json = jsonEncode(jsonData);
   final base64EncodedData = base64.encode(utf8.encode(json));
 
-  if (offerFile.publicKey != privateKey.getG1()) {
-    throw FailedSignatureOnOfferFileException();
-  }
+  // if (offerFile.publicKey != privateKey.getG1()) {
+  //   throw FailedSignatureOnOfferFileException();
+  // }
 
   final signature = AugSchemeMPL.sign(privateKey, utf8.encode(base64EncodedData));
   final signedData = utf8.encode('$base64EncodedData.${signature.toHex()}');
@@ -27,13 +26,12 @@ String serializeCrossChainOfferFile(CrossChainOfferFile offerFile, PrivateKey pr
 }
 
 CrossChainOfferFile deserializeCrossChainOfferFile(String serializedOfferFile) {
-  final bech32DecodedOfferFile = bech32Decode(serializedOfferFile);
-
-  final prefix = bech32DecodedOfferFile.hrp;
-
-  if (prefix != 'ccoffer' && prefix != 'ccoffer_accept') {
+  if (!serializedOfferFile.startsWith('ccoffer') &&
+      !serializedOfferFile.startsWith('ccoffer_accept')) {
     throw InvalidCrossChainOfferPrefix();
   }
+
+  final bech32DecodedOfferFile = bech32Decode(serializedOfferFile);
 
   final signedData = utf8.decode(bech32DecodedOfferFile.program);
   final splitString = signedData.split('.');
