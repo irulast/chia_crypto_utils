@@ -363,13 +363,11 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
     }
   }
 
-  var offerAcceptFileMemo = await waitForMessageCoin(messagePuzzlehash);
+  final offerAcceptFileMemo = await waitForMessageCoin(messagePuzzlehash);
 
-  while (offerAcceptFileMemo != serializedOfferAcceptFile) {
+  if (offerAcceptFileMemo != serializedOfferAcceptFile) {
     print('The coin send to the message address has the wrong memo. Please try again.');
-    print('\nPress any key to continue once you have done so.');
-    stdin.readLineSync();
-    offerAcceptFileMemo = await waitForMessageCoin(messagePuzzlehash);
+    exit(exitCode);
   }
 
   await completeAcceptOfferSide(
@@ -478,7 +476,7 @@ Future<String> waitForMessageCoin(
       }
     }
 
-    // check whether coins at message address have a valid ccoffer_accept memo
+    // check whether coins at message address have a ccoffer_accept memo
     final coins = await fullNode.getCoinsByPuzzleHashes(
       [messagePuzzlehash],
     );
