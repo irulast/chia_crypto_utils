@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/dexie/dexie_cross_chain_offers.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/dexie/dexie.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_accept_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_file.dart';
@@ -159,24 +159,27 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNode) async {
 
   await generateLogFile(requestorPrivateKey, serializedOfferFile);
 
-  // print('\nSend serialized offer file to dexie? Y/N');
+  print('\nSend serialized offer file to dexie? Y/N');
 
-  // var confirmation = '';
-  // while (!confirmation.startsWith('y') && !confirmation.startsWith('n')) {
-  //   stdout.write('> ');
-  //   confirmation = stdin.readLineSync()!.trim().toLowerCase();
-  //   if (confirmation.startsWith('y')) {
-  //     final response = await DexieCrossChainOffers().postOffer(serializedOfferFile);
-  //     if (response.success == true) {
-  //     } else {
-  //       print('Post request failed');
-  //     }
-  //   } else if (confirmation.startsWith('n')) {
-  //     continue;
-  //   } else {
-  //     print('\nNot a valid choice.');
-  //   }
-  // }
+  var confirmation = '';
+  while (!confirmation.startsWith('y') && !confirmation.startsWith('n')) {
+    stdout.write('> ');
+    confirmation = stdin.readLineSync()!.trim().toLowerCase();
+    if (confirmation.startsWith('y')) {
+      final response = await Dexie().postOffer(serializedOfferFile);
+      if (response.success == true) {
+        print('\nOffer has been successfully added to dexie. Your offer ID is:');
+        print(response.id);
+      } else {
+        print('Request failed. Please try again.');
+        exit(exitCode);
+      }
+    } else if (confirmation.startsWith('n')) {
+      continue;
+    } else {
+      print('\nNot a valid choice.');
+    }
+  }
 
   print('\nPress any key to start waiting for a message coin with an offer accept');
   print('file to arrive at your indicated message address.');
