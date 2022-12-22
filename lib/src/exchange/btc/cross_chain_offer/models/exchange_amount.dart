@@ -5,12 +5,12 @@ class ExchangeAmount {
   const ExchangeAmount({required this.type, required this.amount});
 
   final ExchangeAmountType type;
-  final double amount;
+  final int amount;
 
   factory ExchangeAmount.fromJson(Map<String, dynamic> json) {
     return ExchangeAmount(
       type: ExchangeAmountType.values.firstWhere((type) => type.name == json['type'] as String),
-      amount: json['amount'] as double,
+      amount: json['amount'] as int,
     );
   }
 
