@@ -582,7 +582,7 @@ Future<void> completeAcceptOfferSide({
       requestorPrivateKey: requestorPrivateKey,
       validityTime: xchToBtcOfferAcceptFile.validityTime,
       paymentRequest: xchToBtcOfferAcceptFile.lightningPaymentRequest,
-      fulfillerPublicKey: xchToBtcOfferAcceptFile.publicKey,
+      fulfillerPublicKey: btcToXchOfferFile.publicKey,
     );
   } else {
     final xchToBtcOfferFile = offerFile as XchToBtcOfferFile;
@@ -593,7 +593,7 @@ Future<void> completeAcceptOfferSide({
       requestorPrivateKey: requestorPrivateKey,
       validityTime: btcToXchOfferAcceptFile.validityTime,
       paymentRequest: xchToBtcOfferFile.lightningPaymentRequest,
-      fulfillerPublicKey: btcToXchOfferAcceptFile.publicKey,
+      fulfillerPublicKey: xchToBtcOfferFile.publicKey,
     );
   }
 }
