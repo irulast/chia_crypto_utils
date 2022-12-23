@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/dexie/dexie.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/exceptions/expired_cross_chain_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_accept_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_accept_file.dart';
@@ -10,7 +11,7 @@ import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cros
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/exchange_amount.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_accept_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/utils/cross_chain_offer_file.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/utils/cross_chain_offer_file_serialization.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/models/lightning_payment_request.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/service/btc_to_xch.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/service/xch_to_btc.dart';
@@ -190,7 +191,7 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
 
   final offerAcceptFileMemo = await waitForMessageCoin(messagePuzzlehash, serializedOfferFile);
 
-  print('A message coin with an offer accept file has arrived:');
+  print('\nA message coin with an offer accept file has arrived:');
   print(offerAcceptFileMemo);
 
   final deserializedOfferAcceptFile = deserializeCrossChainOfferFile(offerAcceptFileMemo!);
@@ -457,7 +458,7 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNodeFromUrl
         // user is accepting offer
         requestorPrivateKey = privateKeyInput;
 
-        await completeMakeOfferSide(
+        await completeAcceptOfferSide(
           offerFile: deserializedOfferFile,
           offerAcceptFile: deserializedOfferAcceptFile,
           requestorPrivateKey: requestorPrivateKey,
@@ -513,6 +514,64 @@ Future<String?> waitForMessageCoin(
       );
       if (offerAcceptFileMemo != null) return offerAcceptFileMemo;
     }
+  }
+}
+
+Future<String?> getOfferAcceptFileMemo(
+  Puzzlehash messagePuzzlehash,
+  String serializedOfferFile,
+  ChiaFullNodeInterface fullNode,
+) async {
+  final coins = await fullNode.getCoinsByPuzzleHashes(
+    [messagePuzzlehash],
+  );
+
+  for (final coin in coins) {
+    final parentCoin = await fullNode.getCoinById(coin.parentCoinInfo);
+    final coinSpend = await fullNode.getCoinSpend(parentCoin!);
+    final memos = await coinSpend!.memoStrings;
+
+    for (final memo in memos) {
+      if (memo.startsWith('ccoffer_accept')) {
+        try {
+          final deserializedMemo =
+              deserializeCrossChainOfferFile(memo) as CrossChainOfferAcceptFile;
+          if (deserializedMemo.acceptedOfferHash ==
+              Bytes.encodeFromString(serializedOfferFile).sha256Hash()) return memo;
+        } catch (e) {
+          continue;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+Future<bool> verifyOfferAcceptFileMemo(
+  Puzzlehash messagePuzzlehash,
+  String serializedOfferAcceptFile,
+  ChiaFullNodeInterface fullNode,
+) async {
+  final coins = await fullNode.getCoinsByPuzzleHashes(
+    [messagePuzzlehash],
+  );
+
+  for (final coin in coins) {
+    final parentCoin = await fullNode.getCoinById(coin.parentCoinInfo);
+    final coinSpend = await fullNode.getCoinSpend(parentCoin!);
+    final memos = await coinSpend!.memoStrings;
+
+    for (final memo in memos) {
+      if (memo == serializedOfferAcceptFile) return true;
+    }
+  }
+
+  return false;
+}
+
+void checkValidity(CrossChainOfferFile offerFile) {
+  if (offerFile.validityTime < (DateTime.now().millisecondsSinceEpoch / 1000)) {
+    throw ExpiredCrossChainOfferFile();
   }
 }
 

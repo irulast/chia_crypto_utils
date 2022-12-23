@@ -2,12 +2,10 @@ import 'dart:convert';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/exceptions/bad_signature_on_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/exceptions/expired_cross_chain_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/exceptions/failed_signature_on_offer_file_exception.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/exceptions/invalid_cross_chain_offer_prefix.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_accept_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_accept_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_accept_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_offer_file.dart';
@@ -70,62 +68,4 @@ CrossChainOfferFile deserializeCrossChainOfferFile(String serializedOfferFile) {
   }
 
   return deserializedOfferFile;
-}
-
-Future<String?> getOfferAcceptFileMemo(
-  Puzzlehash messagePuzzlehash,
-  String serializedOfferFile,
-  ChiaFullNodeInterface fullNode,
-) async {
-  final coins = await fullNode.getCoinsByPuzzleHashes(
-    [messagePuzzlehash],
-  );
-
-  for (final coin in coins) {
-    final parentCoin = await fullNode.getCoinById(coin.parentCoinInfo);
-    final coinSpend = await fullNode.getCoinSpend(parentCoin!);
-    final memos = await coinSpend!.memoStrings;
-
-    for (final memo in memos) {
-      if (memo.startsWith('ccoffer_accept')) {
-        try {
-          final deserializedMemo =
-              deserializeCrossChainOfferFile(memo) as CrossChainOfferAcceptFile;
-          if (deserializedMemo.acceptedOfferHash ==
-              Bytes.encodeFromString(serializedOfferFile).sha256Hash()) return memo;
-        } catch (e) {
-          continue;
-        }
-      }
-    }
-  }
-  return null;
-}
-
-Future<bool> verifyOfferAcceptFileMemo(
-  Puzzlehash messagePuzzlehash,
-  String serializedOfferAcceptFile,
-  ChiaFullNodeInterface fullNode,
-) async {
-  final coins = await fullNode.getCoinsByPuzzleHashes(
-    [messagePuzzlehash],
-  );
-
-  for (final coin in coins) {
-    final parentCoin = await fullNode.getCoinById(coin.parentCoinInfo);
-    final coinSpend = await fullNode.getCoinSpend(parentCoin!);
-    final memos = await coinSpend!.memoStrings;
-
-    for (final memo in memos) {
-      if (memo == serializedOfferAcceptFile) return true;
-    }
-  }
-
-  return false;
-}
-
-void checkValidity(CrossChainOfferFile offerFile) {
-  if (offerFile.validityTime < (DateTime.now().millisecondsSinceEpoch / 1000)) {
-    throw ExpiredCrossChainOfferFile();
-  }
 }
