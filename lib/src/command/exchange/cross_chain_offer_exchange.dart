@@ -481,7 +481,16 @@ Future<String?> waitForMessageCoin(
       }
     }
 
-    if (serializedCrossChainOfferFile.startsWith('ccoffer')) {
+    if (serializedCrossChainOfferFile.startsWith('ccoffer_accept')) {
+      // in case of message coin sender: stop waiting once a coin with the right memo arrives at
+      // the message address
+      final verification = await verifyOfferAcceptFileMemo(
+        messagePuzzlehash,
+        serializedCrossChainOfferFile,
+        fullNode,
+      );
+      if (verification == true) return null;
+    } else {
       // in case of message coin receiver: check if any coins at message address have a memo
       // that can be deserialized in an accept offer file with an accepted offer hash that
       // matches the original offer file
@@ -491,15 +500,6 @@ Future<String?> waitForMessageCoin(
         fullNode,
       );
       if (offerAcceptFileMemo != null) return offerAcceptFileMemo;
-    } else {
-      // in case of message coin sender: stop waiting once a coin with the right memo arrives at
-      // the message address
-      final verification = await verifyOfferAcceptFileMemo(
-        messagePuzzlehash,
-        serializedCrossChainOfferFile,
-        fullNode,
-      );
-      if (verification == true) return null;
     }
   }
 }
