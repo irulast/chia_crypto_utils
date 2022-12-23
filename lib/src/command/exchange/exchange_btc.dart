@@ -520,10 +520,10 @@ Future<void> confirmClawback({
         await fullNode.pushTransaction(clawbackSpendBundle);
         await verifyTransaction(escrowCoins, clawbackPuzzlehash, fullNode);
       } catch (e) {
-        print('\nTRANSACTION FAILED. The spend bundle was rejected. If the clawback delay period');
-        print("hasn't passed yet, keep waiting and manually push the transaction using the");
-        print('generated file. If it has, your counter party may have already claimed funds');
-        print('from the escrow address.');
+        print('\nTRANSACTION FAILED. The spend bundle was rejected. If the clawback delay');
+        print("period hasn't passed yet, keep waiting and manually push the transaction");
+        print('using the generated file. If it has, your counter party may have already');
+        print('claimed funds from the escrow address.');
       }
     } else if (confirmation.startsWith('n')) {
       print(

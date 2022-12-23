@@ -179,7 +179,8 @@ void main() {
         Address('xch1m29jusdya59y5g3qhsqqd2tqwn0kgh2fg8ux7xt9x4vzs7927rmqmhsu02');
 
     final publicKey = JacobianPoint.fromHexG1(
-        '85a5d0814c02f64fb84f64ccd536fc9607e26bac3c43e0f0e7504506f18c9c48fa841fd6b00ee3214a73caeea7c2879c');
+      '85a5d0814c02f64fb84f64ccd536fc9607e26bac3c43e0f0e7504506f18c9c48fa841fd6b00ee3214a73caeea7c2879c',
+    );
 
     const paymentRequest =
         'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';

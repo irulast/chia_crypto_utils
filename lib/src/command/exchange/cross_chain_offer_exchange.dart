@@ -189,6 +189,10 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   stdin.readLineSync();
 
   final offerAcceptFileMemo = await waitForMessageCoin(messagePuzzlehash, serializedOfferFile);
+
+  print('A message coin with an offer accept file has arrived:');
+  print(offerAcceptFileMemo);
+
   final deserializedOfferAcceptFile = deserializeCrossChainOfferFile(offerAcceptFileMemo!);
 
   await completeMakeOfferSide(
@@ -231,13 +235,16 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
     exit(exitCode);
   }
 
-  print('\nEnter how long you want to allow for the exchange to complete before it');
-  print('is aborted in terms of minutes.');
+  print('\nEnter how many minutes you want to allow for the exchange to complete before');
+  print('it is aborted. Must be at least 10 minutes.');
   int? validityTime;
-  while (validityTime == null) {
+  while (validityTime == null || validityTime < 600) {
     stdout.write('> ');
     try {
       validityTime = int.parse(stdin.readLineSync()!.trim()) * 60;
+      if (validityTime < 600) {
+        print('\nMust be at least 10 minutes.');
+      }
     } catch (e) {
       print(
         '\nPlease enter a valid duration in terms of minutes:',
@@ -353,11 +360,15 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
 
       print('\nXCH received!');
 
+      final parentCoin = await fullNode.getCoinById(coins[0].parentCoinInfo);
+      final changePuzzlehash = parentCoin!.puzzlehash;
+
       final messageSpendBundle = standardWalletService.createSpendBundle(
         payments: [
           Payment(50, messagePuzzlehash, memos: <String>[serializedOfferAcceptFile])
         ],
         coinsInput: coins,
+        changePuzzlehash: changePuzzlehash,
         keychain: keychain,
         fee: 50,
       );
@@ -371,6 +382,7 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
   }
 
   await waitForMessageCoin(messagePuzzlehash, serializedOfferAcceptFile);
+  print('\nYour message coin has arrived!');
 
   await completeAcceptOfferSide(
     offerFile: deserializedOfferFile,
@@ -695,7 +707,8 @@ Future<void> completeXchToBtcExchange({
     fulfillerPublicKey: fulfillerPublicKey,
   );
 
-  print('\nPlease send $amountMojos mojos to the following escrow address:');
+  print('\nPlease send $amountMojos mojos to the following escrow address to complete');
+  print('the exchange:');
   print(escrowPuzzlehash.toAddressWithContext().address);
 
   print('\nPress any key to continue once you have done so.');
@@ -714,14 +727,15 @@ Future<void> completeXchToBtcExchange({
     payments: [Payment(escrowCoins.totalValue, clawbackPuzzlehash)],
     coinsInput: escrowCoins,
     requestorPrivateKey: requestorPrivateKey,
+    clawbackDelaySeconds: validityTime,
     sweepPaymentHash: paymentHash,
     fulfillerPublicKey: fulfillerPublicKey,
   );
 
-  final validityTimeMinutes = (validityTime / 60).round();
+  final validityTimeMinutes = validityTime ~/ 60;
 
-  print('\nAfter $validityTimeMinutes, you may claw back your XCH if your counter');
-  print('party does not pay the lightning invoice.');
+  print('\nAfter $validityTimeMinutes minutes, you may claw back your XCH if your counter party');
+  print('does not pay the lightning invoice by then.');
 
   await confirmClawback(
     clawbackSpendBundle: clawbackSpendBundle,

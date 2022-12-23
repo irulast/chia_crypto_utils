@@ -6,7 +6,7 @@ class BtcToXchService {
 
   Puzzlehash generateEscrowPuzzlehash({
     required PrivateKey requestorPrivateKey,
-    int clawbackDelaySeconds = 3600,
+    required int clawbackDelaySeconds,
     required Bytes sweepPaymentHash,
     required JacobianPoint fulfillerPublicKey,
   }) {
@@ -27,7 +27,7 @@ class BtcToXchService {
     required List<CoinPrototype> coinsInput,
     required PrivateKey requestorPrivateKey,
     Puzzlehash? changePuzzlehash,
-    int clawbackDelaySeconds = 3600,
+    required int clawbackDelaySeconds,
     required Bytes sweepPaymentHash,
     required JacobianPoint fulfillerPublicKey,
     required Bytes sweepPreimage,
@@ -57,7 +57,7 @@ class BtcToXchService {
     required List<CoinPrototype> coinsInput,
     required PrivateKey requestorPrivateKey,
     Puzzlehash? changePuzzlehash,
-    int clawbackDelaySeconds = 3600,
+    required int clawbackDelaySeconds,
     required Bytes sweepPaymentHash,
     required PrivateKey fulfillerPrivateKey,
     int fee = 0,

@@ -53,9 +53,13 @@ Future<void> main() async {
     final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
+    // user inputs how long to allow for exchange before funds can be clawed back
+    const clawbackDelaySeconds = 3600;
+
     // generate address for XCH holder to send funds to
     final escrowPuzzlehash = xchToBtcService.generateEscrowPuzzlehash(
       requestorPrivateKey: xchHolderPrivateKey,
+      clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: btcHolderPublicKey,
     );
@@ -78,11 +82,11 @@ Future<void> main() async {
     final clawbackPuzzlehash = xchHolder.firstPuzzlehash;
 
     // the clawback spend bundle will fail if pushed before the clawback delay period passes
-    // the default delay is 1 hour
     final clawbackSpendBundle = xchToBtcService.createClawbackSpendBundle(
       payments: [Payment(escrowCoins.totalValue, clawbackPuzzlehash)],
       coinsInput: escrowCoins,
       requestorPrivateKey: xchHolderPrivateKey,
+      clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash,
       fulfillerPublicKey: btcHolderPublicKey,
     );
@@ -199,9 +203,13 @@ Future<void> main() async {
     final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
+    // user inputs how long to allow for exchange before funds can be clawed back
+    const clawbackDelaySeconds = 3600;
+
     // generate address for XCH holder to send funds to
     final escrowPuzzlehash = xchToBtcService.generateEscrowPuzzlehash(
       requestorPrivateKey: xchHolderPrivateKey,
+      clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: btcHolderPublicKey,
     );
@@ -235,6 +243,7 @@ Future<void> main() async {
       payments: [Payment(escrowCoins.totalValue, clawbackPuzzlehash)],
       coinsInput: escrowCoins,
       requestorPrivateKey: xchHolderPrivateKey,
+      clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash,
       fulfillerPrivateKey: btcHolderPrivateKey,
     );
@@ -271,9 +280,13 @@ Future<void> main() async {
     final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
+    // user inputs how long to allow for exchange before funds can be clawed back
+    const clawbackDelaySeconds = 3600;
+
     // generate address for XCH holder to send funds to
     final escrowPuzzlehash = xchToBtcService.generateEscrowPuzzlehash(
       requestorPrivateKey: xchHolderPrivateKey,
+      clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: btcHolderPublicKey,
     );
@@ -304,6 +317,7 @@ Future<void> main() async {
           payments: [Payment(escrowCoins.totalValue, clawbackPuzzlehash)],
           coinsInput: escrowCoins,
           requestorPrivateKey: xchHolderPrivateKey,
+          clawbackDelaySeconds: clawbackDelaySeconds,
           sweepPaymentHash: sweepPaymentHash,
           fulfillerPrivateKey: incorrectPrivateKey,
         );
@@ -336,9 +350,13 @@ Future<void> main() async {
     final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
+    // user inputs how long to allow for exchange before funds can be clawed back
+    const clawbackDelaySeconds = 3600;
+
     // generate address for XCH holder to send funds to
     final escrowPuzzlehash = btcToXchService.generateEscrowPuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
+      clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: xchHolderPublicKey,
     );
@@ -371,6 +389,7 @@ Future<void> main() async {
       payments: [Payment(escrowCoins.totalValue, sweepPuzzlehash)],
       coinsInput: escrowCoins,
       requestorPrivateKey: btcHolderPrivateKey,
+      clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash,
       sweepPreimage: sweepPreimage,
       fulfillerPublicKey: xchHolderPublicKey,
@@ -410,9 +429,13 @@ Future<void> main() async {
     final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
+    // user inputs how long to allow for exchange before funds can be clawed back
+    const clawbackDelaySeconds = 3600;
+
     // generate address for XCH holder to send funds to
     final escrowPuzzlehash = btcToXchService.generateEscrowPuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
+      clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: xchHolderPublicKey,
     );
@@ -443,6 +466,7 @@ Future<void> main() async {
           payments: [Payment(escrowCoins.totalValue, sweepPuzzlehash)],
           coinsInput: escrowCoins,
           requestorPrivateKey: btcHolderPrivateKey,
+          clawbackDelaySeconds: clawbackDelaySeconds,
           sweepPaymentHash: sweepPaymentHash,
           sweepPreimage: incorrectPreimage,
           fulfillerPublicKey: xchHolderPublicKey,
@@ -474,9 +498,13 @@ Future<void> main() async {
     final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
+    // user inputs how long to allow for exchange before funds can be clawed back
+    const clawbackDelaySeconds = 3600;
+
     // generate address for XCH holder to send funds to
     final escrowPuzzlehash = btcToXchService.generateEscrowPuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
+      clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: xchHolderPublicKey,
     );
@@ -508,6 +536,7 @@ Future<void> main() async {
       payments: [Payment(escrowCoins.totalValue, sweepPuzzlehash)],
       coinsInput: escrowCoins,
       requestorPrivateKey: btcHolderPrivateKey,
+      clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash,
       fulfillerPrivateKey: xchHolderPrivateKey,
     );
@@ -546,9 +575,13 @@ Future<void> main() async {
     final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
+    // user inputs how long to allow for exchange before funds can be clawed back
+    const clawbackDelaySeconds = 3600;
+
     // generate address for XCH holder to send funds to
     final escrowPuzzlehash = btcToXchService.generateEscrowPuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
+      clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: xchHolderPublicKey,
     );
@@ -579,6 +612,7 @@ Future<void> main() async {
           payments: [Payment(escrowCoins.totalValue, sweepPuzzlehash)],
           coinsInput: escrowCoins,
           requestorPrivateKey: btcHolderPrivateKey,
+          clawbackDelaySeconds: clawbackDelaySeconds,
           sweepPaymentHash: sweepPaymentHash,
           fulfillerPrivateKey: incorrectPrivateKey,
         );
@@ -677,9 +711,13 @@ Future<void> main() async {
     final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
+    // users input how long to allow for exchange before funds can be clawed back
+    const clawbackDelaySeconds = 3600;
+
     // escrow address is generated on BTC holder's side
     final btcHolderescrowPuzzlehash = btcToXchService.generateEscrowPuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
+      clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: xchHolderWrongPublicKey,
     );
@@ -687,6 +725,7 @@ Future<void> main() async {
     // escrow address is generated on XCH holder's side
     final xchHolderescrowPuzzlehash = xchToBtcService.generateEscrowPuzzlehash(
       requestorPrivateKey: xchHolderPrivateKey,
+      clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash,
       fulfillerPublicKey: btcHolderPublicKey,
     );
