@@ -59,3 +59,12 @@ Use the below command to initiate an atomic swap between XCH and BTC. You must c
 dart bin/chia_crypto_utils.dart Exchange-Btc --full-node-url <FULL_NODE_URL>
 dart bin/chia_crypto_utils.dart Exchange-Btc --full-node-url <FULL_NODE_URL> --cert-path <PATH_TO_CERT_FILE> --key-path <PATH_TO_KEY_FILE>
 ```
+
+## Make Cross Chain Offer File Exchange 
+
+Use the below command to create a new cross chain offer (ccoffer) file or accept an existing one by creating a ccoffer_accept file. These ccoffer files may be posted to Dexie.
+
+```console
+dart bin/chia_crypto_utils.dart Make-CrossChainOfferExchange --full-node-url <FULL_NODE_URL>
+dart bin/chia_crypto_utils.dart Make-CrossChainOfferExchange --full-node-url <FULL_NODE_URL> --cert-path <PATH_TO_CERT_FILE> --key-path <PATH_TO_KEY_FILE>
+```
