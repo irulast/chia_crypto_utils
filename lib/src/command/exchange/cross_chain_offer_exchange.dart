@@ -766,8 +766,8 @@ Future<void> completeXchToBtcExchange({
     fulfillerPublicKey: fulfillerPublicKey,
   );
 
-  print('\nPlease send $amountMojos mojos to the following escrow address to complete');
-  print('the exchange:');
+  print('\nPlease send $amountMojos mojos to the following escrow address to complete the');
+  print('exchange:');
   print(escrowPuzzlehash.toAddressWithContext().address);
 
   print('\nPress any key to continue once you have done so.');
