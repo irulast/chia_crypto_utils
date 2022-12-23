@@ -10,7 +10,7 @@ import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cros
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/exchange_amount.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_accept_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/utils/cross_chain_offer_file_serialization.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/utils/cross_chain_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/models/lightning_payment_request.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/service/btc_to_xch.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/service/xch_to_btc.dart';
@@ -189,7 +189,7 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   stdin.readLineSync();
 
   final offerAcceptFileMemo = await waitForMessageCoin(messagePuzzlehash, serializedOfferFile);
-  final deserializedOfferAcceptFile = deserializeCrossChainOfferFile(offerAcceptFileMemo);
+  final deserializedOfferAcceptFile = deserializeCrossChainOfferFile(offerAcceptFileMemo!);
 
   await completeMakeOfferSide(
     offerFile: offerFile,
@@ -224,7 +224,9 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
     }
   }
 
-  if (deserializedOfferFile.validityTime < (DateTime.now().millisecondsSinceEpoch / 1000)) {
+  try {
+    checkValidity(deserializedOfferFile);
+  } catch (e) {
     print('\nThis cross chain offer has expired. Try again with a still valid offer.');
     exit(exitCode);
   }
@@ -398,7 +400,9 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNodeFromUrl
     }
   }
 
-  if (deserializedOfferFile.validityTime < (DateTime.now().millisecondsSinceEpoch / 1000)) {
+  try {
+    checkValidity(deserializedOfferFile);
+  } catch (e) {
     print('\nThis cross chain offer has expired. Try again with a still valid offer.');
     exit(exitCode);
   }
@@ -453,7 +457,7 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNodeFromUrl
   }
 }
 
-Future<String> waitForMessageCoin(
+Future<String?> waitForMessageCoin(
   Puzzlehash messagePuzzlehash,
   String serializedCrossChainOfferFile,
 ) async {
@@ -477,34 +481,25 @@ Future<String> waitForMessageCoin(
       }
     }
 
-    // check whether coins at message address have a ccoffer_accept memo
-    final coins = await fullNode.getCoinsByPuzzleHashes(
-      [messagePuzzlehash],
-    );
-
-    for (final coin in coins) {
-      final parentCoin = await fullNode.getCoinById(coin.parentCoinInfo);
-      final coinSpend = await fullNode.getCoinSpend(parentCoin!);
-      final memos = await coinSpend!.memoStrings;
-
-      for (final memo in memos) {
-        if (memo.startsWith('ccoffer_accept')) {
-          if (serializedCrossChainOfferFile.startsWith('ccoffer_accept')) {
-            // in the case of the sender: the memo is the correct one if it matches the serialized offer accept file
-
-            if (memo == serializedCrossChainOfferFile) return memo;
-          } else {
-            // in the case of the receiver: the memo is the correct one if the accepted offer hash matches the hash of the original offer file
-            try {
-              final deserializedMemo = deserializeCrossChainOfferFile(memo);
-              if ((deserializedMemo as CrossChainOfferAcceptFile).acceptedOfferHash ==
-                  Bytes.encodeFromString(serializedCrossChainOfferFile).sha256Hash()) return memo;
-            } catch (e) {
-              continue;
-            }
-          }
-        }
-      }
+    if (serializedCrossChainOfferFile.startsWith('ccoffer')) {
+      // in case of message coin receiver: check if any coins at message address have a memo
+      // that can be deserialized in an accept offer file with an accepted offer hash that
+      // matches the original offer file
+      final offerAcceptFileMemo = await getOfferAcceptFileMemo(
+        messagePuzzlehash,
+        serializedCrossChainOfferFile,
+        fullNode,
+      );
+      if (offerAcceptFileMemo != null) return offerAcceptFileMemo;
+    } else {
+      // in case of message coin sender: stop waiting once a coin with the right memo arrives at
+      // the message address
+      final verification = await verifyOfferAcceptFileMemo(
+        messagePuzzlehash,
+        serializedCrossChainOfferFile,
+        fullNode,
+      );
+      if (verification == true) return null;
     }
   }
 }
