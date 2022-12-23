@@ -16,9 +16,9 @@ String serializeCrossChainOfferFile(CrossChainOfferFile offerFile, PrivateKey pr
   final json = jsonEncode(jsonData);
   final base64EncodedData = base64.encode(utf8.encode(json));
 
-  // if (offerFile.publicKey != privateKey.getG1()) {
-  //   throw FailedSignatureOnOfferFileException();
-  // }
+  if (offerFile.publicKey != privateKey.getG1()) {
+    throw FailedSignatureOnOfferFileException();
+  }
 
   final signature = AugSchemeMPL.sign(privateKey, utf8.encode(base64EncodedData));
   final signedData = utf8.encode('$base64EncodedData.${signature.toHex()}');

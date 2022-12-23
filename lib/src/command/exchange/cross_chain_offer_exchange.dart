@@ -162,7 +162,7 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
 
   await generateLogFile(requestorPrivateKey, serializedOfferFile);
 
-  print('\nSend serialized offer file to dexie? Y/N');
+  print('\nSend serialized offer file to Dexie? Y/N');
 
   var confirmation = '';
   while (!confirmation.startsWith('y') && !confirmation.startsWith('n')) {
@@ -171,7 +171,7 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
     if (confirmation.startsWith('y')) {
       final response = await Dexie().postOffer(serializedOfferFile);
       if (response.success == true) {
-        print('\nOffer has been successfully added to dexie. Your offer ID is:');
+        print('\nOffer has been successfully added to Dexie. Your offer ID is:');
         print(response.id);
       } else {
         print('Request failed. Please try again.');

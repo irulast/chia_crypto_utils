@@ -167,7 +167,7 @@ void main() {
   });
 
   test('should throw exception when trying to sign offer with wrong private key', () {
-    final privateKey =
+    final wrongPrivateKey =
         PrivateKey.fromHex('308f34305ed545c7b6bdefe9fff88176dc3b1a68c40f9065e2cf24c98bf6a4e1');
 
     const offeredAmount = ExchangeAmount(type: ExchangeAmountType.XCH, amount: 1000);
@@ -177,7 +177,7 @@ void main() {
     const messageAddress =
         Address('xch1m29jusdya59y5g3qhsqqd2tqwn0kgh2fg8ux7xt9x4vzs7927rmqmhsu02');
 
-    final wrongPublicKey = JacobianPoint.fromHexG1(
+    final publicKey = JacobianPoint.fromHexG1(
         '85a5d0814c02f64fb84f64ccd536fc9607e26bac3c43e0f0e7504506f18c9c48fa841fd6b00ee3214a73caeea7c2879c');
 
     const paymentRequest =
@@ -192,12 +192,12 @@ void main() {
       requestedAmount: requestedAmount,
       messageAddress: messageAddress,
       validityTime: validityTime,
-      publicKey: wrongPublicKey,
+      publicKey: publicKey,
       lightningPaymentRequest: decodedPaymentRequest,
     );
 
     expect(
-      () => {serializeCrossChainOfferFile(offerFile, privateKey)},
+      () => {serializeCrossChainOfferFile(offerFile, wrongPrivateKey)},
       throwsA(isA<FailedSignatureOnOfferFileException>()),
     );
   });
