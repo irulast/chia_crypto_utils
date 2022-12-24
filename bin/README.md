@@ -53,9 +53,18 @@ echo "the mnemonic seed" | dart bin/chia_crypto_utils.dart Get-FarmingStatus --f
 
 ## Exchange BTC and XCH
 
-Use the below command to initiate an atomic swap between XCH and BTC. You must coordinate with your counter party such that they synchronously run the same command. This feature is adapted from https://github.com/richardkiss/chiaswap
+Use the below command to initiate an atomic swap between XCH and BTC. You must coordinate with your counter party such that they synchronously run the same command. This feature is adapted from: https://github.com/richardkiss/chiaswap
 
 ```console
 dart bin/chia_crypto_utils.dart Exchange-Btc --full-node-url <FULL_NODE_URL>
 dart bin/chia_crypto_utils.dart Exchange-Btc --full-node-url <FULL_NODE_URL> --cert-path <PATH_TO_CERT_FILE> --key-path <PATH_TO_KEY_FILE>
+```
+
+## Make Cross Chain Offer File Exchange 
+
+Use the below command to exchange BTC and XCH by creating a new cross chain offer (ccoffer) file or accepting an existing one by creating a ccoffer_accept file. These ccoffer files may be posted to [Dexie](https://dexie.space/markets).
+
+```console
+dart bin/chia_crypto_utils.dart Make-CrossChainOfferExchange --full-node-url <FULL_NODE_URL>
+dart bin/chia_crypto_utils.dart Make-CrossChainOfferExchange --full-node-url <FULL_NODE_URL> --cert-path <PATH_TO_CERT_FILE> --key-path <PATH_TO_KEY_FILE>
 ```

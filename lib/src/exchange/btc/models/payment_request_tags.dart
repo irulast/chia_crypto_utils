@@ -10,7 +10,7 @@ class PaymentRequestTags {
     this.paymentSecret,
     this.routingInfo,
     this.featureBits,
-    this.expirationTime,
+    this.timeout,
     this.fallbackAddress,
     this.description,
     this.payeePublicKey,
@@ -24,7 +24,7 @@ class PaymentRequestTags {
   Bytes? paymentSecret;
   List<RouteInfo>? routingInfo;
   int? featureBits;
-  int? expirationTime;
+  int? timeout;
   FallbackAddress? fallbackAddress;
   String? description;
   Bytes? payeePublicKey;
