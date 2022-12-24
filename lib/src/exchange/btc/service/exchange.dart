@@ -55,7 +55,7 @@ class BtcExchangeService {
         );
       },
       makePuzzleRevealFromPuzzlehash: (puzzlehash) {
-        return generateExchangePuzzle(
+        return generateEscrowPuzzle(
           clawbackDelaySeconds: clawbackDelaySeconds,
           clawbackPublicKey: clawbackPublicKey,
           sweepPaymentHash: sweepPaymentHash,
@@ -72,7 +72,7 @@ class BtcExchangeService {
     );
   }
 
-  Program generateExchangePuzzle({
+  Program generateEscrowPuzzle({
     required int clawbackDelaySeconds,
     required JacobianPoint clawbackPublicKey,
     required Bytes sweepPaymentHash,

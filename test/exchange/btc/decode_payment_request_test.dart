@@ -28,7 +28,7 @@ void main() {
     );
 
     expect(
-      decodedPaymentRequest.tags.expirationTime,
+      decodedPaymentRequest.tags.timeout,
       equals(86400),
     );
 

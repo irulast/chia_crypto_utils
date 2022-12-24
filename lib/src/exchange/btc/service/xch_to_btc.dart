@@ -4,15 +4,15 @@ import 'package:chia_crypto_utils/src/exchange/btc/service/exchange.dart';
 class XchToBtcService {
   final BtcExchangeService exchangeService = BtcExchangeService();
 
-  Puzzlehash generateExchangePuzzlehash({
+  Puzzlehash generateEscrowPuzzlehash({
     required PrivateKey requestorPrivateKey,
-    int clawbackDelaySeconds = 3600,
+    required int clawbackDelaySeconds,
     required Bytes sweepPaymentHash,
     required JacobianPoint fulfillerPublicKey,
   }) {
     final requestorPublicKey = requestorPrivateKey.getG1();
 
-    final exchangePuzzle = exchangeService.generateExchangePuzzle(
+    final exchangePuzzle = exchangeService.generateEscrowPuzzle(
       clawbackPublicKey: requestorPublicKey,
       clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash,
@@ -27,7 +27,7 @@ class XchToBtcService {
     required List<CoinPrototype> coinsInput,
     required PrivateKey requestorPrivateKey,
     Puzzlehash? changePuzzlehash,
-    int clawbackDelaySeconds = 3600,
+    required int clawbackDelaySeconds,
     required Bytes sweepPaymentHash,
     required JacobianPoint fulfillerPublicKey,
     int fee = 0,
@@ -55,7 +55,7 @@ class XchToBtcService {
     required List<CoinPrototype> coinsInput,
     required PrivateKey requestorPrivateKey,
     Puzzlehash? changePuzzlehash,
-    int clawbackDelaySeconds = 3600,
+    required int clawbackDelaySeconds,
     required Bytes sweepPaymentHash,
     required PrivateKey fulfillerPrivateKey,
     int fee = 0,
@@ -75,7 +75,7 @@ class XchToBtcService {
       coinAnnouncementsToAssert: coinAnnouncementsToAssert,
       puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
       makePuzzleRevealFromPuzzlehash: (puzzlehash) {
-        return exchangeService.generateExchangePuzzle(
+        return exchangeService.generateEscrowPuzzle(
           clawbackDelaySeconds: clawbackDelaySeconds,
           clawbackPublicKey: requestorPublicKey,
           sweepPaymentHash: sweepPaymentHash,
