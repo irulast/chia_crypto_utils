@@ -1,0 +1,38 @@
+
+;; prepuzzle
+
+(mod (PATH CLAWBACK_DELAY_SECONDS CLAWBACK_PUBKEY SWEEP_RECEIPT_HASH clawback_solution SWEEP_PUBKEY sweep_preimage p2_dpohp_solution)
+
+;; Take back fund (cancel)
+;; Create a real puzzle
+;; ((CLAWBACK_DELAY_SECONDS . CLAWBACK_PUBKEY) (SWEEP_RECEIPT_HASH . SWEEP_PUBKEY) sweep_preimage p2_dpohp_solution)
+;; start: CLAWBACK_DELAY_SECONDS, CLAWBACK_PUBKEY, SWEEP_RECEIPT_HASH
+;; spend: SWEEP_PUBKEY, 
+;; solution on real puzzle spend is sweep_preimage or p2_dpohp_solution
+;; (CLAWBACK_DELAY_SECONDS . CLAWBACK_PUBKEY) (SWEEP_RECEIPT_HASH . SWEEP_PUBKEY) 
+
+
+(defconstant CURRY (a (q #a 4 (c 2 (c 5 (c 7 0)))) (c (q (c (q . 2) (c (c (q . 1) 5) (c (a 6 (c 2 (c 11 (q 1)))) 0))) #a (i 5 (q 4 (q . 4) (c (c (q . 1) 9) (c (a 6 (c 2 (c 13 (c 11 0)))) 0))) (q . 11)) 1) 1)))
+(defconstant P2_DELEGATED_PUZZLE_OR_HIDDEN_PUZZLE (a (q 2 (i 11 (q 2 (i (= 5 (point_add 11 (pubkey_for_exp (sha256 11 (a 6 (c 2 (c 23 ()))))))) (q 2 23 47) (q 8)) 1) (q 4 (c 4 (c 5 (c (a 6 (c 2 (c 23 ()))) ()))) (a 23 47))) 1) (c (q 50 2 (i (l 5) (q 11 (q . 2) (a 6 (c 2 (c 9 ()))) (a 6 (c 2 (c 13 ())))) (q 11 (q . 1) 5)) 1) 1)))
+(defconstant P2_DELAYED_OR_PREIMAGE (a (q 2 (i 23 (q 2 (i (= (sha256 23) 19) (q 2 6 (c 27 47)) (q (x))) 1) (q 4 (c 4 (c 9 ())) (a 6 (c 13 47)))) 1) (c (q 80 2 (q 2 (i 11 (q 2 (i (= 5 (point_add 11 (pubkey_for_exp (sha256 11 (a 6 (c 2 (c 23 ()))))))) (q 2 23 47) (q 8)) 1) (q 4 (c 4 (c 5 (c (a 6 (c 2 (c 23 ()))) ()))) (a 23 47))) 1) (c (q 50 2 (i (l 5) (q 11 (q . 2) (a 6 (c 2 (c 9 ()))) (a 6 (c 2 (c 13 ())))) (q 11 (q . 1) 5)) 1) 1)) 1)))
+(defconstant FIRST CLAWBACK_DELAY_SECONDS CLAWBACK_PUBKEY)
+
+(defun-inline clawback (CLAWBACK_PUBKEY clawback_solution)
+  (a P2_DELEGATED_PUZZLE_OR_HIDDEN_PUZZLE (c CLAWBACK_PUBKEY clawback_solution))
+)
+
+(if (= PATH 1)
+ (clawback CLAWBACK_PUBKEY p2_dpohp_solution)
+ (a CURRY (list P2_DELAYED_OR_PREIMAGE CLAWBACK_DELAY_SECONDS CLAWBACK_PUBKEY SWEEP_RECEIPT_HASH SWEEP_PUBKEY sweep_preimage))
+)
+
+;; 1) Create a puzzle (import the puzzle from below)
+;; 2) Curry in args that we have available
+;; 3) Create coin condition with hash of that puzzle ()
+;; 4) Create coin condition for the fee amount (payout address and fee amount)
+
+;;if 2 {
+  ;; create fee coin
+  ;;additional args in the solution that we are going curry into  "puzzle" 
+;;}
+)

@@ -11,7 +11,7 @@
 ;; With this puzzle, two parties can do an atomic swap based on a pre-image reveal in a
 ;; trustless way. Revealing the pre-image releases the XCH coin to the sweep public key.
 
-(mod ((CLAWBACK_DELAY_SECONDS . CLAWBACK_PUBKEY) (SWEEP_RECEIPT_HASH . SWEEP_PUBKEY) sweep_preimage p2_dpohp_solution)
+(mod (CLAWBACK_DELAY_SECONDS CLAWBACK_PUBKEY SWEEP_RECEIPT_HASH SWEEP_PUBKEY sweep_preimage p2_dpohp_solution)
   ; set sweep_preimage to 0 to do clawback case
   ;
   ; p2_dpohp_solution = "pay to delegated puzzle or hidden puzzle" solution
