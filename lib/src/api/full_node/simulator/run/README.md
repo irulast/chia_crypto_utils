@@ -23,7 +23,7 @@ docker run -e TARGET_UID="$(id -u)" -e TARGET_GID="$(id -g)" -e CLIENT_CONFIG_DI
  -p 5000:8555 \
  -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/test-plots":/root/.chia/test-plots \
  -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/config:/temp/config" \
- chia-simulator
+ chia-simulator-enhanced
 ```
 
 ### Evergreen
