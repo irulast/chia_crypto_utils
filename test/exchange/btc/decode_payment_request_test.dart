@@ -222,4 +222,14 @@ void main() {
       throwsException,
     );
   });
+
+  test('should decode lightning payment request with large amount', () {
+    // lightning payment request with amount of 1 BTC
+    const paymentRequest =
+        'lnbc11p36k88dpp5mcxl38s0mfcx0zjzsssta95cc8tmq82jjvmsezrtap5y5q8ztccsdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdvc6jx436a5pjcqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldvc6jx436a5pjcqqqqryqqqqthqqpysp5d8f2l49ajm597z8ldr7cs8tkr33y4hc25q76w08wrstjh9a0808s9qypqsq0ts05ecuxqeyez3yy2k59me7pu4f48wepf6g6up0fupas4vcply4gzfe0ffpmmzdfmt9v2ajv3ln72lfju835y7thkkrxg42uhclrtqqsyxgfl';
+
+    final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
+
+    expect(decodedPaymentRequest.amount, equals(1));
+  });
 }
