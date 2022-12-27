@@ -223,13 +223,23 @@ void main() {
     );
   });
 
-  test('should decode lightning payment request with large amount', () {
+  test('should decode lightning payment request with 1 BTC', () {
     // lightning payment request with amount of 1 BTC
     const paymentRequest =
-        'lnbc11p36k88dpp5mcxl38s0mfcx0zjzsssta95cc8tmq82jjvmsezrtap5y5q8ztccsdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdvc6jx436a5pjcqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldvc6jx436a5pjcqqqqryqqqqthqqpysp5d8f2l49ajm597z8ldr7cs8tkr33y4hc25q76w08wrstjh9a0808s9qypqsq0ts05ecuxqeyez3yy2k59me7pu4f48wepf6g6up0fupas4vcply4gzfe0ffpmmzdfmt9v2ajv3ln72lfju835y7thkkrxg42uhclrtqqsyxgfl';
+        'lnbc11p36kmlepp5etqkswemkuja22heq52paug5f3r7653svrzxsvvlnqde2ns804tqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhd35z2zn7evryeuqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ld35z2zn7evryeuqqqqryqqqqthqqpysp5gp4lt82grx4z594a8k0vrvpgkdnkpsz66gkaumcevfjvfk5vtcps9qypqsqyftazvgcjzj7us5w395pu320umfkwk5ff0mwg94lyvguwkrlqunr4dlms8qvuhzpq67rhxnm33u7chngdekw8zqw36h4rs7xt29kxlcqrgdfpv';
 
     final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
 
     expect(decodedPaymentRequest.amount, equals(1));
+  });
+
+  test('should decode lightning payment request with large amount', () {
+    // lightning payment request with amount of 20 BTC
+    const paymentRequest =
+        'lnbc201p36kmampp5kxm6ygjqt0suj0e0zdvtdf3rekpkwezxxfa2f0u5k5ndj3m6znesdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhded52hn9qpak7gqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3lded52hn9qpak7gqqqqryqqqqthqqpysp57tfffgzqjsc28xmys78y905txuup9ff9jt6vs8yrq3swlrdlgtcs9qypqsqwlqnmvhkplqef2auuqr8qegj3eqyupgjj3akqtwayuqm4rfarhfser53rznecj6th8cesa0j2rxlr0jw53kzhc3ugmq8kt6adut6zdspm74540';
+
+    final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
+
+    expect(decodedPaymentRequest.amount, equals(20));
   });
 }
