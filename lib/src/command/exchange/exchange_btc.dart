@@ -395,7 +395,7 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   var escrowCoins = await fullNode.getCoinsByPuzzleHashes([escrowPuzzlehash]);
   if (escrowCoins.isEmpty) {
     print(
-      '\nYour counter party should be sending ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to an exchange',
+      '\nYour counter party should be sending ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to an escrow',
     );
     print('address, where it will be temporarily held for you until the next step.');
     await Future<void>.delayed(const Duration(seconds: 1));
