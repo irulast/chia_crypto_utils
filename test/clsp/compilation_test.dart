@@ -12,8 +12,6 @@ Future<void> main() async {
   }
 
   Future<bool> checkCompilation(String pathToClsp, String pathToCompiledHex) async {
-    await Process.run('chmod', ['+x', 'test/clsp/compile_clsp.sh']);
-
     final process =
         await Process.run('./test/clsp/compile_clsp.sh', [pathToClsp, pathToCompiledHex]);
 
