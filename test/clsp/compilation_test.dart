@@ -2,9 +2,16 @@
 
 import 'dart:io';
 
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
+  final venvDir = Directory('chia-dev-tools/venv');
+  if (!venvDir.existsSync()) {
+    print('chia-dev-tools is not set up, so test was skipped.');
+    return;
+  }
+
   Future<bool> checkCompilation(String pathToClsp, String pathToCompiledHex) async {
     await Process.run('chmod', ['+x', 'test/clsp/compile_clsp.sh']);
 
