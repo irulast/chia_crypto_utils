@@ -10,7 +10,7 @@ TEST_FILE="$TEST_DIR$BASENAME"
 
 cd chia-dev-tools
 . ./venv/bin/activate
-# pip install chia-dev-tools 
+pip install chia-dev-tools 
 cd ..
 cdv clsp build $TEST_FILE -i lib/src/chialisp/base 
 deactivate

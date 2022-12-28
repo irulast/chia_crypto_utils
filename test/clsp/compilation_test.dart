@@ -6,13 +6,10 @@ import 'package:test/test.dart';
 
 Future<void> main() async {
   Future<bool> checkCompilation(String pathToClsp, String pathToCompiledHex) async {
-    final process = await Process.run(
-      'osascript',
-      [
-        '-e',
-        'do shell script "./test/clsp/compile_clsp.sh $pathToClsp $pathToCompiledHex" with administrator privileges',
-      ],
-    );
+    await Process.run('chmod', ['+x', 'test/clsp/compile_clsp.sh']);
+
+    final process =
+        await Process.run('./test/clsp/compile_clsp.sh', [pathToClsp, pathToCompiledHex]);
 
     if (process.exitCode == 0) {
       return true;
@@ -30,7 +27,8 @@ Future<void> main() async {
     expect(check, isTrue);
   });
 
-  test('should check that compiled hex of genesis_by_coin_id.clsp is correct', () async {
+  test('should correctly return false when hex to check does not match compilation of clsp file',
+      () async {
     final check = await checkCompilation(
       'lib/src/cat/puzzles/tails/genesis_by_coin_id/genesis_by_coin_id.clsp',
       'lib/src/cat/puzzles/tails/meltable_genesis_by_coin_id/meltable_genesis_by_coin_id.clvm.hex',
