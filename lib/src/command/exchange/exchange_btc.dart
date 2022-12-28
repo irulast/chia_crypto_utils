@@ -196,7 +196,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
     await Future<void>.delayed(const Duration(seconds: 2));
     print('\nPress any key when the funds have been sent.');
     stdin.readLineSync();
-
+    
     escrowCoins = await verifyTransferToEscrowPuzzlehash(
       amounts: amounts,
       escrowPuzzlehash: escrowPuzzlehash,
@@ -381,7 +381,7 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   }
   final escrowAddress = escrowPuzzlehash.toAddressWithContext();
 
-  // get puzzlehash where BTC holder will XCH
+  // get puzzlehash where BTC holder will receive XCH
   Puzzlehash? sweepPuzzlehash;
   if (logList.length > 7) {
     sweepPuzzlehash = Puzzlehash.fromHex(logList[7]);
