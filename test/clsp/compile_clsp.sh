@@ -21,11 +21,13 @@ HEX=$(cat $HEX_FILE)
 
 HEX_TO_CHECK=$(cat $2)
 
-rm $TEST_FILE
-rm $HEX_FILE
+# rm $TEST_FILE
+# rm $HEX_FILE
 
-if [ "$HEX" != "$HEX_TO_CHECK" ]
+if [ "$HEX" = "$HEX_TO_CHECK" ]
 then
+  exit 0
+else
   exit 1
 fi
 
