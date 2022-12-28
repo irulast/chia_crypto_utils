@@ -222,4 +222,24 @@ void main() {
       throwsException,
     );
   });
+
+  test('should decode lightning payment request with 1 BTC', () {
+    // lightning payment request with amount of 1 BTC
+    const paymentRequest =
+        'lnbc11p36kmlepp5etqkswemkuja22heq52paug5f3r7653svrzxsvvlnqde2ns804tqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhd35z2zn7evryeuqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ld35z2zn7evryeuqqqqryqqqqthqqpysp5gp4lt82grx4z594a8k0vrvpgkdnkpsz66gkaumcevfjvfk5vtcps9qypqsqyftazvgcjzj7us5w395pu320umfkwk5ff0mwg94lyvguwkrlqunr4dlms8qvuhzpq67rhxnm33u7chngdekw8zqw36h4rs7xt29kxlcqrgdfpv';
+
+    final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
+
+    expect(decodedPaymentRequest.amount, equals(1));
+  });
+
+  test('should decode lightning payment request with large amount', () {
+    // lightning payment request with amount of 20 BTC
+    const paymentRequest =
+        'lnbc201p36kmampp5kxm6ygjqt0suj0e0zdvtdf3rekpkwezxxfa2f0u5k5ndj3m6znesdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhded52hn9qpak7gqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3lded52hn9qpak7gqqqqryqqqqthqqpysp57tfffgzqjsc28xmys78y905txuup9ff9jt6vs8yrq3swlrdlgtcs9qypqsqwlqnmvhkplqef2auuqr8qegj3eqyupgjj3akqtwayuqm4rfarhfser53rznecj6th8cesa0j2rxlr0jw53kzhc3ugmq8kt6adut6zdspm74540';
+
+    final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
+
+    expect(decodedPaymentRequest.amount, equals(20));
+  });
 }

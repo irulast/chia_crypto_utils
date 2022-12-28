@@ -45,9 +45,13 @@ LightningPaymentRequest decodeLightningPaymentRequest(String paymentRequest) {
     amount = 0.toDouble();
   } else {
     final amountData = hrp.substring(prefix.length, hrp.length);
-    final multiplier = amountData.substring(amountData.length - 1);
-    final digits = double.parse(amountData.substring(0, amountData.length - 1));
-    amount = digits * multiplierMap[multiplier]!;
+    if (multiplierMap.containsKey(amountData[amountData.length - 1])) {
+      final multiplier = amountData.substring(amountData.length - 1);
+      final digits = double.parse(amountData.substring(0, amountData.length - 1));
+      amount = digits * multiplierMap[multiplier]!;
+    } else {
+      amount = double.parse(amountData);
+    }
   }
 
   // timestamp
