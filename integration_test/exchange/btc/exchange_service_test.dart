@@ -54,7 +54,7 @@ Future<void> main() async {
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
     // generate address for XCH holder to send funds to
-    final exchangePuzzlehash = xchToBtcService.generateExchangePuzzlehash(
+    final exchangePuzzlehash = xchToBtcService.generateEscrowPuzzlehash(
       requestorPrivateKey: xchHolderPrivateKey,
       sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: btcHolderPublicKey,
@@ -121,7 +121,7 @@ Future<void> main() async {
     const clawbackDelaySeconds = 5;
 
     // generate address for XCH holder to send funds to
-    final exchangePuzzlehash = xchToBtcService.generateExchangePuzzlehash(
+    final exchangePuzzlehash = xchToBtcService.generateEscrowPuzzlehash(
       requestorPrivateKey: xchHolderPrivateKey,
       clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash!,
@@ -200,7 +200,7 @@ Future<void> main() async {
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
     // generate address for XCH holder to send funds to
-    final exchangePuzzlehash = xchToBtcService.generateExchangePuzzlehash(
+    final exchangePuzzlehash = xchToBtcService.generateEscrowPuzzlehash(
       requestorPrivateKey: xchHolderPrivateKey,
       sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: btcHolderPublicKey,
@@ -272,7 +272,7 @@ Future<void> main() async {
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
     // generate address for XCH holder to send funds to
-    final exchangePuzzlehash = xchToBtcService.generateExchangePuzzlehash(
+    final exchangePuzzlehash = xchToBtcService.generateEscrowPuzzlehash(
       requestorPrivateKey: xchHolderPrivateKey,
       sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: btcHolderPublicKey,
@@ -337,7 +337,7 @@ Future<void> main() async {
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
     // generate address for XCH holder to send funds to
-    final exchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
+    final exchangePuzzlehash = btcToXchService.generateEscrowPuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
       sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: xchHolderPublicKey,
@@ -411,7 +411,7 @@ Future<void> main() async {
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
     // generate address for XCH holder to send funds to
-    final exchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
+    final exchangePuzzlehash = btcToXchService.generateEscrowPuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
       sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: xchHolderPublicKey,
@@ -475,7 +475,7 @@ Future<void> main() async {
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
     // generate address for XCH holder to send funds to
-    final exchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
+    final exchangePuzzlehash = btcToXchService.generateEscrowPuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
       sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: xchHolderPublicKey,
@@ -547,7 +547,7 @@ Future<void> main() async {
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
     // generate address for XCH holder to send funds to
-    final exchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
+    final exchangePuzzlehash = btcToXchService.generateEscrowPuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
       sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: xchHolderPublicKey,
@@ -608,7 +608,7 @@ Future<void> main() async {
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
     // exchange address is generated on BTC holder's side
-    final btcHolderExchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
+    final btcHolderExchangePuzzlehash = btcToXchService.generateEscrowPuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
       clawbackDelaySeconds: 60,
       sweepPaymentHash: sweepPaymentHash!,
@@ -616,7 +616,7 @@ Future<void> main() async {
     );
 
     // exchange address is generated on XCH holder's side, but they input a different clawback delay
-    final xchHolderExchangePuzzlehash = xchToBtcService.generateExchangePuzzlehash(
+    final xchHolderExchangePuzzlehash = xchToBtcService.generateEscrowPuzzlehash(
       requestorPrivateKey: xchHolderPrivateKey,
       clawbackDelaySeconds: 40,
       sweepPaymentHash: sweepPaymentHash,
@@ -678,14 +678,14 @@ Future<void> main() async {
     final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
 
     // exchange address is generated on BTC holder's side
-    final btcHolderExchangePuzzlehash = btcToXchService.generateExchangePuzzlehash(
+    final btcHolderExchangePuzzlehash = btcToXchService.generateEscrowPuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
       sweepPaymentHash: sweepPaymentHash!,
       fulfillerPublicKey: xchHolderWrongPublicKey,
     );
 
     // exchange address is generated on XCH holder's side
-    final xchHolderExchangePuzzlehash = xchToBtcService.generateExchangePuzzlehash(
+    final xchHolderExchangePuzzlehash = xchToBtcService.generateEscrowPuzzlehash(
       requestorPrivateKey: xchHolderPrivateKey,
       sweepPaymentHash: sweepPaymentHash,
       fulfillerPublicKey: btcHolderPublicKey,
