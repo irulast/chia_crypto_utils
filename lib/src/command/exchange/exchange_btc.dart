@@ -6,6 +6,10 @@ import 'package:chia_crypto_utils/src/exchange/btc/service/xch_to_btc.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_payment_request.dart';
 
 final exchangeService = BtcExchangeService();
+final xchToBtcService = XchToBtcService();
+final btcToXchService = BtcToXchService();
+File? logFile;
+final logList = <String>[];
 
 class Amounts {
   const Amounts({
@@ -21,67 +25,186 @@ class Amounts {
   final int satoshis;
 }
 
+Future<File> getLogFile() async {
+  // find any log files of previous exchange sessions
+  final currentDirFiles = await Directory.current.list().toList();
+  final logFileEntities = currentDirFiles
+      .where((file) => File(file.path).uri.pathSegments.last.startsWith('exchange-log'))
+      .toList();
+
+  // if there aren't any, generate a new log file
+  if (logFileEntities.isEmpty) {
+    final logFilePath = 'exchange-log-${DateTime.now().toString().replaceAll(' ', '-')}.txt';
+    File(logFilePath).createSync(recursive: true);
+    return File(logFilePath);
+  }
+
+  // if there are, let user choose between initiating a new exchange or resuming a previous one
+  final logFiles = <File>[];
+  print('\nInitiate new exchange or resume previous exchange?');
+  print('0. New exchange');
+  for (var i = 0; i < logFileEntities.length; i++) {
+    final file = File(logFileEntities[i].path);
+    logFiles.add(file);
+    print('${i + 1}. ${file.uri.pathSegments.last.replaceAll('.txt', '')}');
+  }
+
+  while (true) {
+    stdout.write('> ');
+    final choice = stdin.readLineSync()!.trim();
+    if (choice == '0') {
+      final logFilePath = 'exchange-log-${DateTime.now().toString().replaceAll(' ', '-')}.txt';
+      File(logFilePath).createSync(recursive: true);
+      return File(logFilePath);
+    } else if (logFiles.asMap().containsKey(int.parse(choice) - 1)) {
+      print('\nResuming previous exchange...');
+      final logFile = logFiles[int.parse(choice) - 1];
+
+      // convert selected log file to a list of variables
+      logList.addAll(logFile.readAsStringSync().split('\n').toList());
+
+      return logFiles[int.parse(choice) - 1];
+    } else {
+      print('Not a valid choice.');
+    }
+  }
+}
+
+Future<void> chooseExchangePath(ChiaFullNodeInterface fullNode) async {
+  logFile = await getLogFile();
+
+  if (logList.isNotEmpty) {
+    if (logList[0] == '1') {
+      await exchangeXchForBtc(fullNode);
+    } else if (logList[0] == '2') {
+      await exchangeBtcForXch(fullNode);
+    }
+  } else {
+    print('\nDo you have XCH that you want to exchange for BTC, or do you have BTC that');
+    print('you want to exchange for XCH? Please note that you and your counter party must');
+    print('select reciprocal paths.');
+    print('\n1. Exchange XCH for BTC');
+    print('2. Exchange BTC for XCH');
+
+    String? choice;
+
+    while (choice != '1' && choice != '2') {
+      stdout.write('> ');
+      choice = stdin.readLineSync()!.trim();
+
+      if (choice == '1') {
+        await updateLogFile(choice);
+        await exchangeXchForBtc(fullNode);
+      } else if (choice == '2') {
+        await updateLogFile(choice);
+        await exchangeBtcForXch(fullNode);
+      } else {
+        print('\nNot a valid choice.');
+      }
+    }
+  }
+}
+
 Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
-  final xchToBtcService = XchToBtcService();
+  // get disposable private key for user
+  PrivateKey? xchHolderPrivateKey;
+  if (logList.length > 1) {
+    xchHolderPrivateKey = PrivateKey.fromHex(logList[1]);
+  } else {
+    xchHolderPrivateKey = await generateRequestorDisposableKeys();
+  }
 
-  // generate disposable private key and create signed public key for user
-  final xchHolderPrivateKey = PrivateKey.generate();
-  final xchHolderSignedPublicKey = exchangeService.createSignedPublicKey(xchHolderPrivateKey);
+  // get BTC holder public key
+  JacobianPoint? btcHolderPublicKey;
+  if (logList.length > 2) {
+    btcHolderPublicKey = JacobianPoint.fromHexG1(logList[2]);
+  } else {
+    btcHolderPublicKey = await getFulfillerPublicKey(xchHolderPrivateKey);
+  }
 
-  print('\nSend the following line with your signed public key to your counter party.');
-  print(xchHolderSignedPublicKey);
-  await Future<void>.delayed(const Duration(seconds: 2));
+  // get amounts being exchanged in terms of XCH, BTC, mojos, and satoshis
+  Amounts? amounts;
+  if (logList.length > 3) {
+    final amountList = logList[3].split(',');
+    amounts = Amounts(
+      xch: double.parse(amountList[0]),
+      btc: double.parse(amountList[1]),
+      mojos: int.parse(amountList[2]),
+      satoshis: int.parse(amountList[3]),
+    );
+  } else {
+    amounts = await getAmounts();
+  }
 
-  // get and validate counter party public key as pasted by user
-  final btcHolderPublicKey = getFulfillerPublicKey(xchHolderSignedPublicKey);
-
-  // look up current XCH and BTC prices and get amounts of each being exchanged in terms of
-  // XCH, BTC, mojos, and satoshis
-  // if amount is less than 1 satoshi, round up to 1
-  final amounts = await getAmounts();
-
-  // get clawback delay from user
-  final clawbackDelayMinutes = await getClawbackDelay();
+  // get clawback delay
+  int? clawbackDelayMinutes;
+  if (logList.length > 4) {
+    clawbackDelayMinutes = int.parse(logList[4]);
+  } else {
+    clawbackDelayMinutes = await getClawbackDelay();
+    await updateLogFile(clawbackDelayMinutes.toString());
+  }
   final clawbackDelaySeconds = clawbackDelayMinutes * 60;
 
-  // decode lightning payment request as pasted by user and get payment hash
-  print(
-    '\nCreate a lightning payment request for ${(amounts.satoshis > 1) ? ((amounts.satoshis > 1000) ? '${amounts.btc.toStringAsFixed(5)} BTC' : '${amounts.satoshis} satoshis') : '1 satoshi'} with a timeout of $clawbackDelayMinutes minutes',
-  );
-  print('and send it to your counter party.');
-  await Future<void>.delayed(const Duration(seconds: 2));
-  print('\nPaste the lightning payment request here as well:');
-  final sweepPaymentHash = getPaymentHash();
+  // get lightning payment hash
+  Bytes? sweepPaymentHash;
+  if (logList.length > 5) {
+    sweepPaymentHash = logList[5].hexToBytes();
+  } else {
+    print(
+      '\nCreate a lightning payment request for ${(amounts.satoshis > 1) ? ((amounts.satoshis > 1000) ? '${amounts.btc.toStringAsFixed(5)} BTC' : '${amounts.satoshis} satoshis') : '1 satoshi'} with a timeout of $clawbackDelayMinutes minutes',
+    );
+    print('and send it to your counter party.');
+    await Future<void>.delayed(const Duration(seconds: 2));
+    print('\nPaste the lightning payment request here as well:');
+    sweepPaymentHash = await getPaymentHash();
+  }
 
-  // generate address for user to send coins to for exchange
-  final escrowPuzzlehash = xchToBtcService.generateEscrowPuzzlehash(
-    requestorPrivateKey: xchHolderPrivateKey,
-    clawbackDelaySeconds: clawbackDelaySeconds,
-    sweepPaymentHash: sweepPaymentHash,
-    fulfillerPublicKey: btcHolderPublicKey,
-  );
-
+  // get escrow puzzlehash
+  Puzzlehash? escrowPuzzlehash;
+  if (logList.length > 6) {
+    escrowPuzzlehash = Puzzlehash.fromHex(logList[6]);
+  } else {
+    escrowPuzzlehash = xchToBtcService.generateEscrowPuzzlehash(
+      requestorPrivateKey: xchHolderPrivateKey,
+      clawbackDelaySeconds: clawbackDelaySeconds,
+      sweepPaymentHash: sweepPaymentHash,
+      fulfillerPublicKey: btcHolderPublicKey,
+    );
+    await updateLogFile(escrowPuzzlehash.toHex());
+  }
   final escrowAddress = escrowPuzzlehash.toAddressWithContext();
 
-  print(
-    '\nTransfer ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to the following escrow address:',
-  );
-  print(escrowAddress.address);
-  await Future<void>.delayed(const Duration(seconds: 2));
-  print('\nPress any key when the funds have been sent.');
-  stdin.readLineSync();
+  // get puzzlehash where XCH holder will receive funds back in clawback case
+  Puzzlehash? clawbackPuzzlehash;
+  if (logList.length > 7) {
+    clawbackPuzzlehash = Puzzlehash.fromHex(logList[7]);
+  } else {
+    print('\nEnter the address where the XCH will be returned in the event the exchange');
+    print('is aborted or fails.');
+    clawbackPuzzlehash = getRequestorPuzzlehash();
+    await updateLogFile(clawbackPuzzlehash.toHex());
+  }
 
-  // verify transaction and wait for XCH to arrive at the escrow address
-  final escrowCoins = await verifyTransferToEscrowAddress(
-    amounts: amounts,
-    escrowPuzzlehash: escrowPuzzlehash,
-    fullNode: fullNode,
-  );
+  // get coins XCH holder has sent to escrow puzzlehash
+  var escrowCoins = await fullNode.getCoinsByPuzzleHashes([escrowPuzzlehash]);
+  if (escrowCoins.isEmpty) {
+    print(
+      '\nTransfer ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to the following escrow address:',
+    );
+    print(escrowAddress.address);
+    await Future<void>.delayed(const Duration(seconds: 2));
+    print('\nPress any key when the funds have been sent.');
+    stdin.readLineSync();
 
-  // get puzzlehash where user can receive XCH back
-  print('\nEnter the address where the XCH will be returned in the event the exchange');
-  print('is aborted or fails.');
-  final clawbackPuzzlehash = getRequestorPuzzlehash();
+    escrowCoins = await verifyTransferToEscrowPuzzlehash(
+      amounts: amounts,
+      escrowPuzzlehash: escrowPuzzlehash,
+      fullNode: fullNode,
+    );
+  } else {
+    print('\nYour XCH has arrived at the escrow address!');
+  }
 
   // create spend bundle for clawing back funds if counter party doesn't pay lightning payment request
   final clawbackSpendBundle = xchToBtcService.createClawbackSpendBundle(
@@ -189,66 +312,106 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
 }
 
 Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
-  final btcToXchService = BtcToXchService();
+  // get disposable private key for user
+  PrivateKey? btcHolderPrivateKey;
+  if (logList.length > 1) {
+    btcHolderPrivateKey = PrivateKey.fromHex(logList[1]);
+  } else {
+    btcHolderPrivateKey = await generateRequestorDisposableKeys();
+  }
 
-  // generate disposable private key and create signed public key for user
-  final btcHolderPrivateKey = PrivateKey.generate();
-  final btcHolderSignedPublicKey = exchangeService.createSignedPublicKey(btcHolderPrivateKey);
+  // get XCH holder public key
+  JacobianPoint? xchHolderPublicKey;
+  if (logList.length > 2) {
+    xchHolderPublicKey = JacobianPoint.fromHexG1(logList[2]);
+  } else {
+    xchHolderPublicKey = await getFulfillerPublicKey(btcHolderPrivateKey);
+  }
 
-  print('\nSend the following line with your signed public key to your counter party.');
-  print(btcHolderSignedPublicKey);
-  await Future<void>.delayed(const Duration(seconds: 2));
+  // get amounts being exchanged in terms of XCH, BTC, mojos, and satoshis
+  Amounts? amounts;
+  if (logList.length > 3) {
+    final amountList = logList[3].split(',');
+    amounts = Amounts(
+      xch: double.parse(amountList[0]),
+      btc: double.parse(amountList[1]),
+      mojos: int.parse(amountList[2]),
+      satoshis: int.parse(amountList[3]),
+    );
+  } else {
+    amounts = await getAmounts();
+  }
 
-  // validate counter party public key as pasted by user
-  final xchHolderPublicKey = getFulfillerPublicKey(btcHolderSignedPublicKey);
-
-  // look up current XCH and BTC prices and get amounts of each being exchanged in terms of
-  // XCH, BTC, mojos, and satoshis
-  final amounts = await getAmounts();
-
-  // get clawback delay from user
-  final clawbackDelayMinutes = await getClawbackDelay();
+  // get clawback delay
+  int? clawbackDelayMinutes;
+  if (logList.length > 4) {
+    clawbackDelayMinutes = int.parse(logList[4]);
+  } else {
+    clawbackDelayMinutes = await getClawbackDelay();
+    await updateLogFile(clawbackDelayMinutes.toString());
+  }
   final clawbackDelaySeconds = clawbackDelayMinutes * 60;
 
-  print(
-    '\nYour counter party will create a lightning payment request for ${(amounts.satoshis > 1) ? ((amounts.satoshis > 1000) ? '${amounts.btc.toStringAsFixed(5)} BTC' : '${amounts.satoshis} satoshis') : '1 satoshi'} with',
-  );
-  print('a timeout of $clawbackDelayMinutes minutes.');
-  await Future<void>.delayed(const Duration(seconds: 2));
+  // get lightning payment hash
+  Bytes? sweepPaymentHash;
+  if (logList.length > 5) {
+    sweepPaymentHash = logList[5].hexToBytes();
+  } else {
+    print(
+      '\nYour counter party will create a lightning payment request for ${(amounts.satoshis > 1) ? ((amounts.satoshis > 1000) ? '${amounts.btc.toStringAsFixed(5)} BTC' : '${amounts.satoshis} satoshis') : '1 satoshi'} with',
+    );
+    print('a timeout of $clawbackDelayMinutes minutes.');
+    await Future<void>.delayed(const Duration(seconds: 2));
+    print('\nPaste the lightning payment request from your counter party here:');
+    sweepPaymentHash = await getPaymentHash();
+  }
 
-  // decode lightning payment request as pasted by user and get payment hash
-  print('\nPaste the lightning payment request from your counter party here:');
-  final sweepPaymentHash = getPaymentHash();
-
-  // generate address that counter party will be sending XCH to
-  final escrowPuzzlehash = btcToXchService.generateEscrowPuzzlehash(
-    requestorPrivateKey: btcHolderPrivateKey,
-    clawbackDelaySeconds: clawbackDelaySeconds,
-    sweepPaymentHash: sweepPaymentHash,
-    fulfillerPublicKey: xchHolderPublicKey,
-  );
-
+  // get escrow puzzlehash
+  Puzzlehash? escrowPuzzlehash;
+  if (logList.length > 6) {
+    escrowPuzzlehash = Puzzlehash.fromHex(logList[6]);
+  } else {
+    escrowPuzzlehash = btcToXchService.generateEscrowPuzzlehash(
+      requestorPrivateKey: btcHolderPrivateKey,
+      clawbackDelaySeconds: clawbackDelaySeconds,
+      sweepPaymentHash: sweepPaymentHash,
+      fulfillerPublicKey: xchHolderPublicKey,
+    );
+    await updateLogFile(escrowPuzzlehash.toHex());
+  }
   final escrowAddress = escrowPuzzlehash.toAddressWithContext();
 
-  // get puzzlehash where user will receive XCH from the exchange
-  print('\nEnter the address where you would like the XCH delivered.');
-  final sweepPuzzlehash = getRequestorPuzzlehash();
-  print(
-    '\nYour counter party should be sending ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to an exchange',
-  );
-  print('address, where it will be temporarily held for you until the next step.');
-  await Future<void>.delayed(const Duration(seconds: 1));
-  print('\nPress any key to continue once your counter party lets you know that they have');
-  print('sent the XCH.');
-  stdin.readLineSync();
+  // get puzzlehash where BTC holder will receive XCH
+  Puzzlehash? sweepPuzzlehash;
+  if (logList.length > 7) {
+    sweepPuzzlehash = Puzzlehash.fromHex(logList[7]);
+  } else {
+    print('\nEnter the address where you would like the XCH delivered.');
+    sweepPuzzlehash = getRequestorPuzzlehash();
+    await updateLogFile(sweepPuzzlehash.toHex());
+  }
 
-  // verify transaction and wait for XCH to arrive at the escrow address
-  final escrowCoins = await verifyTransferToEscrowAddress(
-    amounts: amounts,
-    escrowPuzzlehash: escrowPuzzlehash,
-    fullNode: fullNode,
-    btcHolderPrivateKey: btcHolderPrivateKey,
-  );
+  // get coins XCH holder has sent to escrow puzzlehash
+  var escrowCoins = await fullNode.getCoinsByPuzzleHashes([escrowPuzzlehash]);
+  if (escrowCoins.isEmpty) {
+    print(
+      '\nYour counter party should be sending ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to an escrow',
+    );
+    print('address, where it will be temporarily held for you until the next step.');
+    await Future<void>.delayed(const Duration(seconds: 1));
+    print('\nPress any key to continue once your counter party lets you know that they have');
+    print('sent the XCH.');
+    stdin.readLineSync();
+
+    escrowCoins = await verifyTransferToEscrowPuzzlehash(
+      amounts: amounts,
+      escrowPuzzlehash: escrowPuzzlehash,
+      fullNode: fullNode,
+      btcHolderPrivateKey: btcHolderPrivateKey,
+    );
+  } else {
+    print('\nXCH from your counter party has arrived at the escrow address!');
+  }
 
   print('\nYou can verify this here: https://xchscan.com/address/${escrowAddress.address}');
   print('\nPay the lightning payment request after the payment has received sufficient');
@@ -340,18 +503,40 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   }
 }
 
-JacobianPoint getFulfillerPublicKey(String requestorSignedPublicKey) {
-  print("\nPaste your counter party's signed public key below.");
+Future<void> updateLogFile(String input) async {
+  if (logFile!.readAsStringSync().isEmpty) {
+    await logFile!.writeAsString(input, mode: FileMode.append);
+  } else {
+    await logFile!.writeAsString('\n$input', mode: FileMode.append);
+  }
+}
 
+Future<PrivateKey> generateRequestorDisposableKeys() async {
+  // generate disposable private key and create signed public key for user
+  final requestorPrivateKey = PrivateKey.generate();
+  final requestorPublicKey = exchangeService.createSignedPublicKey(requestorPrivateKey);
+  await updateLogFile(requestorPrivateKey.toHex());
+
+  print('\nSend the following line with your signed public key to your counter party.');
+  print(requestorPublicKey);
+  await Future<void>.delayed(const Duration(seconds: 2));
+
+  return requestorPrivateKey;
+}
+
+Future<JacobianPoint> getFulfillerPublicKey(PrivateKey requestorPrivateKey) async {
+  // get and validate counter party public key as pasted by user
+  print("\nPaste your counter party's signed public key below.");
   while (true) {
     stdout.write('> ');
     try {
-      final signedPublicKey = stdin.readLineSync()!.trim().toLowerCase();
-      if (signedPublicKey == requestorSignedPublicKey) {
+      final fulfillerPublicKey =
+          exchangeService.parseSignedPublicKey(stdin.readLineSync()!.trim().toLowerCase());
+      if (fulfillerPublicKey == requestorPrivateKey.getG1()) {
         print("\nThat's your signed public key. Ask your counter party for theirs.");
       } else {
-        final publicKey = exchangeService.parseSignedPublicKey(signedPublicKey);
-        return publicKey;
+        await updateLogFile(fulfillerPublicKey.toHex());
+        return fulfillerPublicKey;
       }
     } catch (e) {
       print('\nCould not verify signed public key. Please try again.');
@@ -360,6 +545,7 @@ JacobianPoint getFulfillerPublicKey(String requestorSignedPublicKey) {
 }
 
 Future<Amounts> getAmounts() async {
+  // look up current XCH and BTC prices
   XchScanResponse? response;
   while (response == null) {
     response = await XchScan().getChiaPrice();
@@ -374,6 +560,7 @@ Future<Amounts> getAmounts() async {
   print('1 BTC = ${xchPerBtc.toStringAsFixed(8)} XCH or ${usdPerBtc.toStringAsFixed(2)} USD');
   await Future<void>.delayed(const Duration(seconds: 1));
 
+  // get amount being exchanged in terms of XCH or mojos, then calculate amount in other denomination
   print('\nIndicate whether you want to input the amount to exchange in XCH or mojos:');
   print('1. XCH');
   print('2. mojos');
@@ -394,7 +581,7 @@ Future<Amounts> getAmounts() async {
   if (choice == '1') {
     print('\nHow much XCH is being exchanged? Please note that if you and your counter');
     print('party input different amounts, the exchange will fail.');
-    while (xchAmount == null) {
+    while (xchAmount == null || xchAmount == 0) {
       stdout.write('> ');
       try {
         final xchAmountString = stdin.readLineSync()!.trim();
@@ -407,7 +594,7 @@ Future<Amounts> getAmounts() async {
   } else if (choice == '2') {
     print('\nHow many mojos are being exchanged? Please note that if you and your counter');
     print('party input different amounts, the exchange will fail.');
-    while (xchAmountMojos == null) {
+    while (xchAmountMojos == null || xchAmountMojos == 0) {
       stdout.write('> ');
       try {
         final xchAmountMojosString = stdin.readLineSync()!.trim();
@@ -419,8 +606,13 @@ Future<Amounts> getAmounts() async {
     }
   }
 
+  // calculate amount being exchanged in terms of BTC and satoshis
+  // if satoshi amount is 0, round up to 1
   final btcAmount = xchAmount! * btcPerXch;
-  final btcAmountSatoshis = (btcAmount * 1e8).toInt();
+  var btcAmountSatoshis = (btcAmount * 1e8).toInt();
+  if (btcAmountSatoshis == 0) btcAmountSatoshis = 1;
+
+  await updateLogFile('$xchAmount,$btcAmount,$xchAmountMojos,$btcAmountSatoshis');
 
   final amounts = Amounts(
     xch: xchAmount,
@@ -433,6 +625,7 @@ Future<Amounts> getAmounts() async {
 }
 
 Future<int> getClawbackDelay() async {
+  // get clawback delay from user
   print('\nYou and your counter party must agree on how much time you want to allow for');
   print('the exchange before it expires. It should be at least 10 minutes. Please note');
   print('that if you and your counter party input different expiration times, the');
@@ -459,14 +652,16 @@ Future<int> getClawbackDelay() async {
   }
 }
 
-Bytes getPaymentHash() {
+Future<Bytes> getPaymentHash() async {
+  // decode lightning payment request as pasted by user and get payment hash
   while (true) {
     stdout.write('> ');
     try {
       final paymentRequest = stdin.readLineSync()!.trim().toLowerCase();
       final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
       final sweepPaymentHash = decodedPaymentRequest.tags.paymentHash;
-      return sweepPaymentHash!;
+      await updateLogFile(sweepPaymentHash!.toHex());
+      return sweepPaymentHash;
     } catch (e) {
       print("\nCouldn't validate the lightning payment request. Please try again:");
     }
@@ -474,12 +669,13 @@ Bytes getPaymentHash() {
 }
 
 Puzzlehash getRequestorPuzzlehash() {
+  // get puzzlehash where user would like to receive XCH at
   while (true) {
     stdout.write('> ');
     try {
-      final userAddress = stdin.readLineSync()!.trim().toLowerCase();
-      final userPuzzlehash = Address(userAddress).toPuzzlehash();
-      return userPuzzlehash;
+      final requestorAddress = stdin.readLineSync()!.trim().toLowerCase();
+      final requestorPuzzlehash = Address(requestorAddress).toPuzzlehash();
+      return requestorPuzzlehash;
     } catch (e) {
       print("\nCouldn't verify your address. Please try again:");
     }
@@ -487,9 +683,10 @@ Puzzlehash getRequestorPuzzlehash() {
 }
 
 Future<void> generateSpendBundleFile(SpendBundle spendBundle) async {
+  // generate json of spend bundle so user can manually push it if program fails
   await Future<void>.delayed(const Duration(seconds: 2));
   print('\nGenerating file with spend bundle JSON in the current directory...');
-  final spendBundleHexFile = File('spend_bundle_hex.txt').openWrite()..write(spendBundle.toJson());
+  final spendBundleHexFile = File('spend-bundle-hex.txt').openWrite()..write(spendBundle.toJson());
   await spendBundleHexFile.flush();
   await spendBundleHexFile.close();
   print('This is a last resort for you to use ONLY IF the program closes prematurely');
@@ -505,6 +702,8 @@ Future<void> confirmClawback({
   required Puzzlehash clawbackPuzzlehash,
   required ChiaFullNodeInterface fullNode,
 }) async {
+  // push clawback spend bundle after receiving confirmation from user
+
   print("\nIf $clawbackDelayMinutes minutes haven't passed, the spend bundle will be rejected.");
   print('Proceed? Y/N');
 
@@ -541,7 +740,7 @@ Future<void> confirmClawback({
   }
 }
 
-Future<List<Coin>> verifyTransferToEscrowAddress({
+Future<List<Coin>> verifyTransferToEscrowPuzzlehash({
   required Amounts amounts,
   required Puzzlehash escrowPuzzlehash,
   required ChiaFullNodeInterface fullNode,

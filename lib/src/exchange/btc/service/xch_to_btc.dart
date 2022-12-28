@@ -12,14 +12,14 @@ class XchToBtcService {
   }) {
     final requestorPublicKey = requestorPrivateKey.getG1();
 
-    final exchangePuzzle = exchangeService.generateEscrowPuzzle(
+    final escrowPuzzle = exchangeService.generateEscrowPuzzle(
       clawbackPublicKey: requestorPublicKey,
       clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash,
       sweepPublicKey: fulfillerPublicKey,
     );
 
-    return exchangePuzzle.hash();
+    return escrowPuzzle.hash();
   }
 
   SpendBundle createClawbackSpendBundle({
