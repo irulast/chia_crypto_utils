@@ -3,13 +3,7 @@ import 'dart:convert';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/api/namesdao/models/name_info.dart';
 
-abstract class NamesdaoApi {
-  factory NamesdaoApi() => _NamesdaoApi();
-
-  Future<NameInfo?> getNameInfo(String name);
-}
-
-class _NamesdaoApi implements NamesdaoApi {
+class NamesdaoApi {
   static const baseURL = 'https://namesdaolookup.xchstorage.com';
 
   Client get client => Client(baseURL);
@@ -33,16 +27,5 @@ class _NamesdaoApi implements NamesdaoApi {
     }
 
     return NameInfo.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
-  }
-}
-
-class MockNamesdaoApi implements NamesdaoApi {
-  MockNamesdaoApi({required this.namesMap});
-
-  final Map<String, NameInfo> namesMap;
-
-  @override
-  Future<NameInfo?> getNameInfo(String name) async {
-    return namesMap[name];
   }
 }

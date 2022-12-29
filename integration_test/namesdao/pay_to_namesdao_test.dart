@@ -22,37 +22,35 @@ Future<void> main() async {
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
 
   final meera = ChiaEnthusiast(fullNodeSimulator);
-  final nathan = ChiaEnthusiast(fullNodeSimulator);
-
-  final namesMap = {'nathan.xch': NameInfo(address: nathan.address)};
-
-  final mockNamesdaoApi = MockNamesdaoApi(namesMap: namesMap);
 
   final xchService = XchService(fullNode: fullNodeSimulator, keychain: meera.keychain);
+  final namesdaoApi = NamesdaoApi();
 
-  for (var i = 0; i < nTests; i++) {
-    await meera.farmCoins();
-  }
+  const ccuNamesdao = 'ChiaCryptoUtils.xch';
+  const ccuNamesdaoAddress =
+      Address('xch1zdys84nucxx93r923ha4xe4tg9tyqhw8f7xe677n0u8mz29343usmuqurt');
+  final ccuNamesdaoPuzzlehash = ccuNamesdaoAddress.toPuzzlehash();
+
+  await meera.farmCoins();
   await meera.refreshCoins();
 
   test('should send XCH to Namesdao name', () async {
-    final nathanStartingBalance =
-        await fullNodeSimulator.getBalance([nathan.address.toPuzzlehash()]);
+    final startingBalance = await fullNodeSimulator.getBalance([ccuNamesdaoPuzzlehash]);
 
     final coinToSend = meera.standardCoins[0];
 
     await xchService.sendXchToNamesdao(
       coins: [coinToSend],
       amount: coinToSend.amount,
-      namesdaoName: 'nathan.xch',
-      namesdaoApi: mockNamesdaoApi,
+      namesdaoName: ccuNamesdao,
+      namesdaoApi: namesdaoApi,
     );
 
     await fullNodeSimulator.moveToNextBlock();
 
-    final nathanEndingbalance = await fullNodeSimulator.getBalance([nathan.address.toPuzzlehash()]);
+    final endingBalance = await fullNodeSimulator.getBalance([ccuNamesdaoPuzzlehash]);
 
-    expect(nathanEndingbalance - nathanStartingBalance, equals(coinToSend.amount));
+    expect(endingBalance - startingBalance, equals(coinToSend.amount));
   });
 
   test('should throw exception when sending XCH to invalid Namesdao name', () async {
@@ -61,8 +59,8 @@ Future<void> main() async {
         await xchService.sendXchToNamesdao(
           coins: meera.standardCoins,
           amount: meera.standardCoins.totalValue,
-          namesdaoName: 'nathann.xch',
-          namesdaoApi: mockNamesdaoApi,
+          namesdaoName: '_namesdao.xchh',
+          namesdaoApi: namesdaoApi,
         );
       },
       throwsA(isA<InvalidNamesdaoName>()),
