@@ -1,5 +1,6 @@
 // ignore_for_file: lines_longer_than_80_chars
 
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
@@ -97,6 +98,20 @@ class SpendBundle with ToBytesMixin {
     final signatures = <JacobianPoint>[signature];
     if (aggregatedSignature != null) {
       signatures.add(aggregatedSignature!);
+    }
+    final newAggregatedSignature = AugSchemeMPL.aggregate(signatures);
+
+    return SpendBundle(
+      coinSpends: coinSpends,
+      aggregatedSignature: newAggregatedSignature,
+    );
+  }
+
+  Future<SpendBundle> sign(
+      FutureOr<JacobianPoint> Function(CoinSpend coinSpend) makeSignatureForCoinSpend) async {
+    final signatures = <JacobianPoint>[];
+    for (final coinSpend in coinSpends) {
+      signatures.add(await makeSignatureForCoinSpend(coinSpend));
     }
     final newAggregatedSignature = AugSchemeMPL.aggregate(signatures);
 

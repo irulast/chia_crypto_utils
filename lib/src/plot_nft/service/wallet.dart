@@ -75,6 +75,84 @@ class PlotNftWalletService extends BaseWalletService {
     return createLauncherSpendBundle + launcherSpendBundle;
   }
 
+  Future<SpendBundle> createPlotNftMutationSpendBundle({
+    required PlotNft plotNft,
+    required List<CoinPrototype> coins,
+    int fee = 0,
+    required PoolState targetState,
+    required WalletKeychain keychain,
+    Puzzlehash? changePuzzlehash,
+  }) async {
+    final currentState = plotNft.poolState;
+    final launcherId = plotNft.launcherId;
+    final currentSingleton = plotNft.singletonCoin;
+    final delayPuzzlehash = plotNft.delayPuzzlehash;
+    final delayTime = plotNft.delayTime;
+
+    final currentInnerPuzzle = poolStateToInnerPuzzle(
+      poolState: currentState,
+      launcherId: launcherId,
+      delayPuzzlehash: delayPuzzlehash,
+      delayTime: delayTime,
+    );
+
+    final newInnerPuzzle = poolStateToInnerPuzzle(
+      poolState: targetState,
+      launcherId: launcherId,
+      delayPuzzlehash: delayPuzzlehash,
+      delayTime: delayTime,
+    );
+
+    if (currentInnerPuzzle == newInnerPuzzle) {
+      throw Exception();
+    }
+
+    final uncurriedInnerPuzzle = currentInnerPuzzle.uncurry();
+    final uncurriedInnerPuzzleProgram = uncurriedInnerPuzzle.program;
+
+    Program? innerSolution;
+    if (uncurriedInnerPuzzleProgram == poolWaitingRoomInnerpuzProgram) {
+      innerSolution = Program.list([
+        Program.cons(Program.fromString('p'), Program.fromBytes(targetState.toBytes())),
+        Program.nil
+      ]);
+    } else if (uncurriedInnerPuzzleProgram == poolMemberInnerpuzProgram) {
+      innerSolution = Program.list([
+        Program.fromInt(1),
+        Program.cons(Program.fromString('p'), Program.fromBytes(targetState.toBytes())),
+        Program.fromBytes(newInnerPuzzle.hash().toBytes())
+      ]);
+    } else {
+      throw ArgumentError();
+    }
+
+    final fullPuzzle = SingletonService.puzzleForSingleton(launcherId, currentInnerPuzzle);
+
+    final fullSolution = Program.list([
+      plotNft.lineageProof.toProgram(),
+      Program.fromInt(currentSingleton.amount),
+      innerSolution,
+    ]);
+
+    final travelSpend = CoinSpend(
+      coin: currentSingleton,
+      puzzleReveal: fullPuzzle,
+      solution: fullSolution,
+    );
+
+    final travelSpendBundle = SpendBundle(coinSpends: [travelSpend]);
+
+    final ownerPublicKeyProgram = uncurriedInnerPuzzle.arguments[2];
+    final ownerPublicKey = JacobianPoint.fromBytesG1(ownerPublicKeyProgram.toBytes());
+    final walletVector = keychain.getSingletonWalletVector(ownerPublicKey);
+    final privateKey = walletVector!.singletonOwnerPrivateKey;
+
+    await travelSpendBundle
+        .sign((coinSpend) => standardWalletService.makeSignature(privateKey, coinSpend));
+
+    return travelSpendBundle;
+  }
+
   Program poolStateToInnerPuzzle({
     required PoolState poolState,
     required Bytes launcherId,
