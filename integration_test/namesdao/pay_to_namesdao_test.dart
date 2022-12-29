@@ -55,7 +55,7 @@ Future<void> main() async {
     expect(nathanEndingbalance - nathanStartingBalance, equals(coinToSend.amount));
   });
 
-  test('should throw exception on invalid Namesdao name', () async {
+  test('should throw exception when sending XCH to invalid Namesdao name', () async {
     expect(
       () async {
         await xchService.sendXchToNamesdao(
