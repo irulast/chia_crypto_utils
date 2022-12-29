@@ -3,6 +3,7 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/core/models/blockchain_state.dart';
 import 'package:chia_crypto_utils/src/plot_nft/models/exceptions/invalid_pool_singleton_exception.dart';
+import 'package:chia_crypto_utils/src/plot_nft/models/lineage_proof.dart';
 
 class ChiaFullNodeInterface {
   const ChiaFullNodeInterface(this.fullNode);
@@ -186,6 +187,7 @@ class ChiaFullNodeInterface {
     if (launcherCoin == null) {
       return null;
     }
+
     final launcherCoinSpend = await getCoinSpend(launcherCoin);
     final initialExtraData = PlotNftWalletService.launcherCoinSpendToExtraData(launcherCoinSpend!);
 
@@ -194,17 +196,35 @@ class ChiaFullNodeInterface {
 
     var lastNotNullPoolState = initialExtraData.poolState;
     var singletonCoin = await getCoinById(firstSingletonCoinPrototype.id);
+    CoinSpend? lastCoinSpend;
 
     while (singletonCoin!.isSpent) {
-      final lastCoinSpend = (await getCoinSpend(singletonCoin))!;
+      lastCoinSpend = await getCoinSpend(singletonCoin);
       final nextSingletonCoinPrototype =
-          SingletonService.getMostRecentSingletonCoinFromCoinSpend(lastCoinSpend);
+          SingletonService.getMostRecentSingletonCoinFromCoinSpend(lastCoinSpend!);
       final poolState = PlotNftWalletService.coinSpendToPoolState(lastCoinSpend);
       if (poolState != null) {
         lastNotNullPoolState = poolState;
       }
 
       singletonCoin = await getCoinById(nextSingletonCoinPrototype.id);
+    }
+
+    LineageProof? lineageProof;
+    if (singletonCoin.parentCoinInfo == launcherId) {
+      lineageProof = LineageProof(
+        parentCoinInfo: launcherCoin.parentCoinInfo,
+        innerPuzzlehash: null,
+        amount: launcherCoin.amount,
+      );
+    } else {
+      final innerPuzzle = lastCoinSpend!.puzzleReveal.uncurry().arguments[1];
+
+      lineageProof = LineageProof(
+        parentCoinInfo: lastCoinSpend.coin.parentCoinInfo,
+        innerPuzzlehash: innerPuzzle.hash(),
+        amount: lastCoinSpend.coin.amount,
+      );
     }
 
     PlotNftWalletService().validateSingletonPuzzlehash(
@@ -221,6 +241,7 @@ class ChiaFullNodeInterface {
       poolState: lastNotNullPoolState,
       delayPuzzlehash: initialExtraData.delayPuzzlehash,
       delayTime: initialExtraData.delayTime,
+      lineageProof: lineageProof,
     );
   }
 

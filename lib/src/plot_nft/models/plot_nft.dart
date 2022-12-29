@@ -1,4 +1,5 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/plot_nft/models/lineage_proof.dart';
 
 class PlotNft with ToBytesMixin {
   PlotNft({
@@ -7,6 +8,7 @@ class PlotNft with ToBytesMixin {
     required this.poolState,
     required this.delayTime,
     required this.delayPuzzlehash,
+    required this.lineageProof,
   });
 
   final Bytes launcherId;
@@ -14,6 +16,7 @@ class PlotNft with ToBytesMixin {
   final PoolState poolState;
   final int delayTime;
   final Puzzlehash delayPuzzlehash;
+  final LineageProof lineageProof;
 
   factory PlotNft.fromBytes(Bytes bytes) {
     final iterator = bytes.iterator;
@@ -23,6 +26,7 @@ class PlotNft with ToBytesMixin {
     final poolState = PoolState.fromStream(iterator);
     final delayTime = intFrom64BitsStream(iterator);
     final delayPuzzlehash = Puzzlehash.fromStream(iterator);
+    final lineageProof = LineageProof.fromStream(iterator);
 
     return PlotNft(
       launcherId: launcherId,
@@ -30,6 +34,7 @@ class PlotNft with ToBytesMixin {
       poolState: poolState,
       delayTime: delayTime,
       delayPuzzlehash: delayPuzzlehash,
+      lineageProof: lineageProof,
     );
   }
 
@@ -50,10 +55,11 @@ class PlotNft with ToBytesMixin {
         singletonCoin.toBytes() +
         poolState.toBytes() +
         intTo64Bits(delayTime) +
-        delayPuzzlehash;
+        delayPuzzlehash +
+        lineageProof.toBytes();
   }
 
   @override
   String toString() =>
-      'PlotNft(launcherId: $launcherId, singletonCoin: $singletonCoin, poolState: $poolState, delayTime: $delayTime, delayPuzzlehash: $delayPuzzlehash)';
+      'PlotNft(launcherId: $launcherId, singletonCoin: $singletonCoin, poolState: $poolState, delayTime: $delayTime, delayPuzzlehash: $delayPuzzlehash, lineagProof: $lineageProof';
 }

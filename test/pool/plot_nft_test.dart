@@ -1,4 +1,5 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/plot_nft/models/lineage_proof.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -8,6 +9,14 @@ void main() {
         Puzzlehash.fromHex('17ff3c80192a7e616926e9194d69fd3fa0def1827964b1bf4f05d6b7de3f43c9'),
     puzzlehash:
         Puzzlehash.fromHex('01178c847be8e6766954ebf9db5c20dc263d02d0bb3cc057a1412fd1d7158daf'),
+    amount: 1,
+  );
+
+  final lineageProof = LineageProof(
+    parentCoinInfo:
+        Puzzlehash.fromHex('e453b4a08681ec44f5b4a35af34e96de1ac8b70b28f22a32274100729a7d7f23'),
+    innerPuzzlehash:
+        Puzzlehash.fromHex('58533d495d2c2157cc607011288e844438bea09237b634bd40c40e42730b4862'),
     amount: 1,
   );
 
@@ -29,6 +38,7 @@ void main() {
     delayTime: 604800,
     delayPuzzlehash:
         Puzzlehash.fromHex('a229c30fba7b35557ec417fbce1fc9eaf2bac74e574b2f0b079c03bde3c99d16'),
+    lineageProof: lineageProof,
   );
 
   test('should correctly serialize and deserialize plot nft', () {
