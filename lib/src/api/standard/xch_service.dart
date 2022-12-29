@@ -1,4 +1,5 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/api/namesdao/namesdao_api.dart';
 
 class XchService {
   XchService({
@@ -9,6 +10,7 @@ class XchService {
   final WalletKeychain keychain;
 
   StandardWalletService get walletService => StandardWalletService();
+  NamesdaoApi get namesdaoApi => NamesdaoApi();
 
   Future<ChiaBaseResponse> sendXch({
     required List<Coin> coins,
@@ -41,6 +43,19 @@ class XchService {
       fee: fee,
     );
     final response = await fullNode.pushTransaction(spendBundle);
+    return response;
+  }
+
+  Future<ChiaBaseResponse> sendXchToNamesdao({
+    required List<Coin> coins,
+    required int amount,
+    required String namesdaoName,
+    int fee = 0,
+    Puzzlehash? changePuzzlehash,
+  }) async {
+    final nameInfo = await namesdaoApi.getNameInfo(namesdaoName);
+    final puzzlehash = nameInfo!.address.toPuzzlehash();
+    final response = await sendXch(coins: coins, amount: amount, puzzlehash: puzzlehash);
     return response;
   }
 }
