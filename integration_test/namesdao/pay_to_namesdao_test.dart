@@ -1,12 +1,9 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/api/namesdao/exceptions/invalid_namesdao_name.dart';
-import 'package:chia_crypto_utils/src/api/namesdao/models/name_info.dart';
 import 'package:chia_crypto_utils/src/api/namesdao/namesdao_api.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
-  const nTests = 2;
-
   if (!(await SimulatorUtils.checkIfSimulatorIsRunning())) {
     print(SimulatorUtils.simulatorNotRunningWarning);
     return;
@@ -47,6 +44,7 @@ Future<void> main() async {
     );
 
     await fullNodeSimulator.moveToNextBlock();
+    await meera.refreshCoins();
 
     final endingBalance = await fullNodeSimulator.getBalance([ccuNamesdaoPuzzlehash]);
 

@@ -8,7 +8,6 @@ class NamesdaoApi {
 
   Client get client => Client(baseURL);
 
-  @override
   Future<NameInfo?> getNameInfo(String name) async {
     var normalName = name.toLowerCase();
 
