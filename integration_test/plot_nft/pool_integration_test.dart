@@ -19,7 +19,7 @@ Future<void> main() async {
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
   final poolWalletService = PlotNftWalletService();
 
-  final nathan = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
+  final nathan = ChiaEnthusiast(fullNodeSimulator, walletSize: 3);
   await nathan.farmCoins();
 
   test('should create plot nft', () async {
@@ -188,5 +188,72 @@ Future<void> main() async {
 
     final plotNfts = await fullNodeSimulator.scroungeForPlotNfts(meera.puzzlehashes);
     expect(plotNfts.length, equals(4));
+  });
+
+  test('should create and mutate plot nft', () async {
+    final genesisCoin = nathan.standardCoins[0];
+    final singletonWalletVector =
+        nathan.keychain.getNextSingletonWalletVector(nathan.keychainSecret.masterPrivateKey);
+
+    final initialTargetState = PoolState(
+      poolSingletonState: PoolSingletonState.selfPooling,
+      targetPuzzlehash: nathan.puzzlehashes[1],
+      ownerPublicKey: singletonWalletVector.singletonOwnerPublicKey,
+      relativeLockHeight: 100,
+    );
+    final plotNftSpendBundle = poolWalletService.createPoolNftSpendBundle(
+      initialTargetState: initialTargetState,
+      keychain: nathan.keychain,
+      coins: nathan.standardCoins,
+      genesisCoinId: genesisCoin.id,
+      p2SingletonDelayedPuzzlehash: nathan.firstPuzzlehash,
+      changePuzzlehash: nathan.firstPuzzlehash,
+    );
+
+    await fullNodeSimulator.pushTransaction(plotNftSpendBundle);
+    await fullNodeSimulator.moveToNextBlock();
+    await nathan.refreshCoins();
+
+    final launcherCoinPrototype = PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
+
+    final plotNft = (await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id))!;
+    expect(
+      plotNft.poolState.toHex(),
+      equals(initialTargetState.toHex()),
+    );
+    expect(
+      plotNft.delayTime,
+      equals(PlotNftWalletService.defaultDelayTime),
+    );
+    expect(plotNft.delayPuzzlehash, equals(nathan.firstPuzzlehash));
+
+    await nathan.farmCoins();
+    await nathan.refreshCoins();
+
+    final targetState = PoolState(
+      poolSingletonState: PoolSingletonState.selfPooling,
+      targetPuzzlehash: nathan.puzzlehashes[2],
+      ownerPublicKey: singletonWalletVector.singletonOwnerPublicKey,
+      relativeLockHeight: 100,
+    );
+
+    final plotNftMutationSpendBundle = await poolWalletService.createPlotNftMutationSpendBundle(
+      plotNft: plotNft,
+      coins: nathan.standardCoins,
+      targetState: targetState,
+      keychain: nathan.keychain,
+    );
+
+    await fullNodeSimulator.pushTransaction(plotNftMutationSpendBundle);
+    await fullNodeSimulator.moveToNextBlock();
+    await nathan.refreshCoins();
+
+    final mutatedPlotNft =
+        (await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id))!;
+
+    expect(
+      mutatedPlotNft.poolState.toHex(),
+      equals(targetState.toHex()),
+    );
   });
 }

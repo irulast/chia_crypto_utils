@@ -108,7 +108,8 @@ class SpendBundle with ToBytesMixin {
   }
 
   Future<SpendBundle> sign(
-      FutureOr<JacobianPoint> Function(CoinSpend coinSpend) makeSignatureForCoinSpend) async {
+    FutureOr<JacobianPoint> Function(CoinSpend coinSpend) makeSignatureForCoinSpend,
+  ) async {
     final signatures = <JacobianPoint>[];
     for (final coinSpend in coinSpends) {
       signatures.add(await makeSignatureForCoinSpend(coinSpend));
