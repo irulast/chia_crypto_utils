@@ -143,11 +143,8 @@ class PlotNftWalletService extends BaseWalletService {
     final travelSpendBundle = SpendBundle(coinSpends: [travelSpend]);
 
     final ownerPublicKey = currentState.ownerPublicKey;
-    // final singletonWalletVector = keychain.getSingletonWalletVector(ownerPublicKey);
-    final singletonWalletVector = keychain.singletonWalletVectorsMap.entries
-        .firstWhere((entry) => entry.key == ownerPublicKey)
-        .value;
-    final privateKey = singletonWalletVector.singletonOwnerPrivateKey;
+    final singletonWalletVector = keychain.getSingletonWalletVector(ownerPublicKey);
+    final privateKey = singletonWalletVector!.singletonOwnerPrivateKey;
 
     await travelSpendBundle
         .sign((coinSpend) => standardWalletService.makeSignature(privateKey, coinSpend));

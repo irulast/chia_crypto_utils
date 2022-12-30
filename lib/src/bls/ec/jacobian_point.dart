@@ -260,7 +260,7 @@ class JacobianPoint with ToBytesMixin {
   bool operator ==(Object other) => other is JacobianPoint && toAffine() == other.toAffine();
 
   @override
-  int get hashCode => hash4(x, y, z, infinity);
+  int get hashCode => toAffine().hashCode;
 
   @override
   String toString() => 'JacobianPoint(0x${toHex()})';
