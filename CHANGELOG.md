@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.16
+
+- Added Chiaswap
+- Added support for Namesdao
+- Added missing Chialisp libraries and tests demonstrating compilation
+- CLI bindings and utilities for interactively swapping BTC Lightning to XCH using submarine swap
+- Bug fixing and code cleanup
+
 ## 1.0.15
 
 - Pooling protocol support
