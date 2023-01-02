@@ -191,6 +191,10 @@ Future<void> main() async {
   });
 
   test('should create and mutate plot nft', () async {
+    final pool = PoolInterface.fromURL('https://xch-us-west.flexpool.io');
+
+    final poolInfo = await pool.getPoolInfo();
+
     final genesisCoin = nathan.standardCoins[0];
     final singletonWalletVector =
         nathan.keychain.getNextSingletonWalletVector(nathan.keychainSecret.masterPrivateKey);
@@ -231,8 +235,8 @@ Future<void> main() async {
     await nathan.refreshCoins();
 
     final targetState = PoolState(
-      poolSingletonState: PoolSingletonState.selfPooling,
-      targetPuzzlehash: nathan.puzzlehashes[2],
+      poolSingletonState: PoolSingletonState.farmingToPool,
+      targetPuzzlehash: poolInfo.targetPuzzlehash,
       ownerPublicKey: singletonWalletVector.singletonOwnerPublicKey,
       relativeLockHeight: 100,
     );
@@ -242,6 +246,7 @@ Future<void> main() async {
       coins: nathan.standardCoins,
       targetState: targetState,
       keychain: nathan.keychain,
+      changePuzzlehash: nathan.firstPuzzlehash,
     );
 
     await fullNodeSimulator.pushTransaction(plotNftMutationSpendBundle);
