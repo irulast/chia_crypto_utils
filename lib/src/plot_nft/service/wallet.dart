@@ -111,12 +111,12 @@ class PlotNftWalletService extends BaseWalletService {
     final uncurriedInnerPuzzleProgram = uncurriedInnerPuzzle.program;
 
     Program? innerSolution;
-    if (uncurriedInnerPuzzleProgram == poolWaitingRoomInnerpuzProgram) {
+    if (uncurriedInnerPuzzleProgram == poolMemberInnerpuzProgram) {
       innerSolution = Program.list([
         Program.cons(Program.fromString('p'), Program.fromBytes(targetState.toBytes())),
         Program.nil
       ]);
-    } else if (uncurriedInnerPuzzleProgram == poolMemberInnerpuzProgram) {
+    } else if (uncurriedInnerPuzzleProgram == poolWaitingRoomInnerpuzProgram) {
       innerSolution = Program.list([
         Program.fromInt(1),
         Program.cons(Program.fromString('p'), Program.fromBytes(targetState.toBytes())),
@@ -146,10 +146,10 @@ class PlotNftWalletService extends BaseWalletService {
     final singletonWalletVector = keychain.getSingletonWalletVector(ownerPublicKey);
     final privateKey = singletonWalletVector!.singletonOwnerPrivateKey;
 
-    await travelSpendBundle
+    final signedSpendBundle = await travelSpendBundle
         .sign((coinSpend) => standardWalletService.makeSignature(privateKey, coinSpend));
 
-    return travelSpendBundle;
+    return signedSpendBundle;
   }
 
   Program poolStateToInnerPuzzle({

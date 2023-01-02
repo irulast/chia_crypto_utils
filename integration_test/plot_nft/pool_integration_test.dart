@@ -191,7 +191,8 @@ Future<void> main() async {
   });
 
   test('should create and mutate plot nft', () async {
-    final pool = PoolInterface.fromURL('https://xch-us-west.flexpool.io');
+    const poolUrl = 'https://xch-us-west.flexpool.io';
+    final pool = PoolInterface.fromURL(poolUrl);
 
     final poolInfo = await pool.getPoolInfo();
 
@@ -203,8 +204,17 @@ Future<void> main() async {
       poolSingletonState: PoolSingletonState.selfPooling,
       targetPuzzlehash: nathan.puzzlehashes[1],
       ownerPublicKey: singletonWalletVector.singletonOwnerPublicKey,
-      relativeLockHeight: 100,
+      relativeLockHeight: 0,
     );
+
+    // final initialTargetState = PoolState(
+    //   poolSingletonState: PoolSingletonState.farmingToPool,
+    //   targetPuzzlehash: poolInfo.targetPuzzlehash,
+    //   ownerPublicKey: singletonWalletVector.singletonOwnerPublicKey,
+    //   relativeLockHeight: 0,
+    //   poolUrl: poolUrl,
+    // );
+
     final plotNftSpendBundle = poolWalletService.createPoolNftSpendBundle(
       initialTargetState: initialTargetState,
       keychain: nathan.keychain,
@@ -239,7 +249,16 @@ Future<void> main() async {
       targetPuzzlehash: poolInfo.targetPuzzlehash,
       ownerPublicKey: singletonWalletVector.singletonOwnerPublicKey,
       relativeLockHeight: 100,
+      poolUrl: poolUrl,
     );
+
+    // final targetState = PoolState(
+    //   poolSingletonState: PoolSingletonState.leavingPool,
+    //   targetPuzzlehash: poolInfo.targetPuzzlehash,
+    //   ownerPublicKey: singletonWalletVector.singletonOwnerPublicKey,
+    //   relativeLockHeight: 0,
+    //   poolUrl: poolUrl,
+    // );
 
     final plotNftMutationSpendBundle = await poolWalletService.createPlotNftMutationSpendBundle(
       plotNft: plotNft,
