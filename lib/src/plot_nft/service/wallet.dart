@@ -77,7 +77,6 @@ class PlotNftWalletService extends BaseWalletService {
 
   Future<SpendBundle> createPlotNftMutationSpendBundle({
     required PlotNft plotNft,
-    required List<CoinPrototype> coins,
     int fee = 0,
     required PoolState targetState,
     required WalletKeychain keychain,
@@ -150,8 +149,10 @@ class PlotNftWalletService extends BaseWalletService {
     final singletonWalletVector = keychain.getSingletonWalletVector(ownerPublicKey);
     final privateKey = singletonWalletVector!.singletonOwnerPrivateKey;
 
-    final signedSpendBundle = await travelSpendBundle.sign((coinSpend) =>
-        standardWalletService.makeSignature(privateKey, coinSpend, useSyntheticOffset: false));
+    final signedSpendBundle = await travelSpendBundle.sign(
+      (coinSpend) =>
+          standardWalletService.makeSignature(privateKey, coinSpend, useSyntheticOffset: false),
+    );
 
     return signedSpendBundle;
   }
