@@ -16,9 +16,7 @@ class SimulatorUtils {
 
   static String get generatedFilesPath {
     final env = Platform.environment;
-    return '/Users/nvjoshi/.chia-simulator-enhanced' ??
-        env[simulatorGeneratedFilesPathVariableName] ??
-        defaultgeneratedFilesPath;
+    return env[simulatorGeneratedFilesPathVariableName] ?? defaultgeneratedFilesPath;
   }
 
   static String get simulatorUrl {
