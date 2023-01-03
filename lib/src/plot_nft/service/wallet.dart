@@ -178,7 +178,7 @@ class PlotNftWalletService extends BaseWalletService {
       ),
     );
 
-    final hint = Program.fromBytes(targetOwnerPublicKey.toBytes()).hash();
+    final hint = targetOwnerPublicKey.toBytes().sha256Hash();
 
     final treasureMapSpendBundle = standardWalletService.createSpendBundle(
       payments: [

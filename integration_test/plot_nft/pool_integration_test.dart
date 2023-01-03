@@ -350,7 +350,7 @@ Future<void> main() async {
     await nathan.refreshCoins();
 
     final plotNftTreasureMapCoins = await fullNodeSimulator.getCoinsByMemo(
-      Program.fromBytes(meeraSingletonWalletVector.singletonOwnerPublicKey.toBytes()).hash(),
+      meeraSingletonWalletVector.plotNftHint,
     );
 
     print(plotNftTreasureMapCoins);
