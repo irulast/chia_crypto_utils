@@ -77,6 +77,8 @@ class PlotNftWalletService extends BaseWalletService {
 
   Future<SpendBundle> createPlotNftMutationSpendBundle({
     required PlotNft plotNft,
+    List<CoinPrototype> coinsForFee = const [],
+    Puzzlehash? changePuzzleHash,
     int fee = 0,
     required PoolState targetState,
     required WalletKeychain keychain,
@@ -152,6 +154,17 @@ class PlotNftWalletService extends BaseWalletService {
       (coinSpend) =>
           standardWalletService.makeSignature(privateKey, coinSpend, useSyntheticOffset: false),
     );
+
+    if (fee > 0) {
+      final feeSpendBundle = standardWalletService.createSpendBundle(
+        fee: fee,
+        payments: [],
+        coinsInput: coinsForFee,
+        keychain: keychain,
+        changePuzzlehash: changePuzzleHash,
+      );
+      return signedSpendBundle + feeSpendBundle;
+    }
 
     return signedSpendBundle;
   }
