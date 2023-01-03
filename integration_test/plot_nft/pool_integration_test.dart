@@ -248,7 +248,6 @@ Future<void> main() async {
       plotNft: plotNft,
       targetState: targetState,
       keychain: nathan.keychain,
-      changePuzzlehash: nathan.firstPuzzlehash,
     );
 
     await fullNodeSimulator.pushTransaction(plotNftMutationSpendBundle);
@@ -321,7 +320,6 @@ Future<void> main() async {
       plotNft: plotNft,
       targetState: targetState,
       keychain: nathan.keychain,
-      changePuzzlehash: nathan.firstPuzzlehash,
     );
 
     await fullNodeSimulator.pushTransaction(plotNftMutationSpendBundle);

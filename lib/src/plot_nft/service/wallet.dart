@@ -80,7 +80,6 @@ class PlotNftWalletService extends BaseWalletService {
     int fee = 0,
     required PoolState targetState,
     required WalletKeychain keychain,
-    Puzzlehash? changePuzzlehash,
   }) async {
     final currentState = plotNft.poolState;
     final launcherId = plotNft.launcherId;
