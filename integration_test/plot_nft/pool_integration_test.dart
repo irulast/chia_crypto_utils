@@ -358,16 +358,13 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await nathan.refreshCoins();
 
-    final plotNftTreasureMapCoins = await fullNodeSimulator.getCoinsByMemo(
+    final plotNftTreasureMapCoin = (await fullNodeSimulator.getCoinsByMemo(
       meeraSingletonWalletVector.plotNftHint,
-    );
-
-    print(plotNftTreasureMapCoins);
+    ))
+        .single;
 
     final transferredPlotNft =
-        await fullNodeSimulator.getPlotNftByLauncherId(plotNftTreasureMapCoins.first.puzzlehash);
-
-    print(transferredPlotNft);
+        await fullNodeSimulator.getPlotNftByLauncherId(plotNftTreasureMapCoin.puzzlehash);
 
     expect(
       transferredPlotNft!.poolState.toHex(),
