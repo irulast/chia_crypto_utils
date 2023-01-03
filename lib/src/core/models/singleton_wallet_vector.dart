@@ -40,7 +40,11 @@ class SingletonWalletVector with ToBytesMixin {
 
   JacobianPoint get singletonOwnerPublicKey => singletonOwnerPrivateKey.getG1();
   JacobianPoint get poolingAuthenticationPublicKey => poolingAuthenticationPrivateKey.getG1();
-  Puzzlehash get plotNftHint => Puzzlehash(singletonOwnerPublicKey.toBytes().sha256Hash());
+  Puzzlehash get plotNftHint => makePlotNftHint(singletonOwnerPublicKey);
+
+  static Puzzlehash makePlotNftHint(JacobianPoint singletonOwnerPublicKey) => Puzzlehash(
+        singletonOwnerPublicKey.toBytes().sha256Hash(),
+      );
 
   @override
   Bytes toBytes() {
