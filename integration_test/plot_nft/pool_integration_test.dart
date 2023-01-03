@@ -336,6 +336,14 @@ Future<void> main() async {
       equals(targetState.toHex()),
     );
 
+    final transferTargetState = PoolState(
+      poolSingletonState: PoolSingletonState.farmingToPool,
+      targetPuzzlehash: poolInfo.targetPuzzlehash,
+      ownerPublicKey: meeraSingletonWalletVector.singletonOwnerPublicKey,
+      relativeLockHeight: 0,
+      poolUrl: 'https://xch-us-west.flexpool.io',
+    );
+
     final transferAndJoinPoolSpendBundle = await poolWalletService.createTransferPlotNftSpendBundle(
       coins: nathan.standardCoins,
       plotNft: leftPoolPlotNft,
@@ -343,6 +351,7 @@ Future<void> main() async {
       keychain: nathan.keychain,
       newPoolSingletonState: PoolSingletonState.farmingToPool,
       changePuzzleHash: nathan.firstPuzzlehash,
+      poolUrl: transferTargetState.poolUrl,
     );
 
     await fullNodeSimulator.pushTransaction(transferAndJoinPoolSpendBundle);
@@ -359,5 +368,10 @@ Future<void> main() async {
         await fullNodeSimulator.getPlotNftByLauncherId(plotNftTreasureMapCoins.first.puzzlehash);
 
     print(transferredPlotNft);
+
+    expect(
+      transferredPlotNft!.poolState.toHex(),
+      equals(transferTargetState.toHex()),
+    );
   });
 }
