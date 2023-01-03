@@ -156,6 +156,47 @@ class PlotNftWalletService extends BaseWalletService {
     return signedSpendBundle;
   }
 
+  Future<SpendBundle> createTransferPlotNftSpendBundle({
+    required List<CoinPrototype> coins,
+    required JacobianPoint targetOwnerPublicKey,
+    required PlotNft plotNft,
+    required WalletKeychain keychain,
+    Puzzlehash? changePuzzleHash,
+    PoolSingletonState? newPoolSingletonState,
+    String? poolUrl,
+    int fee = 0,
+  }) async {
+    final mutationSpendBundle = await createPlotNftMutationSpendBundle(
+      keychain: keychain,
+      plotNft: plotNft,
+      targetState: PoolState(
+        poolSingletonState: newPoolSingletonState ?? plotNft.poolState.poolSingletonState,
+        targetPuzzlehash: plotNft.poolState.targetPuzzlehash,
+        ownerPublicKey: targetOwnerPublicKey,
+        relativeLockHeight: plotNft.poolState.relativeLockHeight,
+        poolUrl: poolUrl,
+      ),
+    );
+
+    final hint = Program.fromBytes(targetOwnerPublicKey.toBytes()).hash();
+
+    final treasureMapSpendBundle = standardWalletService.createSpendBundle(
+      payments: [
+        Payment(
+          1,
+          Puzzlehash(plotNft.launcherId),
+          memos: <Bytes>[hint],
+        )
+      ],
+      coinsInput: coins,
+      keychain: keychain,
+      fee: fee,
+      changePuzzlehash: changePuzzleHash,
+    );
+
+    return mutationSpendBundle + treasureMapSpendBundle;
+  }
+
   Program poolStateToInnerPuzzle({
     required PoolState poolState,
     required Bytes launcherId,
