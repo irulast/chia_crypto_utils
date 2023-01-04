@@ -179,17 +179,27 @@ class PlotNftWalletService extends BaseWalletService {
     String? poolUrl,
     int fee = 0,
   }) async {
-    final mutationSpendBundle = await createPlotNftMutationSpendBundle(
-      keychain: keychain,
-      plotNft: plotNft,
-      targetState: PoolState(
+    PoolState? targetState;
+    if (poolUrl != null) {
+      final poolInfo = await PoolInterface.fromURL(poolUrl).getPoolInfo();
+      targetState = PoolState(
+        poolSingletonState: PoolSingletonState.farmingToPool,
+        targetPuzzlehash: poolInfo.targetPuzzlehash,
+        ownerPublicKey: targetOwnerPublicKey,
+        relativeLockHeight: poolInfo.relativeLockHeight,
+        poolUrl: poolUrl,
+      );
+    } else {
+      targetState = PoolState(
         poolSingletonState: newPoolSingletonState ?? plotNft.poolState.poolSingletonState,
         targetPuzzlehash: plotNft.poolState.targetPuzzlehash,
         ownerPublicKey: targetOwnerPublicKey,
         relativeLockHeight: plotNft.poolState.relativeLockHeight,
-        poolUrl: poolUrl,
-      ),
-    );
+      );
+    }
+
+    final mutationSpendBundle = await createPlotNftMutationSpendBundle(
+        keychain: keychain, plotNft: plotNft, targetState: targetState);
 
     final hint = SingletonWalletVector.makePlotNftHint(targetOwnerPublicKey);
 

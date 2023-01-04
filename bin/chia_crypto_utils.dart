@@ -8,7 +8,6 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/exchange/cross_chain_offer_exchange.dart';
 import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
 import 'package:chia_crypto_utils/src/command/plot_nft/create_new_wallet_with_plotnft.dart';
-import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 late final ChiaFullNodeInterface fullNode;
 
@@ -29,6 +28,7 @@ Future<void> main(List<String> args) async {
     ..addCommand(CreateWalletWithPlotNFTCommand())
     ..addCommand(GetFarmingStatusCommand())
     ..addCommand(GetCoinRecords())
+    ..addCommand(TransferPlotNftCommand())
     ..addCommand(ExchangeBtcCommand())
     ..addCommand(CrossChainOfferExchangeCommand());
 
@@ -343,8 +343,8 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
   }
 }
 
-class TransferPlotNft extends Command<Future<void>> {
-  TransferPlotNft() {
+class TransferPlotNftCommand extends Command<Future<void>> {
+  TransferPlotNftCommand() {
     argParser
       ..addOption('current-mnemonic', defaultsTo: '')
       ..addOption('new-owner-mnemonic', defaultsTo: '')
@@ -353,7 +353,9 @@ class TransferPlotNft extends Command<Future<void>> {
       ..addOption(
         'certificate-bytes-path',
         defaultsTo: 'mozilla-ca/cacert.pem',
-      );
+      )
+      ..addOption('faucet-request-url', defaultsTo: '')
+      ..addOption('faucet-request-payload', defaultsTo: '');
   }
 
   @override
@@ -368,6 +370,8 @@ class TransferPlotNft extends Command<Future<void>> {
     var newOwnerMnemonicPhrase = argResults!['new-owner-mnemonic'] as String;
     var newOwnerPoolPayoutAddressString = argResults!['new-owner-pool-payout-address'] as String;
     final poolUrl = argResults!['pool-url'] as String;
+    final faucetRequestURL = argResults!['faucet-request-url'] as String;
+    final faucetRequestPayload = argResults!['faucet-request-payload'] as String;
 
     final plotNftWalletService = PlotNftWalletService();
 
@@ -378,7 +382,7 @@ class TransferPlotNft extends Command<Future<void>> {
     }
 
     if (currentMnemonicPhrase.isEmpty) {
-      print('\nPlease enter the mnemonic with the plot nft you would like to transfer:');
+      print('\nPlease enter the mnemonic with the plot NFT you would like to transfer:');
       stdout.write('> ');
       currentMnemonicPhrase = stdin.readLineSync()!;
     }
@@ -429,7 +433,51 @@ class TransferPlotNft extends Command<Future<void>> {
 
     final plotNft = plotNfts[0];
 
-    final coins = await fullNode.getCoinsByPuzzleHashes(currentKeychain.puzzlehashes);
+    currentKeychain.addSingletonWalletVectorForSingletonOwnerPublicKey(
+      plotNft.poolState.ownerPublicKey,
+      currentKeychainSecret.masterPrivateKey,
+    );
+
+    final coinAddress = Address.fromPuzzlehash(
+      currentKeychain.puzzlehashes.first,
+      ChiaNetworkContextWrapper().blockchainNetwork.addressPrefix,
+    );
+
+    if (faucetRequestURL.isNotEmpty && faucetRequestPayload.isNotEmpty) {
+      final theFaucetRequestPayload =
+          faucetRequestPayload.replaceAll(RegExp('SEND_TO_ADDRESS'), coinAddress.address);
+
+      final result = await Process.run('curl', [
+        '-s',
+        '-d',
+        theFaucetRequestPayload,
+        '-H',
+        'Content-Type: application/json',
+        '-X',
+        'POST',
+        faucetRequestURL,
+      ]);
+
+      stdout.write(result.stdout);
+      stderr.write(result.stderr);
+    } else {
+      print(
+        'Please send at least 1 mojo and enough extra XCH to cover the fee to create the PlotNFT to: ${coinAddress.address}\n',
+      );
+      print('Press any key when coin has been sent');
+      stdin.readLineSync();
+    }
+
+    var coins = <Coin>[];
+    do {
+      coins = await fullNode.getCoinsByPuzzleHashes(
+        currentKeychain.puzzlehashes,
+      );
+      if (coins.isEmpty) {
+        print('waiting for coins');
+        await Future<void>.delayed(const Duration(seconds: 3));
+      }
+    } while (coins.isEmpty);
 
     final plotNftTransferSpendBundle = await plotNftWalletService.createTransferPlotNftSpendBundle(
       coins: coins,
@@ -443,8 +491,16 @@ class TransferPlotNft extends Command<Future<void>> {
 
     await fullNode.pushTransaction(plotNftTransferSpendBundle);
 
-    final plotNftTreasureMapCoin =
-        (await fullNode.getCoinsByMemo(newOwnerSingletonWalletVector.plotNftHint)).single;
+    List<Coin>? coinsByMemo;
+    do {
+      coinsByMemo = await fullNode.getCoinsByMemo(newOwnerSingletonWalletVector.plotNftHint);
+      if (coinsByMemo.isEmpty) {
+        print('waiting plot NFT transfer to complete');
+        await Future<void>.delayed(const Duration(seconds: 10));
+      }
+    } while (coinsByMemo.isEmpty);
+
+    final plotNftTreasureMapCoin = coinsByMemo.single;
 
     final transferredPlotNft =
         await fullNode.getPlotNftByLauncherId(plotNftTreasureMapCoin.puzzlehash);
@@ -457,13 +513,9 @@ class TransferPlotNft extends Command<Future<void>> {
       transferredPlotNft.delayPuzzlehash,
     );
 
-    final plotNFTDetails = PlotNFTDetails(
-      contractAddress: contractPuzzlehash.toAddressWithContext(),
-      payoutAddress: newOwnerPoolPayoutAddress,
-      launcherId: launcherId,
-    );
-
-    print('\n$plotNFTDetails');
+    print('\nContract Address: ${contractPuzzlehash.toAddressWithContext().address}');
+    print('Launcher ID: $launcherId');
+    print('Ending Pool State: ${transferredPlotNft.poolState}');
 
     final poolService = _getPoolServiceImpl(
       poolUrl,
