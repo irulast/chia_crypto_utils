@@ -12,6 +12,10 @@ class PlotNFTDetails {
   final Address contractAddress;
   final Address payoutAddress;
   final Bytes launcherId;
+
+  @override
+  String toString() =>
+      'PlotNFTDetails(contractAddress: $contractAddress, payoutAddress: $payoutAddress, launcherId: $launcherId)';
 }
 
 Future<PlotNFTDetails> createNewWalletWithPlotNFT(

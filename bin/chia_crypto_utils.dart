@@ -8,7 +8,7 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/exchange/cross_chain_offer_exchange.dart';
 import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
 import 'package:chia_crypto_utils/src/command/plot_nft/create_new_wallet_with_plotnft.dart';
-import 'package:test/test.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 late final ChiaFullNodeInterface fullNode;
 
@@ -155,7 +155,7 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
     argParser
       ..addOption('pool-url', defaultsTo: '')
       ..addOption('self-pooling-address', defaultsTo: '')
-      ..addOption('faucet-request-url')
+      ..addOption('faucet-request-url', defaultsTo: '')
       ..addOption('faucet-request-payload', defaultsTo: '')
       ..addOption('output-config', defaultsTo: '')
       ..addOption(
@@ -339,6 +339,167 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
       } catch (e) {
         LoggingContext().error(e.toString());
       }
+    }
+  }
+}
+
+class TransferPlotNft extends Command<Future<void>> {
+  TransferPlotNft() {
+    argParser
+      ..addOption('current-mnemonic', defaultsTo: '')
+      ..addOption('new-owner-mnemonic', defaultsTo: '')
+      ..addOption('new-owner-pool-payout-address', defaultsTo: '')
+      ..addOption('pool-url', defaultsTo: 'https://xch-us-west.flexpool.io')
+      ..addOption(
+        'certificate-bytes-path',
+        defaultsTo: 'mozilla-ca/cacert.pem',
+      );
+  }
+
+  @override
+  String get description => 'Transfers ownership of Plot NFT.';
+
+  @override
+  String get name => 'Transfer-PlotNft';
+
+  @override
+  Future<void> run() async {
+    var currentMnemonicPhrase = argResults!['current-mnemonic'] as String;
+    var newOwnerMnemonicPhrase = argResults!['new-owner-mnemonic'] as String;
+    var newOwnerPoolPayoutAddressString = argResults!['new-owner-pool-payout-address'] as String;
+    final poolUrl = argResults!['pool-url'] as String;
+
+    final plotNftWalletService = PlotNftWalletService();
+
+    try {
+      await PoolInterface.fromURL(poolUrl).getPoolInfo();
+    } catch (e) {
+      throw ArgumentError('Invalid pool-url.');
+    }
+
+    if (currentMnemonicPhrase.isEmpty) {
+      print('\nPlease enter the mnemonic with the plot nft you would like to transfer:');
+      stdout.write('> ');
+      currentMnemonicPhrase = stdin.readLineSync()!;
+    }
+
+    final currentMnemonic = currentMnemonicPhrase.split(' ');
+
+    if (currentMnemonic.length != 12 && currentMnemonic.length != 24) {
+      throw ArgumentError(
+        '\nInvalid current mnemonic phrase. Must contain either 12 or 24 seed words',
+      );
+    }
+
+    if (newOwnerMnemonicPhrase.isEmpty) {
+      print('\nPlease enter the mnemonic you would like to transfer the plot NFT to:');
+      stdout.write('> ');
+      newOwnerMnemonicPhrase = stdin.readLineSync()!;
+    }
+
+    final newOwnerMnemonic = newOwnerMnemonicPhrase.split(' ');
+
+    if (newOwnerMnemonic.length != 12 && newOwnerMnemonic.length != 24) {
+      throw ArgumentError(
+        '\nInvalid new owner mnemonic phrase. Must contain either 12 or 24 seed words',
+      );
+    }
+
+    Address? newOwnerPoolPayoutAddress;
+    while (newOwnerPoolPayoutAddress == null) {
+      try {
+        newOwnerPoolPayoutAddress = Address(newOwnerPoolPayoutAddressString);
+      } catch (e) {
+        print('\nPlease enter a valid address for the new owner pool payout address:');
+        stdout.write('> ');
+        newOwnerPoolPayoutAddressString = stdin.readLineSync()!;
+      }
+    }
+
+    final currentKeychainSecret = KeychainCoreSecret.fromMnemonic(currentMnemonic);
+    final currentKeychain = WalletKeychain.fromCoreSecret(currentKeychainSecret);
+
+    final newOwnerKeychainSecret = KeychainCoreSecret.fromMnemonic(newOwnerMnemonic);
+    final newOwnerKeychain = WalletKeychain.fromCoreSecret(currentKeychainSecret);
+    final newOwnerSingletonWalletVector =
+        newOwnerKeychain.getNextSingletonWalletVector(newOwnerKeychainSecret.masterPrivateKey);
+    final newOwnerPublicKey = newOwnerSingletonWalletVector.singletonOwnerPublicKey;
+
+    final plotNfts = await fullNode.scroungeForPlotNfts(currentKeychain.puzzlehashes);
+
+    final plotNft = plotNfts[0];
+
+    final coins = await fullNode.getCoinsByPuzzleHashes(currentKeychain.puzzlehashes);
+
+    final plotNftTransferSpendBundle = await plotNftWalletService.createTransferPlotNftSpendBundle(
+      coins: coins,
+      targetOwnerPublicKey: newOwnerPublicKey,
+      plotNft: plotNft,
+      keychain: currentKeychain,
+      newPoolSingletonState: PoolSingletonState.farmingToPool,
+      changePuzzleHash: currentKeychain.puzzlehashes.first,
+      poolUrl: poolUrl,
+    );
+
+    await fullNode.pushTransaction(plotNftTransferSpendBundle);
+
+    final plotNftTreasureMapCoin =
+        (await fullNode.getCoinsByMemo(newOwnerSingletonWalletVector.plotNftHint)).single;
+
+    final transferredPlotNft =
+        await fullNode.getPlotNftByLauncherId(plotNftTreasureMapCoin.puzzlehash);
+
+    final launcherId = transferredPlotNft!.launcherId;
+
+    final contractPuzzlehash = PlotNftWalletService.launcherIdToP2Puzzlehash(
+      launcherId,
+      transferredPlotNft.delayTime,
+      transferredPlotNft.delayPuzzlehash,
+    );
+
+    final plotNFTDetails = PlotNFTDetails(
+      contractAddress: contractPuzzlehash.toAddressWithContext(),
+      payoutAddress: newOwnerPoolPayoutAddress,
+      launcherId: launcherId,
+    );
+
+    print('\n$plotNFTDetails');
+
+    final poolService = _getPoolServiceImpl(
+      poolUrl,
+      argResults!['certificate-bytes-path'] as String,
+    );
+
+    final addFarmerResponse = await poolService.registerAsFarmerWithPool(
+      plotNft: transferredPlotNft,
+      singletonWalletVector: newOwnerSingletonWalletVector,
+      payoutPuzzlehash: newOwnerPoolPayoutAddress.toPuzzlehash(),
+    );
+    print('\nPool welcome message: ${addFarmerResponse.welcomeMessage}');
+
+    GetFarmerResponse? farmerInfo;
+    var attempts = 0;
+    while (farmerInfo == null && attempts < 6) {
+      print('waiting for farmer information to become available...');
+      try {
+        attempts = attempts + 1;
+        await Future<void>.delayed(const Duration(seconds: 15));
+        farmerInfo = await poolService.getFarmerInfo(
+          authenticationPrivateKey: newOwnerSingletonWalletVector.poolingAuthenticationPrivateKey,
+          launcherId: launcherId,
+        );
+      } on PoolResponseException catch (e) {
+        if (e.poolErrorResponse.responseCode != PoolErrorState.farmerNotKnown) {
+          rethrow;
+        }
+        if (attempts == 5) {
+          print(e.poolErrorResponse.message);
+        }
+      }
+    }
+
+    if (farmerInfo != null) {
+      print('\n$farmerInfo');
     }
   }
 }
