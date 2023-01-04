@@ -8,6 +8,7 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/exchange/cross_chain_offer_exchange.dart';
 import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
 import 'package:chia_crypto_utils/src/command/plot_nft/create_new_wallet_with_plotnft.dart';
+import 'package:test/test.dart';
 
 late final ChiaFullNodeInterface fullNode;
 
@@ -152,7 +153,8 @@ class GetCoinRecords extends Command<Future<void>> {
 class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
   CreateWalletWithPlotNFTCommand() {
     argParser
-      ..addOption('pool-url', defaultsTo: 'https://xch-us-west.flexpool.io')
+      ..addOption('pool-url', defaultsTo: '')
+      ..addOption('self-pooling-address', defaultsTo: '')
       ..addOption('faucet-request-url')
       ..addOption('faucet-request-payload', defaultsTo: '')
       ..addOption('output-config', defaultsTo: '')
@@ -175,10 +177,14 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
 
     final outputConfigFile = argResults!['output-config'] as String;
 
-    final poolService = _getPoolServiceImpl(
-      argResults!['pool-url'] as String,
-      argResults!['certificate-bytes-path'] as String,
-    );
+    final poolUrl = argResults!['pool-url'] as String;
+    final selfPoolingAddress = argResults!['self-pooling-address'] as String;
+
+    if (poolUrl.isEmpty && selfPoolingAddress.isEmpty ||
+        poolUrl.isNotEmpty && selfPoolingAddress.isNotEmpty) {
+      throw ArgumentError('Must provide either pool-url or self-pooling-address');
+    }
+
     final mnemonicPhrase = generateMnemonic(strength: 256);
     final mnemonic = mnemonicPhrase.split(' ');
     print('Mnemonic Phrase: $mnemonicPhrase');
@@ -235,11 +241,25 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
       }
     }
 
+    PoolService? poolService;
+    if (poolUrl.isNotEmpty) {
+      poolService = _getPoolServiceImpl(
+        poolUrl,
+        argResults!['certificate-bytes-path'] as String,
+      );
+    }
+
+    Puzzlehash? selfPoolingPuzzlehash;
+    if (selfPoolingAddress.isNotEmpty) {
+      selfPoolingPuzzlehash = Address(selfPoolingAddress).toPuzzlehash();
+    }
+
     try {
       final plotNFTDetails = await createNewWalletWithPlotNFT(
         keychainSecret,
         keychain,
         poolService,
+        selfPoolingPuzzlehash,
         fullNode,
       );
 
