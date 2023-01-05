@@ -30,6 +30,7 @@ Future<void> main(List<String> args) async {
     ..addCommand(GetFarmingStatusCommand())
     ..addCommand(GetCoinRecords())
     ..addCommand(TransferPlotNftCommand())
+    ..addCommand(MutatePlotNftCommand())
     ..addCommand(ExchangeBtcCommand())
     ..addCommand(CrossChainOfferExchangeCommand());
 
@@ -445,21 +446,23 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
     for (final plotNft in plotNfts) {
       LoggingContext().info(plotNft.toString());
 
-      final poolService = _getPoolServiceImpl(
-        plotNft.poolState.poolUrl!,
-        argResults!['certificate-bytes-path'] as String,
-      );
+      // final poolService = _getPoolServiceImpl(
+      //   plotNft.poolState.poolUrl!,
+      //   argResults!['certificate-bytes-path'] as String,
+      // );
 
       try {
-        final farmingStatus = await getFarmingStatus(
-          plotNft,
-          keychainSecret,
-          keychain,
-          poolService,
-          fullNode,
-        );
+        // final farmingStatus = await getFarmingStatus(
+        //   plotNft,
+        //   keychainSecret,
+        //   keychain,
+        //   poolService,
+        //   fullNode,
+        // );
 
-        print(farmingStatus);
+        // print(farmingStatus);
+        print(plotNft.poolState);
+        print(plotNft.launcherId);
       } catch (e) {
         LoggingContext().error(e.toString());
       }
@@ -542,10 +545,12 @@ class TransferPlotNftCommand extends Command<Future<void>> {
         newOwnerKeychain.getNextSingletonWalletVector(newOwnerKeychainSecret.masterPrivateKey);
     final newOwnerPublicKey = newOwnerSingletonWalletVector.singletonOwnerPublicKey;
 
+    print(newOwnerPublicKey);
+
     Puzzlehash? newOwnerPoolPayoutPuzzlehash;
     if (newOwnerPoolPayoutAddressString.isEmpty) {
       newOwnerPoolPayoutPuzzlehash = newOwnerKeychain.puzzlehashes[1];
-      print('Payout Address: ${newOwnerPoolPayoutPuzzlehash.toAddressWithContext().address}');
+      print('\nPayout Address: ${newOwnerPoolPayoutPuzzlehash.toAddressWithContext().address}\n');
     } else {
       Address? newOwnerPoolPayoutAddress;
       while (newOwnerPoolPayoutAddress == null) {
@@ -564,8 +569,7 @@ class TransferPlotNftCommand extends Command<Future<void>> {
 
     final plotNft = plotNfts[0];
 
-    print('\nStarting Pool State: ${plotNft.poolState}');
-    print('Launcher ID: ${plotNft.launcherId}');
+    print('\nStarting Pool State: ${plotNft.poolState}\n');
 
     final currentOwnerPublicKey = plotNft.poolState.ownerPublicKey;
 
@@ -574,39 +578,39 @@ class TransferPlotNftCommand extends Command<Future<void>> {
       currentKeychainSecret.masterPrivateKey,
     );
 
-    final targetState = PoolState(
-      poolSingletonState: PoolSingletonState.leavingPool,
-      targetPuzzlehash: plotNft.poolState.targetPuzzlehash,
-      ownerPublicKey: currentOwnerPublicKey,
-      relativeLockHeight: plotNft.poolState.relativeLockHeight,
-      poolUrl: plotNft.poolState.poolUrl,
-    );
+    // final targetState = PoolState(
+    //   poolSingletonState: PoolSingletonState.leavingPool,
+    //   targetPuzzlehash: plotNft.poolState.targetPuzzlehash,
+    //   ownerPublicKey: currentOwnerPublicKey,
+    //   relativeLockHeight: plotNft.poolState.relativeLockHeight,
+    //   poolUrl: plotNft.poolState.poolUrl,
+    // );
 
-    final leavingPoolSpendBundle = await plotNftWalletService.createPlotNftMutationSpendBundle(
-      plotNft: plotNft,
-      targetState: targetState,
-      keychain: currentKeychain,
-    );
+    // final leavingPoolSpendBundle = await plotNftWalletService.createPlotNftMutationSpendBundle(
+    //   plotNft: plotNft,
+    //   targetState: targetState,
+    //   keychain: currentKeychain,
+    // );
 
-    await fullNode.pushTransaction(leavingPoolSpendBundle);
+    // await fullNode.pushTransaction(leavingPoolSpendBundle);
 
-    PlotNft? leavingPoolPlotNft;
-    do {
-      leavingPoolPlotNft = await fullNode.getPlotNftByLauncherId(plotNft.launcherId);
-      print('leaving pool');
-      await Future<void>.delayed(const Duration(seconds: 10));
-    } while (leavingPoolPlotNft!.poolState.poolSingletonState != PoolSingletonState.leavingPool);
+    // PlotNft? leavingPoolPlotNft;
+    // do {
+    //   leavingPoolPlotNft = await fullNode.getPlotNftByLauncherId(plotNft.launcherId);
+    //   print('leaving pool');
+    //   await Future<void>.delayed(const Duration(seconds: 10));
+    // } while (leavingPoolPlotNft!.poolState.poolSingletonState != PoolSingletonState.leavingPool);
 
-    final currentHeight = (await fullNode.getBlockchainState())!.peak!.height;
+    // final currentHeight = (await fullNode.getBlockchainState())!.peak!.height;
 
-    int? newHeight;
-    do {
-      newHeight = (await fullNode.getBlockchainState())!.peak!.height;
-      print(
-        'waiting for ${leavingPoolPlotNft.poolState.relativeLockHeight} blocks to pass before transfer',
-      );
-      await Future<void>.delayed(const Duration(minutes: 1));
-    } while (currentHeight + 100 > newHeight);
+    // int? newHeight;
+    // do {
+    //   newHeight = (await fullNode.getBlockchainState())!.peak!.height;
+    //   print(
+    //     'waiting for ${leavingPoolPlotNft.poolState.relativeLockHeight} blocks to pass before transfer',
+    //   );
+    //   await Future<void>.delayed(const Duration(minutes: 1));
+    // } while (currentHeight + 100 > newHeight);
 
     final coinAddress = Address.fromPuzzlehash(
       currentKeychain.puzzlehashes.first,
@@ -652,7 +656,7 @@ class TransferPlotNftCommand extends Command<Future<void>> {
     final plotNftTransferSpendBundle = await plotNftWalletService.createTransferPlotNftSpendBundle(
       coins: coins,
       targetOwnerPublicKey: newOwnerPublicKey,
-      plotNft: leavingPoolPlotNft,
+      plotNft: plotNft,
       keychain: currentKeychain,
       newPoolSingletonState: PoolSingletonState.farmingToPool,
       changePuzzleHash: currentKeychain.puzzlehashes.first,
@@ -665,7 +669,7 @@ class TransferPlotNftCommand extends Command<Future<void>> {
     do {
       coinsByMemo = await fullNode.getCoinsByMemo(newOwnerSingletonWalletVector.plotNftHint);
       if (coinsByMemo.isEmpty) {
-        print('waiting plot NFT transfer to complete');
+        print('waiting for plot NFT transfer to complete');
         await Future<void>.delayed(const Duration(seconds: 10));
       }
     } while (coinsByMemo.isEmpty);
@@ -677,15 +681,18 @@ class TransferPlotNftCommand extends Command<Future<void>> {
 
     final launcherId = transferredPlotNft!.launcherId;
 
-    final contractPuzzlehash = PlotNftWalletService.launcherIdToP2Puzzlehash(
-      launcherId,
-      transferredPlotNft.delayTime,
-      transferredPlotNft.delayPuzzlehash,
-    );
+    print('\nEnding Pool State: ${transferredPlotNft.poolState}');
+    print('Launcher ID: $launcherId\n');
 
-    print('\nContract Address: ${contractPuzzlehash.toAddressWithContext().address}');
-    print('Launcher ID: $launcherId');
-    print('Ending Pool State: ${transferredPlotNft.poolState}');
+    final currentHeight = (await fullNode.getBlockchainState())!.peak!.height;
+    int? newHeight;
+    do {
+      newHeight = (await fullNode.getBlockchainState())!.peak!.height;
+      await Future<void>.delayed(const Duration(seconds: 10));
+      print('waiting for a few blocks before registering');
+    } while (currentHeight + 3 > newHeight);
+
+    final poolInfo = await PoolInterface.fromURL(poolUrl).getPoolInfo();
 
     final poolService = _getPoolServiceImpl(
       poolUrl,
@@ -708,6 +715,173 @@ class TransferPlotNftCommand extends Command<Future<void>> {
         await Future<void>.delayed(const Duration(seconds: 15));
         farmerInfo = await poolService.getFarmerInfo(
           authenticationPrivateKey: newOwnerSingletonWalletVector.poolingAuthenticationPrivateKey,
+          launcherId: launcherId,
+        );
+      } on PoolResponseException catch (e) {
+        if (e.poolErrorResponse.responseCode != PoolErrorState.farmerNotKnown) {
+          rethrow;
+        }
+        if (attempts == 5) {
+          print(e.poolErrorResponse.message);
+        }
+      }
+    }
+
+    if (farmerInfo != null) {
+      print(
+        '\nauthentication_public_key: ${farmerInfo.authenticationPublicKey}',
+      );
+      print('launcher_id: $launcherId');
+      print('owner_public_key: $newOwnerPublicKey');
+      print('p2_singleton_puzzle_hash: ${plotNft.contractPuzzlehash}');
+      print('payout_instructions: ${farmerInfo.payoutInstructions}');
+      print('pool_url: $poolUrl');
+      print('target_puzzle_hash: ${poolInfo.targetPuzzlehash}');
+    }
+  }
+}
+
+class MutatePlotNftCommand extends Command<Future<void>> {
+  MutatePlotNftCommand() {
+    argParser
+      ..addOption('mnemonic', defaultsTo: '')
+      ..addOption('payout-address', defaultsTo: '')
+      ..addOption('pool-url', defaultsTo: 'https://xch-us-west.flexpool.io')
+      ..addOption(
+        'certificate-bytes-path',
+        defaultsTo: 'mozilla-ca/cacert.pem',
+      );
+  }
+
+  @override
+  String get description => 'Mutates plot NFT from self pooling to farming to pool.';
+
+  @override
+  String get name => 'Mutate-PlotNft';
+
+  @override
+  Future<void> run() async {
+    var mnemonicPhrase = argResults!['mnemonic'] as String;
+    var payoutAddressString = argResults!['payout-address'] as String;
+    final poolUrl = argResults!['pool-url'] as String;
+
+    final plotNftWalletService = PlotNftWalletService();
+
+    try {
+      await PoolInterface.fromURL(poolUrl).getPoolInfo();
+    } catch (e) {
+      throw ArgumentError('Invalid pool-url.');
+    }
+
+    if (mnemonicPhrase.isEmpty) {
+      print('\nPlease enter the mnemonic with the plot NFT you would like to transfer:');
+      stdout.write('> ');
+      mnemonicPhrase = stdin.readLineSync()!;
+    }
+
+    final mnemonic = mnemonicPhrase.split(' ');
+
+    if (mnemonic.length != 12 && mnemonic.length != 24) {
+      throw ArgumentError(
+        '\nInvalid current mnemonic phrase. Must contain either 12 or 24 seed words',
+      );
+    }
+
+    final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
+    final keychain = WalletKeychain.fromCoreSecret(keychainSecret);
+
+    Puzzlehash? payoutPuzzlehash;
+    if (payoutAddressString.isEmpty) {
+      payoutPuzzlehash = keychain.puzzlehashes[1];
+      print('Payout Address: ${payoutPuzzlehash.toAddressWithContext().address}');
+    } else {
+      Address? payoutAddress;
+      while (payoutAddress == null) {
+        try {
+          payoutAddress = Address(payoutAddressString);
+        } catch (e) {
+          print('\nPlease enter a valid address for the new owner pool payout address:');
+          stdout.write('> ');
+          payoutAddressString = stdin.readLineSync()!;
+        }
+      }
+      payoutPuzzlehash = payoutAddress.toPuzzlehash();
+    }
+
+    final plotNfts = await fullNode.scroungeForPlotNfts(keychain.puzzlehashes);
+
+    final plotNft = plotNfts[0];
+
+    print('\nStarting Pool State: ${plotNft.poolState}\n');
+
+    final ownerPublicKey = plotNft.poolState.ownerPublicKey;
+
+    keychain.addSingletonWalletVectorForSingletonOwnerPublicKey(
+      ownerPublicKey,
+      keychainSecret.masterPrivateKey,
+    );
+
+    final singletonWalletVector = keychain.getSingletonWalletVector(ownerPublicKey);
+
+    final poolInfo = await PoolInterface.fromURL(poolUrl).getPoolInfo();
+
+    final targetState = PoolState(
+      poolSingletonState: PoolSingletonState.farmingToPool,
+      targetPuzzlehash: poolInfo.targetPuzzlehash,
+      ownerPublicKey: ownerPublicKey,
+      relativeLockHeight: poolInfo.relativeLockHeight,
+      poolUrl: poolUrl,
+    );
+
+    final plotNftMutationSpendBundle = await plotNftWalletService.createPlotNftMutationSpendBundle(
+      plotNft: plotNft,
+      targetState: targetState,
+      keychain: keychain,
+    );
+
+    await fullNode.pushTransaction(plotNftMutationSpendBundle);
+
+    PlotNft? mutatedPlotNft;
+    do {
+      mutatedPlotNft = await fullNode.getPlotNftByLauncherId(plotNft.launcherId);
+      print('mutating plot NFT');
+      await Future<void>.delayed(const Duration(seconds: 10));
+    } while (mutatedPlotNft!.poolState.poolSingletonState != PoolSingletonState.farmingToPool);
+
+    final launcherId = mutatedPlotNft.launcherId;
+
+    print('\nEnding Pool State: ${mutatedPlotNft.poolState}');
+    print('Launcher ID: $launcherId\n');
+
+    final currentHeight = (await fullNode.getBlockchainState())!.peak!.height;
+    int? newHeight;
+    do {
+      newHeight = (await fullNode.getBlockchainState())!.peak!.height;
+      await Future<void>.delayed(const Duration(seconds: 10));
+      print('waiting for a few blocks before registering');
+    } while (currentHeight + 3 > newHeight);
+
+    final poolService = _getPoolServiceImpl(
+      poolUrl,
+      argResults!['certificate-bytes-path'] as String,
+    );
+
+    final addFarmerResponse = await poolService.registerAsFarmerWithPool(
+      plotNft: mutatedPlotNft,
+      singletonWalletVector: singletonWalletVector!,
+      payoutPuzzlehash: payoutPuzzlehash,
+    );
+    print('\nPool welcome message: ${addFarmerResponse.welcomeMessage}');
+
+    GetFarmerResponse? farmerInfo;
+    var attempts = 0;
+    while (farmerInfo == null && attempts < 6) {
+      print('waiting for farmer information to become available...');
+      try {
+        attempts = attempts + 1;
+        await Future<void>.delayed(const Duration(seconds: 15));
+        farmerInfo = await poolService.getFarmerInfo(
+          authenticationPrivateKey: singletonWalletVector.poolingAuthenticationPrivateKey,
           launcherId: launcherId,
         );
       } on PoolResponseException catch (e) {
