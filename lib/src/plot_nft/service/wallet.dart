@@ -199,7 +199,10 @@ class PlotNftWalletService extends BaseWalletService {
     }
 
     final mutationSpendBundle = await createPlotNftMutationSpendBundle(
-        keychain: keychain, plotNft: plotNft, targetState: targetState);
+      keychain: keychain,
+      plotNft: plotNft,
+      targetState: targetState,
+    );
 
     final hint = SingletonWalletVector.makePlotNftHint(targetOwnerPublicKey);
 

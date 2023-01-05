@@ -291,7 +291,7 @@ Future<void> main() async {
     final launcherCoinPrototype = PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
 
     final plotNft = (await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id))!;
-    print(plotNft.singletonCoin.puzzlehash);
+
     expect(
       plotNft.poolState.toHex(),
       equals(initialTargetState.toHex()),
@@ -339,7 +339,7 @@ Future<void> main() async {
       poolSingletonState: PoolSingletonState.farmingToPool,
       targetPuzzlehash: poolInfo.targetPuzzlehash,
       ownerPublicKey: meeraSingletonWalletVector.singletonOwnerPublicKey,
-      relativeLockHeight: 0,
+      relativeLockHeight: poolInfo.relativeLockHeight,
       poolUrl: 'https://xch-us-west.flexpool.io',
     );
 
