@@ -18,13 +18,12 @@ class PlotNFTDetails {
       'PlotNFTDetails(contractAddress: $contractAddress, payoutAddress: $payoutAddress, launcherId: $launcherId)';
 }
 
-Future<PlotNFTDetails> createNewWalletWithPlotNFT(
-  KeychainCoreSecret keychainSecret,
-  WalletKeychain keychain,
+Future<PlotNFTDetails> createNewWalletWithPlotNFT({
+  required KeychainCoreSecret keychainSecret,
+  required WalletKeychain keychain,
+  required ChiaFullNodeInterface fullNode,
   PoolService? poolService,
-  Puzzlehash? selfPoolingPuzzlehash,
-  ChiaFullNodeInterface fullNode,
-) async {
+}) async {
   final coins = await fullNode.getCoinsByPuzzleHashes(
     keychain.puzzlehashes,
   );
@@ -34,6 +33,8 @@ Future<PlotNFTDetails> createNewWalletWithPlotNFT(
       keychain.getNextSingletonWalletVector(keychainSecret.masterPrivateKey);
 
   final changePuzzlehash = keychain.puzzlehashes[3];
+
+  final payoutPuzzlehash = keychain.puzzlehashes[1];
 
   Bytes? launcherId;
   if (poolService != null) {
@@ -48,7 +49,7 @@ Future<PlotNFTDetails> createNewWalletWithPlotNFT(
   } else {
     final initialTargetState = PoolState(
       poolSingletonState: PoolSingletonState.selfPooling,
-      targetPuzzlehash: selfPoolingPuzzlehash!,
+      targetPuzzlehash: payoutPuzzlehash,
       ownerPublicKey: singletonWalletVector.singletonOwnerPublicKey,
       relativeLockHeight: 0,
     );
@@ -81,21 +82,13 @@ Future<PlotNFTDetails> createNewWalletWithPlotNFT(
   final newPlotNft = await fullNode.getPlotNftByLauncherId(launcherId);
   print(newPlotNft);
 
-  final contractPuzzlehash = PlotNftWalletService.launcherIdToP2Puzzlehash(
-    launcherId,
-    PlotNftWalletService.defaultDelayTime,
-    delayPh,
-  );
-
-  final payoutPuzzlehash = keychain.puzzlehashes[1];
-
   final payoutAddress = Address.fromPuzzlehash(
     payoutPuzzlehash,
     ChiaNetworkContextWrapper().blockchainNetwork.addressPrefix,
   );
 
   final contractAddress = Address.fromPuzzlehash(
-    contractPuzzlehash,
+    newPlotNft!.contractPuzzlehash,
     ChiaNetworkContextWrapper().blockchainNetwork.addressPrefix,
   );
 
@@ -104,9 +97,9 @@ Future<PlotNFTDetails> createNewWalletWithPlotNFT(
 
   if (poolService != null) {
     final addFarmerResponse = await poolService.registerAsFarmerWithPool(
-      plotNft: newPlotNft!,
+      plotNft: newPlotNft,
       singletonWalletVector: singletonWalletVector,
-      payoutPuzzlehash: keychain.puzzlehashes[1],
+      payoutPuzzlehash: payoutPuzzlehash,
     );
     print('Pool welcome message: ${addFarmerResponse.welcomeMessage}');
 

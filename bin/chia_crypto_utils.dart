@@ -155,7 +155,6 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
   CreateWalletWithPlotNFTCommand() {
     argParser
       ..addOption('pool-url', defaultsTo: '')
-      ..addOption('self-pooling-address', defaultsTo: '')
       ..addOption('faucet-request-url', defaultsTo: '')
       ..addOption('faucet-request-payload', defaultsTo: '')
       ..addOption('output-config', defaultsTo: '')
@@ -179,11 +178,6 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
     final outputConfigFile = argResults!['output-config'] as String;
 
     final poolUrl = argResults!['pool-url'] as String;
-    final selfPoolingAddress = argResults!['self-pooling-address'] as String;
-
-    if (poolUrl.isNotEmpty && selfPoolingAddress.isNotEmpty) {
-      throw ArgumentError('Must provide either pool-url OR self-pooling-address.');
-    }
 
     final mnemonicPhrase = generateMnemonic(strength: 256);
     final mnemonic = mnemonicPhrase.split(' ');
@@ -242,27 +236,19 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
     }
 
     PoolService? poolService;
-    Puzzlehash? selfPoolingPuzzlehash;
     if (poolUrl.isNotEmpty) {
       poolService = _getPoolServiceImpl(
         poolUrl,
         argResults!['certificate-bytes-path'] as String,
       );
-    } else {
-      if (selfPoolingAddress.isNotEmpty) {
-        selfPoolingPuzzlehash = Address(selfPoolingAddress).toPuzzlehash();
-      } else {
-        selfPoolingPuzzlehash = keychain.puzzlehashes[1];
-      }
     }
 
     try {
       final plotNFTDetails = await createNewWalletWithPlotNFT(
-        keychainSecret,
-        keychain,
-        poolService,
-        selfPoolingPuzzlehash,
-        fullNode,
+        keychainSecret: keychainSecret,
+        keychain: keychain,
+        fullNode: fullNode,
+        poolService: poolService,
       );
 
       if (outputConfigFile.isNotEmpty) {
