@@ -38,4 +38,3 @@ coverage/
 # Ignore chialisp 
 main.sym
 spend_bundle_hex.txt
-preload.pconf

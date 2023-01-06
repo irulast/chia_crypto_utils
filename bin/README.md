@@ -42,7 +42,7 @@ dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_N
 dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --cert-path <PATH_TO_CERT_FILE> --key-path <PATH_TO_KEY_FILE> --pool-url <POOL_URL>
 ```
 
-To create a new wallet with a self-pooling plot NFT, omit the pool url and optionally include the a self-pooling address. If you omit the self-pooling address, the program will output an address from the new wallet to be used instead. 
+To create a new wallet with a self-pooling plot NFT, omit the pool url and optionally include a self-pooling payout address. If you omit the self-pooling address, the program will use an address from the new wallet instead. 
 
 ```console
 dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --faucet-request-url <FAUCET_URL> --faucet-request-payload '{"address": "SEND_TO_ADDRESS", "amount": 0.0000000001}' --self-pooling-address <SELF_POOLING_ADDRESS>

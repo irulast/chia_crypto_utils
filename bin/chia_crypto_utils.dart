@@ -253,7 +253,6 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
         selfPoolingPuzzlehash = Address(selfPoolingAddress).toPuzzlehash();
       } else {
         selfPoolingPuzzlehash = keychain.puzzlehashes[1];
-        print('\nSelf-pooling address: ${selfPoolingPuzzlehash.toAddressWithContext().address}');
       }
     }
 
