@@ -181,9 +181,8 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
     final poolUrl = argResults!['pool-url'] as String;
     final selfPoolingAddress = argResults!['self-pooling-address'] as String;
 
-    if (poolUrl.isEmpty && selfPoolingAddress.isEmpty ||
-        poolUrl.isNotEmpty && selfPoolingAddress.isNotEmpty) {
-      throw ArgumentError('Must provide either pool-url or self-pooling-address');
+    if (poolUrl.isNotEmpty && selfPoolingAddress.isNotEmpty) {
+      throw ArgumentError('Must provide either pool-url OR self-pooling-address.');
     }
 
     final mnemonicPhrase = generateMnemonic(strength: 256);
@@ -243,16 +242,19 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
     }
 
     PoolService? poolService;
+    Puzzlehash? selfPoolingPuzzlehash;
     if (poolUrl.isNotEmpty) {
       poolService = _getPoolServiceImpl(
         poolUrl,
         argResults!['certificate-bytes-path'] as String,
       );
-    }
-
-    Puzzlehash? selfPoolingPuzzlehash;
-    if (selfPoolingAddress.isNotEmpty) {
-      selfPoolingPuzzlehash = Address(selfPoolingAddress).toPuzzlehash();
+    } else {
+      if (selfPoolingAddress.isNotEmpty) {
+        selfPoolingPuzzlehash = Address(selfPoolingAddress).toPuzzlehash();
+      } else {
+        selfPoolingPuzzlehash = keychain.puzzlehashes[1];
+        print('\nSelf-pooling address: ${selfPoolingPuzzlehash.toAddressWithContext().address}');
+      }
     }
 
     try {

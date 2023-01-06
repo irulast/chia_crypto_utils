@@ -28,18 +28,31 @@ dart bin/chia_crypto_utils.dart Get-CoinRecords --full-node-url <FULL_NODE_URL> 
 
 ## Create Wallet With PlotNFT
 
-Use this command to create a wallet with a new plotNFT:
+Use this command to create a wallet with a new plotNFT and register it with a pool:
 
 ```console
-dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --faucet-request-url <FAUCET_URL> --faucet-request-payload '{"address": "SEND_TO_ADDRESS", "amount": 0.0000000001}'
-dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --cert-path <PATH_TO_CERT_FILE> --key-path <PATH_TO_KEY_FILE> --faucet-request-url <FAUCET_URL> --faucet-request-payload '{"address": "SEND_TO_ADDRESS", "amount": 0.0000000001}'
+dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --faucet-request-url <FAUCET_URL> --faucet-request-payload '{"address": "SEND_TO_ADDRESS", "amount": 0.0000000001}' --pool-url <POOL_URL>
+dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --cert-path <PATH_TO_CERT_FILE> --key-path <PATH_TO_KEY_FILE> --faucet-request-url <FAUCET_URL> --faucet-request-payload '{"address": "SEND_TO_ADDRESS", "amount": 0.0000000001}' --pool-url <POOL_URL>
 ```
 
 Can also omit the faucet url and payload if you would like to manually send the XCH needed to create the plotNFT:
 
 ```console
-dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL>
-dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --cert-path <PATH_TO_CERT_FILE> --key-path <PATH_TO_KEY_FILE>
+dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --pool-url <POOL_URL>
+dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --cert-path <PATH_TO_CERT_FILE> --key-path <PATH_TO_KEY_FILE> --pool-url <POOL_URL>
+```
+
+To create a new wallet with a self-pooling plot NFT, omit the pool url and optionally include the a self-pooling address. If you omit the self-pooling address, the program will output an address from the new wallet to be used instead. 
+
+```console
+dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --faucet-request-url <FAUCET_URL> --faucet-request-payload '{"address": "SEND_TO_ADDRESS", "amount": 0.0000000001}' --self-pooling-address <SELF_POOLING_ADDRESS>
+dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --cert-path <PATH_TO_CERT_FILE> --key-path <PATH_TO_KEY_FILE> --faucet-request-url <FAUCET_URL> --faucet-request-payload '{"address": "SEND_TO_ADDRESS", "amount": 0.0000000001}' --self-pooling-address <SELF_POOLING_ADDRESS>
+```
+
+Can similarly omit the faucet url and payload if you would like to manually send the XCH needed to create the plotNFT:
+```console
+dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --self-pooling-address <SELF_POOLING_ADDRESS>
+dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --cert-path <PATH_TO_CERT_FILE> --key-path <PATH_TO_KEY_FILE> --self-pooling-address <SELF_POOLING_ADDRESS>
 ```
 
 ## Transfer PlotNFT
