@@ -29,7 +29,7 @@ Future<void> main(List<String> args) async {
     ..addCommand(RegisterPlotNFTCommand())
     ..addCommand(GetFarmingStatusCommand())
     ..addCommand(GetCoinRecords())
-    ..addCommand(TransferPlotNftCommand())
+    ..addCommand(TransferPlotNFTCommand())
     ..addCommand(ExchangeBtcCommand())
     ..addCommand(CrossChainOfferExchangeCommand());
 
@@ -298,10 +298,10 @@ class RegisterPlotNFTCommand extends Command<Future<void>> {
   }
 
   @override
-  String get description => 'Registers a plot NFT with a pool.';
+  String get description => 'Registers a plotNFT with a pool.';
 
   @override
-  String get name => 'Register-PlotNft';
+  String get name => 'Register-PlotNFT';
 
   @override
   Future<void> run() async {
@@ -469,8 +469,8 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
   }
 }
 
-class TransferPlotNftCommand extends Command<Future<void>> {
-  TransferPlotNftCommand() {
+class TransferPlotNFTCommand extends Command<Future<void>> {
+  TransferPlotNFTCommand() {
     argParser
       ..addOption('current-mnemonic', defaultsTo: '')
       ..addOption('new-owner-mnemonic', defaultsTo: '')
@@ -486,10 +486,10 @@ class TransferPlotNftCommand extends Command<Future<void>> {
 
   @override
   String get description =>
-      'Transfers ownership of plot NFT in selfPooling or leavingPool state and registers it with pool.';
+      'Transfers ownership of plotNFT in selfPooling or leavingPool state and registers it with pool.';
 
   @override
-  String get name => 'Transfer-PlotNft';
+  String get name => 'Transfer-PlotNFT';
 
   @override
   Future<void> run() async {
