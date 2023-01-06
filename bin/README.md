@@ -28,18 +28,41 @@ dart bin/chia_crypto_utils.dart Get-CoinRecords --full-node-url <FULL_NODE_URL> 
 
 ## Create Wallet With PlotNFT
 
-Use this command to create a wallet with a new plotNFT:
+Use this command to create a wallet with a new plotNFT and register it with a pool. To create a self-pooling plotNFT, omit the pool-url parameter. 
 
 ```console
-dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --faucet-request-url <FAUCET_URL> --faucet-request-payload '{"address": "SEND_TO_ADDRESS", "amount": 0.0000000001}'
-dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --cert-path <PATH_TO_CERT_FILE> --key-path <PATH_TO_KEY_FILE> --faucet-request-url <FAUCET_URL> --faucet-request-payload '{"address": "SEND_TO_ADDRESS", "amount": 0.0000000001}'
+dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --faucet-request-url <FAUCET_URL> --faucet-request-payload '{"address": "SEND_TO_ADDRESS", "amount": 0.0000000001}' --pool-url <POOL_URL>
+dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --cert-path <PATH_TO_CERT_FILE> --key-path <PATH_TO_KEY_FILE> --faucet-request-url <FAUCET_URL> --faucet-request-payload '{"address": "SEND_TO_ADDRESS", "amount": 0.0000000001}' --pool-url <POOL_URL>
 ```
 
-Can also omit the faucet url and payload if you would like to manually send the XCH needed to create the PlotNFT:
+Can also omit the faucet url and payload if you would like to manually send the XCH needed to create the plotNFT:
 
 ```console
-dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL>
-dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --cert-path <PATH_TO_CERT_FILE> --key-path <PATH_TO_KEY_FILE>
+dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --pool-url <POOL_URL>
+dart bin/chia_crypto_utils.dart Create-WalletWithPlotNFT --full-node-url <FULL_NODE_URL> --cert-path <PATH_TO_CERT_FILE> --key-path <PATH_TO_KEY_FILE> --pool-url <POOL_URL>
+```
+
+## Transfer PlotNFT
+
+Use this command to transfer ownership of a plotNFT. Must start in either self pooling or leaving pool state in order to be transferred.
+
+```console
+dart bin/chia_crypto_utils.dart Transfer-PlotNFT --full-node-url <FULL_NODE_URL> --faucet-request-url <FAUCET_URL> --faucet-request-payload '{"address": "SEND_TO_ADDRESS", "amount": 0.0000000001}' --current-mnemonic "current mnemonic seed" --new-owner-mnemonic "new owner mnemonic seed"
+dart bin/chia_crypto_utils.dart Transfer-PlotNFT --full-node-url <FULL_NODE_URL> --cert-path <PATH_TO_CERT_FILE> --key-path <PATH_TO_KEY_FILE> --faucet-request-url <FAUCET_URL> --faucet-request-payload '{"address": "SEND_TO_ADDRESS", "amount": 0.0000000001}' --current-mnemonic "current mnemonic seed" --new-owner-mnemonic "new owner mnemonic seed"
+```
+
+Can include optional parameter for new owner payout address. If it is omitted program will output and use address from new owner mnemonic. 
+
+```console
+dart bin/chia_crypto_utils.dart Transfer-PlotNFT --full-node-url <FULL_NODE_URL> --faucet-request-url <FAUCET_URL> --faucet-request-payload '{"address": "SEND_TO_ADDRESS", "amount": 0.0000000001}' --current-mnemonic "current mnemonic seed" --new-owner-mnemonic "new owner mnemonic seed" --new-owner-payout-address <NEW_OWNER_PAYOUT_ADDRESS>
+dart bin/chia_crypto_utils.dart Transfer-PlotNFT --full-node-url <FULL_NODE_URL> --cert-path <PATH_TO_CERT_FILE> --key-path <PATH_TO_KEY_FILE> --faucet-request-url <FAUCET_URL> --faucet-request-payload '{"address": "SEND_TO_ADDRESS", "amount": 0.0000000001}' --current-mnemonic "current mnemonic seed" --new-owner-mnemonic "new owner mnemonic seed" --new-owner-payout-address <NEW_OWNER_PAYOUT_ADDRESS>
+```
+
+Can also omit the faucet url and payload if you would like to manually send the XCH needed to transfer the plotNFT:
+
+```console
+dart bin/chia_crypto_utils.dart Transfer-PlotNFT --full-node-url <FULL_NODE_URL> --current-mnemonic "current mnemonic seed" --new-owner-mnemonic "new owner mnemonic seed"
+dart bin/chia_crypto_utils.dart Transfer-PlotNFT --full-node-url <FULL_NODE_URL> --cert-path <PATH_TO_CERT_FILE> --key-path <PATH_TO_KEY_FILE> --current-mnemonic "current mnemonic seed" --new-owner-mnemonic "new owner mnemonic seed"
 ```
 
 ## Get Farming Status

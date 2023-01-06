@@ -29,7 +29,7 @@ Future<void> main(List<String> args) async {
     ..addCommand(RegisterPlotNFTCommand())
     ..addCommand(GetFarmingStatusCommand())
     ..addCommand(GetCoinRecords())
-    ..addCommand(TransferPlotNftCommand())
+    ..addCommand(TransferPlotNFTCommand())
     ..addCommand(ExchangeBtcCommand())
     ..addCommand(CrossChainOfferExchangeCommand());
 
@@ -155,7 +155,6 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
   CreateWalletWithPlotNFTCommand() {
     argParser
       ..addOption('pool-url', defaultsTo: '')
-      ..addOption('self-pooling-address', defaultsTo: '')
       ..addOption('faucet-request-url', defaultsTo: '')
       ..addOption('faucet-request-payload', defaultsTo: '')
       ..addOption('output-config', defaultsTo: '')
@@ -179,12 +178,6 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
     final outputConfigFile = argResults!['output-config'] as String;
 
     final poolUrl = argResults!['pool-url'] as String;
-    final selfPoolingAddress = argResults!['self-pooling-address'] as String;
-
-    if (poolUrl.isEmpty && selfPoolingAddress.isEmpty ||
-        poolUrl.isNotEmpty && selfPoolingAddress.isNotEmpty) {
-      throw ArgumentError('Must provide either pool-url or self-pooling-address');
-    }
 
     final mnemonicPhrase = generateMnemonic(strength: 256);
     final mnemonic = mnemonicPhrase.split(' ');
@@ -250,18 +243,12 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
       );
     }
 
-    Puzzlehash? selfPoolingPuzzlehash;
-    if (selfPoolingAddress.isNotEmpty) {
-      selfPoolingPuzzlehash = Address(selfPoolingAddress).toPuzzlehash();
-    }
-
     try {
       final plotNFTDetails = await createNewWalletWithPlotNFT(
-        keychainSecret,
-        keychain,
-        poolService,
-        selfPoolingPuzzlehash,
-        fullNode,
+        keychainSecret: keychainSecret,
+        keychain: keychain,
+        fullNode: fullNode,
+        poolService: poolService,
       );
 
       if (outputConfigFile.isNotEmpty) {
@@ -298,10 +285,10 @@ class RegisterPlotNFTCommand extends Command<Future<void>> {
   }
 
   @override
-  String get description => 'Registers a plot NFT with a pool.';
+  String get description => 'Registers a plotNFT with a pool.';
 
   @override
-  String get name => 'Register-PlotNft';
+  String get name => 'Register-PlotNFT';
 
   @override
   Future<void> run() async {
@@ -469,8 +456,8 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
   }
 }
 
-class TransferPlotNftCommand extends Command<Future<void>> {
-  TransferPlotNftCommand() {
+class TransferPlotNFTCommand extends Command<Future<void>> {
+  TransferPlotNFTCommand() {
     argParser
       ..addOption('current-mnemonic', defaultsTo: '')
       ..addOption('new-owner-mnemonic', defaultsTo: '')
@@ -486,10 +473,10 @@ class TransferPlotNftCommand extends Command<Future<void>> {
 
   @override
   String get description =>
-      'Transfers ownership of plot NFT in selfPooling or leavingPool state and registers it with pool.';
+      'Transfers ownership of plotNFT in selfPooling or leavingPool state and registers it with pool.';
 
   @override
-  String get name => 'Transfer-PlotNft';
+  String get name => 'Transfer-PlotNFT';
 
   @override
   Future<void> run() async {
