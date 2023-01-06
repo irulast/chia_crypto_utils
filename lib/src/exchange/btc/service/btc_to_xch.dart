@@ -3,6 +3,7 @@ import 'package:chia_crypto_utils/src/exchange/btc/service/exchange.dart';
 
 class BtcToXchService {
   final BtcExchangeService exchangeService = BtcExchangeService();
+  final BaseWalletService baseWalletService = BaseWalletService();
 
   Puzzlehash generateEscrowPuzzlehash({
     required PrivateKey requestorPrivateKey,
@@ -68,7 +69,7 @@ class BtcToXchService {
     final requestorPublicKey = requestorPrivateKey.getG1();
     final fulfillerPublicKey = fulfillerPrivateKey.getG1();
 
-    return BaseWalletService().createSpendBundleBase(
+    return baseWalletService.createSpendBundleBase(
       payments: payments,
       coinsInput: coinsInput,
       changePuzzlehash: changePuzzlehash,
@@ -101,8 +102,11 @@ class BtcToXchService {
           fulfillerPrivateKey,
         );
 
-        return BaseWalletService()
-            .makeSignature(totalPrivateKey, coinSpend, useSyntheticOffset: false);
+        return baseWalletService.makeSignature(
+          totalPrivateKey,
+          coinSpend,
+          useSyntheticOffset: false,
+        );
       },
     );
   }
