@@ -5,9 +5,8 @@ class BtcToXchCrossChainOfferService {
   BtcToXchCrossChainOfferService(this.fullNode);
 
   final ChiaFullNodeInterface fullNode;
-  final standardWalletService = StandardWalletService();
-
-  final btcToXchService = BtcToXchService();
+  final StandardWalletService standardWalletService = StandardWalletService();
+  final BtcToXchService btcToXchService = BtcToXchService();
 
   Future<void> pushSweepSpendbundle({
     required Puzzlehash escrowPuzzlehash,
