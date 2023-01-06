@@ -173,7 +173,7 @@ class ChiaFullNodeInterface {
           try {
             final plotNft = await getPlotNftByLauncherId(launcherId);
             plotNfts.add(plotNft!);
-          } on InvalidPoolSingletonException {
+          } catch (e) {
             // pass. Launcher id was not for plot nft
           }
         }
