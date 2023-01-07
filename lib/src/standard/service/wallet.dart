@@ -12,6 +12,7 @@ class StandardWalletService extends BaseWalletService {
     Puzzlehash? changePuzzlehash,
     int fee = 0,
     Bytes? originId,
+    bool allowLeftOver = false,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
     List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
   }) {
@@ -20,6 +21,7 @@ class StandardWalletService extends BaseWalletService {
       coinsInput: coinsInput,
       changePuzzlehash: changePuzzlehash,
       fee: fee,
+      allowLeftOver: allowLeftOver,
       originId: originId,
       coinAnnouncementsToAssert: coinAnnouncementsToAssert,
       puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,

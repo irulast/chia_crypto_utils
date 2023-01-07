@@ -228,6 +228,7 @@ class PlotNftWalletService extends BaseWalletService {
   Future<SpendBundle> createPlotNftTransferSpendBundle({
     required PlotNft plotNft,
     List<CoinPrototype> coinsForFee = const [],
+    required List<CoinPrototype> coinsForTreasureMapCoin,
     Puzzlehash? changePuzzleHash,
     int fee = 0,
     required PoolState targetState,
@@ -288,8 +289,6 @@ class PlotNftWalletService extends BaseWalletService {
       Program.fromInt(currentSingleton.amount),
       toP2ConditionsInnerSolution,
     ]);
-    // print('first INNER RESULT');
-    // print(currentInnerPuzzle.run(toP2ConditionsInnerSolution).program);
 
     final toP2ConditionsSpend = CoinSpend(
       coin: currentSingleton,
@@ -299,16 +298,21 @@ class PlotNftWalletService extends BaseWalletService {
 
     final toP2ConditionsSpendBundle = SpendBundle(coinSpends: [toP2ConditionsSpend]);
     final intermediaryCoin = toP2ConditionsSpendBundle.additions.single;
-    print('intermediary coin id: ');
-    print(intermediaryCoin.id);
+    print('intermediary coin amount: ');
+    print(intermediaryCoin.amount);
     final innerInnerSolution = Program.list([
       Program.list(
         [
           CreateCoinCondition(
-            destinationFullPuzzle.hash(),
+            newWaitingRoomInnerPuzzle.hash(),
             intermediaryCoin.amount,
             memos: [receiverPuzzlhash],
-          ).program
+          ).program,
+          CreateCoinCondition(
+            Puzzlehash(launcherId),
+            2,
+            memos: [receiverPuzzlhash],
+          ).program,
         ],
       )
     ]);
@@ -324,13 +328,15 @@ class PlotNftWalletService extends BaseWalletService {
     final innerP2Solution = Program.list([
       LineageProof(
         parentCoinInfo: plotNft.singletonCoin.parentCoinInfo,
-        innerPuzzlehash: returnConditionsProgram.hash(),
+        innerPuzzlehash: currentInnerPuzzle.hash(),
         amount: intermediaryCoin.amount,
       ).toProgram(),
       Program.fromInt(currentSingleton.amount),
       innerInnerSolution,
     ]);
-
+    final p2FullPuzzle = SingletonService.puzzleForSingleton(launcherId, returnConditionsProgram);
+    print('expected full puzzle hash: ${p2FullPuzzle.hash()}');
+    // print('expected inner puzzle hash: ${returnConditionsProgram.hash()}');
     final p2SpendBundle = SpendBundle(
       coinSpends: [
         CoinSpend(
@@ -350,7 +356,13 @@ class PlotNftWalletService extends BaseWalletService {
           standardWalletService.makeSignature(privateKey, coinSpend, useSyntheticOffset: false),
     );
 
-    final transferSpendBundle = signedSpendBundle + p2SpendBundle;
+    final standardSupportsSpendBundle = makeStandardTransferSupportSpendBundle(
+      keychain: keychain,
+      coins: coinsForTreasureMapCoin,
+      changePuzzlehash: changePuzzleHash,
+    );
+
+    final transferSpendBundle = signedSpendBundle + p2SpendBundle + standardSupportsSpendBundle;
 
     if (fee > 0) {
       final feeSpendBundle = standardWalletService.createSpendBundle(
@@ -364,6 +376,26 @@ class PlotNftWalletService extends BaseWalletService {
     }
 
     return transferSpendBundle;
+  }
+
+  SpendBundle makeStandardTransferSupportSpendBundle({
+    required WalletKeychain keychain,
+    Puzzlehash? changePuzzlehash,
+    required List<CoinPrototype> coins,
+  }) {
+    final changeAmount = coins.totalValue - 2;
+    if (changeAmount < 0) {
+      throw Exception('not enough coin value to cover transfer support standard spend bundle');
+    }
+    if (changeAmount > 0 && changePuzzlehash == null) {
+      throw Exception('change puzzle hash is required when there are left over coins');
+    }
+    return standardWalletService.createSpendBundle(
+      payments: [if (changeAmount > 0) Payment(changeAmount, changePuzzlehash!)],
+      coinsInput: coins,
+      keychain: keychain,
+      allowLeftOver: true,
+    );
   }
 
   Program poolStateToInnerPuzzle({
@@ -529,45 +561,49 @@ class PlotNftWalletService extends BaseWalletService {
   }
 
   static PoolState? coinSpendToPoolState(CoinSpend coinSpend) {
-    final fullSolution = coinSpend.solution;
+    try {
+      final fullSolution = coinSpend.solution;
 
-    // check for launcher spend
-    if (coinSpend.coin.puzzlehash == singletonLauncherProgram.hash()) {
-      try {
-        final extraDataProgram = fullSolution.rest().rest().first();
-        return PoolState.fromExtraDataProgram(extraDataProgram);
-      } catch (e) {
-        return null;
+      // check for launcher spend
+      if (coinSpend.coin.puzzlehash == singletonLauncherProgram.hash()) {
+        try {
+          final extraDataProgram = fullSolution.rest().rest().first();
+          return PoolState.fromExtraDataProgram(extraDataProgram);
+        } catch (e) {
+          return null;
+        }
       }
-    }
-    final innerSolution = fullSolution.rest().rest().first();
-    final numberOfArguments = innerSolution.toList().length;
+      final innerSolution = fullSolution.rest().rest().first();
+      final numberOfArguments = innerSolution.toList().length;
 
-    switch (numberOfArguments) {
-      case 2:
-        // pool member
-        if (innerSolution.rest().first().toInt() != 0) {
-          return null;
-        }
+      switch (numberOfArguments) {
+        case 2:
+          // pool member
+          if (innerSolution.rest().first().toInt() != 0) {
+            return null;
+          }
 
-        final extraDataProgram = innerSolution.first();
-        if (extraDataProgram.isAtom) {
-          // absorbing
-          return null;
-        }
+          final extraDataProgram = innerSolution.first();
+          if (extraDataProgram.isAtom) {
+            // absorbing
+            return null;
+          }
 
-        return PoolState.fromExtraDataProgram(extraDataProgram);
+          return PoolState.fromExtraDataProgram(extraDataProgram);
 
-      case 3:
-        // pool waiting room
-        if (innerSolution.first().toInt() == 0) {
-          return null;
-        }
+        case 3:
+          // pool waiting room
+          if (innerSolution.first().toInt() == 0) {
+            return null;
+          }
 
-        final extraDataProgram = innerSolution.rest().first();
-        return PoolState.fromExtraDataProgram(extraDataProgram);
-      default:
-        throw Exception('unexpected number of program arguments');
+          final extraDataProgram = innerSolution.rest().first();
+          return PoolState.fromExtraDataProgram(extraDataProgram);
+        default:
+          throw Exception('unexpected number of program arguments');
+      }
+    } on Exception catch (e) {
+      return null;
     }
   }
 }

@@ -522,6 +522,7 @@ Future<void> main() async {
 
     final transferSpendBundle = await poolWalletService.createPlotNftTransferSpendBundle(
       plotNft: plotNft,
+      coinsForTreasureMapCoin: [nathan.standardCoins.first],
       receiverPuzzlhash: meera.firstPuzzlehash,
       keychain: nathan.keychain,
       changePuzzleHash: nathan.firstPuzzlehash,
@@ -537,8 +538,14 @@ Future<void> main() async {
     final puzzleAsh =
         SingletonService.puzzleForSingleton(plotNft.launcherId, returnConditionsProgram).hash();
 
-    final coin = await fullNodeSimulator.getCoinsByPuzzleHashes([puzzleAsh]);
-    print(coin);
+    final sibling = await fullNodeSimulator.getCoinsByMemo(meera.firstPuzzlehash);
+
+    final allChildren =
+        await fullNodeSimulator.getCoinsByParentIds([sibling.single.parentCoinInfo]);
+    print(sibling);
+
+    final finalPlotNft = await fullNodeSimulator.getPlotNftByLauncherId(plotNft.launcherId);
+    print(finalPlotNft);
     // final plotNftCoin = (await fullNodeSimulator.getCoinsByMemo(
     //   meera.firstPuzzlehash,
     // ))

@@ -86,6 +86,7 @@ class FullNodeHttpRpc implements FullNode {
   Future<CoinRecordsResponse> getCoinsByHint(Bytes hint) async {
     final response = await client.post(Uri.parse('get_coin_records_by_hint'), {
       'hint': hint.toHex(),
+      'include_spent_coins': true,
     });
     mapResponseToError(response);
 

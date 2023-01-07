@@ -15,6 +15,7 @@ class BaseWalletService {
     required List<Payment> payments,
     required List<CoinPrototype> coinsInput,
     Puzzlehash? changePuzzlehash,
+    bool allowLeftOver = false,
     int fee = 0,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
@@ -41,7 +42,7 @@ class BaseWalletService {
     );
     final change = totalCoinValue - totalPaymentAmount - fee;
 
-    if (changePuzzlehash == null && change > 0) {
+    if (changePuzzlehash == null && change > 0 && !allowLeftOver) {
       throw ChangePuzzlehashNeededException();
     }
 
@@ -85,8 +86,8 @@ class BaseWalletService {
           );
         }
 
-        if (change > 0) {
-          conditions.add(CreateCoinCondition(changePuzzlehash!, change));
+        if (change > 0 && changePuzzlehash != null) {
+          conditions.add(CreateCoinCondition(changePuzzlehash, change));
           createdCoins.add(
             CoinPrototype(
               parentCoinInfo: coin.id,

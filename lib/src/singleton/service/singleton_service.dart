@@ -3,7 +3,7 @@
 import 'dart:typed_data';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/singleton/puzzles/singleton_top_layer_v1_1/singleton_top_layer_debugging.clvm.hex.dart';
+import 'package:chia_crypto_utils/src/singleton/puzzles/singleton_top_layer/singleton_top_layer_debugging.clvm.hex.dart';
 
 class SingletonService extends BaseWalletService {
   static Program puzzleForSingleton(
@@ -24,9 +24,9 @@ class SingletonService extends BaseWalletService {
     Bytes launcherId,
     Program innerPuzzle,
   ) =>
-      singletonTopLayerV1DebuggingProgram.curry([
+      singletonTopLayerDebuggingProgram.curry([
         Program.cons(
-          Program.fromBytes(singletonTopLayerProgram.hash()),
+          Program.fromBytes(singletonTopLayerDebuggingProgram.hash()),
           Program.cons(
             Program.fromBytes(launcherId),
             Program.fromBytes(singletonLauncherProgram.hash()),
