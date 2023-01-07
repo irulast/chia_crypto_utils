@@ -1,5 +1,7 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/core/puzzles/return_conditions/return_conditions.clvm.hex.dart';
 import 'package:chia_crypto_utils/src/plot_nft/models/exceptions/invalid_pool_singleton_exception.dart';
+import 'package:chia_crypto_utils/src/plot_nft/models/lineage_proof.dart';
 
 class PlotNftWalletService extends BaseWalletService {
   final standardWalletService = StandardWalletService();
@@ -251,64 +253,104 @@ class PlotNftWalletService extends BaseWalletService {
       delayTime: delayTime,
     );
 
-    final newInnerPuzzle = poolStateToInnerPuzzle(
+    final newWaitingRoomInnerPuzzle = poolStateToInnerPuzzle(
       poolState: targetState,
       launcherId: launcherId,
       delayPuzzlehash: delayPuzzlehash,
       delayTime: delayTime,
     );
 
-    if (currentInnerPuzzle == newInnerPuzzle) {
+    if (currentInnerPuzzle == newWaitingRoomInnerPuzzle) {
       throw Exception();
     }
 
     final uncurriedInnerPuzzle = currentInnerPuzzle.uncurry();
     final uncurriedInnerPuzzleProgram = uncurriedInnerPuzzle.program;
 
-    Program? innerSolution;
-    if (uncurriedInnerPuzzleProgram == poolMemberInnerpuzProgram) {
-      innerSolution = Program.list([
-        Program.list(
-          [Program.cons(Program.fromString('p'), Program.fromBytes(targetState.toBytes()))],
-        ),
-        Program.nil
-      ]);
-    } else if (uncurriedInnerPuzzleProgram == poolWaitingRoomInnerpuzProgram) {
-      innerSolution = Program.list([
-        Program.fromInt(1),
-        Program.list(
-          [Program.cons(Program.fromString('p'), Program.fromBytes(targetState.toBytes()))],
-        ),
-        Program.fromBytes(newInnerPuzzle.hash().toBytes())
-      ]);
-    } else {
-      throw ArgumentError();
+    if (uncurriedInnerPuzzleProgram != poolWaitingRoomInnerpuzProgram) {
+      throw Exception('wrong inner puzzle');
     }
 
-    final fullPuzzle = SingletonService.puzzleForSingleton(launcherId, currentInnerPuzzle);
-
-    final fullSolution = Program.list([
-      plotNft.lineageProof.toProgram(),
-      Program.fromInt(currentSingleton.amount),
-      innerSolution,
+    final toP2ConditionsInnerSolution = Program.list([
+      Program.fromInt(1),
+      Program.list(
+        [Program.cons(Program.fromString('p'), Program.fromBytes(targetState.toBytes()))],
+      ),
+      Program.fromBytes(returnConditionsProgram.hash().toBytes())
     ]);
 
-    final travelSpend = CoinSpend(
+    final startingFullPuzzle = SingletonService.puzzleForSingleton(launcherId, currentInnerPuzzle);
+    final destinationFullPuzzle =
+        SingletonService.puzzleForSingleton(launcherId, newWaitingRoomInnerPuzzle);
+
+    final toP2ConditionsFullSolution = Program.list([
+      plotNft.lineageProof.toProgram(),
+      Program.fromInt(currentSingleton.amount),
+      toP2ConditionsInnerSolution,
+    ]);
+    // print('first INNER RESULT');
+    // print(currentInnerPuzzle.run(toP2ConditionsInnerSolution).program);
+
+    final toP2ConditionsSpend = CoinSpend(
       coin: currentSingleton,
-      puzzleReveal: fullPuzzle,
-      solution: fullSolution,
+      puzzleReveal: startingFullPuzzle,
+      solution: toP2ConditionsFullSolution,
     );
 
-    final travelSpendBundle = SpendBundle(coinSpends: [travelSpend]);
+    final toP2ConditionsSpendBundle = SpendBundle(coinSpends: [toP2ConditionsSpend]);
+    final intermediaryCoin = toP2ConditionsSpendBundle.additions.single;
+    print('intermediary coin id: ');
+    print(intermediaryCoin.id);
+    final innerInnerSolution = Program.list([
+      Program.list(
+        [
+          CreateCoinCondition(
+            destinationFullPuzzle.hash(),
+            intermediaryCoin.amount,
+            memos: [receiverPuzzlhash],
+          ).program
+        ],
+      )
+    ]);
+
+    // print(
+    //   returnConditionsProgram
+    //       .run(
+    //         innerInnerSolution,
+    //       )
+    //       .program,
+    // );
+
+    final innerP2Solution = Program.list([
+      LineageProof(
+        parentCoinInfo: plotNft.singletonCoin.parentCoinInfo,
+        innerPuzzlehash: returnConditionsProgram.hash(),
+        amount: intermediaryCoin.amount,
+      ).toProgram(),
+      Program.fromInt(currentSingleton.amount),
+      innerInnerSolution,
+    ]);
+
+    final p2SpendBundle = SpendBundle(
+      coinSpends: [
+        CoinSpend(
+          coin: intermediaryCoin,
+          puzzleReveal: SingletonService.puzzleForSingleton(launcherId, returnConditionsProgram),
+          solution: innerP2Solution,
+        )
+      ],
+    );
 
     final ownerPublicKey = currentState.ownerPublicKey;
     final singletonWalletVector = keychain.getSingletonWalletVector(ownerPublicKey);
     final privateKey = singletonWalletVector!.singletonOwnerPrivateKey;
 
-    final signedSpendBundle = await travelSpendBundle.sign(
+    final signedSpendBundle = await toP2ConditionsSpendBundle.sign(
       (coinSpend) =>
           standardWalletService.makeSignature(privateKey, coinSpend, useSyntheticOffset: false),
     );
+
+    final transferSpendBundle = signedSpendBundle + p2SpendBundle;
 
     if (fee > 0) {
       final feeSpendBundle = standardWalletService.createSpendBundle(
@@ -318,10 +360,10 @@ class PlotNftWalletService extends BaseWalletService {
         keychain: keychain,
         changePuzzlehash: changePuzzleHash,
       );
-      return signedSpendBundle + feeSpendBundle;
+      return transferSpendBundle + feeSpendBundle;
     }
 
-    return signedSpendBundle;
+    return transferSpendBundle;
   }
 
   Program poolStateToInnerPuzzle({

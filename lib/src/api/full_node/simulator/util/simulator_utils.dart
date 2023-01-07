@@ -9,6 +9,8 @@ class SimulatorUtils {
   static String simulatorUrlEnvironmentVariableName = 'FULL_NODE_SIMULATOR_URL';
   static String defaultUrl = 'https://localhost:5000';
 
+  static String? simulatorGeneratedFilesPathOverride;
+
   // if you are using this class outside of chia-crypto-utils you must set FULL_NODE_SIMULATOR_GEN_PATH
   static String simulatorGeneratedFilesPathVariableName = 'FULL_NODE_SIMULATOR_GEN_PATH';
   static String get defaultgeneratedFilesPath =>
@@ -16,7 +18,9 @@ class SimulatorUtils {
 
   static String get generatedFilesPath {
     final env = Platform.environment;
-    return env[simulatorGeneratedFilesPathVariableName] ?? defaultgeneratedFilesPath;
+    return simulatorGeneratedFilesPathOverride ??
+        env[simulatorGeneratedFilesPathVariableName] ??
+        defaultgeneratedFilesPath;
   }
 
   static String get simulatorUrl {

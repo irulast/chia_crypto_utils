@@ -1,7 +1,9 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/core/puzzles/return_conditions/return_conditions.clvm.hex.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
+  SimulatorUtils.simulatorGeneratedFilesPathOverride = '/Users/nvjoshi/.chia-simulator-enhanced';
   if (!(await SimulatorUtils.checkIfSimulatorIsRunning())) {
     print(SimulatorUtils.simulatorNotRunningWarning);
     return;
@@ -372,7 +374,9 @@ Future<void> main() async {
     );
   });
 
-  test('should create plot nft in selfPooling state and transfer ownership', () async {
+  test(
+      'should create plot nft in selfPooling state and transfer ownership no  with treasure map spend',
+      () async {
     final genesisCoin = nathan.standardCoins[0];
     final singletonWalletVector =
         nathan.keychain.getNextSingletonWalletVector(nathan.keychainSecret.masterPrivateKey);
@@ -456,5 +460,96 @@ Future<void> main() async {
       transferredPlotNft!.poolState.toHex(),
       equals(transferTargetState.toHex()),
     );
+  });
+
+  test('should create plot nft in selfPooling state and transfer ownership', () async {
+    final genesisCoin = nathan.standardCoins[0];
+    final singletonWalletVector =
+        nathan.keychain.getNextSingletonWalletVector(nathan.keychainSecret.masterPrivateKey);
+
+    final initialTargetState = PoolState(
+      poolSingletonState: PoolSingletonState.selfPooling,
+      targetPuzzlehash: nathan.puzzlehashes[1],
+      ownerPublicKey: singletonWalletVector.singletonOwnerPublicKey,
+      relativeLockHeight: 0,
+    );
+
+    final plotNftSpendBundle = poolWalletService.createPoolNftSpendBundle(
+      initialTargetState: initialTargetState,
+      keychain: nathan.keychain,
+      coins: nathan.standardCoins,
+      genesisCoinId: genesisCoin.id,
+      p2SingletonDelayedPuzzlehash: nathan.firstPuzzlehash,
+      changePuzzlehash: nathan.firstPuzzlehash,
+    );
+
+    await fullNodeSimulator.pushTransaction(plotNftSpendBundle);
+    await fullNodeSimulator.moveToNextBlock();
+    await nathan.refreshCoins();
+
+    final launcherCoinPrototype = PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
+
+    final plotNft = (await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id))!;
+
+    expect(
+      plotNft.poolState.toHex(),
+      equals(initialTargetState.toHex()),
+    );
+    expect(
+      plotNft.delayTime,
+      equals(PlotNftWalletService.defaultDelayTime),
+    );
+    expect(plotNft.delayPuzzlehash, equals(nathan.firstPuzzlehash));
+
+    await nathan.farmCoins();
+    await nathan.refreshCoins();
+
+    final meera = ChiaEnthusiast(fullNodeSimulator);
+
+    final meeraSingletonWalletVector =
+        meera.keychain.getNextSingletonWalletVector(meera.keychainSecret.masterPrivateKey);
+
+    const poolUrl = 'https://xch-us-west.flexpool.io';
+    final poolInfo = await PoolInterface.fromURL(poolUrl).getPoolInfo();
+
+    final transferTargetState = PoolState(
+      poolSingletonState: PoolSingletonState.farmingToPool,
+      targetPuzzlehash: poolInfo.targetPuzzlehash,
+      ownerPublicKey: meeraSingletonWalletVector.singletonOwnerPublicKey,
+      relativeLockHeight: poolInfo.relativeLockHeight,
+      poolUrl: poolUrl,
+    );
+
+    final transferSpendBundle = await poolWalletService.createPlotNftTransferSpendBundle(
+      plotNft: plotNft,
+      receiverPuzzlhash: meera.firstPuzzlehash,
+      keychain: nathan.keychain,
+      changePuzzleHash: nathan.firstPuzzlehash,
+      targetState: transferTargetState,
+    );
+    print('--------\n');
+    transferSpendBundle.debug();
+
+    await fullNodeSimulator.pushTransaction(transferSpendBundle);
+    await fullNodeSimulator.moveToNextBlock();
+    await nathan.refreshCoins();
+
+    final puzzleAsh =
+        SingletonService.puzzleForSingleton(plotNft.launcherId, returnConditionsProgram).hash();
+
+    final coin = await fullNodeSimulator.getCoinsByPuzzleHashes([puzzleAsh]);
+    print(coin);
+    // final plotNftCoin = (await fullNodeSimulator.getCoinsByMemo(
+    //   meera.firstPuzzlehash,
+    // ))
+    //     .single;
+
+    // final transferredPlotNft =
+    //     await fullNodeSimulator.getPlotNftByLauncherId(plotNftTreasureMapCoin.puzzlehash);
+
+    // expect(
+    //   transferredPlotNft!.poolState.toHex(),
+    //   equals(transferTargetState.toHex()),
+    // );
   });
 }
