@@ -30,8 +30,8 @@ Future<void> main() async {
 
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
   final walletService = StandardWalletService();
-  final btcToXchService = BtcToXchService();
-  final xchToBtcService = XchToBtcService();
+  final btcToXchService = BtcToXchService(fullNodeSimulator);
+  final xchToBtcService = XchToBtcService(fullNodeSimulator);
 
   test(
       'should create and accept XCH to BTC offer file and complete exchange by sweeping XCH to BTC holder with preimage',

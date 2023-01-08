@@ -28,8 +28,8 @@ Future<void> main() async {
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
   final walletService = StandardWalletService();
   final exchangeService = BtcExchangeService();
-  final btcToXchService = BtcToXchService();
-  final xchToBtcService = XchToBtcService();
+  final btcToXchService = BtcToXchService(fullNodeSimulator);
+  final xchToBtcService = XchToBtcService(fullNodeSimulator);
 
   test(
       'should transfer XCH to escrow address and fail to claw back funds to XCH holder before delay has passed',

@@ -18,8 +18,8 @@ import 'package:chia_crypto_utils/src/exchange/btc/service/xch_to_btc.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_payment_request.dart';
 
 late final ChiaFullNodeInterface fullNode;
-final xchToBtcService = XchToBtcService();
-final btcToXchService = BtcToXchService();
+final xchToBtcService = XchToBtcService(fullNode);
+final btcToXchService = BtcToXchService(fullNode);
 final standardWalletService = StandardWalletService();
 
 Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
