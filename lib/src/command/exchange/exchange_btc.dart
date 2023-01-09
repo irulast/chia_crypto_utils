@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/exchange/cross_chain_offer_exchange.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/service/btc_to_xch.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/service/exchange.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/service/xch_to_btc.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/service/btc_to_xch_service.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/service/btc_exchange_service.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/service/xch_to_btc_service.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_payment_request.dart';
 
 final exchangeService = BtcExchangeService();

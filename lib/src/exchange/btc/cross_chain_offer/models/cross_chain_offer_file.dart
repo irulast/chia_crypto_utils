@@ -11,6 +11,8 @@ abstract class CrossChainOfferFile {
 
   Map<String, dynamic> toJson();
 
+  String serialize(PrivateKey requestorPrivateKey);
+
   CrossChainOfferExchangeInfo getExchangeInfo(
     CrossChainOfferFile fulfillerOfferFile,
     PrivateKey requestorPrivateKey,

@@ -1,10 +1,12 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/exceptions/invalid_cross_chain_offer_file_type.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_accept_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_exchange_info.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/service/btc_to_xch.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/utils/cross_chain_offer_file_serialization.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/service/btc_to_xch_service.dart';
 
 class BtcToXchOfferAcceptFile implements CrossChainOfferAcceptFile {
   BtcToXchOfferAcceptFile({
@@ -33,6 +35,32 @@ class BtcToXchOfferAcceptFile implements CrossChainOfferAcceptFile {
       publicKey: JacobianPoint.fromHexG1(json['public_key'] as String),
       acceptedOfferHash: (json['accepted_offer_hash'] as String).hexToBytes(),
     );
+  }
+
+  static BtcToXchOfferAcceptFile? maybeFromSerializedOfferFile(String serializedOfferFile) {
+    try {
+      final deserializedOfferFile = deserializeCrossChainOfferFile(serializedOfferFile);
+      if (deserializedOfferFile.type != CrossChainOfferFileType.btcToXchAccept) {
+        return null;
+      }
+      return deserializedOfferFile as BtcToXchOfferAcceptFile;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  factory BtcToXchOfferAcceptFile.fromSerializedOfferFile(String serializedOfferFile) {
+    final deserializedOfferFile = maybeFromSerializedOfferFile(serializedOfferFile);
+
+    if (deserializedOfferFile == null) {
+      throw InvalidCrossChainOfferType(CrossChainOfferFileType.btcToXchAccept);
+    }
+    return deserializedOfferFile;
+  }
+
+  @override
+  String serialize(PrivateKey requestorPrivateKey) {
+    return serializeCrossChainOfferFile(this, requestorPrivateKey);
   }
 
   @override

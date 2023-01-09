@@ -13,8 +13,8 @@ import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/utils/cross_chain_offer_file_serialization.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/models/lightning_payment_request.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/service/btc_to_xch.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/service/xch_to_btc.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/service/btc_to_xch_service.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/service/xch_to_btc_service.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_payment_request.dart';
 
 late final ChiaFullNodeInterface fullNode;
@@ -545,34 +545,6 @@ Future<String?> getOfferAcceptFileMemo(
     }
   }
   return null;
-}
-
-Future<bool> verifyOfferAcceptFileMemo(
-  Puzzlehash messagePuzzlehash,
-  String serializedOfferAcceptFile,
-  ChiaFullNodeInterface fullNode,
-) async {
-  final coins = await fullNode.getCoinsByPuzzleHashes(
-    [messagePuzzlehash],
-  );
-
-  for (final coin in coins) {
-    final parentCoin = await fullNode.getCoinById(coin.parentCoinInfo);
-    final coinSpend = await fullNode.getCoinSpend(parentCoin!);
-    final memos = await coinSpend!.memoStrings;
-
-    for (final memo in memos) {
-      if (memo == serializedOfferAcceptFile) return true;
-    }
-  }
-
-  return false;
-}
-
-void checkValidity(CrossChainOfferFile offerFile) {
-  if (offerFile.validityTime < (DateTime.now().millisecondsSinceEpoch / 1000)) {
-    throw ExpiredCrossChainOfferFile();
-  }
 }
 
 Future<List<Coin>> waitForEscrowCoins({

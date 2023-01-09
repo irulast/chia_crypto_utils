@@ -1,6 +1,7 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/dexie/dexie.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/dexie/dexie_post_offer_response.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/exceptions/expired_cross_chain_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_accept_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_accept_file.dart';
@@ -67,6 +68,12 @@ class CrossChainOfferService {
     return response;
   }
 
+  void checkValidity(CrossChainOfferFile offerFile) {
+    if (offerFile.validityTime < (DateTime.now().millisecondsSinceEpoch / 1000)) {
+      throw ExpiredCrossChainOfferFile();
+    }
+  }
+
   XchToBtcOfferAcceptFile createXchToBtcAcceptFile({
     required String serializedOfferFile,
     required int validityTime,
@@ -102,15 +109,10 @@ class CrossChainOfferService {
     required List<Coin> coinsInput,
     required Puzzlehash messagePuzzlehash,
     required PrivateKey requestorPrivateKey,
-    required CrossChainOfferAcceptFile offerAcceptFile,
+    required String serializedOfferAcceptFile,
     Puzzlehash? changePuzzlehash,
     int fee = 0,
   }) async {
-    final serializedOfferAcceptFile = serializeCrossChainOfferFile(
-      offerAcceptFile,
-      requestorPrivateKey,
-    );
-
     final messageSpendBundle = standardWalletService.createSpendBundle(
       payments: [
         Payment(50, messagePuzzlehash, memos: <String>[serializedOfferAcceptFile])
@@ -124,7 +126,28 @@ class CrossChainOfferService {
     await fullNode.pushTransaction(messageSpendBundle);
   }
 
-  Future<CrossChainOfferAcceptFile?> getOfferAcceptFileFromMessagePuzzlehash(
+  Future<bool> verifyMessageCoinReceipt(
+    Puzzlehash messagePuzzlehash,
+    String serializedOfferAcceptFile,
+  ) async {
+    final coins = await fullNode.getCoinsByPuzzleHashes(
+      [messagePuzzlehash],
+    );
+
+    for (final coin in coins) {
+      final parentCoin = await fullNode.getCoinById(coin.parentCoinInfo);
+      final coinSpend = await fullNode.getCoinSpend(parentCoin!);
+      final memos = await coinSpend!.memoStrings;
+
+      for (final memo in memos) {
+        if (memo == serializedOfferAcceptFile) return true;
+      }
+    }
+
+    return false;
+  }
+
+  Future<String?> getOfferAcceptFileFromMessagePuzzlehash(
     Puzzlehash messagePuzzlehash,
     String serializedOfferFile,
   ) async {
@@ -143,7 +166,7 @@ class CrossChainOfferService {
             final deserializedMemo =
                 deserializeCrossChainOfferFile(memo) as CrossChainOfferAcceptFile;
             if (deserializedMemo.acceptedOfferHash ==
-                Bytes.encodeFromString(serializedOfferFile).sha256Hash()) return deserializedMemo;
+                Bytes.encodeFromString(serializedOfferFile).sha256Hash()) return memo;
           } catch (e) {
             continue;
           }

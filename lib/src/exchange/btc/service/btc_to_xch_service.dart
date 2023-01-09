@@ -6,7 +6,7 @@ import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cros
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_accept_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/models/lightning_payment_request.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/service/exchange.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/service/btc_exchange_service.dart';
 
 class BtcToXchService {
   BtcToXchService(this.fullNode);
