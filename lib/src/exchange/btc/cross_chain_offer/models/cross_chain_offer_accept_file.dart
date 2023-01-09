@@ -9,10 +9,10 @@ abstract class CrossChainOfferAcceptFile implements CrossChainOfferFile {
   static CrossChainOfferAcceptFile? maybeFromSerializedOfferFile(String serializedOfferFile) {
     try {
       final deserializedOfferFile = deserializeCrossChainOfferFile(serializedOfferFile);
-      if (deserializedOfferFile is CrossChainOfferAcceptFile) {
+      if (deserializedOfferFile is! CrossChainOfferAcceptFile) {
         return null;
       }
-      return deserializedOfferFile as CrossChainOfferAcceptFile;
+      return deserializedOfferFile;
     } catch (e) {
       return null;
     }

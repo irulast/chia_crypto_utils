@@ -312,8 +312,8 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
   print('sent to the message address indicated in the original offer file.');
   print(serializedOfferAcceptFile);
   print('\nYou may either send a coin with the above memo yourself, OR you may send at');
-  print('least 100 mojos the following address, and the program will send the coin');
-  print('with the memo on your behalf.');
+  print('least 100 mojos the address provided by the program, and the program will send');
+  print('the coin with the memo on your behalf.');
 
   print('\nPlease indicate which method you would like to use:');
   print('1. Manually send coin with memo');
