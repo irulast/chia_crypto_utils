@@ -166,7 +166,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
   if (logList.length > 6) {
     escrowPuzzlehash = Puzzlehash.fromHex(logList[6]);
   } else {
-    escrowPuzzlehash = xchToBtcService.generateEscrowPuzzlehash(
+    escrowPuzzlehash = XchToBtcService.generateEscrowPuzzlehash(
       requestorPrivateKey: xchHolderPrivateKey,
       clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash,
@@ -372,7 +372,7 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   if (logList.length > 6) {
     escrowPuzzlehash = Puzzlehash.fromHex(logList[6]);
   } else {
-    escrowPuzzlehash = btcToXchService.generateEscrowPuzzlehash(
+    escrowPuzzlehash = BtcToXchService.generateEscrowPuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
       clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash,

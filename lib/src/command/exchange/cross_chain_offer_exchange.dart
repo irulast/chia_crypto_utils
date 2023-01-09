@@ -684,7 +684,7 @@ Future<void> completeBtcToXchExchange({
 }) async {
   final paymentHash = paymentRequest.tags.paymentHash!;
 
-  final escrowPuzzlehash = btcToXchService.generateEscrowPuzzlehash(
+  final escrowPuzzlehash = BtcToXchService.generateEscrowPuzzlehash(
     requestorPrivateKey: requestorPrivateKey,
     clawbackDelaySeconds: validityTime,
     sweepPaymentHash: paymentHash,
@@ -759,7 +759,7 @@ Future<void> completeXchToBtcExchange({
 }) async {
   final paymentHash = paymentRequest.tags.paymentHash!;
 
-  final escrowPuzzlehash = xchToBtcService.generateEscrowPuzzlehash(
+  final escrowPuzzlehash = XchToBtcService.generateEscrowPuzzlehash(
     requestorPrivateKey: requestorPrivateKey,
     clawbackDelaySeconds: validityTime,
     sweepPaymentHash: paymentRequest.tags.paymentHash!,

@@ -1,9 +1,13 @@
 // ignore_for_file: annotate_overrides
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_accept_offer_file.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_accept_file.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_exchange_info.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/exchange_amount.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/models/lightning_payment_request.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/service/xch_to_btc.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_payment_request.dart';
 
 class XchToBtcOfferFile implements CrossChainOfferFile {
@@ -52,6 +56,33 @@ class XchToBtcOfferFile implements CrossChainOfferFile {
       lightningPaymentRequest: decodeLightningPaymentRequest(
         (json['lightning_payment_request'] as Map<String, dynamic>)['payment_request'] as String,
       ),
+    );
+  }
+
+  @override
+  CrossChainOfferExchangeInfo getExchangeInfo(
+    CrossChainOfferFile offerAcceptFile,
+    PrivateKey requestorPrivateKey,
+  ) {
+    final btcToXchOfferAcceptFile = offerAcceptFile as BtcToXchOfferAcceptFile;
+
+    final amountMojos = offeredAmount.amount;
+    final amountSatoshis = requestedAmount.amount;
+    final validityTime = btcToXchOfferAcceptFile.validityTime;
+    final fulfillerPublicKey = btcToXchOfferAcceptFile.publicKey;
+
+    final escrowPuzzlehash = XchToBtcService.generateEscrowPuzzlehash(
+      requestorPrivateKey: requestorPrivateKey,
+      clawbackDelaySeconds: validityTime,
+      sweepPaymentHash: lightningPaymentRequest.tags.paymentHash!,
+      fulfillerPublicKey: fulfillerPublicKey,
+    );
+
+    return CrossChainOfferExchangeInfo(
+      amountMojos: amountMojos,
+      amountSatoshis: amountSatoshis,
+      escrowPuzzlehash: escrowPuzzlehash,
+      paymentRequest: lightningPaymentRequest,
     );
   }
 

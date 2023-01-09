@@ -72,7 +72,7 @@ class BtcExchangeService {
     );
   }
 
-  Program generateEscrowPuzzle({
+  static Program generateEscrowPuzzle({
     required int clawbackDelaySeconds,
     required JacobianPoint clawbackPublicKey,
     required Bytes sweepPaymentHash,
@@ -92,7 +92,7 @@ class BtcExchangeService {
     return puzzle;
   }
 
-  Program generateHiddenPuzzle({
+  static Program generateHiddenPuzzle({
     required int clawbackDelaySeconds,
     required JacobianPoint clawbackPublicKey,
     required Bytes sweepPaymentHash,

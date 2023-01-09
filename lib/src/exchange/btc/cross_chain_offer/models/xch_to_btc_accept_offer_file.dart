@@ -1,7 +1,10 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_accept_file.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_exchange_info.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/models/lightning_payment_request.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/service/xch_to_btc.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_payment_request.dart';
 
 class XchToBtcOfferAcceptFile implements CrossChainOfferAcceptFile {
@@ -39,6 +42,32 @@ class XchToBtcOfferAcceptFile implements CrossChainOfferAcceptFile {
         (json['lightning_payment_request'] as Map<String, dynamic>)['payment_request'] as String,
       ),
       acceptedOfferHash: (json['accepted_offer_hash'] as String).hexToBytes(),
+    );
+  }
+
+  @override
+  CrossChainOfferExchangeInfo getExchangeInfo(
+    CrossChainOfferFile offerFile,
+    PrivateKey requestorPrivateKey,
+  ) {
+    final btcToXchOfferFile = offerFile as BtcToXchOfferFile;
+
+    final amountMojos = btcToXchOfferFile.requestedAmount.amount;
+    final amountSatoshis = btcToXchOfferFile.offeredAmount.amount;
+    final fulfillerPublicKey = btcToXchOfferFile.publicKey;
+
+    final escrowPuzzlehash = XchToBtcService.generateEscrowPuzzlehash(
+      requestorPrivateKey: requestorPrivateKey,
+      clawbackDelaySeconds: validityTime,
+      sweepPaymentHash: lightningPaymentRequest.tags.paymentHash!,
+      fulfillerPublicKey: fulfillerPublicKey,
+    );
+
+    return CrossChainOfferExchangeInfo(
+      amountMojos: amountMojos,
+      amountSatoshis: amountSatoshis,
+      escrowPuzzlehash: escrowPuzzlehash,
+      paymentRequest: lightningPaymentRequest,
     );
   }
 

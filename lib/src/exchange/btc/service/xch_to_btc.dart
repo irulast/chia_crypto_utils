@@ -8,7 +8,7 @@ class XchToBtcService {
   final BaseWalletService baseWalletService = BaseWalletService();
   final StandardWalletService standardWalletService = StandardWalletService();
 
-  Puzzlehash generateEscrowPuzzlehash({
+  static Puzzlehash generateEscrowPuzzlehash({
     required PrivateKey requestorPrivateKey,
     required int clawbackDelaySeconds,
     required Bytes sweepPaymentHash,
@@ -16,7 +16,7 @@ class XchToBtcService {
   }) {
     final requestorPublicKey = requestorPrivateKey.getG1();
 
-    final escrowPuzzle = exchangeService.generateEscrowPuzzle(
+    final escrowPuzzle = BtcExchangeService.generateEscrowPuzzle(
       clawbackPublicKey: requestorPublicKey,
       clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash,
@@ -79,7 +79,7 @@ class XchToBtcService {
       coinAnnouncementsToAssert: coinAnnouncementsToAssert,
       puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
       makePuzzleRevealFromPuzzlehash: (puzzlehash) {
-        return exchangeService.generateEscrowPuzzle(
+        return BtcExchangeService.generateEscrowPuzzle(
           clawbackDelaySeconds: clawbackDelaySeconds,
           clawbackPublicKey: requestorPublicKey,
           sweepPaymentHash: sweepPaymentHash,
@@ -87,7 +87,7 @@ class XchToBtcService {
         );
       },
       makeSignatureForCoinSpend: (coinSpend) {
-        final hiddenPuzzle = exchangeService.generateHiddenPuzzle(
+        final hiddenPuzzle = BtcExchangeService.generateHiddenPuzzle(
           clawbackDelaySeconds: clawbackDelaySeconds,
           clawbackPublicKey: requestorPublicKey,
           sweepPaymentHash: sweepPaymentHash,

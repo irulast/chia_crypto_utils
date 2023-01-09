@@ -1,4 +1,11 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_accept_offer_file.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_offer_file.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_accept_file.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_file.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_accept_offer_file.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_offer_file.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/models/lightning_payment_request.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/service/exchange.dart';
 
 class BtcToXchService {
@@ -9,7 +16,7 @@ class BtcToXchService {
   final BaseWalletService baseWalletService = BaseWalletService();
   final StandardWalletService standardWalletService = StandardWalletService();
 
-  Puzzlehash generateEscrowPuzzlehash({
+  static Puzzlehash generateEscrowPuzzlehash({
     required PrivateKey requestorPrivateKey,
     required int clawbackDelaySeconds,
     required Bytes sweepPaymentHash,
@@ -17,7 +24,7 @@ class BtcToXchService {
   }) {
     final requestorPublicKey = requestorPrivateKey.getG1();
 
-    final escrowPuzzle = exchangeService.generateEscrowPuzzle(
+    final escrowPuzzle = BtcExchangeService.generateEscrowPuzzle(
       clawbackPublicKey: fulfillerPublicKey,
       clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash,
@@ -82,7 +89,7 @@ class BtcToXchService {
       coinAnnouncementsToAssert: coinAnnouncementsToAssert,
       puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
       makePuzzleRevealFromPuzzlehash: (puzzlehash) {
-        return exchangeService.generateEscrowPuzzle(
+        return BtcExchangeService.generateEscrowPuzzle(
           clawbackDelaySeconds: clawbackDelaySeconds,
           clawbackPublicKey: fulfillerPublicKey,
           sweepPaymentHash: sweepPaymentHash,
@@ -90,7 +97,7 @@ class BtcToXchService {
         );
       },
       makeSignatureForCoinSpend: (coinSpend) {
-        final hiddenPuzzle = exchangeService.generateHiddenPuzzle(
+        final hiddenPuzzle = BtcExchangeService.generateHiddenPuzzle(
           clawbackDelaySeconds: clawbackDelaySeconds,
           clawbackPublicKey: fulfillerPublicKey,
           sweepPaymentHash: sweepPaymentHash,
