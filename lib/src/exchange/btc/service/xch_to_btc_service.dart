@@ -127,6 +127,7 @@ class XchToBtcService {
       coinsInput: coinsInput,
       keychain: keychain,
       fee: fee,
+      changePuzzlehash: changePuzzlehash,
     );
 
     await fullNode.pushTransaction(escrowSpendBundle);
