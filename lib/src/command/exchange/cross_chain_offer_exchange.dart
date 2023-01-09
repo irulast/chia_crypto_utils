@@ -3,11 +3,13 @@ import 'dart:io';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/dexie/dexie.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_accept_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_accept_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_exchange_info.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/exchange_amount.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_accept_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/service/cross_chain_offer_service.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/utils/cross_chain_offer_file_serialization.dart';
@@ -389,7 +391,7 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
 
   final exchangeInfo = offerAcceptFile.getExchangeInfo(offerFile, requestorPrivateKey);
 
-  if (offerAcceptFile.type == CrossChainOfferFileType.xchToBtc) {
+  if (offerAcceptFile.type == CrossChainOfferFileType.xchToBtcAccept) {
     await completeXchToBtcExchange(exchangeInfo, requestorPrivateKey);
   } else {
     await completeBtcToXchExchange(exchangeInfo, requestorPrivateKey);
@@ -429,11 +431,12 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNodeFromUrl
 
   print('\nPlease paste in the cross chain offer accept file:');
   CrossChainOfferFile? offerAcceptFile;
+  String? serializedOfferAcceptFile;
   while (offerAcceptFile == null) {
     stdout.write('> ');
     try {
       stdin.lineMode = false;
-      final serializedOfferAcceptFile = stdin.readLineSync()!.trim();
+      serializedOfferAcceptFile = stdin.readLineSync()!.trim();
       stdin.lineMode = true;
 
       offerAcceptFile = deserializeCrossChainOfferFile(serializedOfferAcceptFile);
@@ -474,6 +477,20 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNodeFromUrl
       } else if (offerAcceptFile.publicKey == privateKeyInput.getG1()) {
         // user is accepting offer
         requestorPrivateKey = privateKeyInput;
+
+        if (offerAcceptFile.type == CrossChainOfferFileType.xchToBtcAccept) {
+          final xchToBtcOfferAcceptFile =
+              XchToBtcOfferAcceptFile.fromSerializedOfferFile(serializedOfferAcceptFile!);
+          final exchangeInfo =
+              xchToBtcOfferAcceptFile.getExchangeInfo(offerFile, requestorPrivateKey);
+          await completeXchToBtcExchange(exchangeInfo, requestorPrivateKey);
+        } else {
+          final btcToXchOfferAcceptFile =
+              BtcToXchOfferAcceptFile.fromSerializedOfferFile(serializedOfferAcceptFile!);
+          final exchangeInfo =
+              btcToXchOfferAcceptFile.getExchangeInfo(offerFile, requestorPrivateKey);
+          await completeBtcToXchExchange(exchangeInfo, requestorPrivateKey);
+        }
       }
     } catch (e) {
       print('\nInvalid key. Please try again:');
@@ -689,16 +706,25 @@ Future<void> generateLogFile(
 ]) async {
   final logFile = File('exchange-log-${DateTime.now().toString().replaceAll(' ', '-')}.txt')
     ..createSync(recursive: true)
-    ..writeAsStringSync(serializedOfferFile, mode: FileMode.append);
+    ..writeAsStringSync('Offer File:\n$serializedOfferFile', mode: FileMode.append);
 
   if (serializedOfferAcceptFile == null) {
     print('\nPrinting serialized offer file and disposable private key to a file...');
-    logFile.writeAsStringSync('\n\n${requestorPrivateKey.toHex()}', mode: FileMode.append);
+    logFile.writeAsStringSync(
+      '\n\nPrivate Key:\n${requestorPrivateKey.toHex()}',
+      mode: FileMode.append,
+    );
   } else {
     print('\nPrinting serialized offer file, serialized offer accept file, and');
     print('disposable private key to a file...');
     logFile
-      ..writeAsStringSync('\n\n$serializedOfferAcceptFile', mode: FileMode.append)
-      ..writeAsStringSync('\n\n${requestorPrivateKey.toHex()}', mode: FileMode.append);
+      ..writeAsStringSync(
+        '\n\nOffer Accept File:\n$serializedOfferAcceptFile',
+        mode: FileMode.append,
+      )
+      ..writeAsStringSync(
+        '\n\nPrivate Key:\n${requestorPrivateKey.toHex()}',
+        mode: FileMode.append,
+      );
   }
 }
