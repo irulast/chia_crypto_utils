@@ -63,7 +63,7 @@ class XchToBtcOfferAcceptFile implements CrossChainOfferAcceptFile {
     final deserializedOfferFile = maybeFromSerializedOfferFile(serializedOfferFile);
 
     if (deserializedOfferFile == null) {
-      throw InvalidCrossChainOfferType(CrossChainOfferFileType.xchToBtcAccept);
+      throw InvalidCrossChainOfferType(CrossChainOfferFileType.xchToBtcAccept.name);
     }
     return deserializedOfferFile;
   }
@@ -92,8 +92,11 @@ class XchToBtcOfferAcceptFile implements CrossChainOfferAcceptFile {
     );
 
     return CrossChainOfferExchangeInfo(
+      requestorPublicKey: requestorPrivateKey.getG1(),
+      fulfillerPublicKey: fulfillerPublicKey,
       amountMojos: amountMojos,
       amountSatoshis: amountSatoshis,
+      validityTime: validityTime,
       escrowPuzzlehash: escrowPuzzlehash,
       paymentRequest: lightningPaymentRequest,
     );

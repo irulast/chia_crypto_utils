@@ -1,6 +1,5 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/dexie/dexie.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/dexie/dexie_post_offer_response.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/exceptions/expired_cross_chain_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_accept_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_offer_file.dart';
@@ -59,16 +58,7 @@ class CrossChainOfferService {
     );
   }
 
-  Future<DexiePostOfferResponse> postCrossChainOfferFileToDexie(
-    CrossChainOfferFile offerFile,
-    PrivateKey requestorPrivateKey,
-  ) async {
-    final serializedOfferFile = serializeCrossChainOfferFile(offerFile, requestorPrivateKey);
-    final response = await dexieApi.postOffer(serializedOfferFile);
-    return response;
-  }
-
-  void checkValidity(CrossChainOfferFile offerFile) {
+  static void checkValidity(CrossChainOfferFile offerFile) {
     if (offerFile.validityTime < (DateTime.now().millisecondsSinceEpoch / 1000)) {
       throw ExpiredCrossChainOfferFile();
     }

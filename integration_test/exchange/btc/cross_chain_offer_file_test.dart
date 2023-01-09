@@ -1,10 +1,8 @@
 import 'dart:async';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/command/exchange/cross_chain_offer_exchange.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_accept_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/exchange_amount.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_accept_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/service/cross_chain_offer_service.dart';
@@ -81,7 +79,7 @@ Future<void> main() async {
 
     // BTC holder's side views offer, deserialized it, checks validity, and creates a cross chain offer accept file
     final deserializedOfferFile = XchToBtcOfferFile.fromSerializedOfferFile(serializedOfferFile);
-    expect(() => crossChainOfferService.checkValidity(deserializedOfferFile), returnsNormally);
+    expect(() => CrossChainOfferService.checkValidity(deserializedOfferFile), returnsNormally);
     const postAcceptValidityTime = 600;
 
     final offerAcceptFile = crossChainOfferService.createBtcToXchAcceptFile(
@@ -166,7 +164,7 @@ Future<void> main() async {
       sweepPuzzlehash: sweepPuzzlehash,
       requestorPrivateKey: btcHolderPrivateKey,
       validityTime: postAcceptValidityTime,
-      paymentHash: btcHolderExchangeInfo.paymentRequest.tags.paymentHash!,
+      paymentHash: btcHolderExchangeInfo.paymentHash!,
       preimage: sweepPreimage,
       fulfillerPublicKey: xchHolderPublicKey,
     );
@@ -223,7 +221,7 @@ Future<void> main() async {
 
     // XCH holder's side views offer, deserialized it, checks validity, and creates a cross chain offer accept file
     final deserializedOfferFile = BtcToXchOfferFile.fromSerializedOfferFile(serializedOfferFile);
-    expect(() => crossChainOfferService.checkValidity(deserializedOfferFile), returnsNormally);
+    expect(() => CrossChainOfferService.checkValidity(deserializedOfferFile), returnsNormally);
     const postAcceptValidityTime = 600;
 
     const paymentRequest =
@@ -274,7 +272,8 @@ Future<void> main() async {
         XchToBtcOfferAcceptFile.fromSerializedOfferFile(offerAcceptFileMemo!);
 
     // BTC holder's side gets escrow address from details in offer file and offer accept file
-    final btcHolderExchangeInfo = offerFile.getExchangeInfo(offerAcceptFile, btcHolderPrivateKey);
+    final btcHolderExchangeInfo =
+        offerFile.getExchangeInfo(deserializedOfferAcceptFile, btcHolderPrivateKey);
     final btcHolderEscrowPuzzlehash = btcHolderExchangeInfo.escrowPuzzlehash;
 
     // the escrow puzzlehashes on either side should match
@@ -311,7 +310,7 @@ Future<void> main() async {
       sweepPuzzlehash: sweepPuzzlehash,
       requestorPrivateKey: btcHolderPrivateKey,
       validityTime: postAcceptValidityTime,
-      paymentHash: deserializedOfferAcceptFile.lightningPaymentRequest.tags.paymentHash!,
+      paymentHash: btcHolderExchangeInfo.paymentHash!,
       preimage: sweepPreimage,
       fulfillerPublicKey: xchHolderPublicKey,
     );

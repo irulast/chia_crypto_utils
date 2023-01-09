@@ -3,7 +3,6 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/exceptions/invalid_cross_chain_offer_file_type.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_accept_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_accept_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_exchange_info.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_file.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/exchange_amount.dart';
@@ -77,7 +76,7 @@ class XchToBtcOfferFile implements CrossChainOfferFile {
     final deserializedOfferFile = maybeFromSerializedOfferFile(serializedOfferFile);
 
     if (deserializedOfferFile == null) {
-      throw InvalidCrossChainOfferType(CrossChainOfferFileType.xchToBtc);
+      throw InvalidCrossChainOfferType(CrossChainOfferFileType.xchToBtc.name);
     }
     return deserializedOfferFile;
   }
@@ -107,8 +106,11 @@ class XchToBtcOfferFile implements CrossChainOfferFile {
     );
 
     return CrossChainOfferExchangeInfo(
+      requestorPublicKey: requestorPrivateKey.getG1(),
+      fulfillerPublicKey: fulfillerPublicKey,
       amountMojos: amountMojos,
       amountSatoshis: amountSatoshis,
+      validityTime: validityTime,
       escrowPuzzlehash: escrowPuzzlehash,
       paymentRequest: lightningPaymentRequest,
     );
