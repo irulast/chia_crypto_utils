@@ -69,11 +69,6 @@ class BtcToXchOfferFile implements CrossChainOfferFile {
   }
 
   @override
-  String serialize(PrivateKey requestorPrivateKey) {
-    return serializeCrossChainOfferFile(this, requestorPrivateKey);
-  }
-
-  @override
   CrossChainOfferExchangeInfo getExchangeInfo(
     CrossChainOfferFile offerAcceptFile,
     PrivateKey requestorPrivateKey,

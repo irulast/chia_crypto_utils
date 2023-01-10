@@ -26,9 +26,4 @@ abstract class CrossChainOfferAcceptFile implements CrossChainOfferFile {
     }
     return deserializedOfferFile;
   }
-
-  @override
-  String serialize(PrivateKey requestorPrivateKey) {
-    return serializeCrossChainOfferFile(this, requestorPrivateKey);
-  }
 }
