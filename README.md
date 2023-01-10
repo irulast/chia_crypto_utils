@@ -52,7 +52,7 @@ dart test integration_test/ --concurrency=1
 
 Install [Flutter](https://docs.flutter.dev/get-started/install) and add the flutter tool to your path.
 
-[LCOV](http://ltp.sourceforge.net/coverage/lcov.php) is used to create a coverage report in HTML format.
+[LCOV](https://ltp.sourceforge.net/coverage/lcov.php) is used to create a coverage report in HTML format.
 
 ### Generate Coverage Report
 

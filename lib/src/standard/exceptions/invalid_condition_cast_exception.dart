@@ -7,6 +7,6 @@ class InvalidConditionCastException implements Exception {
 
   @override
   String toString() {
-    return 'Attempt to cast program to ${intendedCondition.toString()} failed: wrong condition';
+    return 'Attempt to cast program to $intendedCondition failed: wrong condition';
   }
 }
