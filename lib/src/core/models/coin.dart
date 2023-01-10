@@ -22,14 +22,10 @@ class Coin extends CoinPrototype with ToBytesMixin {
     required this.spentBlockIndex,
     required this.coinbase,
     required this.timestamp,
-    required Bytes parentCoinInfo,
-    required Puzzlehash puzzlehash,
-    required int amount,
-  }) : super(
-          puzzlehash: puzzlehash,
-          amount: amount,
-          parentCoinInfo: parentCoinInfo,
-        );
+    required super.parentCoinInfo,
+    required super.puzzlehash,
+    required super.amount,
+  });
 
   factory Coin.fromChiaCoinRecordJson(Map<String, dynamic> json) {
     final coinPrototype = CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>);

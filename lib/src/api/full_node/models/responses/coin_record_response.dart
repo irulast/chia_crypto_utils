@@ -10,12 +10,9 @@ class CoinRecordResponse extends ChiaBaseResponse {
 
   const CoinRecordResponse({
     required this.coinRecord,
-    required bool success,
-    required String? error,
-  }) : super(
-          success: success,
-          error: error,
-        );
+    required super.success,
+    required super.error,
+  });
 
   factory CoinRecordResponse.fromJson(Map<String, dynamic> json) {
     final chiaBaseResponse = ChiaBaseResponse.fromJson(json);

@@ -9,12 +9,9 @@ class CoinSpendResponse extends ChiaBaseResponse {
 
   const CoinSpendResponse({
     required this.coinSpend,
-    required bool success,
-    required String? error,
-  }) : super(
-          success: success,
-          error: error,
-        );
+    required super.success,
+    required super.error,
+  });
 
   factory CoinSpendResponse.fromJson(Map<String, dynamic> json) {
     final chiaBaseResponse = ChiaBaseResponse.fromJson(json);

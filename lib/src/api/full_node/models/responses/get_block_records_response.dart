@@ -7,12 +7,9 @@ class GetBlockRecordsResponse extends ChiaBaseResponse {
 
   const GetBlockRecordsResponse({
     this.blockRecords,
-    required bool success,
-    required String? error,
-  }) : super(
-          success: success,
-          error: error,
-        );
+    required super.success,
+    required super.error,
+  });
 
   factory GetBlockRecordsResponse.fromJson(Map<String, dynamic> json) {
     final chiaBaseResponse = ChiaBaseResponse.fromJson(json);

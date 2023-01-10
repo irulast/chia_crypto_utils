@@ -17,8 +17,8 @@ abstract class Memo extends Bytes {
 
 class LazyMemo extends Bytes implements Memo {
   LazyMemo(
-    List<int> bytesList,
-  ) : super(bytesList);
+    super.bytesList,
+  );
 
   @override
   String? get decodedString => decodeStringFromBytes(this);
@@ -26,9 +26,9 @@ class LazyMemo extends Bytes implements Memo {
 
 class PrecomputedMemo extends Bytes implements Memo {
   PrecomputedMemo(
-    List<int> bytesList,
+    super.bytesList,
     this.decodedString,
-  ) : super(bytesList);
+  );
 
   @override
   String? decodedString;
