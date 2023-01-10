@@ -1,7 +1,7 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/core/puzzles/return_conditions/return_conditions.clvm.hex.dart';
 import 'package:chia_crypto_utils/src/plot_nft/models/exceptions/invalid_pool_singleton_exception.dart';
 import 'package:chia_crypto_utils/src/plot_nft/models/lineage_proof.dart';
+import 'package:chia_crypto_utils/src/singleton/puzzles/singleton_output_inner_puzzle/singleton_output_inner_puzzle.clvm.hex.dart';
 
 class PlotNftWalletService extends BaseWalletService {
   final standardWalletService = StandardWalletService();
@@ -277,12 +277,10 @@ class PlotNftWalletService extends BaseWalletService {
       Program.list(
         [Program.cons(Program.fromString('p'), Program.fromBytes(targetState.toBytes()))],
       ),
-      Program.fromBytes(returnConditionsProgram.hash().toBytes())
+      Program.fromBytes(singletonOutputInnerPuzzleProgram.hash().toBytes())
     ]);
 
     final startingFullPuzzle = SingletonService.puzzleForSingleton(launcherId, currentInnerPuzzle);
-    final destinationFullPuzzle =
-        SingletonService.puzzleForSingleton(launcherId, newWaitingRoomInnerPuzzle);
 
     final toP2ConditionsFullSolution = Program.list([
       plotNft.lineageProof.toProgram(),
@@ -334,14 +332,16 @@ class PlotNftWalletService extends BaseWalletService {
       Program.fromInt(currentSingleton.amount),
       innerInnerSolution,
     ]);
-    final p2FullPuzzle = SingletonService.puzzleForSingleton(launcherId, returnConditionsProgram);
+    final p2FullPuzzle =
+        SingletonService.puzzleForSingleton(launcherId, singletonOutputInnerPuzzleProgram);
     print('expected full puzzle hash: ${p2FullPuzzle.hash()}');
     // print('expected inner puzzle hash: ${returnConditionsProgram.hash()}');
     final p2SpendBundle = SpendBundle(
       coinSpends: [
         CoinSpend(
           coin: intermediaryCoin,
-          puzzleReveal: SingletonService.puzzleForSingleton(launcherId, returnConditionsProgram),
+          puzzleReveal:
+              SingletonService.puzzleForSingleton(launcherId, singletonOutputInnerPuzzleProgram),
           solution: innerP2Solution,
         )
       ],
