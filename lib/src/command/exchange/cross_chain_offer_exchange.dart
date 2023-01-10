@@ -687,8 +687,11 @@ Future<void> completeXchToBtcExchange(
 
   final validityTimeMinutes = validityTime ~/ 60;
 
-  print('\nAfter $validityTimeMinutes minutes, you may claw back your XCH if your counter party');
-  print('does not pay the lightning invoice by then.');
+  print('\nOnce your counter party has paid the lightning invoice you may safely exit the');
+  print('program. The exchange complete.');
+
+  print('\nIf your counter party does not pay the lightning invoice, you may claw back');
+  print('your XCH after $validityTimeMinutes minutes.');
 
   await confirmClawback(
     clawbackSpendBundle: clawbackSpendBundle,
