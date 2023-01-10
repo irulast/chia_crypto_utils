@@ -36,8 +36,8 @@ class PrecomputedMemo extends Bytes implements Memo {
 
 String? decodeStringFromBytes(Bytes bytes) {
   try {
-    final _decodedString = utf8.decode(bytes);
-    return _decodedString;
+    final decodedString = utf8.decode(bytes);
+    return decodedString;
   } on Exception {
     return null;
   }

@@ -81,7 +81,7 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
     try {
       offeredAmountValue = int.parse(stdin.readLineSync()!.trim());
     } catch (e) {
-      print('\nPlease enter how many $requestedDenomination being exchanged:');
+      print('\nPlease enter how many $offeredDenomination being exchanged:');
     }
   }
 

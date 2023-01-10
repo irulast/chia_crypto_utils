@@ -185,7 +185,7 @@ class CoinSplittingService {
     var numberOfCoinsCreated = 0;
     final parentIdsToLookFor = <Bytes>[];
 
-    final transactionFutures = <Future>[];
+    final transactionFutures = <Future<dynamic>>[];
     var isFinished = false;
 
     for (var coinIndex = 0; coinIndex < catCoins.length; coinIndex++) {
@@ -238,7 +238,7 @@ class CoinSplittingService {
     if (standardCoinsForFee.length != catCoins.length) {
       throw ArgumentError('Should provide a standard coin for  every cat coin');
     }
-    final transactionFutures = <Future>[];
+    final transactionFutures = <Future<dynamic>>[];
     final parentIdsToLookFor = <Bytes>[];
     for (var coinIndex = 0; coinIndex < catCoins.length; coinIndex++) {
       final catCoin = catCoins[coinIndex];

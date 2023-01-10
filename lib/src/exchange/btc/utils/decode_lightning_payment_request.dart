@@ -146,8 +146,11 @@ PaymentRequestTags decodeTags(Map<int, dynamic> encodedTags) {
         paymentHash = data != null ? (data as Bytes) : null;
         break;
       case 3:
-        for (final route in data) {
-          routingInfo.add(decodeRouteInfo(route as List<int>));
+        if (data != null) {
+          data = data as List<List<int>>;
+          for (final route in data) {
+            routingInfo.add(decodeRouteInfo(route));
+          }
         }
         break;
       case 5:

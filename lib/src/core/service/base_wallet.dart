@@ -23,7 +23,7 @@ class BaseWalletService {
     Program Function(Program standardSolution)? transformStandardSolution,
     required JacobianPoint Function(CoinSpend coinSpend) makeSignatureForCoinSpend,
   }) {
-    Program _makeSolutionFromConditions(List<Condition> conditions) {
+    Program makeSolutionFromConditions(List<Condition> conditions) {
       final standardSolution = BaseWalletService.makeSolutionFromConditions(conditions);
       if (transformStandardSolution == null) {
         return standardSolution;
@@ -120,9 +120,9 @@ class BaseWalletService {
 
         primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition(coin.id, message);
 
-        solution = _makeSolutionFromConditions(conditions);
+        solution = makeSolutionFromConditions(conditions);
       } else {
-        solution = _makeSolutionFromConditions(
+        solution = makeSolutionFromConditions(
           [primaryAssertCoinAnnouncement!],
         );
       }
@@ -149,8 +149,8 @@ class BaseWalletService {
 
     final addsigmessage = getAddSigMeMessageFromResult(result.program, coinSpend.coin);
 
-    final _privateKey = useSyntheticOffset ? calculateSyntheticPrivateKey(privateKey) : privateKey;
-    final signature = AugSchemeMPL.sign(_privateKey, addsigmessage);
+    final privateKey0 = useSyntheticOffset ? calculateSyntheticPrivateKey(privateKey) : privateKey;
+    final signature = AugSchemeMPL.sign(privateKey0, addsigmessage);
 
     return signature;
   }
@@ -168,7 +168,7 @@ class BaseWalletService {
     return makeSolutionFromProgram(
       Program.list([
         Program.fromBigInt(keywords['q']!),
-        ...conditions.map((condition) => condition.program).toList()
+        ...conditions.map((condition) => condition.program)
       ]),
     );
   }
