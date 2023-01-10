@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/dexie/dexie_post_offer_response.dart';
 
 class DexieApi {
   Client get client => Client(url);

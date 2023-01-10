@@ -2,19 +2,14 @@ import 'dart:typed_data';
 import 'package:bech32/bech32.dart';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/models/fallback_address.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/models/lightning_payment_request.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/models/payment_request_signature.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/models/payment_request_tags.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/models/routing_info.dart';
 
 import 'package:chia_crypto_utils/src/utils/bech32.dart';
 
-const bech32 = Bech32Codec();
+const bech32Codec = Bech32Codec();
 String? network;
 
 LightningPaymentRequest decodeLightningPaymentRequest(String paymentRequest) {
-  final bech32DecodedPaymentRequest = bech32.decode(paymentRequest, 2048);
+  final bech32DecodedPaymentRequest = bech32Codec.decode(paymentRequest, 2048);
   final hrp = bech32DecodedPaymentRequest.hrp;
 
   // prefix

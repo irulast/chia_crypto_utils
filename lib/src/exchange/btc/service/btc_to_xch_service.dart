@@ -1,5 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/service/btc_exchange_service.dart';
 
 class BtcToXchService {
   BtcToXchService(this.fullNode);

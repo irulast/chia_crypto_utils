@@ -1,5 +1,5 @@
 @Skip('sends post request to dexie')
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/dexie/dexie.dart';
+import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/dexie/dexie_api.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
