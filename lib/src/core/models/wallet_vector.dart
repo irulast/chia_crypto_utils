@@ -78,16 +78,11 @@ class WalletVector with ToBytesMixin {
 
 class UnhardenedWalletVector extends WalletVector {
   UnhardenedWalletVector({
-    required PrivateKey childPrivateKey,
-    required Puzzlehash puzzlehash,
-    required int derivationIndex,
+    required super.childPrivateKey,
+    required super.puzzlehash,
+    required super.derivationIndex,
     Map<Puzzlehash, Puzzlehash>? assetIdtoOuterPuzzlehash,
-  })  : assetIdtoOuterPuzzlehash = assetIdtoOuterPuzzlehash ?? <Puzzlehash, Puzzlehash>{},
-        super(
-          childPrivateKey: childPrivateKey,
-          puzzlehash: puzzlehash,
-          derivationIndex: derivationIndex,
-        );
+  }) : assetIdtoOuterPuzzlehash = assetIdtoOuterPuzzlehash ?? <Puzzlehash, Puzzlehash>{};
 
   factory UnhardenedWalletVector.fromPrivateKey(
     PrivateKey masterPrivateKey,

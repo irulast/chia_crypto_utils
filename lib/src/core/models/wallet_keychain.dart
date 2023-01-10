@@ -362,7 +362,7 @@ class HardenedAndUnhardenedPuzzleHashes {
 }
 
 class WalletPuzzlehash extends Puzzlehash {
-  WalletPuzzlehash(List<int> bytesList, this.derivationIndex) : super(bytesList);
+  WalletPuzzlehash(super.bytesList, this.derivationIndex);
 
   WalletPuzzlehash.fromPuzzlehash(Puzzlehash puzzlehash, this.derivationIndex)
       : super(puzzlehash.byteList);
@@ -406,9 +406,9 @@ class AddsSingletonWalletVectorArguments {
 
 class WalletAddress extends Address {
   const WalletAddress(
-    String address, {
+    super.address, {
     required this.derivationIndex,
-  }) : super(address);
+  });
 
   factory WalletAddress.fromContext(Puzzlehash puzzlehash, int derivationIndex) {
     final addressPrefix = NetworkContext().blockchainNetwork.addressPrefix;

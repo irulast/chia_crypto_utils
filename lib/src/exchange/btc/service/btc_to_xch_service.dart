@@ -1,10 +1,14 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/service/exchange.dart';
 
 class BtcToXchService {
-  final BtcExchangeService exchangeService = BtcExchangeService();
+  BtcToXchService(this.fullNode);
 
-  Puzzlehash generateEscrowPuzzlehash({
+  final ChiaFullNodeInterface fullNode;
+  final BtcExchangeService exchangeService = BtcExchangeService();
+  final BaseWalletService baseWalletService = BaseWalletService();
+  final StandardWalletService standardWalletService = StandardWalletService();
+
+  static Puzzlehash generateEscrowPuzzlehash({
     required PrivateKey requestorPrivateKey,
     required int clawbackDelaySeconds,
     required Bytes sweepPaymentHash,
@@ -12,7 +16,7 @@ class BtcToXchService {
   }) {
     final requestorPublicKey = requestorPrivateKey.getG1();
 
-    final escrowPuzzle = exchangeService.generateEscrowPuzzle(
+    final escrowPuzzle = BtcExchangeService.generateEscrowPuzzle(
       clawbackPublicKey: fulfillerPublicKey,
       clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash,
@@ -68,7 +72,7 @@ class BtcToXchService {
     final requestorPublicKey = requestorPrivateKey.getG1();
     final fulfillerPublicKey = fulfillerPrivateKey.getG1();
 
-    return BaseWalletService().createSpendBundleBase(
+    return baseWalletService.createSpendBundleBase(
       payments: payments,
       coinsInput: coinsInput,
       changePuzzlehash: changePuzzlehash,
@@ -77,7 +81,7 @@ class BtcToXchService {
       coinAnnouncementsToAssert: coinAnnouncementsToAssert,
       puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
       makePuzzleRevealFromPuzzlehash: (puzzlehash) {
-        return exchangeService.generateEscrowPuzzle(
+        return BtcExchangeService.generateEscrowPuzzle(
           clawbackDelaySeconds: clawbackDelaySeconds,
           clawbackPublicKey: fulfillerPublicKey,
           sweepPaymentHash: sweepPaymentHash,
@@ -85,7 +89,7 @@ class BtcToXchService {
         );
       },
       makeSignatureForCoinSpend: (coinSpend) {
-        final hiddenPuzzle = exchangeService.generateHiddenPuzzle(
+        final hiddenPuzzle = BtcExchangeService.generateHiddenPuzzle(
           clawbackDelaySeconds: clawbackDelaySeconds,
           clawbackPublicKey: fulfillerPublicKey,
           sweepPaymentHash: sweepPaymentHash,
@@ -101,9 +105,36 @@ class BtcToXchService {
           fulfillerPrivateKey,
         );
 
-        return BaseWalletService()
-            .makeSignature(totalPrivateKey, coinSpend, useSyntheticOffset: false);
+        return baseWalletService.makeSignature(
+          totalPrivateKey,
+          coinSpend,
+          useSyntheticOffset: false,
+        );
       },
     );
+  }
+
+  Future<void> pushSweepSpendbundle({
+    required Puzzlehash escrowPuzzlehash,
+    required Puzzlehash sweepPuzzlehash,
+    required PrivateKey requestorPrivateKey,
+    required int validityTime,
+    required Bytes paymentHash,
+    required Bytes preimage,
+    required JacobianPoint fulfillerPublicKey,
+  }) async {
+    final escrowCoins = await fullNode.getCoinsByPuzzleHashes([escrowPuzzlehash]);
+
+    final sweepSpendBundle = createSweepSpendBundle(
+      payments: [Payment(escrowCoins.totalValue, sweepPuzzlehash)],
+      coinsInput: escrowCoins,
+      requestorPrivateKey: requestorPrivateKey,
+      clawbackDelaySeconds: validityTime,
+      sweepPaymentHash: paymentHash,
+      sweepPreimage: preimage,
+      fulfillerPublicKey: fulfillerPublicKey,
+    );
+
+    await fullNode.pushTransaction(sweepSpendBundle);
   }
 }

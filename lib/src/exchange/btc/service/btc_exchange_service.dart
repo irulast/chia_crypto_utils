@@ -1,6 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/exceptions/bad_signature_on_public_key.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/puzzles/p2_delayed_or_preimage/p2_delayed_or_preimage.clvm.hex.dart';
 
 // code adapted from https://github.com/richardkiss/chiaswap
 class BtcExchangeService {
@@ -72,7 +70,7 @@ class BtcExchangeService {
     );
   }
 
-  Program generateEscrowPuzzle({
+  static Program generateEscrowPuzzle({
     required int clawbackDelaySeconds,
     required JacobianPoint clawbackPublicKey,
     required Bytes sweepPaymentHash,
@@ -92,7 +90,7 @@ class BtcExchangeService {
     return puzzle;
   }
 
-  Program generateHiddenPuzzle({
+  static Program generateHiddenPuzzle({
     required int clawbackDelaySeconds,
     required JacobianPoint clawbackPublicKey,
     required Bytes sweepPaymentHash,

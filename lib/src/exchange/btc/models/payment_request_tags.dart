@@ -1,6 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/models/fallback_address.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/models/routing_info.dart';
 
 class PaymentRequestTags {
   // according to Bolt #11 protocol, tagged fields are optional

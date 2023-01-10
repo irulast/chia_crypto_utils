@@ -1,5 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/exchange_amount.dart';
 
 abstract class CrossChainOfferFile {
   CrossChainOfferFilePrefix get prefix;
@@ -8,6 +7,17 @@ abstract class CrossChainOfferFile {
   JacobianPoint get publicKey;
 
   Map<String, dynamic> toJson();
+
+  CrossChainOfferExchangeInfo getExchangeInfo(
+    CrossChainOfferFile fulfillerOfferFile,
+    PrivateKey requestorPrivateKey,
+  );
+}
+
+extension Serialize on CrossChainOfferFile {
+  String serialize(PrivateKey requestorPrivateKey) {
+    return serializeCrossChainOfferFile(this, requestorPrivateKey);
+  }
 }
 
 enum CrossChainOfferFileType { xchToBtc, xchToBtcAccept, btcToXch, btcToXchAccept }

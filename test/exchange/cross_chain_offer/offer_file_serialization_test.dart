@@ -1,16 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/command/exchange/cross_chain_offer_exchange.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/exceptions/bad_signature_on_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/exceptions/expired_cross_chain_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/exceptions/failed_signature_on_offer_file_exception.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/exceptions/invalid_cross_chain_offer_prefix.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_accept_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/exchange_amount.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_accept_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/utils/cross_chain_offer_file_serialization.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_payment_request.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -245,7 +233,7 @@ void main() {
     );
 
     expect(
-      () => {checkValidity(offerFile)},
+      () => {CrossChainOfferService.checkValidity(offerFile)},
       throwsA(isA<ExpiredCrossChainOfferFile>()),
     );
   });
@@ -280,7 +268,7 @@ void main() {
     );
 
     expect(
-      () => {checkValidity(offerFile)},
+      () => {CrossChainOfferService.checkValidity(offerFile)},
       returnsNormally,
     );
   });

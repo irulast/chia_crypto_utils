@@ -1,10 +1,13 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/service/exchange.dart';
 
 class XchToBtcService {
+  XchToBtcService(this.fullNode);
+  final ChiaFullNodeInterface fullNode;
   final BtcExchangeService exchangeService = BtcExchangeService();
+  final BaseWalletService baseWalletService = BaseWalletService();
+  final StandardWalletService standardWalletService = StandardWalletService();
 
-  Puzzlehash generateEscrowPuzzlehash({
+  static Puzzlehash generateEscrowPuzzlehash({
     required PrivateKey requestorPrivateKey,
     required int clawbackDelaySeconds,
     required Bytes sweepPaymentHash,
@@ -12,7 +15,7 @@ class XchToBtcService {
   }) {
     final requestorPublicKey = requestorPrivateKey.getG1();
 
-    final escrowPuzzle = exchangeService.generateEscrowPuzzle(
+    final escrowPuzzle = BtcExchangeService.generateEscrowPuzzle(
       clawbackPublicKey: requestorPublicKey,
       clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash,
@@ -66,7 +69,7 @@ class XchToBtcService {
     final requestorPublicKey = requestorPrivateKey.getG1();
     final fulfillerPublicKey = fulfillerPrivateKey.getG1();
 
-    return BaseWalletService().createSpendBundleBase(
+    return baseWalletService.createSpendBundleBase(
       payments: payments,
       coinsInput: coinsInput,
       changePuzzlehash: changePuzzlehash,
@@ -75,7 +78,7 @@ class XchToBtcService {
       coinAnnouncementsToAssert: coinAnnouncementsToAssert,
       puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
       makePuzzleRevealFromPuzzlehash: (puzzlehash) {
-        return exchangeService.generateEscrowPuzzle(
+        return BtcExchangeService.generateEscrowPuzzle(
           clawbackDelaySeconds: clawbackDelaySeconds,
           clawbackPublicKey: requestorPublicKey,
           sweepPaymentHash: sweepPaymentHash,
@@ -83,7 +86,7 @@ class XchToBtcService {
         );
       },
       makeSignatureForCoinSpend: (coinSpend) {
-        final hiddenPuzzle = exchangeService.generateHiddenPuzzle(
+        final hiddenPuzzle = BtcExchangeService.generateHiddenPuzzle(
           clawbackDelaySeconds: clawbackDelaySeconds,
           clawbackPublicKey: requestorPublicKey,
           sweepPaymentHash: sweepPaymentHash,
@@ -99,9 +102,53 @@ class XchToBtcService {
           fulfillerPrivateKey,
         );
 
-        return BaseWalletService()
-            .makeSignature(totalPrivateKey, coinSpend, useSyntheticOffset: false);
+        return baseWalletService.makeSignature(
+          totalPrivateKey,
+          coinSpend,
+          useSyntheticOffset: false,
+        );
       },
     );
+  }
+
+  Future<void> sendXchToEscrowPuzzlehash({
+    required int amount,
+    required Puzzlehash escrowPuzzlehash,
+    required List<CoinPrototype> coinsInput,
+    required WalletKeychain keychain,
+    Puzzlehash? changePuzzlehash,
+    int fee = 0,
+  }) async {
+    final escrowSpendBundle = standardWalletService.createSpendBundle(
+      payments: [Payment(amount, escrowPuzzlehash)],
+      coinsInput: coinsInput,
+      keychain: keychain,
+      fee: fee,
+      changePuzzlehash: changePuzzlehash,
+    );
+
+    await fullNode.pushTransaction(escrowSpendBundle);
+  }
+
+  Future<void> pushClawbackSpendBundle({
+    required Puzzlehash escrowPuzzlehash,
+    required Puzzlehash clawbackPuzzlehash,
+    required PrivateKey requestorPrivateKey,
+    required int validityTime,
+    required Bytes paymentHash,
+    required JacobianPoint fulfillerPublicKey,
+  }) async {
+    final escrowCoins = await fullNode.getCoinsByPuzzleHashes([escrowPuzzlehash]);
+
+    final clawbackSpendBundle = createClawbackSpendBundle(
+      payments: [Payment(escrowCoins.totalValue, clawbackPuzzlehash)],
+      coinsInput: escrowCoins,
+      requestorPrivateKey: requestorPrivateKey,
+      clawbackDelaySeconds: validityTime,
+      sweepPaymentHash: paymentHash,
+      fulfillerPublicKey: fulfillerPublicKey,
+    );
+
+    await fullNode.pushTransaction(clawbackSpendBundle);
   }
 }

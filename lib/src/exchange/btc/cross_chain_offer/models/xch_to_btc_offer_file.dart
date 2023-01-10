@@ -1,10 +1,6 @@
 // ignore_for_file: annotate_overrides
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/cross_chain_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/exchange_amount.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/models/lightning_payment_request.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_payment_request.dart';
 
 class XchToBtcOfferFile implements CrossChainOfferFile {
   XchToBtcOfferFile({
@@ -52,6 +48,57 @@ class XchToBtcOfferFile implements CrossChainOfferFile {
       lightningPaymentRequest: decodeLightningPaymentRequest(
         (json['lightning_payment_request'] as Map<String, dynamic>)['payment_request'] as String,
       ),
+    );
+  }
+
+  static XchToBtcOfferFile? maybeFromSerializedOfferFile(String serializedOfferFile) {
+    try {
+      final deserializedOfferFile = deserializeCrossChainOfferFile(serializedOfferFile);
+      if (deserializedOfferFile.type != CrossChainOfferFileType.xchToBtc) {
+        return null;
+      }
+      return deserializedOfferFile as XchToBtcOfferFile;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  factory XchToBtcOfferFile.fromSerializedOfferFile(String serializedOfferFile) {
+    final deserializedOfferFile = maybeFromSerializedOfferFile(serializedOfferFile);
+
+    if (deserializedOfferFile == null) {
+      throw InvalidCrossChainOfferType(CrossChainOfferFileType.xchToBtc.name);
+    }
+    return deserializedOfferFile;
+  }
+
+  @override
+  CrossChainOfferExchangeInfo getExchangeInfo(
+    CrossChainOfferFile offerAcceptFile,
+    PrivateKey requestorPrivateKey,
+  ) {
+    final btcToXchOfferAcceptFile = offerAcceptFile as BtcToXchOfferAcceptFile;
+
+    final amountMojos = offeredAmount.amount;
+    final amountSatoshis = requestedAmount.amount;
+    final validityTime = btcToXchOfferAcceptFile.validityTime;
+    final fulfillerPublicKey = btcToXchOfferAcceptFile.publicKey;
+
+    final escrowPuzzlehash = XchToBtcService.generateEscrowPuzzlehash(
+      requestorPrivateKey: requestorPrivateKey,
+      clawbackDelaySeconds: validityTime,
+      sweepPaymentHash: lightningPaymentRequest.tags.paymentHash!,
+      fulfillerPublicKey: fulfillerPublicKey,
+    );
+
+    return CrossChainOfferExchangeInfo(
+      requestorPublicKey: requestorPrivateKey.getG1(),
+      fulfillerPublicKey: fulfillerPublicKey,
+      amountMojos: amountMojos,
+      amountSatoshis: amountSatoshis,
+      validityTime: validityTime,
+      escrowPuzzlehash: escrowPuzzlehash,
+      paymentRequest: lightningPaymentRequest,
     );
   }
 

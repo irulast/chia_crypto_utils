@@ -33,15 +33,15 @@ class Payment {
       return [];
     }
 
-    final _memoStrings = <String>[];
+    final memoStrings = <String>[];
     for (final memo in memos!) {
       final decodedString = memo.decodedString;
       if (decodedString != null) {
-        _memoStrings.add(decodedString);
+        memoStrings.add(decodedString);
       }
     }
 
-    return _memoStrings;
+    return memoStrings;
   }
 
   Program toProgram() {

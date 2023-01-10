@@ -2,19 +2,14 @@ import 'dart:typed_data';
 import 'package:bech32/bech32.dart';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/models/fallback_address.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/models/lightning_payment_request.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/models/payment_request_signature.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/models/payment_request_tags.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/models/routing_info.dart';
 
 import 'package:chia_crypto_utils/src/utils/bech32.dart';
 
-const bech32 = Bech32Codec();
+const bech32Codec = Bech32Codec();
 String? network;
 
 LightningPaymentRequest decodeLightningPaymentRequest(String paymentRequest) {
-  final bech32DecodedPaymentRequest = bech32.decode(paymentRequest, 2048);
+  final bech32DecodedPaymentRequest = bech32Codec.decode(paymentRequest, 2048);
   final hrp = bech32DecodedPaymentRequest.hrp;
 
   // prefix
@@ -146,8 +141,11 @@ PaymentRequestTags decodeTags(Map<int, dynamic> encodedTags) {
         paymentHash = data != null ? (data as Bytes) : null;
         break;
       case 3:
-        for (final route in data) {
-          routingInfo.add(decodeRouteInfo(route as List<int>));
+        if (data != null) {
+          data = data as List<List<int>>;
+          for (final route in data) {
+            routingInfo.add(decodeRouteInfo(route));
+          }
         }
         break;
       case 5:

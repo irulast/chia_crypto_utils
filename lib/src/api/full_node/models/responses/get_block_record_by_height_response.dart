@@ -7,12 +7,9 @@ class GetBlockRecordByHeightResponse extends ChiaBaseResponse {
 
   const GetBlockRecordByHeightResponse({
     this.blockRecord,
-    required bool success,
-    required String? error,
-  }) : super(
-          success: success,
-          error: error,
-        );
+    required super.success,
+    required super.error,
+  });
 
   factory GetBlockRecordByHeightResponse.fromJson(Map<String, dynamic> json) {
     final chiaBaseResponse = ChiaBaseResponse.fromJson(json);

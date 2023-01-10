@@ -9,12 +9,9 @@ class GetAdditionsAndRemovalsResponse extends ChiaBaseResponse {
   const GetAdditionsAndRemovalsResponse({
     this.additions,
     this.removals,
-    required bool success,
-    required String? error,
-  }) : super(
-          success: success,
-          error: error,
-        );
+    required super.success,
+    required super.error,
+  });
 
   factory GetAdditionsAndRemovalsResponse.fromJson(Map<String, dynamic> json) {
     final chiaBaseResponse = ChiaBaseResponse.fromJson(json);

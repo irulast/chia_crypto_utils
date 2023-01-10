@@ -1,6 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/exceptions/bad_signature_on_public_key.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/service/exchange.dart';
 import 'package:test/test.dart';
 
 void main() {

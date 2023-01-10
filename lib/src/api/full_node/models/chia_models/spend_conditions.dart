@@ -9,7 +9,7 @@ class SpendConditions {
 
   factory SpendConditions.fromJson(Map<String, dynamic> json) {
     print(json);
-    final createCoinConditions = List<List>.from(json['create_coin'] as Iterable)
+    final createCoinConditions = List<List<dynamic>>.from(json['create_coin'] as Iterable)
         .map(
           (e) => CreateCoinCondition.fromJsonList(List<dynamic>.from(e)),
         )

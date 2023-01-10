@@ -374,7 +374,7 @@ class CrossChainOfferExchangeCommand extends Command<Future<void>> {
   }
 }
 
-void printUsage(CommandRunner runner) {
+void printUsage(CommandRunner<dynamic> runner) {
   print(runner.argParser.usage);
   print('\nAvailable commands:');
   for (final command in runner.commands.keys) {
@@ -382,7 +382,7 @@ void printUsage(CommandRunner runner) {
   }
 }
 
-void parseHelp(ArgResults results, CommandRunner runner) {
+void parseHelp(ArgResults results, CommandRunner<dynamic> runner) {
   if (results.command == null || results.wasParsed('help') || results.command?.name == 'help') {
     if (results.arguments.isEmpty || results.command == null) {
       print('No command was provided.');

@@ -121,11 +121,11 @@ class CoinSpend with ToBytesMixin {
 
   Future<List<String>> get memoStrings async {
     final payments = await paymentsAsync;
-    final _memoStrings = payments.fold(
+    final memoStrings = payments.fold(
       <String>[],
       (List<String> previousValue, payment) => previousValue + payment.memoStrings,
     );
-    return _memoStrings;
+    return memoStrings;
   }
 
   List<Payment> _getPaymentsFromOutputProgram(Program outputProgram) {
