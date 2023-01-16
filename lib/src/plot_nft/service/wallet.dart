@@ -232,7 +232,7 @@ class PlotNftWalletService extends BaseWalletService {
     Puzzlehash? changePuzzleHash,
     int fee = 0,
     required PoolState targetState,
-    required Puzzlehash receiverPuzzlhash,
+    required Puzzlehash receiverPuzzlehash,
     required WalletKeychain keychain,
   }) async {
     final currentState = plotNft.poolState;
@@ -296,20 +296,20 @@ class PlotNftWalletService extends BaseWalletService {
 
     final toP2ConditionsSpendBundle = SpendBundle(coinSpends: [toP2ConditionsSpend]);
     final intermediaryCoin = toP2ConditionsSpendBundle.additions.single;
-    print('intermediary coin amount: ');
-    print(intermediaryCoin.amount);
+    // print('intermediary coin amount: ');
+    // print(intermediaryCoin.amount);
     final innerInnerSolution = Program.list([
       Program.list(
         [
           CreateCoinCondition(
             newWaitingRoomInnerPuzzle.hash(),
             intermediaryCoin.amount,
-            memos: [receiverPuzzlhash],
+            memos: [receiverPuzzlehash],
           ).program,
           CreateCoinCondition(
             Puzzlehash(launcherId),
             2,
-            memos: [receiverPuzzlhash],
+            memos: [receiverPuzzlehash],
           ).program,
         ],
       )
@@ -334,7 +334,7 @@ class PlotNftWalletService extends BaseWalletService {
     ]);
     final p2FullPuzzle =
         SingletonService.puzzleForSingleton(launcherId, singletonOutputInnerPuzzleProgram);
-    print('expected full puzzle hash: ${p2FullPuzzle.hash()}');
+    // print('expected full puzzle hash: ${p2FullPuzzle.hash()}');
     // print('expected inner puzzle hash: ${returnConditionsProgram.hash()}');
     final p2SpendBundle = SpendBundle(
       coinSpends: [

@@ -522,41 +522,30 @@ Future<void> main() async {
     final transferSpendBundle = await poolWalletService.createPlotNftTransferSpendBundle(
       plotNft: plotNft,
       coinsForTreasureMapCoin: [nathan.standardCoins.first],
-      receiverPuzzlhash: meera.firstPuzzlehash,
+      receiverPuzzlehash: meera.firstPuzzlehash,
       keychain: nathan.keychain,
       changePuzzleHash: nathan.firstPuzzlehash,
       targetState: transferTargetState,
     );
-    print('--------\n');
-    transferSpendBundle.debug();
+    // print('--------\n');
+    // transferSpendBundle.debug();
 
     await fullNodeSimulator.pushTransaction(transferSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
     await nathan.refreshCoins();
 
-    final puzzleAsh =
-        SingletonService.puzzleForSingleton(plotNft.launcherId, singletonOutputInnerPuzzleProgram)
-            .hash();
+    // final puzzlehash =
+    //     SingletonService.puzzleForSingleton(plotNft.launcherId, singletonOutputInnerPuzzleProgram)
+    //         .hash();
 
     final sibling = await fullNodeSimulator.getCoinsByMemo(meera.firstPuzzlehash);
 
-    final allChildren =
-        await fullNodeSimulator.getCoinsByParentIds([sibling.single.parentCoinInfo]);
-    print(sibling);
+    final transferredPlotNft =
+        await fullNodeSimulator.getPlotNftByLauncherId(sibling.single.puzzlehash);
 
-    final finalPlotNft = await fullNodeSimulator.getPlotNftByLauncherId(plotNft.launcherId);
-    print(finalPlotNft);
-    // final plotNftCoin = (await fullNodeSimulator.getCoinsByMemo(
-    //   meera.firstPuzzlehash,
-    // ))
-    //     .single;
-
-    // final transferredPlotNft =
-    //     await fullNodeSimulator.getPlotNftByLauncherId(plotNftTreasureMapCoin.puzzlehash);
-
-    // expect(
-    //   transferredPlotNft!.poolState.toHex(),
-    //   equals(transferTargetState.toHex()),
-    // );
+    expect(
+      transferredPlotNft!.poolState.toHex(),
+      equals(transferTargetState.toHex()),
+    );
   });
 }

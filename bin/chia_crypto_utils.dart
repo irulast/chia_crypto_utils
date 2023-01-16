@@ -678,7 +678,7 @@ class TransferPlotNFTCommand extends Command<Future<void>> {
       plotNft: plotNft,
       coinsForTreasureMapCoin: coins,
       targetState: targetState,
-      receiverPuzzlhash: newOwnerKeychain.puzzlehashes[3],
+      receiverPuzzlehash: newOwnerKeychain.puzzlehashes[3],
       keychain: currentKeychain,
       changePuzzleHash: currentKeychain.puzzlehashes.first,
     );
@@ -694,10 +694,9 @@ class TransferPlotNFTCommand extends Command<Future<void>> {
       }
     } while (coinsByMemo.isEmpty);
 
-    final plotNftTreasureMapCoin = coinsByMemo.single;
+    final siblingCoin = coinsByMemo.single;
 
-    final transferredPlotNft =
-        await fullNode.getPlotNftByLauncherId(plotNftTreasureMapCoin.puzzlehash);
+    final transferredPlotNft = await fullNode.getPlotNftByLauncherId(siblingCoin.puzzlehash);
 
     final launcherId = transferredPlotNft!.launcherId;
     print('\nMemo / New Owner Puzzlehash: ${newOwnerKeychain.puzzlehashes[3]}');
