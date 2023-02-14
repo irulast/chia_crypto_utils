@@ -128,13 +128,20 @@ class CrossChainOfferService {
 
   Future<String?> getOfferAcceptFileFromMessagePuzzlehash(
     Puzzlehash messagePuzzlehash,
-    String serializedOfferFile,
-  ) async {
+    String serializedOfferFile, [
+    List<Bytes>? declinedCoinIds,
+  ]) async {
     final coins = await fullNode.getCoinsByPuzzleHashes(
       [messagePuzzlehash],
     );
 
     for (final coin in coins) {
+      if (declinedCoinIds != null) {
+        if (declinedCoinIds.contains(coin.id)) {
+          continue;
+        }
+      }
+
       final parentCoin = await fullNode.getCoinById(coin.parentCoinInfo);
       final coinSpend = await fullNode.getCoinSpend(parentCoin!);
       final memos = await coinSpend!.memoStrings;
