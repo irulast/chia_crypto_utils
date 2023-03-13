@@ -46,11 +46,6 @@ Future<T> spawnAndWaitForIsolateWithProgressUpdates<T, R>({
 
   T? result;
 
-  void closePorts() {
-    receivePort.close();
-    errorPort.close();
-  }
-
   receivePort.listen(
     (dynamic message) async {
       final messageJson = jsonDecode(message as String) as Map<String, dynamic>;
@@ -64,7 +59,8 @@ Future<T> spawnAndWaitForIsolateWithProgressUpdates<T, R>({
         case IsolateMessageType.result:
           final resultMessage = ResultMessage.fromJson(messageJson);
           result = await handleTaskCompletion(resultMessage.body);
-          closePorts();
+          receivePort.close();
+          errorPort.close();
       }
     },
     onDone: completer.complete,
@@ -74,7 +70,7 @@ Future<T> spawnAndWaitForIsolateWithProgressUpdates<T, R>({
     // first is Error Message
     // second is stacktrace which is not needed
     final errors = message as List<dynamic>;
-    closePorts();
+    errorPort.close();
     completer.completeError(errors.first as Object, StackTrace.fromString(errors[1].toString()));
   });
 
