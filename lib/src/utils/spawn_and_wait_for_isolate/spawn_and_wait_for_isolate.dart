@@ -60,6 +60,7 @@ Future<T> spawnAndWaitForIsolateWithProgressUpdates<T, R>({
           final resultMessage = ResultMessage.fromJson(messageJson);
           result = await handleTaskCompletion(resultMessage.body);
           receivePort.close();
+          errorPort.close();
       }
     },
     onDone: completer.complete,
