@@ -118,7 +118,7 @@ class ChiaEnthusiast extends ChiaEnthusiastBase {
       standardCoins: [standardCoins.firstWhere((coin) => coin.amount >= 10000)],
       destinationPuzzlehash: firstWalletVector.puzzlehash,
       changePuzzlehash: firstWalletVector.puzzlehash,
-      amount: 10000,
+      amount: 100000000,
       makeSignature: (_) => signature,
       keychain: keychain,
       originId: originCoin.id,
@@ -129,6 +129,4 @@ class ChiaEnthusiast extends ChiaEnthusiastBase {
     await refreshCoins();
     return assetId;
   }
-
-
 }

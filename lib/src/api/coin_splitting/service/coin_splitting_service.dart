@@ -3,8 +3,11 @@ import 'dart:math';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class CoinSplittingService {
-  CoinSplittingService(this.fullNode, {this.coinSearchWaitPeriod = _defaultCoinSearchWaitPeriod})
-      : blockchainUtils = BlockchainUtils(fullNode);
+  CoinSplittingService(
+    this.fullNode, {
+    this.coinSearchWaitPeriod = _defaultCoinSearchWaitPeriod,
+    BlockchainUtils? blockchainUtils,
+  }) : blockchainUtils = blockchainUtils ?? BlockchainUtils(fullNode);
   CoinSplittingService.fromContext({this.coinSearchWaitPeriod = _defaultCoinSearchWaitPeriod})
       : fullNode = ChiaFullNodeInterface.fromContext(),
         blockchainUtils = BlockchainUtils.fromContext();
