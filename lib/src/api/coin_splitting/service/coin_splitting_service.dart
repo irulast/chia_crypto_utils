@@ -3,12 +3,8 @@ import 'dart:math';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class CoinSplittingService {
-  CoinSplittingService(
-    this.fullNode, {
-    this.coinSearchWaitPeriod = _defaultCoinSearchWaitPeriod,
-    BlockchainUtils? blockchainUtils,
-  }) : blockchainUtils = blockchainUtils ?? BlockchainUtils(fullNode);
-
+  CoinSplittingService(this.fullNode, {this.coinSearchWaitPeriod = _defaultCoinSearchWaitPeriod})
+      : blockchainUtils = BlockchainUtils(fullNode);
   CoinSplittingService.fromContext({this.coinSearchWaitPeriod = _defaultCoinSearchWaitPeriod})
       : fullNode = ChiaFullNodeInterface.fromContext(),
         blockchainUtils = BlockchainUtils.fromContext();
@@ -60,7 +56,7 @@ class CoinSplittingService {
       puzzlehashes: keychain.puzzlehashes,
     );
 
-    var feeCoins = standardCoinsForFee;
+    var standardCoins = standardCoinsForFee;
 
     if (standardCoinsForFee.length > 1) {
       final earliestSpentBlockIndex = await joinStandardCoins(
@@ -70,28 +66,28 @@ class CoinSplittingService {
         feePerCoin: feePerCoin,
       );
 
-      feeCoins = await getChildCoinsByPuzzlehashes(
+      standardCoins = await getChildCoinsByPuzzlehashes(
         [keychain.puzzlehashes.first],
         parentCoins: standardCoinsForFee,
         earliestSpentBlockIndex: earliestSpentBlockIndex,
       );
       logger('joined standard coins for fee');
 
-      if (feeCoins.length != 1) {
-        throw Exception('should only be one standard coin after join. got ${feeCoins.length}');
+      if (standardCoins.length != 1) {
+        throw Exception('should only be one standard coin after join. got ${standardCoins.length}');
       }
     }
 
-    final relevantPuzzleHashes = keychain.puzzlehashes.sublist(0, splitWidth);
+    final relevantPuzzleHashes = keychain.puzzlehashes.sublist(0, 10);
     final relevantOuterPuzzleHashes =
-        keychain.getOuterPuzzleHashesForAssetId(catCoinToSplit.assetId).sublist(0, splitWidth);
+        keychain.getOuterPuzzleHashesForAssetId(catCoinToSplit.assetId).sublist(0, 10);
 
     var catCoins = [catCoinToSplit];
 
     for (var i = 0; i < numberOfNWidthSplits; i++) {
       final earliestSpentBlockIndex = await createAndPushSplittingTransactions(
         catCoins: catCoins,
-        standardCoinsForFee: feeCoins,
+        standardCoinsForFee: standardCoins,
         keychain: keychain,
         splitWidth: splitWidth,
         feePerCoin: feePerCoin,
@@ -102,9 +98,9 @@ class CoinSplittingService {
         earliestSpentBlockIndex: earliestSpentBlockIndex,
       );
 
-      feeCoins = await getChildCoinsByPuzzlehashes(
+      standardCoins = await getChildCoinsByPuzzlehashes(
         relevantPuzzleHashes,
-        parentCoins: feeCoins,
+        parentCoins: standardCoins,
         earliestSpentBlockIndex: earliestSpentBlockIndex,
       );
       logger('finished $splitWidth width split');
@@ -113,7 +109,7 @@ class CoinSplittingService {
     for (var i = 0; i < numberOfDecaSplits; i++) {
       final earliestSpentBlockIndex = await createAndPushSplittingTransactions(
         catCoins: catCoins,
-        standardCoinsForFee: feeCoins,
+        standardCoinsForFee: standardCoins,
         keychain: keychain,
         splitWidth: 10,
         feePerCoin: feePerCoin,
@@ -125,9 +121,9 @@ class CoinSplittingService {
         earliestSpentBlockIndex: earliestSpentBlockIndex,
       );
 
-      feeCoins = await getChildCoinsByPuzzlehashes(
+      standardCoins = await getChildCoinsByPuzzlehashes(
         relevantPuzzleHashes,
-        parentCoins: feeCoins,
+        parentCoins: standardCoins,
         earliestSpentBlockIndex: earliestSpentBlockIndex,
       );
       logger('finished 10 width split');
@@ -135,7 +131,7 @@ class CoinSplittingService {
 
     await createAndPushFinalSplittingTransactions(
       catCoins: catCoins,
-      standardCoinsForFee: feeCoins,
+      standardCoinsForFee: standardCoins,
       keychain: keychain,
       feePerCoin: feePerCoin,
       desiredAmountPerCoin: desiredAmountPerCoin,
@@ -206,7 +202,6 @@ class CoinSplittingService {
           CatPayment(
             desiredAmountPerCoin,
             keychain.puzzlehashes[i],
-            memos: <Bytes>[keychain.puzzlehashes[i]],
           ),
         );
         numberOfCoinsCreated++;
@@ -352,7 +347,6 @@ class CoinSplittingService {
         CatPayment(
           coinAmount ~/ splitWidth,
           puzzlehashes[i],
-          memos: <Bytes>[puzzlehashes[i]],
         ),
       );
     }
@@ -363,7 +357,6 @@ class CoinSplittingService {
       CatPayment(
         lastPaymentAmount,
         lastPuzzlehash,
-        memos: <Bytes>[lastPuzzlehash],
       ),
     );
     return payments;

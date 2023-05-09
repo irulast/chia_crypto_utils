@@ -19,9 +19,10 @@ Future<void> main() async {
 
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
 
-  final coinSplittingService = CoinSplittingService(fullNodeSimulator,
-      coinSearchWaitPeriod: const Duration(seconds: 5),
-      blockchainUtils: SimulatorBlockchainUtils(fullNodeSimulator));
+  final coinSplittingService = CoinSplittingService(
+    fullNodeSimulator,
+    coinSearchWaitPeriod: const Duration(seconds: 5),
+  );
 
   late ChiaEnthusiast meera;
 
@@ -29,7 +30,10 @@ Future<void> main() async {
     meera = ChiaEnthusiast(fullNodeSimulator, walletSize: 10);
     await meera.farmCoins();
     await meera.issueMultiIssuanceCat(meera.keychainSecret.masterPrivateKey);
+    fullNodeSimulator.run(blockPeriod: const Duration(seconds: 2));
   });
+
+  tearDown(fullNodeSimulator.stop);
 
   test('should split coins', () async {
     await coinSplittingService.splitCoins(
