@@ -1,46 +1,27 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:get_it/get_it.dart';
+import 'package:chia_crypto_utils/src/api/full_node/simulator/util/chia_enthusiast_base.dart';
 
-class ChiaEnthusiast {
+class ChiaEnthusiast extends ChiaEnthusiastBase {
   ChiaEnthusiast(
     this.fullNodeSimulator, {
-    List<String>? mnemonic,
-    int walletSize = 1,
-    int plotNftWalletSize = 2,
-  }) : keychainSecret = (mnemonic != null)
-            ? KeychainCoreSecret.fromMnemonic(mnemonic)
-            : KeychainCoreSecret.generate() {
-    keychain = WalletKeychain.fromCoreSecret(
-      keychainSecret,
-      walletSize: walletSize,
-      plotNftWalletSize: plotNftWalletSize,
-    );
-  }
+    super.mnemonic,
+    super.walletSize,
+    super.plotNftWalletSize,
+  });
+
   final SimulatorFullNodeInterface fullNodeSimulator;
-  late WalletKeychain keychain;
-  final KeychainCoreSecret keychainSecret;
 
-  final CatWalletService catWalletService = CatWalletService();
-
-  List<Puzzlehash> get puzzlehashes =>
-      keychain.unhardenedMap.values.map((wv) => wv.puzzlehash).toList();
-
-  List<Puzzlehash> get outerPuzzlehashes => keychain.unhardenedMap.values.fold(
-        <Puzzlehash>[],
-        (previousValue, wv) => previousValue + wv.assetIdtoOuterPuzzlehash.values.toList(),
-      );
-
-  UnhardenedWalletVector get firstWalletVector => keychain.unhardenedMap.values.first;
-
-  Puzzlehash get firstPuzzlehash => firstWalletVector.puzzlehash;
-
-  Address get address => Address.fromPuzzlehash(
-        firstWalletVector.puzzlehash,
-        GetIt.I.get<BlockchainNetwork>().addressPrefix,
-      );
-
-  List<Coin> standardCoins = [];
-  List<CatCoin> catCoins = [];
+  Map<Puzzlehash, List<CatCoin>> get cat1CoinMap {
+    final catCoinMap = <Puzzlehash, List<CatCoin>>{};
+    for (final cat1Coin in cat1Coins) {
+      if (catCoinMap.containsKey(cat1Coin.assetId)) {
+        catCoinMap[cat1Coin.assetId]!.add(cat1Coin);
+      } else {
+        catCoinMap[cat1Coin.assetId] = [cat1Coin];
+      }
+    }
+    return catCoinMap;
+  }
 
   Map<Puzzlehash, List<CatCoin>> get catCoinMap {
     final catCoinMap = <Puzzlehash, List<CatCoin>>{};
@@ -51,8 +32,11 @@ class ChiaEnthusiast {
         catCoinMap[catCoin.assetId] = [catCoin];
       }
     }
-
     return catCoinMap;
+  }
+
+  void addCat1AssetIdToKeychain(Puzzlehash assetId) {
+    keychain.addCat1OuterPuzzleHashesForAssetId(assetId);
   }
 
   void addAssetIdToKeychain(Puzzlehash assetId) {
@@ -61,7 +45,12 @@ class ChiaEnthusiast {
 
   Future<void> refreshCoins() async {
     standardCoins = await fullNodeSimulator.getCoinsByPuzzleHashes(puzzlehashes);
-    catCoins = await fullNodeSimulator.getCatCoinsByOuterPuzzleHashes(outerPuzzlehashes);
+    cat1Coins = (await fullNodeSimulator.getCatCoinsByOuterPuzzleHashes(outerPuzzlehashes))
+        .where((element) => element.type == SpendType.cat1)
+        .toList();
+    catCoins = (await fullNodeSimulator.getCatCoinsByOuterPuzzleHashes(outerPuzzlehashes))
+        .where((element) => element.type == SpendType.cat)
+        .toList();
   }
 
   Future<void> farmCoins([int nFarms = 1]) async {
@@ -72,7 +61,41 @@ class ChiaEnthusiast {
     await refreshCoins();
   }
 
-  Future<void> issueMultiIssuanceCat([PrivateKey? privateKey]) async {
+  Future<void> issueMultiIssuanceCat1([PrivateKey? privateKey]) async {
+    await refreshCoins();
+    final privateKeyForCat = privateKey ?? firstWalletVector.childPrivateKey;
+
+    final curriedTail =
+        delegatedTailProgram.curry([Program.fromBytes(privateKeyForCat.getG1().toBytes())]);
+    final assetId = Puzzlehash(curriedTail.hash());
+    addCat1AssetIdToKeychain(assetId);
+
+    final originCoin = standardCoins[0];
+
+    final curriedGenesisByCoinIdPuzzle =
+        genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id)]);
+    final tailSolution = Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
+
+    final signature = AugSchemeMPL.sign(privateKeyForCat, curriedGenesisByCoinIdPuzzle.hash());
+
+    final spendBundle = cat1WalletService.makeIssuanceSpendbundle(
+      tail: curriedTail,
+      solution: tailSolution,
+      standardCoins: [standardCoins.firstWhere((coin) => coin.amount >= 10000)],
+      destinationPuzzlehash: firstWalletVector.puzzlehash,
+      changePuzzlehash: firstWalletVector.puzzlehash,
+      amount: 10000,
+      makeSignature: (_) => signature,
+      keychain: keychain,
+      originId: originCoin.id,
+    );
+
+    await fullNodeSimulator.pushTransaction(spendBundle);
+    await fullNodeSimulator.moveToNextBlock();
+    await refreshCoins();
+  }
+
+  Future<Puzzlehash> issueMultiIssuanceCat([PrivateKey? privateKey]) async {
     await refreshCoins();
     final privateKeyForCat = privateKey ?? firstWalletVector.childPrivateKey;
 
@@ -87,10 +110,7 @@ class ChiaEnthusiast {
         genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id)]);
     final tailSolution = Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
 
-    final signature = AugSchemeMPL.sign(
-      privateKeyForCat,
-      curriedGenesisByCoinIdPuzzle.hash(),
-    );
+    final signature = AugSchemeMPL.sign(privateKeyForCat, curriedGenesisByCoinIdPuzzle.hash());
 
     final spendBundle = catWalletService.makeIssuanceSpendbundle(
       tail: curriedTail,
@@ -99,7 +119,7 @@ class ChiaEnthusiast {
       destinationPuzzlehash: firstWalletVector.puzzlehash,
       changePuzzlehash: firstWalletVector.puzzlehash,
       amount: 100000000,
-      signature: signature,
+      makeSignature: (_) => signature,
       keychain: keychain,
       originId: originCoin.id,
     );
@@ -107,5 +127,6 @@ class ChiaEnthusiast {
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
     await refreshCoins();
+    return assetId;
   }
 }

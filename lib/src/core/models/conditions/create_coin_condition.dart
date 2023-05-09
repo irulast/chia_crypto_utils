@@ -1,6 +1,5 @@
 // ignore_for_file: lines_longer_than_80_chars
 
-
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/standard/exceptions/invalid_condition_cast_exception.dart';
 
@@ -46,7 +45,7 @@ class CreateCoinCondition implements Condition {
   Payment toPayment() => Payment(amount, destinationPuzzlehash, memos: memos);
 
   @override
-  Program get program {
+  Program toProgram() {
     return Program.list([
       Program.fromInt(conditionCode),
       Program.fromBytes(destinationPuzzlehash),
@@ -60,7 +59,7 @@ class CreateCoinCondition implements Condition {
 
   static bool isThisCondition(Program condition) {
     final conditionParts = condition.toList();
-    if (conditionParts.length < 3 || conditionParts[0].toInt() != conditionCode) {
+    if (conditionParts.length < 3 || conditionParts[0].toInt() != conditionCode || conditionParts[2].toInt() == -113) {
       return false;
     }
     return true;

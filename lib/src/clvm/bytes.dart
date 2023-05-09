@@ -5,22 +5,40 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/clvm/exceptions/unexpected_end_of_bytes_exception.dart';
+import 'package:chia_crypto_utils/src/clvm/exceptions/invalid_puzzle_hash_exception.dart';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 
 class Puzzlehash extends Bytes {
   Puzzlehash(List<int> bytesList) : super(bytesList) {
     if (bytesList.length != bytesLength) {
-      throw ArgumentError('Puzzlehash must have 32 bytes');
+      throw InvalidPuzzleHashException();
     }
+  }
+
+  static Puzzlehash? maybe(List<int>? maybeBytesList) {
+    if (maybeBytesList == null) return null;
+    return Puzzlehash(maybeBytesList);
   }
 
   factory Puzzlehash.fromHex(String phHex) {
     return Puzzlehash(Bytes.fromHex(phHex));
   }
 
+  static Puzzlehash? maybeFromHex(String? phHex) {
+    if (phHex == null) return null;
+    return Puzzlehash(Bytes.fromHex(phHex));
+  }
+
   factory Puzzlehash.fromStream(Iterator<int> iterator) {
+    return Puzzlehash(iterator.extractBytesAndAdvance(bytesLength));
+  }
+
+  static Puzzlehash? maybeFromStream(Iterator<int> iterator) {
+    final doesExist = iterator.extractDoesExist();
+    if (!doesExist) {
+      return null;
+    }
     return Puzzlehash(iterator.extractBytesAndAdvance(bytesLength));
   }
 
@@ -33,9 +51,28 @@ class Puzzlehash extends Bytes {
   static const hexLength = 64;
 }
 
-class Bytes extends Comparable<Bytes> with ToBytesMixin implements List<int> {
+class Bytes extends Comparable<Bytes> with ToBytesMixin, ToProgramMixin implements List<int> {
   final Uint8List _byteList;
   Bytes(List<int> bytesList) : _byteList = Uint8List.fromList(bytesList);
+
+  factory Bytes.zeros(int size) {
+    return Bytes(List.generate(size, (index) => 0));
+  }
+
+  factory Bytes.random(int size) {
+    final random = Random();
+    return Bytes(List.generate(size, (index) => random.nextInt(256)));
+  }
+
+  static Bytes? maybe(List<int>? maybeBytesList) {
+    if (maybeBytesList == null) return null;
+    return Bytes(maybeBytesList);
+  }
+
+  static Bytes? maybeFromHex(String? phHex) {
+    if (phHex == null) return null;
+    return Bytes.fromHex(phHex);
+  }
 
   static String bytesPrefix = '0x';
 
@@ -43,6 +80,9 @@ class Bytes extends Comparable<Bytes> with ToBytesMixin implements List<int> {
   Bytes toBytes() {
     return this;
   }
+
+  @override
+  Program toProgram() => Program.fromBytes(this);
 
   static Bytes get empty => Bytes([]);
 
@@ -408,25 +448,4 @@ class Bytes extends Comparable<Bytes> with ToBytesMixin implements List<int> {
   Iterable<T> whereType<T>() {
     throw UnimplementedError();
   }
-}
-
-// TODO(nvjoshi): find a better home for this
-extension ExtractBytesFromIterator on Iterator<int> {
-  Bytes extractBytesAndAdvance(int nBytes) {
-    final extractedBytes = <int>[];
-    for (var i = 0; i < nBytes; i++) {
-      if (!moveNext()) {
-        throw UnexpectedEndOfBytesException();
-      }
-      extractedBytes.add(current);
-    }
-    return Bytes(extractedBytes);
-  }
-}
-
-void decodeRoutingInfo(List<int> data) {
-  // final routeData = convertBits(dataBlob, 5, 8, pad: true);
-  // final publicKeyData = routeData.sublist(0, 33);
-  // final publicKey = convertBitsBigInt(publicKeyData, 8, 264, pad: true)[0].toRadixString(16);
-  // print(publicKey);
 }

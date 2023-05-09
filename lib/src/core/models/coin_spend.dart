@@ -96,15 +96,20 @@ class CoinSpend with ToBytesMixin {
     );
   }
 
-  SpendType get type {
-    final uncurriedPuzzleSource = puzzleReveal.uncurry().program.toSource();
+  SpendType? get type {
+    final uncurriedPuzzleSource = puzzleReveal.uncurry().mod.toSource();
     if (uncurriedPuzzleSource == p2DelegatedPuzzleOrHiddenPuzzleProgram.toSource()) {
       return SpendType.standard;
     }
-    if (uncurriedPuzzleSource == catProgram.toSource()) {
+    if (uncurriedPuzzleSource == cat1Program.toSource()) {
+      return SpendType.cat1;
+    }
+
+    if (uncurriedPuzzleSource == cat2Program.toSource()) {
       return SpendType.cat;
     }
-    throw UnimplementedError('Unimplemented spend type');
+
+    return null;
   }
 
   // TODO(nvjoshi2): make async the default
@@ -113,6 +118,8 @@ class CoinSpend with ToBytesMixin {
   Future<List<Payment>> get paymentsAsync async {
     return _getPaymentsFromOutputProgram(await outputProgramAsync);
   }
+
+  List<Memo> get memosSync => payments.memos;
 
   Future<List<Memo>> get memos async {
     final payments = await paymentsAsync;
@@ -149,7 +156,7 @@ class CoinSpend with ToBytesMixin {
   String toString() => 'CoinSpend(coin: $coin, puzzleReveal: $puzzleReveal, solution: $solution)';
 }
 
-enum SpendType { standard, cat, nft }
+enum SpendType { standard, cat, cat1 }
 
 class PaymentsAndAdditions {
   final List<Payment> payments;

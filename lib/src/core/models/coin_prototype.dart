@@ -23,7 +23,7 @@ class CoinPrototype with ToBytesMixin {
         amount = (json['amount'] as num).toInt();
 
   Bytes get id {
-    return (parentCoinInfo + puzzlehash + intToBytesStandard(amount, Endian.big)).sha256Hash();
+    return (parentCoinInfo + puzzlehash + encodeInt(amount)).sha256Hash();
   }
 
   Program toProgram() {

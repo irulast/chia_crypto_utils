@@ -15,6 +15,12 @@ class PlotNft with ToBytesMixin {
   final int delayTime;
   final Puzzlehash delayPuzzlehash;
 
+  Puzzlehash get p2Puzzlehash =>
+      PlotNftWalletService.launcherIdToP2Puzzlehash(launcherId, delayTime, delayPuzzlehash);
+
+  Future<Puzzlehash> get p2PuzzlehashAsync =>
+      PlotNftWalletService.launcherIdToP2PuzzlehashAsync(launcherId, delayTime, delayPuzzlehash);
+
   factory PlotNft.fromBytes(Bytes bytes) {
     final iterator = bytes.iterator;
 

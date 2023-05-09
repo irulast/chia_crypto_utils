@@ -4,8 +4,8 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
 
 late final ChiaFullNodeInterface fullNode;
-final xchToBtcService = XchToBtcService(fullNode);
-final btcToXchService = BtcToXchService(fullNode);
+final xchToBtcService = XchToBtcService();
+final btcToXchService = BtcToXchService();
 final crossChainOfferService = CrossChainOfferService(fullNode);
 final standardWalletService = StandardWalletService();
 
@@ -184,7 +184,7 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   print(offerAcceptFileMemo);
 
   final deserializedOfferAcceptFile =
-      CrossChainOfferAcceptFile.fromSerializedOfferFile(offerAcceptFileMemo!);
+      TakerCrossChainOfferFile.fromSerializedOfferFile(offerAcceptFileMemo!);
 
   final exchangeInfo = offerFile.getExchangeInfo(deserializedOfferAcceptFile, requestorPrivateKey);
 
@@ -209,7 +209,7 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
       stdin.lineMode = false;
       serializedOfferFile = stdin.readLineSync()!.trim();
       stdin.lineMode = true;
-      offerFile = deserializeCrossChainOfferFile(serializedOfferFile);
+      offerFile = CrossChainOfferFile.fromSerializedOfferFile(serializedOfferFile);
       if (offerFile.prefix.name == 'ccoffer_accept') {
         print(
           "Wrong offer file type. The prefix should be 'ccoffer,' not 'ccoffer_accept.'",
@@ -245,11 +245,11 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
     }
   }
 
-  CrossChainOfferAcceptFile? offerAcceptFile;
+  TakerCrossChainOfferFile? offerAcceptFile;
   Address? messageAddress;
 
   if (offerFile.type == CrossChainOfferFileType.btcToXch) {
-    final btcToXchOfferFile = BtcToXchOfferFile.fromSerializedOfferFile(serializedOfferFile!);
+    final btcToXchOfferFile = BtcToXchMakerOfferFile.fromSerializedOfferFile(serializedOfferFile!);
 
     messageAddress = btcToXchOfferFile.messageAddress;
 
@@ -274,7 +274,7 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
       paymentRequest: paymentRequest,
     );
   } else {
-    final xchToBtcOfferFile = XchToBtcOfferFile.fromSerializedOfferFile(serializedOfferFile!);
+    final xchToBtcOfferFile = XchToBtcMakerOfferFile.fromSerializedOfferFile(serializedOfferFile!);
 
     messageAddress = xchToBtcOfferFile.messageAddress;
 
@@ -395,7 +395,7 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNodeFromUrl
       serializedOfferFile = stdin.readLineSync()!.trim();
       stdin.lineMode = true;
 
-      offerFile = deserializeCrossChainOfferFile(serializedOfferFile);
+      offerFile = CrossChainOfferFile.fromSerializedOfferFile(serializedOfferFile);
       if (offerFile.prefix.name == 'ccoffer_accept') {
         print(
           "Wrong offer file type. The prefix should be 'ccoffer,' not 'ccoffer_accept.'",
@@ -424,7 +424,7 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNodeFromUrl
       serializedOfferAcceptFile = stdin.readLineSync()!.trim();
       stdin.lineMode = true;
 
-      offerAcceptFile = deserializeCrossChainOfferFile(serializedOfferAcceptFile);
+      offerAcceptFile = TakerCrossChainOfferFile.fromSerializedOfferFile(serializedOfferAcceptFile);
       if (offerAcceptFile.prefix.name == 'ccoffer') {
         print(
           "Wrong offer file type. The prefix should be 'ccoffer_accept,' not 'ccoffer.'",
@@ -447,13 +447,15 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNodeFromUrl
         requestorPrivateKey = privateKeyInput;
 
         if (offerFile.type == CrossChainOfferFileType.xchToBtc) {
-          final xchToBtcOfferFile = XchToBtcOfferFile.fromSerializedOfferFile(serializedOfferFile!);
+          final xchToBtcOfferFile =
+              XchToBtcMakerOfferFile.fromSerializedOfferFile(serializedOfferFile!);
           final exchangeInfo =
               xchToBtcOfferFile.getExchangeInfo(offerAcceptFile, requestorPrivateKey);
 
           await completeXchToBtcExchange(exchangeInfo, requestorPrivateKey);
         } else {
-          final btcToXchOfferFile = BtcToXchOfferFile.fromSerializedOfferFile(serializedOfferFile!);
+          final btcToXchOfferFile =
+              BtcToXchMakerOfferFile.fromSerializedOfferFile(serializedOfferFile!);
           final exchangeInfo =
               btcToXchOfferFile.getExchangeInfo(offerAcceptFile, requestorPrivateKey);
 
@@ -465,13 +467,13 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNodeFromUrl
 
         if (offerAcceptFile.type == CrossChainOfferFileType.xchToBtcAccept) {
           final xchToBtcOfferAcceptFile =
-              XchToBtcOfferAcceptFile.fromSerializedOfferFile(serializedOfferAcceptFile!);
+              XchToBtcTakerOfferFile.fromSerializedOfferFile(serializedOfferAcceptFile!);
           final exchangeInfo =
               xchToBtcOfferAcceptFile.getExchangeInfo(offerFile, requestorPrivateKey);
           await completeXchToBtcExchange(exchangeInfo, requestorPrivateKey);
         } else {
           final btcToXchOfferAcceptFile =
-              BtcToXchOfferAcceptFile.fromSerializedOfferFile(serializedOfferAcceptFile!);
+              BtcToXchTakerOfferFile.fromSerializedOfferFile(serializedOfferAcceptFile!);
           final exchangeInfo =
               btcToXchOfferAcceptFile.getExchangeInfo(offerFile, requestorPrivateKey);
           await completeBtcToXchExchange(exchangeInfo, requestorPrivateKey);

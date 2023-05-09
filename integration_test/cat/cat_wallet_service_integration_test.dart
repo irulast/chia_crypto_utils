@@ -18,18 +18,12 @@ Future<void> main() async {
   );
   final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
 
-  final keychainSecret = KeychainCoreSecret.generate();
+  final secret = KeychainCoreSecret.generate();
 
-  final walletsSetList = <WalletSet>[];
-  for (var i = 0; i < 2; i++) {
-    final set = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, i);
-    walletsSetList.add(set);
-  }
-
-  final keychain = WalletKeychain.fromWalletSets(walletsSetList);
+  final keychain = WalletKeychain.fromCoreSecret(secret);
 
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
-  final catWalletService = CatWalletService();
+  final catWalletService = Cat2WalletService();
 
   final senderWalletSet = keychain.unhardenedMap.values.first;
   final senderPuzzlehash = senderWalletSet.puzzlehash;
@@ -67,9 +61,8 @@ Future<void> main() async {
     destinationPuzzlehash: senderPuzzlehash,
     changePuzzlehash: senderPuzzlehash,
     amount: 10000,
-    signature: signature,
+    makeSignature: (_) => signature,
     keychain: keychain,
-    originId: originCoin.id,
   );
 
   await fullNodeSimulator.pushTransaction(spendBundle);
@@ -81,10 +74,10 @@ Future<void> main() async {
   assert(senderCatCoins.isNotEmpty, true);
 
   senderStandardCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([senderPuzzlehash]);
-  final payments = <Payment>[];
+  final payments = <CatPayment>[];
   for (var i = 0; i < 10; i++) {
     // to avoid duplicate coins amounts must differ
-    payments.add(Payment(990 + i, senderPuzzlehash));
+    payments.add(CatPayment(990 + i, senderPuzzlehash));
   }
   final sendBundle = catWalletService.createSpendBundle(
     payments: payments,
@@ -107,6 +100,11 @@ Future<void> main() async {
 
   test('spends multiple cat coins correctly', () async {
     final catCoinsForThisTest = senderCatCoins.sublist(0, 2);
+    for (final coin in catCoinsForThisTest) {
+      final p2PuzzleHash = await coin.getP2Puzzlehash();
+      expect(p2PuzzleHash, senderPuzzlehash);
+    }
+
     senderCatCoins.removeWhere(catCoinsForThisTest.contains);
 
     final senderStartingBalance = await fullNodeSimulator.getBalance([senderOuterPuzzlehash]);
@@ -117,7 +115,7 @@ Future<void> main() async {
       (int previousValue, coin) => previousValue + coin.amount,
     );
     final amountToSend = (totalNateCoinValue * 0.8).round();
-    final payment = Payment(amountToSend, receiverPuzzlehash);
+    final payment = CatPayment(amountToSend, receiverPuzzlehash);
 
     final spendBundle = catWalletService.createSpendBundle(
       payments: [payment],
@@ -133,10 +131,18 @@ Future<void> main() async {
 
     final receiverEndingBalance = await fullNodeSimulator.getBalance([receiverOuterPuzzlehash]);
     expect(receiverEndingBalance, receiverStartingBalance + amountToSend);
+
+    final receiverEndingCoins =
+        await fullNodeSimulator.getCatCoinsByOuterPuzzleHashes([receiverOuterPuzzlehash]);
+    for (final coin in receiverEndingCoins) {
+      final p2PuzzleHash = await coin.getP2Puzzlehash();
+      expect(p2PuzzleHash, receiverPuzzlehash);
+    }
   });
 
   test('Spends multiple cats with fee correctly', () async {
     final catCoinsForThisTest = senderCatCoins.sublist(0, 2);
+    expect(await catCoinsForThisTest[0].getP2Puzzlehash(), senderPuzzlehash);
     senderCatCoins.removeWhere(catCoinsForThisTest.contains);
 
     final standardCoinsForTest = senderStandardCoins.sublist(0, 2);
@@ -156,7 +162,7 @@ Future<void> main() async {
     );
     final amountToSend = (totalNateCoinValue * 0.8).round();
     const fee = 1000;
-    final payment = Payment(amountToSend, receiverPuzzlehash);
+    final payment = CatPayment(amountToSend, receiverPuzzlehash);
 
     final spendBundle = catWalletService.createSpendBundle(
       payments: [payment],
@@ -183,10 +189,7 @@ Future<void> main() async {
 
     final receiverEndingNateCoinBalance =
         await fullNodeSimulator.getBalance([receiverOuterPuzzlehash]);
-    expect(
-      receiverEndingNateCoinBalance,
-      receiverStartingNateCoinBalance + amountToSend,
-    );
+    expect(receiverEndingNateCoinBalance, receiverStartingNateCoinBalance + amountToSend);
   });
 
   test('Produces valid spendbundle with fee, multiple payments, and memos', () async {
@@ -203,27 +206,23 @@ Future<void> main() async {
 
     final receiverStartingCatCoins =
         await fullNodeSimulator.getCoinsByPuzzleHashes([receiverOuterPuzzlehash]);
-    final receiverStartingNateCoinBalance = receiverStartingCatCoins.fold(
-      0,
-      (int previousValue, coin) => previousValue + coin.amount,
-    );
+    final receiverStartingNateCoinBalance =
+        receiverStartingCatCoins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
 
-    final totalNateCoinValue = catCoinsForThisTest.fold(
-      0,
-      (int previousValue, coin) => previousValue + coin.amount,
-    );
+    final totalNateCoinValue =
+        catCoinsForThisTest.fold(0, (int previousValue, coin) => previousValue + coin.amount);
     final sendAmounts = [(totalNateCoinValue * 0.4).round(), (totalNateCoinValue * 0.3).round()];
     final totalAmountToSend = sendAmounts.fold(
       0,
       (int previousValue, amount) => previousValue + amount,
     );
     final payments = [
-      Payment(
+      CatPayment.withStringMemos(
         sendAmounts[0],
         receiverPuzzlehash,
         memos: const <String>['Chia is cool'],
       ),
-      Payment(
+      CatPayment.withIntMemos(
         sendAmounts[1],
         receiverPuzzlehash,
         memos: const <int>[1000],
@@ -244,27 +243,16 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
 
     final senderEndingStandardCoinBalance = await fullNodeSimulator.getBalance([senderPuzzlehash]);
-    expect(
-      senderEndingStandardCoinBalance,
-      senderStartingStandardCoinBalance - fee,
-    );
+    expect(senderEndingStandardCoinBalance, senderStartingStandardCoinBalance - fee);
 
     final senderEndingNateCoinBalance = await fullNodeSimulator.getBalance([senderOuterPuzzlehash]);
-    expect(
-      senderEndingNateCoinBalance,
-      senderStartingNateCoinBalance - totalAmountToSend,
-    );
+    expect(senderEndingNateCoinBalance, senderStartingNateCoinBalance - totalAmountToSend);
 
     final receiverEndingCatCoins =
         await fullNodeSimulator.getCoinsByPuzzleHashes([receiverOuterPuzzlehash]);
-    final receiverEndingNateCoinBalance = receiverEndingCatCoins.fold(
-      0,
-      (int previousValue, coin) => previousValue + coin.amount,
-    );
-    expect(
-      receiverEndingNateCoinBalance,
-      receiverStartingNateCoinBalance + totalAmountToSend,
-    );
+    final receiverEndingNateCoinBalance =
+        receiverEndingCatCoins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
+    expect(receiverEndingNateCoinBalance, receiverStartingNateCoinBalance + totalAmountToSend);
 
     final newCoins =
         receiverEndingCatCoins.where((coin) => !receiverStartingCatCoins.contains(coin)).toList();

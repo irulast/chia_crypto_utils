@@ -16,12 +16,15 @@ class BaseWalletService {
     required List<CoinPrototype> coinsInput,
     Puzzlehash? changePuzzlehash,
     int fee = 0,
+    int surplus = 0,
     Bytes? originId,
+    List<Bytes> coinIdsToAssert = const [],
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
     List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
     required Program Function(Puzzlehash puzzlehash) makePuzzleRevealFromPuzzlehash,
     Program Function(Program standardSolution)? transformStandardSolution,
     required JacobianPoint Function(CoinSpend coinSpend) makeSignatureForCoinSpend,
+    void Function(Bytes message)? useCoinMessage,
   }) {
     Program makeSolutionFromConditions(List<Condition> conditions) {
       final standardSolution = BaseWalletService.makeSolutionFromConditions(conditions);
@@ -39,7 +42,7 @@ class BaseWalletService {
       0,
       (int previousValue, payment) => previousValue + payment.amount,
     );
-    final change = totalCoinValue - totalPaymentAmount - fee;
+    final change = totalCoinValue - totalPaymentAmount - fee - surplus;
 
     if (changePuzzlehash == null && change > 0) {
       throw ChangePuzzlehashNeededException();
@@ -116,7 +119,13 @@ class BaseWalletService {
           (Bytes previousValue, coin) => previousValue + coin.id,
         );
         final message = (existingCoinsMessage + createdCoinsMessage).sha256Hash();
+
+        useCoinMessage?.call(message);
         conditions.add(CreateCoinAnnouncementCondition(message));
+
+        for (final coinIdToAssert in coinIdsToAssert) {
+          conditions.add(AssertCoinAnnouncementCondition(coinIdToAssert, message));
+        }
 
         primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition(coin.id, message);
 
@@ -156,8 +165,10 @@ class BaseWalletService {
   }
 
   Bytes getAddSigMeMessageFromResult(Program result, CoinPrototype coin) {
-    final aggSigMeCondition = result.toList().singleWhere(AggSigMeCondition.isThisCondition);
-    return Bytes(aggSigMeCondition.toList()[2].atom) +
+    final aggSigMeCondition = result.toList().where(AggSigMeCondition.isThisCondition);
+    // TODO(nvjoshi2): figure out more robust way to get correct AggSigMeCondition.
+    // this works because tail AggSigMeConditions come before standard ones
+    return Bytes(aggSigMeCondition.last.toList()[2].atom) +
         coin.id +
         Bytes.fromHex(
           blockchainNetwork.aggSigMeExtraData,
@@ -168,7 +179,7 @@ class BaseWalletService {
     return makeSolutionFromProgram(
       Program.list([
         Program.fromBigInt(keywords['q']!),
-        ...conditions.map((condition) => condition.program)
+        ...conditions.map((condition) => condition.toProgram())
       ]),
     );
   }
@@ -178,11 +189,23 @@ class BaseWalletService {
     ConditionChecker<T> conditionChecker,
     ConditionFromProgramConstructor<T> conditionFromProgramConstructor,
   ) {
+    final programList = solution.toList();
+    if (programList.length < 2) {
+      return [];
+    }
     return extractConditionsFromResult(
-      solution.toList()[1],
+      programList[1],
       conditionChecker,
       conditionFromProgramConstructor,
     );
+  }
+
+  static List<Payment> extractPaymentsFromSolution(Program solution) {
+    return BaseWalletService.extractConditionsFromSolution(
+      solution,
+      CreateCoinCondition.isThisCondition,
+      CreateCoinCondition.fromProgram,
+    ).map((e) => e.toPayment()).toList();
   }
 
   static List<T> extractConditionsFromResult<T>(
@@ -195,6 +218,14 @@ class BaseWalletService {
         .where(conditionChecker)
         .map((p) => conditionFromProgramConstructor(p))
         .toList();
+  }
+
+  static List<T> extractConditionsFromProgramList<T>(
+    List<Program> result,
+    ConditionChecker<T> conditionChecker,
+    ConditionFromProgramConstructor<T> conditionFromProgramConstructor,
+  ) {
+    return result.where(conditionChecker).map((p) => conditionFromProgramConstructor(p)).toList();
   }
 
   static Program makeSolutionFromProgram(Program program) {

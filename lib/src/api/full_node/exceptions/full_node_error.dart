@@ -1,10 +1,11 @@
-class FullNodeErrorException implements Exception{
- String? message;
+class FullNodeErrorException implements Exception {
+  String? message;
+  int code;
 
-  FullNodeErrorException([this.message]);
+  FullNodeErrorException(this.code, [this.message]);
 
   @override
   String toString() {
-    return 'Full node error: $message';
+    return 'Full node error: {code: $code, msg: $message}';
   }
 }

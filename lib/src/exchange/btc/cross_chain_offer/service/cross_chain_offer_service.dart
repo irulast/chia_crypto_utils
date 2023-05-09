@@ -7,7 +7,7 @@ class CrossChainOfferService {
   final DexieApi dexieApi = DexieApi();
   final standardWalletService = StandardWalletService();
 
-  XchToBtcOfferFile createXchToBtcOfferFile({
+  XchToBtcMakerOfferFile createXchToBtcOfferFile({
     required int amountMojos,
     required int amountSatoshis,
     required Address messageAddress,
@@ -18,7 +18,7 @@ class CrossChainOfferService {
     final offeredAmount = ExchangeAmount(type: ExchangeAmountType.XCH, amount: amountMojos);
     final requestedAmount = ExchangeAmount(type: ExchangeAmountType.BTC, amount: amountSatoshis);
 
-    return XchToBtcOfferFile(
+    return XchToBtcMakerOfferFile(
       offeredAmount: offeredAmount,
       requestedAmount: requestedAmount,
       messageAddress: messageAddress,
@@ -28,7 +28,7 @@ class CrossChainOfferService {
     );
   }
 
-  BtcToXchOfferFile createBtcToXchOfferFile({
+  BtcToXchMakerOfferFile createBtcToXchOfferFile({
     required int amountMojos,
     required int amountSatoshis,
     required Address messageAddress,
@@ -38,7 +38,7 @@ class CrossChainOfferService {
     final offeredAmount = ExchangeAmount(type: ExchangeAmountType.BTC, amount: amountSatoshis);
     final requestedAmount = ExchangeAmount(type: ExchangeAmountType.XCH, amount: amountMojos);
 
-    return BtcToXchOfferFile(
+    return BtcToXchMakerOfferFile(
       offeredAmount: offeredAmount,
       requestedAmount: requestedAmount,
       messageAddress: messageAddress,
@@ -53,7 +53,7 @@ class CrossChainOfferService {
     }
   }
 
-  XchToBtcOfferAcceptFile createXchToBtcAcceptFile({
+  XchToBtcTakerOfferFile createXchToBtcAcceptFile({
     required String serializedOfferFile,
     required int validityTime,
     required JacobianPoint requestorPublicKey,
@@ -61,7 +61,7 @@ class CrossChainOfferService {
   }) {
     final acceptedOfferHash = Bytes.encodeFromString(serializedOfferFile).sha256Hash();
 
-    return XchToBtcOfferAcceptFile(
+    return XchToBtcTakerOfferFile(
       validityTime: validityTime,
       publicKey: requestorPublicKey,
       lightningPaymentRequest: paymentRequest,
@@ -69,20 +69,21 @@ class CrossChainOfferService {
     );
   }
 
-  BtcToXchOfferAcceptFile createBtcToXchAcceptFile({
+  BtcToXchTakerOfferFile createBtcToXchAcceptFile({
     required String serializedOfferFile,
     required int validityTime,
     required JacobianPoint requestorPublicKey,
   }) {
     final acceptedOfferHash = Bytes.encodeFromString(serializedOfferFile).sha256Hash();
 
-    return BtcToXchOfferAcceptFile(
+    return BtcToXchTakerOfferFile(
       validityTime: validityTime,
       publicKey: requestorPublicKey,
       acceptedOfferHash: acceptedOfferHash,
     );
   }
 
+  // TODO(meeragjoshi): replace the below methods with the analogous methods in ExchangeOfferService once initialization coin id and message coin method are adapted into bin command
   Future<void> sendMessageCoin({
     required WalletKeychain keychain,
     required List<Coin> coinsInput,
@@ -143,10 +144,12 @@ class CrossChainOfferService {
         if (memo.startsWith('ccoffer_accept')) {
           try {
             final deserializedMemo =
-                deserializeCrossChainOfferFile(memo) as CrossChainOfferAcceptFile;
+                await TakerCrossChainOfferFile.fromSerializedOfferFileAsync(memo);
+
             if (deserializedMemo.acceptedOfferHash ==
                 Bytes.encodeFromString(serializedOfferFile).sha256Hash()) return memo;
           } catch (e) {
+            print(e);
             continue;
           }
         }

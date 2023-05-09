@@ -1,9 +1,8 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class BtcToXchService {
-  BtcToXchService(this.fullNode);
+  BtcToXchService();
 
-  final ChiaFullNodeInterface fullNode;
   final BtcExchangeService exchangeService = BtcExchangeService();
   final BaseWalletService baseWalletService = BaseWalletService();
   final StandardWalletService standardWalletService = StandardWalletService();
@@ -112,29 +111,5 @@ class BtcToXchService {
         );
       },
     );
-  }
-
-  Future<void> pushSweepSpendbundle({
-    required Puzzlehash escrowPuzzlehash,
-    required Puzzlehash sweepPuzzlehash,
-    required PrivateKey requestorPrivateKey,
-    required int validityTime,
-    required Bytes paymentHash,
-    required Bytes preimage,
-    required JacobianPoint fulfillerPublicKey,
-  }) async {
-    final escrowCoins = await fullNode.getCoinsByPuzzleHashes([escrowPuzzlehash]);
-
-    final sweepSpendBundle = createSweepSpendBundle(
-      payments: [Payment(escrowCoins.totalValue, sweepPuzzlehash)],
-      coinsInput: escrowCoins,
-      requestorPrivateKey: requestorPrivateKey,
-      clawbackDelaySeconds: validityTime,
-      sweepPaymentHash: paymentHash,
-      sweepPreimage: preimage,
-      fulfillerPublicKey: fulfillerPublicKey,
-    );
-
-    await fullNode.pushTransaction(sweepSpendBundle);
   }
 }

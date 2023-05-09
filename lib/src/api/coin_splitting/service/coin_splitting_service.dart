@@ -3,15 +3,18 @@ import 'dart:math';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class CoinSplittingService {
-  CoinSplittingService(this.fullNode, {this.coinSearchWaitPeriod = _defaultCoinSearchWaitPeriod})
-      : blockchainUtils = BlockchainUtils(fullNode);
+  CoinSplittingService(
+    this.fullNode, {
+    this.coinSearchWaitPeriod = _defaultCoinSearchWaitPeriod,
+    BlockchainUtils? blockchainUtils,
+  }) : blockchainUtils = blockchainUtils ?? BlockchainUtils(fullNode);
   CoinSplittingService.fromContext({this.coinSearchWaitPeriod = _defaultCoinSearchWaitPeriod})
       : fullNode = ChiaFullNodeInterface.fromContext(),
         blockchainUtils = BlockchainUtils.fromContext();
 
   final ChiaFullNodeInterface fullNode;
   final BlockchainUtils blockchainUtils;
-  final catWalletService = CatWalletService();
+  final catWalletService = Cat2WalletService();
   final standardWalletService = StandardWalletService();
   final logger = LoggingContext().info;
   final Duration coinSearchWaitPeriod;
@@ -192,17 +195,16 @@ class CoinSplittingService {
       final catCoin = catCoins[coinIndex];
       final standardCoin = standardCoinsForFee[coinIndex];
 
-      final payments = <Payment>[];
+      final payments = <CatPayment>[];
       for (var i = 0; i < 10; i++) {
         if (numberOfCoinsCreated >= desiredNumberOfCoins) {
           isFinished = true;
           break;
         }
         payments.add(
-          Payment(
+          CatPayment(
             desiredAmountPerCoin,
             keychain.puzzlehashes[i],
-            memos: <Bytes>[keychain.puzzlehashes[i]],
           ),
         );
         numberOfCoinsCreated++;
@@ -337,18 +339,17 @@ class CoinSplittingService {
     return spentCoins.map((c) => c.spentBlockIndex).reduce(min);
   }
 
-  static List<Payment> makeSplittingPayments({
+  static List<CatPayment> makeSplittingPayments({
     required int coinAmount,
     required int splitWidth,
     required List<Puzzlehash> puzzlehashes,
   }) {
-    final payments = <Payment>[];
+    final payments = <CatPayment>[];
     for (var i = 0; i < splitWidth - 1; i++) {
       payments.add(
-        Payment(
+        CatPayment(
           coinAmount ~/ splitWidth,
           puzzlehashes[i],
-          memos: <Bytes>[puzzlehashes[i]],
         ),
       );
     }
@@ -356,10 +357,9 @@ class CoinSplittingService {
     final lastPaymentAmount = coinAmount - payments.totalValue;
     final lastPuzzlehash = puzzlehashes[splitWidth - 1];
     payments.add(
-      Payment(
+      CatPayment(
         lastPaymentAmount,
         lastPuzzlehash,
-        memos: <Bytes>[lastPuzzlehash],
       ),
     );
     return payments;

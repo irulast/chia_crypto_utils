@@ -24,11 +24,13 @@ class Peak {
   Puzzlehash farmerPuzzlehash;
   Bytes headerHash;
   int height;
+  int? timestamp;
 
   Peak({
     required this.farmerPuzzlehash,
     required this.headerHash,
     required this.height,
+    required this.timestamp,
   });
 
   factory Peak.fromJson(Map<String, dynamic> json) {
@@ -36,6 +38,10 @@ class Peak {
       farmerPuzzlehash: Puzzlehash.fromHex(json['farmer_puzzle_hash'] as String),
       headerHash: Bytes.fromHex(json['header_hash'] as String),
       height: json['height'] as int,
+      timestamp: json['timestamp'] as int?,
     );
   }
+
+  DateTime? get dateTime =>
+      (timestamp != null) ? DateTime.fromMillisecondsSinceEpoch(timestamp! * 1000) : null;
 }

@@ -1,5 +1,6 @@
 // ignore_for_file: lines_longer_than_80_chars
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
@@ -8,6 +9,18 @@ import 'package:path/path.dart' as path;
 class SimulatorUtils {
   static String simulatorUrlEnvironmentVariableName = 'FULL_NODE_SIMULATOR_URL';
   static String defaultUrl = 'https://localhost:5000';
+  static String? generatedFilesPathOverride;
+
+  static String? get generatedFilePathFromFile {
+    final genPathFile = File('simulator_gen_path.json');
+
+    if (!genPathFile.existsSync()) {
+      return null;
+    }
+
+    final json = jsonDecode(genPathFile.readAsStringSync()) as Map<String, dynamic>;
+    return json['path'] as String;
+  }
 
   // if you are using this class outside of chia-crypto-utils you must set FULL_NODE_SIMULATOR_GEN_PATH
   static String simulatorGeneratedFilesPathVariableName = 'FULL_NODE_SIMULATOR_GEN_PATH';
@@ -16,7 +29,10 @@ class SimulatorUtils {
 
   static String get generatedFilesPath {
     final env = Platform.environment;
-    return env[simulatorGeneratedFilesPathVariableName] ?? defaultgeneratedFilesPath;
+    return generatedFilesPathOverride ??
+        generatedFilePathFromFile ??
+        env[simulatorGeneratedFilesPathVariableName] ??
+        defaultgeneratedFilesPath;
   }
 
   static String get simulatorUrl {
@@ -45,7 +61,7 @@ class SimulatorUtils {
 
       return Bytes(File(pathToFile).readAsBytesSync());
     } on FileSystemException {
-      throw SimulatorAuthFilesNotFoundException();
+      throw SimulatorAuthFilesNotFoundException(pathToFile);
     }
   }
 

@@ -1,6 +1,5 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/api/namesdao/exceptions/invalid_namesdao_name.dart';
-import 'package:chia_crypto_utils/src/api/namesdao/namesdao_api.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {

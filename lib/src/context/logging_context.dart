@@ -119,8 +119,8 @@ class LoggingContext {
   String formatLog(String log) {
     if (includeTimestamp) {
       final now = DateTime.now();
-      final timestamp = '${now.hour}:${now.minute}:${now.second}';
-      return '($timestamp)  $log';
+      // cut off ms
+      return '(${now.toString().substring(0, 19)}): $log';
     }
 
     return log;

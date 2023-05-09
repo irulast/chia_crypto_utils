@@ -16,4 +16,12 @@ class DexieApi {
       jsonDecode(response.body) as Map<String, dynamic>,
     );
   }
+
+  Future<DexieInspectOfferResponse> inspectOffer(String id) async {
+    final response = await client.get(Uri.parse('ccoffers/$id'));
+
+    return DexieInspectOfferResponse.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
 }
