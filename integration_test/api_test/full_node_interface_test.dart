@@ -54,7 +54,7 @@ Future<void> main() async {
   final keychain = WalletKeychain.fromWalletSets(walletsSetList);
 
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
-  final catWalletService = CatWalletService();
+  final catWalletService = Cat2WalletService();
 
   final walletVector = keychain.unhardenedMap.values.first;
   final puzzlehash = walletVector.puzzlehash;
@@ -91,7 +91,7 @@ Future<void> main() async {
     destinationPuzzlehash: puzzlehash,
     changePuzzlehash: puzzlehash,
     amount: 10000,
-    signature: signature,
+    makeSignature: (_) => signature,
     keychain: keychain,
     originId: originCoin.id,
   );
@@ -246,7 +246,7 @@ Future<void> main() async {
   });
 
   test('should get cat coins by memo', () async {
-    final catCoins = await fullNodeSimulator.getCatCoinsByMemo(
+    final catCoins = await fullNodeSimulator.getCatCoinsByHint(
       puzzlehash,
     );
 
@@ -291,6 +291,16 @@ Future<void> main() async {
       expect(blockRecord.height, equals(expectedHeight));
       expectedHeight++;
     }
+  });
+
+  test('should get block record by height', () async {
+    final response = await fullNodeSimulator.getBlockRecordByHeight(1);
+    final blockRecord = response.blockRecord;
+
+    expect(blockRecord, isNotNull);
+
+    expect(blockRecord!.headerHash, isA<Bytes>());
+    expect(blockRecord.height, equals(1));
   });
 
   test('should get additions and removals', () async {

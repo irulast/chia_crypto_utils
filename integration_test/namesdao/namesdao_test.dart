@@ -18,4 +18,8 @@ Future<void> main() async {
       equals('xch1l9hj8emh7xdk3y2d4kszeuu0z6gn27s9rlc0yz7uqgyjjtd0fegsvgsjtv'),
     );
   });
+
+  test('should get registration info', () async {
+    expect(namesdaoInterface.getRegistrationInfo, returnsNormally);
+  });
 }

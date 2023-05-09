@@ -9,7 +9,7 @@ import 'package:chia_crypto_utils/src/clvm/ir.dart';
 import 'package:chia_crypto_utils/src/clvm/keywords.dart';
 import 'package:chia_crypto_utils/src/clvm/parser.dart';
 import 'package:chia_crypto_utils/src/clvm/printable.dart';
-import 'package:chia_crypto_utils/src/utils/spawn_and_wait_for_isolate/spawn_and_wait_for_isolate.dart';
+import 'package:compute/compute.dart';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 import 'package:path/path.dart' as path;
@@ -55,13 +55,16 @@ typedef Validator = bool Function(Program);
 ///  ```dart
 /// program.get_tree_hash() => program.hash()
 /// ```
-class Program with ToBytesMixin {
+class Program with ToBytesMixin, ToProgramMixin {
   List<Program>? _cons;
   Bytes? _atom;
   Position? position;
 
   static int cost = 11000000000;
   static Program nil = Program.fromBytes([]);
+
+  @override
+  Program toProgram() => this;
 
   @override
   bool operator ==(Object other) =>
@@ -78,11 +81,22 @@ class Program with ToBytesMixin {
   bool get isAtom => _atom != null;
   bool get isCons => _cons != null;
   Bytes get atom => _atom!;
+  Bytes? get maybeAtom => _atom?.isNotEmpty == true ? _atom : null;
   List<Program> get cons => _cons!;
   String get positionSuffix => position == null ? '' : ' at $position';
 
-  Program.cons(Program left, Program right) : _cons = [left, right];
+  Program.cons(ToProgramMixin left, ToProgramMixin right)
+      : _cons = [left.toProgram(), right.toProgram()];
   Program.fromBytes(List<int> atom) : _atom = Bytes(atom);
+  static Program? maybeFromBytes(List<int>? atom) {
+    if (atom == null) return null;
+    return Program.fromBytes(atom);
+  }
+
+  factory Program.fromBytesOrNil(List<int>? atom) {
+    if (atom == null) return Program.nil;
+    return Program.fromBytes(atom);
+  }
   Program.fromHex(String hex) : _atom = Bytes(const HexDecoder().convert(hex));
   // ignore: avoid_positional_boolean_parameters
   Program.fromBool(bool value) : _atom = Bytes(value ? [1] : []);
@@ -90,7 +104,7 @@ class Program with ToBytesMixin {
   Program.fromBigInt(BigInt number) : _atom = encodeBigInt(number);
   Program.fromString(String text) : _atom = Bytes(utf8.encode(text));
 
-  factory Program.list(List<Program> items) {
+  factory Program.list(List<ToProgramMixin> items) {
     var result = Program.nil;
     for (var i = items.length - 1; i >= 0; i--) {
       result = Program.cons(items[i], result);
@@ -151,19 +165,23 @@ class Program with ToBytesMixin {
     return Program.deserialize(const HexDecoder().convert(_source));
   }
 
-  static Map<String, dynamic> runProgramIsolateTask(PuzzleAndSolution puzzleAndSolution) {
+  static Output runProgramIsolateTask(PuzzleAndSolution puzzleAndSolution) {
     final puzzle = puzzleAndSolution.puzzle;
     final solution = puzzleAndSolution.solution;
     final output = puzzle.run(solution, options: puzzleAndSolution.options);
-    return output.toJson();
+    return output;
   }
 
   Future<Output> runAsync(Program args, {RunOptions? options}) async {
-    return spawnAndWaitForIsolate(
-      taskArgument: PuzzleAndSolution(puzzle: this, solution: args, options: options),
-      isolateTask: runProgramIsolateTask,
-      handleTaskCompletion: Output.fromJson,
+    return compute<PuzzleAndSolution, Output>(
+      runProgramIsolateTask,
+      PuzzleAndSolution(puzzle: this, solution: args, options: options),
     );
+    // return spawnAndWaitForIsolate(
+    //   taskArgument: PuzzleAndSolution(puzzle: this, solution: args, options: options),
+    //   isolateTask: runProgramIsolateTask,
+    //   handleTaskCompletion: Output.fromJson,
+    // );
   }
 
   Output run(Program args, {RunOptions? options}) {
@@ -183,7 +201,7 @@ class Program with ToBytesMixin {
     return Output(stack[stack.length - 1], cost);
   }
 
-  Program curry(List<Program> args) {
+  Program curry(List<ToProgramMixin> args) {
     var current = Program.fromBigInt(keywords['q']!);
     for (final argument in args.reversed) {
       current = Program.cons(
@@ -213,7 +231,23 @@ class Program with ToBytesMixin {
     );
   }
 
-  ProgramAndArguments uncurry() {
+  static Map<String, dynamic> _uncurryIsolateTask(Program program) {
+    final modAndArguments = program.uncurry();
+    return <String, dynamic>{
+      'mod': modAndArguments.mod.serializeHex(),
+      'arguments': modAndArguments.arguments.map((e) => e.serializeHex()).toList()
+    };
+  }
+
+  Future<ModAndArguments> uncurryAsync() {
+    return spawnAndWaitForIsolate(
+      taskArgument: this,
+      isolateTask: _uncurryIsolateTask,
+      handleTaskCompletion: ModAndArguments.fromJson,
+    );
+  }
+
+  ModAndArguments uncurry() {
     final programList = toList();
     if (programList.length != 3) {
       throw ArgumentError(
@@ -229,7 +263,7 @@ class Program with ToBytesMixin {
     }
     final uncurriedArgs = _matchCurriedArgs(programList[2]);
 
-    return ProgramAndArguments(uncurriedArgs, uncurriedModule);
+    return ModAndArguments(uncurriedArgs, uncurriedModule);
   }
 
   static Program? _matchQuotedProgram(Program program) {
@@ -245,14 +279,14 @@ class Program with ToBytesMixin {
     return result.arguments;
   }
 
-  static ProgramAndArguments _matchCurriedArgsHelper(
+  static ModAndArguments _matchCurriedArgsHelper(
     List<Program> uncurriedArguments,
     Program inputProgram,
   ) {
     final inputProgramList = inputProgram.toList();
     // base case
     if (inputProgramList.isEmpty) {
-      return ProgramAndArguments(uncurriedArguments, inputProgram);
+      return ModAndArguments(uncurriedArguments, inputProgram);
     }
     final atom = _matchQuotedAtom(inputProgramList[1]);
     if (atom != null) {
@@ -260,7 +294,7 @@ class Program with ToBytesMixin {
     } else {
       final program = _matchQuotedProgram(inputProgramList[1]);
       if (program == null) {
-        return ProgramAndArguments(uncurriedArguments, inputProgram);
+        return ModAndArguments(uncurriedArguments, inputProgram);
       }
       uncurriedArguments.add(program);
     }
@@ -481,6 +515,8 @@ class Program with ToBytesMixin {
     }
   }
 
+  String get string => toString().replaceAll('"', '');
+
   BigInt toBigInt() {
     if (isCons) {
       throw StateError('Cannot convert ${toString()} to bigint format.');
@@ -547,11 +583,21 @@ class Program with ToBytesMixin {
   String toString() => toSource();
 }
 
-class ProgramAndArguments {
-  List<Program> arguments;
-  Program program;
+class ModAndArguments {
+  ModAndArguments(this.arguments, this.mod);
 
-  ProgramAndArguments(this.arguments, this.program);
+  factory ModAndArguments.fromJson(Map<String, dynamic> json) => ModAndArguments(
+        List<String>.from(json['arguments'] as Iterable<dynamic>)
+            .map(Program.deserializeHex)
+            .toList(),
+        Program.deserializeHex(json['mod'] as String),
+      );
+
+  List<Program> arguments;
+  Program mod;
+
+  Map<String, dynamic> toJson() =>
+      <String, dynamic>{'mod': mod, 'arguments': arguments.map((e) => e.serializeHex()).toList()};
 }
 
 class PuzzleAndSolution {

@@ -5,22 +5,31 @@ import 'package:chia_crypto_utils/src/standard/exceptions/spend_bundle_validatio
 import 'package:chia_crypto_utils/src/standard/exceptions/spend_bundle_validation/multiple_origin_coin_exception.dart';
 
 class StandardWalletService extends BaseWalletService {
+  static List<Payment> getPaymentsForCoinSpend(CoinSpend coinSpend) {
+    return BaseWalletService.extractPaymentsFromSolution(coinSpend.solution);
+  }
+
   SpendBundle createSpendBundle({
     required List<Payment> payments,
     required List<CoinPrototype> coinsInput,
     required WalletKeychain keychain,
     Puzzlehash? changePuzzlehash,
     int fee = 0,
+    int surplus = 0,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
     List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<Bytes> coinIdsToAssert = const [],
+    void Function(Bytes message)? useCoinMessage,
   }) {
     return createSpendBundleBase(
       payments: payments,
       coinsInput: coinsInput,
       changePuzzlehash: changePuzzlehash,
       fee: fee,
+      surplus: surplus,
       originId: originId,
+      coinIdsToAssert: coinIdsToAssert,
       coinAnnouncementsToAssert: coinAnnouncementsToAssert,
       puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
       makePuzzleRevealFromPuzzlehash: (puzzlehash) {
@@ -32,6 +41,38 @@ class StandardWalletService extends BaseWalletService {
         final walletVector = keychain.getWalletVector(coinSpend.coin.puzzlehash);
         return makeSignature(walletVector!.childPrivateKey, coinSpend);
       },
+      useCoinMessage: useCoinMessage,
+    );
+  }
+
+  SpendBundle createFeeSpendBundle({
+    required int fee,
+    required List<CoinPrototype> standardCoins,
+    required WalletKeychain keychain,
+    required Puzzlehash? changePuzzlehash,
+    List<AssertCoinAnnouncementCondition> coinAnnouncementsToAsset = const [],
+  }) {
+    assert(
+      standardCoins.isNotEmpty,
+      'If passing in a fee, you must also pass in standard coins to use for that fee.',
+    );
+
+    final totalStandardCoinsValue = standardCoins.fold(
+      0,
+      (int previousValue, standardCoin) => previousValue + standardCoin.amount,
+    );
+    assert(
+      totalStandardCoinsValue >= fee,
+      'Total value of passed in standad coins is not enough to cover fee.',
+    );
+
+    return createSpendBundle(
+      payments: [],
+      coinsInput: standardCoins,
+      changePuzzlehash: changePuzzlehash,
+      keychain: keychain,
+      fee: fee,
+      coinAnnouncementsToAssert: coinAnnouncementsToAsset,
     );
   }
 

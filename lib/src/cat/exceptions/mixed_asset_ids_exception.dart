@@ -9,6 +9,6 @@ class MixedAssetIdsException implements Exception {
 
   @override
   String toString() {
-    return 'Can not mix cat coins with different asset ids for this opperation: [${mixedAssetIds.map((tail) => tail.toHex())}]';
+    return 'Can not mix cat coins with different asset ids for this operation: [${mixedAssetIds.map((tail) => tail.toHex())}]';
   }
 }

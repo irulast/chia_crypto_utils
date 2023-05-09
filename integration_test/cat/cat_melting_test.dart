@@ -5,8 +5,7 @@ import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
 Future<void> main() async {
-  const nTests = 3;
-
+  const nTests = 4;
   if (!(await SimulatorUtils.checkIfSimulatorIsRunning())) {
     print(SimulatorUtils.simulatorNotRunningWarning);
     return;
@@ -22,18 +21,11 @@ Future<void> main() async {
 
   // set up context, services
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
-  final catWalletService = CatWalletService();
+  final catWalletService = Cat2WalletService();
 
-  // set up keychain
-  final keychainSecret = KeychainCoreSecret.generate();
+  final secret = KeychainCoreSecret.generate();
 
-  final walletsSetList = <WalletSet>[];
-  for (var i = 0; i < 1; i++) {
-    final set = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, i);
-    walletsSetList.add(set);
-  }
-
-  final keychain = WalletKeychain.fromWalletSets(walletsSetList);
+  final keychain = WalletKeychain.fromCoreSecret(secret);
 
   final walletSet = keychain.unhardenedMap.values.first;
 
@@ -52,48 +44,35 @@ Future<void> main() async {
       await fullNodeSimulator.getCoinsByPuzzleHashes([address.toPuzzlehash()]);
   final originCoin = initialStandardCoins[0];
 
-  // issue cat
-  final curriedTail =
-      delegatedTailProgram.curry([Program.fromBytes(walletSet.childPublicKey.toBytes())]);
-
-  keychain.addOuterPuzzleHashesForAssetId(Puzzlehash(curriedTail.hash()));
-
-  final outerPuzzlehash = WalletKeychain.makeOuterPuzzleHash(
-    address.toPuzzlehash(),
-    Puzzlehash(curriedTail.hash()),
-  );
-
-  final curriedMeltableGenesisByCoinIdPuzzle =
-      meltableGenesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id)]);
-  final tailSolution = Program.list([curriedMeltableGenesisByCoinIdPuzzle, Program.nil]);
-
-  final issuanceSignature = AugSchemeMPL.sign(
-    walletSet.childPrivateKey,
-    curriedMeltableGenesisByCoinIdPuzzle.hash(),
-  );
-
-  final spendBundle = catWalletService.makeIssuanceSpendbundle(
-    tail: curriedTail,
-    solution: tailSolution,
+  final issuanceResult = catWalletService.makeMeltableMultiIssuanceCatSpendBundle(
+    genesisCoinId: originCoin.id,
     standardCoins: [initialStandardCoins.firstWhere((coin) => coin.amount >= 10000)],
+    privateKey: walletSet.childPrivateKey,
     destinationPuzzlehash: puzzlehash,
     changePuzzlehash: puzzlehash,
     amount: 10000,
-    signature: issuanceSignature,
     keychain: keychain,
-    originId: originCoin.id,
   );
 
-  await fullNodeSimulator.pushTransaction(spendBundle);
+  final tailRunningInfo = issuanceResult.tailRunningInfo;
+
+  keychain.addOuterPuzzleHashesForAssetId(Puzzlehash(tailRunningInfo.assetId));
+
+  await fullNodeSimulator.pushTransaction(issuanceResult.spendBundle);
   await fullNodeSimulator.moveToNextBlock();
+
+  final outerPuzzlehash = WalletKeychain.makeOuterPuzzleHash(
+    address.toPuzzlehash(),
+    tailRunningInfo.assetId,
+  );
 
   final initialCats = await fullNodeSimulator.getCatCoinsByOuterPuzzleHashes([outerPuzzlehash]);
 
   // split issued cat up for tests
-  final payments = <Payment>[];
+  final payments = <CatPayment>[];
   for (var i = 0; i < 10; i++) {
     // to avoid duplicate coins amounts must differ
-    payments.add(Payment(990 + i, puzzlehash));
+    payments.add(CatPayment(990 + i, puzzlehash));
   }
 
   final sendBundle = catWalletService.createSpendBundle(
@@ -122,10 +101,9 @@ Future<void> main() async {
       catCoinToMelt: catCoinForTest,
       standardCoinsForXchClaimingSpendBundle: standardCoinsForTest,
       puzzlehashToClaimXchTo: puzzlehash,
-      tail: curriedTail,
-      tailSolution: tailSolution,
       keychain: keychain,
-      issuanceSignature: issuanceSignature,
+      tailRunningInfo: tailRunningInfo,
+      changePuzzlehash: puzzlehash,
     );
 
     await fullNodeSimulator.pushTransaction(meltSpendBundle);
@@ -153,10 +131,8 @@ Future<void> main() async {
       standardCoinsForXchClaimingSpendBundle: standardCoinsForTest,
       puzzlehashToClaimXchTo: puzzlehash,
       changePuzzlehash: puzzlehash,
-      tail: curriedTail,
-      tailSolution: tailSolution,
       keychain: keychain,
-      issuanceSignature: issuanceSignature,
+      tailRunningInfo: tailRunningInfo,
       inputAmountToMelt: amountToMelt,
     );
 
@@ -186,10 +162,8 @@ Future<void> main() async {
       standardCoinsForXchClaimingSpendBundle: standardCoinsForTest,
       puzzlehashToClaimXchTo: puzzlehash,
       changePuzzlehash: puzzlehash,
-      tail: curriedTail,
-      tailSolution: tailSolution,
       keychain: keychain,
-      issuanceSignature: issuanceSignature,
+      tailRunningInfo: tailRunningInfo,
       inputAmountToMelt: amountToMelt,
       fee: fee,
     );

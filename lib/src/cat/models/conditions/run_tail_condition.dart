@@ -12,7 +12,7 @@ class RunTailCondition implements Condition {
   RunTailCondition(this.tail, this.tailSolution);
 
   @override
-  Program get program {
+  Program toProgram() {
     return Program.list([
       Program.fromInt(conditionCode),
       Program.fromInt(0),

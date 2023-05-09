@@ -1,5 +1,9 @@
 class SimulatorAuthFilesNotFoundException implements Exception {
+  SimulatorAuthFilesNotFoundException(this.path);
+
+  final String path;
+
   @override
   String toString() =>
-      'Simulator cert/keys have not been generated. To generate them, start the simulator.';
+      'Simulator cert/keys not found at $path. To generate them, start the simulator.';
 }

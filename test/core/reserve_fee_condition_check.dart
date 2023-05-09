@@ -9,15 +9,14 @@ void main() {
 
     final reserveFeeCondition = ReserveFeeCondition(5);
 
-    expect(ReserveFeeCondition.isThisCondition(reserveFeeCondition.program), true);
-    expect(ReserveFeeCondition.isThisCondition(aggSigMeCondition.program), false);
-    expect(ReserveFeeCondition.isThisCondition(createCoinCondition.program), false);
+    expect(ReserveFeeCondition.isThisCondition(reserveFeeCondition.toProgram()), true);
+    expect(ReserveFeeCondition.isThisCondition(aggSigMeCondition.toProgram()), false);
+    expect(ReserveFeeCondition.isThisCondition(createCoinCondition.toProgram()), false);
 
-    final serialized = reserveFeeCondition.program;
+    final serialized = reserveFeeCondition.toProgram();
     final deserialized = ReserveFeeCondition.fromProgram(serialized);
 
     expect(deserialized.feeAmount, reserveFeeCondition.feeAmount);
-    expect(serialized, deserialized.program);
-
+    expect(serialized, deserialized.toProgram());
   });
 }

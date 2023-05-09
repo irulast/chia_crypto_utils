@@ -103,7 +103,8 @@ void main() {
   });
 
   test('should correctly calculate number of 400 splits', () {
-    forHundredSplittingInputToExpectedOutputMap.forEach((desiredNumberOfCoins, expectedNumberOfSplits) {
+    forHundredSplittingInputToExpectedOutputMap
+        .forEach((desiredNumberOfCoins, expectedNumberOfSplits) {
       final numberOfSplits = CoinSplittingService.calculateNumberOfNWidthSplitsRequired(
         desiredNumberOfCoins: desiredNumberOfCoins,
         initialSplitWidth: 400,

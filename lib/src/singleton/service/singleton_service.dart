@@ -1,7 +1,5 @@
 // ignore_for_file: lines_longer_than_80_chars
 
-import 'dart:typed_data';
-
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class SingletonService extends BaseWalletService {
@@ -47,7 +45,7 @@ class SingletonService extends BaseWalletService {
       Program.fromBytes(singletonModHash),
       Program.fromBytes(launcherId),
       Program.fromBytes(singletonLauncherProgram.hash()),
-      Program.fromBytes(intToBytesStandard(secondsDelay, Endian.big)),
+      Program.fromInt(secondsDelay),
       Program.fromBytes(delayedPuzzlehash),
     ]);
   }
@@ -62,7 +60,7 @@ class SingletonService extends BaseWalletService {
       Program.fromBytes(singletonModHash),
       Program.fromBytes(launcherId),
       Program.fromBytes(singletonLauncherProgram.hash()),
-      Program.fromBytes(intToBytesStandard(secondsDelay, Endian.big)),
+      Program.fromInt(secondsDelay),
       Program.fromBytes(delayedPuzzlehash),
     ]);
   }

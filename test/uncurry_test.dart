@@ -18,7 +18,7 @@ void main() {
       '(a (q 2 (q 2 (i 11 (q 2 (i (= 5 (point_add 11 (pubkey_for_exp (sha256 11 (a 6 (c 2 (c 23 ()))))))) (q 2 23 47) (q 8)) 1) (q 4 (c 4 (c 5 (c (a 6 (c 2 (c 23 ()))) ()))) (a 23 47))) 1) (c (q 50 2 (i (l 5) (q 11 (q . 2) (a 6 (c 2 (c 9 ()))) (a 6 (c 2 (c 13 ())))) (q 11 (q . 1) 5)) 1) 1)) (c (q . 0x94a96f7397ff4acb08b6532fd20bb975a2c350c19216fef4ae9f64499bc59fe919bcf7b531dd80a371ad7858bfb288d2) 1))',
     ];
     final uncurried = program.uncurry();
-    expect(uncurried.program.toSource(), expectedUncurriedModule);
+    expect(uncurried.mod.toSource(), expectedUncurriedModule);
     final uncurriedArguments = uncurried.arguments;
     for (var i = 0; i < 3; i++) {
       expect(uncurriedArguments[i].toSource(), expectedUncurriedArguments[i]);
@@ -37,7 +37,7 @@ void main() {
       '(q (51 () -113 (a (q 2 (q 4 (c 4 (c 5 (c (a 6 (c 2 (c 639 ()))) ()))) (a 639 (c 11 (c 23 (c 47 (c 95 (c -65 1407))))))) (c (q 49 2 (i (l 5) (q 11 (q . 2) (a 6 (c 2 (c 9 ()))) (a 6 (c 2 (c 13 ())))) (q 11 (q . 1) 5)) 1) 1)) (c (q . 0xb6b322066033f70cddddf13c0b9762d0b91866d27f40f21b88e569813d0f95d8d274cd97ccf7d707127fa1af1f7d240c) 1)) ((a (q 2 (i 47 (q 8) (q 2 (i (= 45 2) () (q 8)) 1)) 1) (c (q . 0x6468acf73bd52b38ee43ab1462a03121672f5057bfd3f818abeb2eea66f34ecb) 1)) ())) (51 0x9b9eb32223755ac209e0ab0e0e0338d8129cd041bd0da606bc7cb080c54490ab 1000 (0x9b9eb32223755ac209e0ab0e0e0338d8129cd041bd0da606bc7cb080c54490ab)))',
     ];
     final uncurried = program.uncurry();
-    expect(uncurried.program.toSource(), expectedUncurriedModule);
+    expect(uncurried.mod.toSource(), expectedUncurriedModule);
     final uncurriedArguments = uncurried.arguments;
     for (var i = 0; i < 3; i++) {
       expect(uncurriedArguments[i].toSource(), expectedUncurriedArguments[i]);

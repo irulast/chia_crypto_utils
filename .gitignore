@@ -38,3 +38,4 @@ coverage/
 # Ignore chialisp 
 main.sym
 spend_bundle_hex.txt
+simulator_gen_path.json

@@ -10,7 +10,7 @@ class CreateCoinAnnouncementCondition implements Condition {
   CreateCoinAnnouncementCondition(this.message);
 
   @override
-  Program get program {
+  Program toProgram() {
     return Program.list([
       Program.fromInt(conditionCode),
       Program.fromBytes(message),

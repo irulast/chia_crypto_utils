@@ -57,7 +57,12 @@ class ChiaFullNodeInterface {
 
   Future<ChiaBaseResponse> pushTransaction(SpendBundle spendBundle) async {
     final response = await fullNode.pushTransaction(spendBundle);
-    mapResponseToError(response);
+    try {
+      mapResponseToError(response);
+    } on Exception catch (e) {
+      LoggingContext().error('error pushing spend bundle ${spendBundle.toJson()} \n $e');
+      rethrow;
+    }
     return response;
   }
 
@@ -102,13 +107,41 @@ class ChiaFullNodeInterface {
     return coinRecordsResponse.coinRecords.map((record) => record.toCoin()).toList();
   }
 
-  Future<List<Coin>> getCoinsByMemo(Bytes memo) async {
+  Future<List<Coin>> getCoinsByHint(Puzzlehash hint, {bool includeSpentCoins = false}) async {
     final coinRecordsResponse = await fullNode.getCoinsByHint(
-      memo,
+      hint,
+      includeSpentCoins: includeSpentCoins,
     );
     mapResponseToError(coinRecordsResponse);
 
     return coinRecordsResponse.coinRecords.map((record) => record.toCoin()).toList();
+  }
+
+  Future<List<Coin>> getCoinsByHints(
+    List<Puzzlehash> hints, {
+    int? startHeight,
+    int? endHeight,
+    bool includeSpentCoins = false,
+  }) async {
+    final coinsByHints = <Coin>[];
+    for (final hint in hints) {
+      final coinsByHint = await getCoinsByHint(
+        hint,
+        includeSpentCoins: includeSpentCoins,
+      );
+      coinsByHints.addAll(coinsByHint);
+    }
+
+    return coinsByHints;
+  }
+
+  Future<CoinSpend?> getParentSpend(Coin coin) async {
+    if (coin.coinbase) return null;
+    final coinSpendResponse =
+        await fullNode.getPuzzleAndSolution(coin.parentCoinInfo, coin.confirmedBlockIndex);
+    mapResponseToError(coinSpendResponse);
+
+    return coinSpendResponse.coinSpend;
   }
 
   Future<CoinSpend?> getCoinSpend(Coin coin) async {
@@ -118,11 +151,11 @@ class ChiaFullNodeInterface {
     return coinSpendResponse.coinSpend;
   }
 
-  Future<List<CatCoin>> getCatCoinsByMemo(
-    Bytes memo,
+  Future<List<CatFullCoin>> getCatCoinsByHint(
+    Puzzlehash hint,
   ) async {
-    final coins = await getCoinsByMemo(memo);
-    return _hydrateCatCoins(coins);
+    final coins = await getCoinsByHint(hint);
+    return hydrateCatCoins(coins);
   }
 
   Future<List<CatCoin>> getCatCoinsByOuterPuzzleHashes(
@@ -137,25 +170,40 @@ class ChiaFullNodeInterface {
       endHeight: endHeight,
       includeSpentCoins: includeSpentCoins,
     );
-    return _hydrateCatCoins(coins);
+    return hydrateCatCoins(coins);
   }
 
-  Future<List<CatCoin>> _hydrateCatCoins(List<Coin> unHydratedCatCoins) async {
-    final catCoins = <CatCoin>[];
+  Future<List<CatFullCoin>> hydrateCatCoins(
+    List<Coin> unHydratedCatCoins,
+  ) async {
+    final catCoinFutures = <Future<CatFullCoin?>>[];
     for (final coin in unHydratedCatCoins) {
       final parentCoin = await getCoinById(coin.parentCoinInfo);
 
       final parentCoinSpend = await getCoinSpend(parentCoin!);
 
-      catCoins.add(
-        CatCoin(
-          parentCoinSpend: parentCoinSpend!,
-          coin: coin,
-        ),
-      );
-    }
+      try {
+        catCoinFutures.add(
+          () async {
+            try {
+              final catCoin = await CatFullCoin.fromParentSpendAsync(
+                parentCoinSpend: parentCoinSpend!,
+                coin: coin,
+              );
 
-    return catCoins;
+              return catCoin;
+            } on InvalidCatException {
+              return null;
+            }
+          }(),
+        );
+      } on InvalidCatException {
+        // pass
+      }
+    }
+    final results = await Future.wait(catCoinFutures);
+
+    return List<CatFullCoin>.from(results.where((element) => element != null));
   }
 
   Future<List<PlotNft>> scroungeForPlotNfts(List<Puzzlehash> puzzlehashes) async {
@@ -224,6 +272,117 @@ class ChiaFullNodeInterface {
     );
   }
 
+  // finds any coins that were spent to initialize an exchange by creating a 3 mojo coin to the message puzzlehash
+  // with the required memos
+  Future<List<Coin>> scroungeForExchangeInitializationCoins(
+    List<Puzzlehash> puzzlehashes,
+  ) async {
+    final allCoins = await getCoinsByPuzzleHashes(puzzlehashes, includeSpentCoins: true);
+
+    final initializationCoins = <Coin>[];
+    for (final coin in allCoins) {
+      if (coin.isNotSpent) continue;
+
+      final coinSpend = await getCoinSpend(coin);
+
+      final paymentsAndAdditions = await coinSpend!.paymentsAndAdditionsAsync;
+
+      // if there is no 3 mojo child, which is used to cancel the offer, this is not a valid initialization coin
+      if (paymentsAndAdditions.additions.where((addition) => addition.amount == 3).isEmpty) {
+        continue;
+      }
+
+      final memos = paymentsAndAdditions.payments.memos;
+
+      // memo should look like: <derivationIndex, serializedOfferFile>
+      if (memos.length != 2) continue;
+
+      try {
+        final derivationIndexMemo = decodeInt(memos.first);
+        if (derivationIndexMemo.toString().length != ExchangeOfferService.derivationIndexLength) {
+          continue;
+        }
+
+        final serializedOfferFileMemo = memos.last.decodedString;
+        final offerFile =
+            await CrossChainOfferFile.fromSerializedOfferFileAsync(serializedOfferFileMemo!);
+        if (offerFile.prefix != CrossChainOfferFilePrefix.ccoffer) continue;
+      } catch (e) {
+        continue;
+      }
+
+      initializationCoins.add(coin);
+    }
+    return initializationCoins;
+  }
+
+  Future<List<NotificationCoin>> scroungeForReceivedNotificationCoins(
+    List<Puzzlehash> puzzlehashes,
+  ) async {
+    final coinsByHint = await getCoinsByHints(puzzlehashes, includeSpentCoins: true);
+    final spentCoins = coinsByHint.where((c) => c.isSpent);
+
+    final notificationCoins = <NotificationCoin>[];
+    for (final spentCoin in spentCoins) {
+      final coinSpend = await getCoinSpend(spentCoin);
+      final programAndArgs = await coinSpend!.puzzleReveal.uncurryAsync();
+      if (programAndArgs.mod == notificationProgram) {
+        try {
+          final parentCoin = await getCoinById(spentCoin.parentCoinInfo);
+          final parentCoinSpend = await getCoinSpend(parentCoin!);
+          final notificationCoin = await NotificationCoin.fromParentSpend(
+            parentCoinSpend: parentCoinSpend!,
+            coin: spentCoin,
+          );
+          notificationCoins.add(notificationCoin);
+        } catch (e) {
+          continue;
+        }
+      }
+    }
+    return notificationCoins;
+  }
+
+  Future<List<NotificationCoin>> scroungeForSentNotificationCoins(
+    List<Puzzlehash> puzzlehashes,
+  ) async {
+    final allCoins = await getCoinsByPuzzleHashes(puzzlehashes, includeSpentCoins: true);
+
+    final spentCoins = allCoins.where((c) => c.isSpent);
+    final notificationCoins = <NotificationCoin>[];
+    for (final spentCoin in spentCoins) {
+      final parentCoinSpend = await getCoinSpend(spentCoin);
+      final additions = await parentCoinSpend!.additionsAsync;
+
+      for (final addition in additions) {
+        final childCoin = await getCoinById(addition.id);
+        if (childCoin!.isSpent) {
+          final coinSpend = await getCoinSpend(childCoin);
+          final programAndArgs = await coinSpend!.puzzleReveal.uncurryAsync();
+          if (programAndArgs.mod == notificationProgram) {
+            try {
+              final notificationCoin = await NotificationCoin.fromParentSpend(
+                parentCoinSpend: parentCoinSpend,
+                coin: childCoin,
+              );
+              notificationCoins.add(notificationCoin);
+            } catch (e) {
+              continue;
+            }
+          }
+        }
+      }
+    }
+    return notificationCoins;
+  }
+
+  Future<NotificationCoin?> getNotificationCoinFromCoin(Coin coin) async {
+    if (coin.isNotSpent) return null;
+
+    final parentCoinSpend = await getParentSpend(coin);
+    return NotificationCoin.fromParentSpend(parentCoinSpend: parentCoinSpend!, coin: coin);
+  }
+
   Future<bool> checkForSpentCoins(List<CoinPrototype> coins) async {
     final ids = coins.map((c) => c.id).toList();
     final fetchedCoins = await getCoinsByIds(ids, includeSpentCoins: true);
@@ -245,6 +404,13 @@ class ChiaFullNodeInterface {
     return response.blockRecords!;
   }
 
+  Future<GetBlockRecordByHeightResponse> getBlockRecordByHeight(int height) async {
+    final response = await fullNode.getBlockRecordByHeight(height);
+    mapResponseToError(response);
+
+    return response;
+  }
+
   Future<AdditionsAndRemovals> getAdditionsAndRemovals(Bytes headerHash) async {
     final response = await fullNode.getAdditionsAndRemovals(headerHash);
     mapResponseToError(response);
@@ -256,14 +422,17 @@ class ChiaFullNodeInterface {
     return response;
   }
 
-  static void mapResponseToError(ChiaBaseResponse baseResponse) {
+  static void mapResponseToError(
+    ChiaBaseResponse baseResponse, {
+    List<String> passStrings = const [],
+  }) {
     if (baseResponse.success && baseResponse.error == null) {
       return;
     }
     final errorMessage = baseResponse.error!;
 
     // no error on resource not found
-    if (errorMessage.contains('not found')) {
+    if (errorMessage.contains('not found') || passStrings.any(errorMessage.contains)) {
       return;
     }
 
@@ -280,5 +449,48 @@ class ChiaFullNodeInterface {
     }
 
     throw BadRequestException(message: errorMessage);
+  }
+
+  Future<DateTime?> getDateTimeFromBlockIndex(int spentBlockIndex) async {
+    try {
+      final blockRecordByHeight = await fullNode.getBlockRecordByHeight(spentBlockIndex);
+      return blockRecordByHeight.blockRecord?.dateTime;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<int?> getCurrentBlockIndex() async {
+    final blockchainState = await getBlockchainState();
+    return blockchainState?.peak?.height;
+  }
+
+  Future<DateTime?> getCurrentBlockDateTime() async {
+    final currentHeight = await getCurrentBlockIndex();
+
+    if (currentHeight == null) return null;
+
+    final currentDateTime = getDateTimeFromBlockIndex(currentHeight);
+
+    return currentDateTime;
+  }
+
+  Future<Coin?> getSingleChildCoinFromCoin(Coin messageCoin) async {
+    try {
+      final messageCoinSpend = await getCoinSpend(messageCoin);
+      final messageCoinChildId = (await messageCoinSpend!.additionsAsync).single.id;
+      final messageCoinChild = await getCoinById(messageCoinChildId);
+      return messageCoinChild;
+    } catch (e) {
+      return null;
+    }
+  }
+}
+
+extension PushAndWaitForSpendBundle on ChiaFullNodeInterface {
+  Future<void> pushAndWaitForSpendBundle(SpendBundle spendBundle, {LoggingFunction? log}) async {
+    final blockChainUtils = BlockchainUtils(this, logger: log);
+    await pushTransaction(spendBundle);
+    await blockChainUtils.waitForSpendBundle(spendBundle);
   }
 }

@@ -12,7 +12,7 @@ class AggSigMeCondition implements Condition {
   AggSigMeCondition(this.publicKey, this.message);
 
   @override
-  Program get program {
+  Program toProgram() {
     return Program.list([
       Program.fromInt(conditionCode),
       Program.fromBytes(publicKey.toBytes()),

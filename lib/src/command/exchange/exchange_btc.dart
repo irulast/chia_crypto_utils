@@ -1,11 +1,10 @@
 import 'dart:io';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/command/exchange/cross_chain_offer_exchange.dart';
 
 final exchangeService = BtcExchangeService();
-final xchToBtcService = XchToBtcService(fullNode);
-final btcToXchService = BtcToXchService(fullNode);
+final xchToBtcService = XchToBtcService();
+final btcToXchService = BtcToXchService();
 File? logFile;
 final logList = <String>[];
 

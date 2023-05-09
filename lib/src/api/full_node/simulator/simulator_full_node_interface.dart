@@ -15,8 +15,10 @@ class SimulatorFullNodeInterface extends ChiaFullNodeInterface {
   static const utilAddress =
       Address('xch1ye5dzd44kkatnxx2je4s2agpwtqds5lsm5mlyef7plum5danxalq2dnqap');
 
-  Future<void> moveToNextBlock() async {
-    await fullNode.farmTransactionBlock(utilAddress);
+  Future<void> moveToNextBlock([int blocks = 1]) async {
+    for (var i = 0; i < blocks; i++) {
+      await fullNode.farmTransactionBlock(utilAddress);
+    }
   }
 
   Future<void> farmCoins(Address address) async {

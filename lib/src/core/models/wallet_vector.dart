@@ -1,6 +1,7 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:compute/compute.dart';
 import 'package:meta/meta.dart';
 
 @immutable
@@ -24,6 +25,24 @@ class WalletVector with ToBytesMixin {
   factory WalletVector.fromBytes(Bytes bytes, int derivationIndex) {
     final iterator = bytes.iterator;
     return WalletVector.fromStream(iterator, derivationIndex);
+  }
+
+  static Future<WalletVector> fromPrivateKeyAsync(
+    PrivateKey masterPrivateKey,
+    int derivationIndex,
+  ) async {
+    final result = await compute(
+      _fromPrivateKeyTask,
+      _PrivateKeyWithDerivationIndex(masterPrivateKey, derivationIndex),
+    );
+
+    return WalletVector.fromBytes(Bytes.fromHex(result), derivationIndex);
+  }
+
+  static String _fromPrivateKeyTask(_PrivateKeyWithDerivationIndex arg) {
+    final walletVector = WalletVector.fromPrivateKey(arg.privateKey, arg.derivationIndex);
+
+    return walletVector.toHex();
   }
 
   factory WalletVector.fromPrivateKey(
@@ -174,4 +193,11 @@ class UnhardenedWalletVector extends WalletVector {
   }
 
   final Map<Puzzlehash, Puzzlehash> assetIdtoOuterPuzzlehash;
+}
+
+class _PrivateKeyWithDerivationIndex {
+  _PrivateKeyWithDerivationIndex(this.privateKey, this.derivationIndex);
+
+  final PrivateKey privateKey;
+  final int derivationIndex;
 }

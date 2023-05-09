@@ -1,3 +1,6 @@
+import 'dart:math';
+import 'dart:typed_data';
+
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/utils/serialization.dart';
@@ -33,6 +36,16 @@ class KeychainCoreSecret with ToBytesMixin {
     );
   }
 
+  factory KeychainCoreSecret.fromMnemonicString(String mnemonic) {
+    final seed = bip39.mnemonicToSeed(mnemonic);
+    final privateKey = PrivateKey.fromSeed(seed);
+
+    return KeychainCoreSecret(
+      mnemonic.split(mnemonicWordSeperator),
+      privateKey,
+    );
+  }
+
   static Future<KeychainCoreSecret> fromMnemonicAsync(List<String> mnemonic) async {
     final seed = await generateSeedFromMnemonicAsync(mnemonic);
     final privateKey = PrivateKey.fromSeed(seed);
@@ -62,16 +75,22 @@ class KeychainCoreSecret with ToBytesMixin {
   static const mnemonicWordSeperator = ' ';
 
   final List<String> mnemonic;
+  String get mnemonicString => mnemonic.join(mnemonicWordSeperator);
   final PrivateKey masterPrivateKey;
   JacobianPoint get masterPublicKey => masterPrivateKey.getG1();
 
   PrivateKey get farmerPrivateKey => masterSkToFarmerSk(masterPrivateKey);
   JacobianPoint get farmerPublicKey => farmerPrivateKey.getG1();
 
+  PrivateKey get poolPrivateKey => masterSkToPoolSk(masterPrivateKey);
+  JacobianPoint get poolPublicKey => poolPrivateKey.getG1();
+
   int get fingerprint => masterPublicKey.getFingerprint();
 
   static List<String> generateMnemonic({int strength = 256}) {
-    return bip39.generateMnemonic(strength: strength).split(mnemonicWordSeperator);
+    return bip39
+        .generateMnemonic(strength: strength, randomBytes: _randomBytes)
+        .split(mnemonicWordSeperator);
   }
 
   static Map<String, dynamic> _generateMnemonicTask(int strength) {
@@ -104,4 +123,15 @@ class KeychainCoreSecret with ToBytesMixin {
       handleTaskCompletion: (taskResultJson) => Bytes.fromHex(taskResultJson['seed'] as String),
     );
   }
+
+  static Uint8List _randomBytes(int size) {
+    final rng = Random.secure();
+    final bytes = Uint8List(size);
+    for (var i = 0; i < size; i++) {
+      bytes[i] = rng.nextInt(_maxRandomByte);
+    }
+    return bytes;
+  }
+
+  static const _maxRandomByte = 256;
 }

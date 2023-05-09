@@ -19,9 +19,9 @@ Future<void> main() async {
   final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
 
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
-  final btcToXchService = BtcToXchService(fullNodeSimulator);
-  final xchToBtcService = XchToBtcService(fullNodeSimulator);
+  final btcToXchService = BtcToXchService();
   final crossChainOfferService = CrossChainOfferService(fullNodeSimulator);
+  final standardWalletService = StandardWalletService();
 
   test(
       'should create and accept XCH to BTC offer file and complete exchange by sweeping XCH to BTC holder with preimage',
@@ -69,7 +69,8 @@ Future<void> main() async {
     final btcHolderPublicKey = btcHolderPrivateKey.getG1();
 
     // BTC holder's side views offer, deserialized it, checks validity, and creates a cross chain offer accept file
-    final deserializedOfferFile = XchToBtcOfferFile.fromSerializedOfferFile(serializedOfferFile);
+    final deserializedOfferFile =
+        XchToBtcMakerOfferFile.fromSerializedOfferFile(serializedOfferFile);
     expect(() => CrossChainOfferService.checkValidity(deserializedOfferFile), returnsNormally);
     const postAcceptValidityTime = 600;
 
@@ -79,8 +80,7 @@ Future<void> main() async {
       requestorPublicKey: btcHolderPublicKey,
     );
 
-    final serializedOfferAcceptFile =
-        serializeCrossChainOfferFile(offerAcceptFile, btcHolderPrivateKey);
+    final serializedOfferAcceptFile = offerAcceptFile.serialize(btcHolderPrivateKey);
 
     // BTC holder's side sends message coin with offer accept file to message puzzlehash and verifies receipt
     final messagePuzzlehash = deserializedOfferFile.messageAddress.toPuzzlehash();
@@ -115,7 +115,7 @@ Future<void> main() async {
     expect(offerAcceptFileMemo, equals(serializedOfferAcceptFile));
 
     final deserializedOfferAcceptFile =
-        BtcToXchOfferAcceptFile.fromSerializedOfferFile(offerAcceptFileMemo!);
+        BtcToXchTakerOfferFile.fromSerializedOfferFile(offerAcceptFileMemo!);
 
     // XCH holder's side gets exchange info from details in offer file and offer accept file
     final xchHolderExchangeInfo =
@@ -128,13 +128,14 @@ Future<void> main() async {
     // XCH holder transfers XCH to escrow address
     final coinsForExchange = xchHolder.standardCoins;
 
-    await xchToBtcService.sendXchToEscrowPuzzlehash(
-      amount: xchHolderExchangeInfo.amountMojos,
-      escrowPuzzlehash: xchHolderEscrowPuzzlehash,
+    final escrowSpendBundle = standardWalletService.createSpendBundle(
+      payments: [Payment(xchHolderExchangeInfo.amountMojos, xchHolderEscrowPuzzlehash)],
       coinsInput: coinsForExchange,
       keychain: xchHolder.keychain,
       changePuzzlehash: xchHolder.firstPuzzlehash,
     );
+
+    await fullNodeSimulator.pushTransaction(escrowSpendBundle);
 
     await fullNodeSimulator.moveToNextBlock();
 
@@ -150,15 +151,17 @@ Future<void> main() async {
     final sweepPuzzlehash = btcHolder.firstPuzzlehash;
     final startingSweepBalance = await fullNodeSimulator.getBalance([sweepPuzzlehash]);
 
-    await btcToXchService.pushSweepSpendbundle(
-      escrowPuzzlehash: btcHolderEscrowPuzzlehash,
-      sweepPuzzlehash: sweepPuzzlehash,
+    final sweepSpendBundle = btcToXchService.createSweepSpendBundle(
+      payments: [Payment(escrowCoins.totalValue, sweepPuzzlehash)],
+      coinsInput: escrowCoins,
       requestorPrivateKey: btcHolderPrivateKey,
-      validityTime: postAcceptValidityTime,
-      paymentHash: btcHolderExchangeInfo.paymentHash!,
-      preimage: sweepPreimage,
+      clawbackDelaySeconds: postAcceptValidityTime,
+      sweepPaymentHash: btcHolderExchangeInfo.paymentHash!,
       fulfillerPublicKey: xchHolderPublicKey,
+      sweepPreimage: sweepPreimage,
     );
+
+    await fullNodeSimulator.pushTransaction(sweepSpendBundle);
 
     await fullNodeSimulator.moveToNextBlock();
 
@@ -211,7 +214,8 @@ Future<void> main() async {
     final xchHolderPublicKey = xchHolderPrivateKey.getG1();
 
     // XCH holder's side views offer, deserialized it, checks validity, and creates a cross chain offer accept file
-    final deserializedOfferFile = BtcToXchOfferFile.fromSerializedOfferFile(serializedOfferFile);
+    final deserializedOfferFile =
+        BtcToXchMakerOfferFile.fromSerializedOfferFile(serializedOfferFile);
     expect(() => CrossChainOfferService.checkValidity(deserializedOfferFile), returnsNormally);
     const postAcceptValidityTime = 600;
 
@@ -260,7 +264,7 @@ Future<void> main() async {
     expect(offerAcceptFileMemo, equals(serializedOfferAcceptFile));
 
     final deserializedOfferAcceptFile =
-        XchToBtcOfferAcceptFile.fromSerializedOfferFile(offerAcceptFileMemo!);
+        XchToBtcTakerOfferFile.fromSerializedOfferFile(offerAcceptFileMemo!);
 
     // BTC holder's side gets escrow address from details in offer file and offer accept file
     final btcHolderExchangeInfo =
@@ -274,17 +278,18 @@ Future<void> main() async {
     await xchHolder.refreshCoins();
     final coinsForExchange = xchHolder.standardCoins;
 
-    await xchToBtcService.sendXchToEscrowPuzzlehash(
-      amount: xchHolderExchangeInfo.amountMojos,
-      escrowPuzzlehash: xchHolderEscrowPuzzlehash,
+    final escrowSpendBundle = standardWalletService.createSpendBundle(
+      payments: [Payment(xchHolderExchangeInfo.amountMojos, xchHolderEscrowPuzzlehash)],
       coinsInput: coinsForExchange,
       keychain: xchHolder.keychain,
       changePuzzlehash: xchHolder.firstPuzzlehash,
     );
 
+    await fullNodeSimulator.pushTransaction(escrowSpendBundle);
+
     await fullNodeSimulator.moveToNextBlock();
 
-    final escrowCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([xchHolderEscrowPuzzlehash]);
+    final escrowCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([btcHolderEscrowPuzzlehash]);
 
     expect(escrowCoins.totalValue, equals(amountMojos));
 
@@ -296,15 +301,17 @@ Future<void> main() async {
     final sweepPuzzlehash = btcHolder.firstPuzzlehash;
     final startingSweepBalance = await fullNodeSimulator.getBalance([sweepPuzzlehash]);
 
-    await btcToXchService.pushSweepSpendbundle(
-      escrowPuzzlehash: btcHolderEscrowPuzzlehash,
-      sweepPuzzlehash: sweepPuzzlehash,
+    final sweepSpendBundle = btcToXchService.createSweepSpendBundle(
+      payments: [Payment(escrowCoins.totalValue, sweepPuzzlehash)],
+      coinsInput: escrowCoins,
       requestorPrivateKey: btcHolderPrivateKey,
-      validityTime: postAcceptValidityTime,
-      paymentHash: btcHolderExchangeInfo.paymentHash!,
-      preimage: sweepPreimage,
+      clawbackDelaySeconds: postAcceptValidityTime,
+      sweepPaymentHash: btcHolderExchangeInfo.paymentHash!,
       fulfillerPublicKey: xchHolderPublicKey,
+      sweepPreimage: sweepPreimage,
     );
+
+    await fullNodeSimulator.pushTransaction(sweepSpendBundle);
 
     await fullNodeSimulator.moveToNextBlock();
 

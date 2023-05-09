@@ -3,6 +3,7 @@
 import 'dart:collection';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/core/exceptions/keychain_mismatch_exception.dart';
 import 'package:chia_crypto_utils/src/utils/serialization.dart';
 
 class WalletKeychain with ToBytesMixin {
@@ -266,6 +267,12 @@ class WalletKeychain with ToBytesMixin {
     return hardenedMap[puzzlehash];
   }
 
+  WalletVector getWalletVectorOrThrow(Puzzlehash puzzlehash) {
+    final walletVector = getWalletVector(puzzlehash);
+    if (walletVector == null) throw KeychainMismatchException(puzzlehash);
+    return walletVector;
+  }
+
   List<Puzzlehash> get puzzlehashes => LinkedHashSet<Puzzlehash>.from(
         unhardenedMap.values.map<Puzzlehash>((wv) => wv.puzzlehash),
       ).toList();
@@ -305,6 +312,13 @@ class WalletKeychain with ToBytesMixin {
       hardenedPuzzlehashes.add(walletVector.walletPuzzlehash);
       unhardenedPuzzlehashes.add(unhardenedWalletVector.walletPuzzlehash);
 
+      for (final assetId in unhardenedWalletVectors.first.assetIdtoOuterPuzzlehash.keys) {
+        final outerPuzzleHash = makeOuterPuzzleHash(walletVector.puzzlehash, assetId);
+
+        unhardenedWalletVector.assetIdtoOuterPuzzlehash[assetId] = outerPuzzleHash;
+        unhardenedMap[outerPuzzleHash] = unhardenedWalletVector;
+      }
+
       hardenedMap[walletVector.puzzlehash] = walletVector;
       unhardenedMap[unhardenedWalletVector.puzzlehash] = unhardenedWalletVector;
     }
@@ -314,22 +328,66 @@ class WalletKeychain with ToBytesMixin {
     );
   }
 
-  void addOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
+  Set<Puzzlehash> get assetIds =>
+      unhardenedWalletVectors.first.assetIdtoOuterPuzzlehash.keys.toSet();
+
+  void addOuterPuzzleHashesForAssetId(
+    Puzzlehash assetId, {
+    void Function(double progress)? onProgressUpdate,
+  }) {
+    _addOuterPuzzleHashesForAssetId(
+      assetId,
+      cat2Program,
+      onProgressUpdate: onProgressUpdate,
+    );
+  }
+
+  void addCat1OuterPuzzleHashesForAssetId(
+    Puzzlehash assetId, {
+    void Function(double progress)? onProgressUpdate,
+  }) {
+    _addOuterPuzzleHashesForAssetId(
+      assetId,
+      cat1Program,
+      onProgressUpdate: onProgressUpdate,
+    );
+  }
+
+  static Puzzlehash makeOuterPuzzleHash(Puzzlehash innerPuzzleHash, Puzzlehash assetId) {
+    return makeOuterPuzzleHashForCatProgram(innerPuzzleHash, assetId, cat2Program);
+  }
+
+  static Puzzlehash makeCat1OuterPuzzleHash(Puzzlehash innerPuzzleHash, Puzzlehash assetId) {
+    return makeOuterPuzzleHashForCatProgram(innerPuzzleHash, assetId, cat1Program);
+  }
+
+  void _addOuterPuzzleHashesForAssetId(
+    Puzzlehash assetId,
+    Program program, {
+    void Function(double progress)? onProgressUpdate,
+  }) {
+    final total = unhardenedMap.length;
+    var added = 0;
     final entriesToAdd = <Puzzlehash, UnhardenedWalletVector>{};
     for (final walletVector in unhardenedMap.values) {
-      final outerPuzzleHash = makeOuterPuzzleHash(walletVector.puzzlehash, assetId);
+      final outerPuzzleHash =
+          makeOuterPuzzleHashForCatProgram(walletVector.puzzlehash, assetId, program);
       walletVector.assetIdtoOuterPuzzlehash[assetId] = outerPuzzleHash;
       entriesToAdd[outerPuzzleHash] = walletVector;
+
+      added++;
+      onProgressUpdate?.call(added / total);
     }
     unhardenedMap.addAll(entriesToAdd);
   }
 
-  static Puzzlehash makeOuterPuzzleHash(
+  static Puzzlehash makeOuterPuzzleHashForCatProgram(
     Puzzlehash innerPuzzleHash,
     Puzzlehash assetId,
+    Program program,
   ) {
     final solution = Program.list([
-      Program.fromBytes(catProgram.hash()),
+      Program.fromBytes(program.hash()),
       Program.fromBytes(assetId),
       Program.fromBytes(innerPuzzleHash)
     ]);
@@ -424,5 +482,12 @@ class WalletAddress extends Address {
   ) {
     final address = Address.fromPuzzlehash(puzzlehash, addressPrefix);
     return WalletAddress(address.address, derivationIndex: derivationIndex);
+  }
+}
+
+extension RandomPuzzleHash on List<Puzzlehash> {
+  /// get random puzzlehash in first half of derivations
+  Puzzlehash get random {
+    return sublist(0, (length ~/ 2) - 1).getRandomItem();
   }
 }
