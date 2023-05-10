@@ -6,8 +6,6 @@ import 'package:meta/meta.dart';
 
 @immutable
 class CoinRecordResponse extends ChiaBaseResponse {
-  final ChiaCoinRecord? coinRecord;
-
   const CoinRecordResponse({
     required this.coinRecord,
     required super.success,
@@ -25,6 +23,7 @@ class CoinRecordResponse extends ChiaBaseResponse {
       error: chiaBaseResponse.error,
     );
   }
+  final ChiaCoinRecord? coinRecord;
 
   @override
   String toString() =>

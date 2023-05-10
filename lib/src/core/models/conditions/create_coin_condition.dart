@@ -4,29 +4,7 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/standard/exceptions/invalid_condition_cast_exception.dart';
 
 class CreateCoinCondition implements Condition {
-  static int conditionCode = 51;
-  static String conditionCodeHex = '0x33';
-  static String opcode = 'CREATE_COIN';
-
-  Puzzlehash destinationPuzzlehash;
-  int amount;
-  List<Bytes>? memos;
-
   CreateCoinCondition(this.destinationPuzzlehash, this.amount, {this.memos});
-
-  factory CreateCoinCondition.fromProgram(Program program) {
-    final programList = program.toList();
-    if (!isThisCondition(program)) {
-      throw InvalidConditionCastException(CreateCoinCondition);
-    }
-    return CreateCoinCondition(
-      Puzzlehash(programList[1].atom),
-      programList[2].toInt(),
-      memos: programList.length > 3
-          ? programList[3].toList().map((memo) => Bytes(memo.atom)).toList()
-          : null,
-    );
-  }
 
   factory CreateCoinCondition.fromJsonList(List<dynamic> vars) {
     final puzzlehash = Puzzlehash.fromHex(vars[0] as String);
@@ -41,6 +19,27 @@ class CreateCoinCondition implements Condition {
     final memos = hint != null ? [hint] : null;
     return CreateCoinCondition(puzzlehash, amount, memos: memos);
   }
+
+  factory CreateCoinCondition.fromProgram(Program program) {
+    final programList = program.toList();
+    if (!isThisCondition(program)) {
+      throw InvalidConditionCastException(CreateCoinCondition);
+    }
+    return CreateCoinCondition(
+      Puzzlehash(programList[1].atom),
+      programList[2].toInt(),
+      memos: programList.length > 3
+          ? programList[3].toList().map((memo) => Bytes(memo.atom)).toList()
+          : null,
+    );
+  }
+  static int conditionCode = 51;
+  static String conditionCodeHex = '0x33';
+  static String opcode = 'CREATE_COIN';
+
+  Puzzlehash destinationPuzzlehash;
+  int amount;
+  List<Bytes>? memos;
 
   Payment toPayment() => Payment(amount, destinationPuzzlehash, memos: memos);
 
@@ -59,7 +58,9 @@ class CreateCoinCondition implements Condition {
 
   static bool isThisCondition(Program condition) {
     final conditionParts = condition.toList();
-    if (conditionParts.length < 3 || conditionParts[0].toInt() != conditionCode || conditionParts[2].toInt() == -113) {
+    if (conditionParts.length < 3 ||
+        conditionParts[0].toInt() != conditionCode ||
+        conditionParts[2].toInt() == -113) {
       return false;
     }
     return true;

@@ -1,9 +1,8 @@
 class ClvmErrorException implements Exception {
+  ClvmErrorException(this.clvmErrorMessage);
   static const baseMessage = 'clvm error';
 
   String clvmErrorMessage;
-
-  ClvmErrorException(this.clvmErrorMessage);
 
   @override
   String toString() {

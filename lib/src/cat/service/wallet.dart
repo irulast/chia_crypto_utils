@@ -10,11 +10,6 @@ import 'package:chia_crypto_utils/src/standard/exceptions/spend_bundle_validatio
 import 'package:chia_crypto_utils/src/standard/exceptions/spend_bundle_validation/multiple_origin_coin_exception.dart';
 
 abstract class CatWalletService extends BaseWalletService {
-  final StandardWalletService standardWalletService = StandardWalletService();
-  final Program catProgram;
-  final SpendType spendType;
-  final Bytes? innerPuzzleAnnouncementMorphBytes;
-
   CatWalletService(this.catProgram, this.spendType, this.innerPuzzleAnnouncementMorphBytes);
 
   factory CatWalletService.fromCatProgram(Program catProgram) {
@@ -26,6 +21,10 @@ abstract class CatWalletService extends BaseWalletService {
     }
     throw Exception('invalid cat program');
   }
+  final StandardWalletService standardWalletService = StandardWalletService();
+  final Program catProgram;
+  final SpendType spendType;
+  final Bytes? innerPuzzleAnnouncementMorphBytes;
 
   static List<Payment> getPaymentsForCoinSpend(CoinSpend coinSpend) {
     final innerSolution = coinSpend.solution.toList()[0];
@@ -595,11 +594,6 @@ abstract class CatWalletService extends BaseWalletService {
 }
 
 class DeconstructedCatPuzzle {
-  final Program uncurriedPuzzle;
-  final Puzzlehash assetId;
-  final Program innerPuzzle;
-  final Program catProgram;
-
   DeconstructedCatPuzzle({
     required Program uncurriedPuzzle,
     required this.assetId,
@@ -608,6 +602,10 @@ class DeconstructedCatPuzzle {
   }) : uncurriedPuzzle = (uncurriedPuzzle == catProgram)
             ? uncurriedPuzzle
             : throw ArgumentError('Supplied puzzle is not cat puzzle');
+  final Program uncurriedPuzzle;
+  final Puzzlehash assetId;
+  final Program innerPuzzle;
+  final Program catProgram;
 }
 
 class IssuanceResult {

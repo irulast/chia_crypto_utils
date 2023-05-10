@@ -9,6 +9,28 @@ class BtcToXchTakerOfferFile implements TakerCrossChainOfferFile {
     required this.acceptedOfferHash,
   });
 
+  factory BtcToXchTakerOfferFile._fromSerializedOfferFileTask(String serializedOfferFile) {
+    return BtcToXchTakerOfferFile.fromSerializedOfferFile(serializedOfferFile);
+  }
+
+  factory BtcToXchTakerOfferFile.fromSerializedOfferFile(String serializedOfferFile) {
+    final deserializedOfferFile = maybeFromSerializedOfferFile(serializedOfferFile);
+
+    if (deserializedOfferFile == null) {
+      throw InvalidCrossChainOfferType(CrossChainOfferFileType.btcToXchAccept.name);
+    }
+    return deserializedOfferFile;
+  }
+
+  factory BtcToXchTakerOfferFile.fromJson(Map<String, dynamic> json) {
+    return BtcToXchTakerOfferFile(
+      initializationCoinId: (json['initialization_coin_id'] as String?)?.hexToBytes(),
+      validityTime: json['validity_time'] as int,
+      publicKey: JacobianPoint.fromHexG1(json['public_key'] as String),
+      acceptedOfferHash: (json['accepted_offer_hash'] as String).hexToBytes(),
+    );
+  }
+
   @override
   final Bytes? initializationCoinId;
   @override
@@ -28,15 +50,6 @@ class BtcToXchTakerOfferFile implements TakerCrossChainOfferFile {
         'accepted_offer_hash': acceptedOfferHash.toHex(),
       };
 
-  factory BtcToXchTakerOfferFile.fromJson(Map<String, dynamic> json) {
-    return BtcToXchTakerOfferFile(
-      initializationCoinId: (json['initialization_coin_id'] as String?)?.hexToBytes(),
-      validityTime: json['validity_time'] as int,
-      publicKey: JacobianPoint.fromHexG1(json['public_key'] as String),
-      acceptedOfferHash: (json['accepted_offer_hash'] as String).hexToBytes(),
-    );
-  }
-
   static BtcToXchTakerOfferFile? maybeFromSerializedOfferFile(String serializedOfferFile) {
     try {
       final deserializedOfferFile =
@@ -50,15 +63,6 @@ class BtcToXchTakerOfferFile implements TakerCrossChainOfferFile {
     }
   }
 
-  factory BtcToXchTakerOfferFile.fromSerializedOfferFile(String serializedOfferFile) {
-    final deserializedOfferFile = maybeFromSerializedOfferFile(serializedOfferFile);
-
-    if (deserializedOfferFile == null) {
-      throw InvalidCrossChainOfferType(CrossChainOfferFileType.btcToXchAccept.name);
-    }
-    return deserializedOfferFile;
-  }
-
   static Future<BtcToXchTakerOfferFile> fromSerializedOfferFileAsync(
     String serializedOfferFile,
   ) async {
@@ -66,10 +70,6 @@ class BtcToXchTakerOfferFile implements TakerCrossChainOfferFile {
         await compute(BtcToXchTakerOfferFile._fromSerializedOfferFileTask, serializedOfferFile);
 
     return result;
-  }
-
-  factory BtcToXchTakerOfferFile._fromSerializedOfferFileTask(String serializedOfferFile) {
-    return BtcToXchTakerOfferFile.fromSerializedOfferFile(serializedOfferFile);
   }
 
   @override

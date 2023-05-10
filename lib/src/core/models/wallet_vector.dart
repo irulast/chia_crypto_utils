@@ -11,6 +11,23 @@ class WalletVector with ToBytesMixin {
     required this.puzzlehash,
     required this.derivationIndex,
   });
+
+  factory WalletVector.fromPrivateKey(
+    PrivateKey masterPrivateKey,
+    int derivationIndex,
+  ) {
+    final childPrivateKeyHardened = masterSkToWalletSk(masterPrivateKey, derivationIndex);
+    final childPublicKeyHardened = childPrivateKeyHardened.getG1();
+
+    final puzzleHardened = getPuzzleFromPk(childPublicKeyHardened);
+    final puzzlehashHardened = Puzzlehash(puzzleHardened.hash());
+
+    return WalletVector(
+      childPrivateKey: childPrivateKeyHardened,
+      puzzlehash: puzzlehashHardened,
+      derivationIndex: derivationIndex,
+    );
+  }
   factory WalletVector.fromStream(Iterator<int> iterator, int derivationIndex) {
     final childPrivateKey = PrivateKey.fromStream(iterator);
     final puzzlehash = Puzzlehash.fromStream(iterator);
@@ -43,23 +60,6 @@ class WalletVector with ToBytesMixin {
     final walletVector = WalletVector.fromPrivateKey(arg.privateKey, arg.derivationIndex);
 
     return walletVector.toHex();
-  }
-
-  factory WalletVector.fromPrivateKey(
-    PrivateKey masterPrivateKey,
-    int derivationIndex,
-  ) {
-    final childPrivateKeyHardened = masterSkToWalletSk(masterPrivateKey, derivationIndex);
-    final childPublicKeyHardened = childPrivateKeyHardened.getG1();
-
-    final puzzleHardened = getPuzzleFromPk(childPublicKeyHardened);
-    final puzzlehashHardened = Puzzlehash(puzzleHardened.hash());
-
-    return WalletVector(
-      childPrivateKey: childPrivateKeyHardened,
-      puzzlehash: puzzlehashHardened,
-      derivationIndex: derivationIndex,
-    );
   }
 
   final PrivateKey childPrivateKey;
@@ -103,6 +103,33 @@ class UnhardenedWalletVector extends WalletVector {
     Map<Puzzlehash, Puzzlehash>? assetIdtoOuterPuzzlehash,
   }) : assetIdtoOuterPuzzlehash = assetIdtoOuterPuzzlehash ?? <Puzzlehash, Puzzlehash>{};
 
+  factory UnhardenedWalletVector.fromBytes(Bytes bytes, int derivationIndex) {
+    final iterator = bytes.iterator;
+    return UnhardenedWalletVector.fromStream(iterator, derivationIndex);
+  }
+
+  factory UnhardenedWalletVector.fromStream(Iterator<int> iterator, int derivationIndex) {
+    final childPrivateKey = PrivateKey.fromStream(iterator);
+    final puzzlehash = Puzzlehash.fromStream(iterator);
+
+    final assetIdToOuterPuzzlehashMap = <Puzzlehash, Puzzlehash>{};
+
+    final assetIdMapLength = intFrom32BitsStream(iterator);
+
+    for (var _ = 0; _ < assetIdMapLength; _++) {
+      final assetId = Puzzlehash.fromStream(iterator);
+      final outerPuzzlehash = Puzzlehash.fromStream(iterator);
+      assetIdToOuterPuzzlehashMap[assetId] = outerPuzzlehash;
+    }
+
+    return UnhardenedWalletVector(
+      childPrivateKey: childPrivateKey,
+      puzzlehash: puzzlehash,
+      assetIdtoOuterPuzzlehash: assetIdToOuterPuzzlehashMap,
+      derivationIndex: derivationIndex,
+    );
+  }
+
   factory UnhardenedWalletVector.fromPrivateKey(
     PrivateKey masterPrivateKey,
     int derivationIndex,
@@ -136,33 +163,6 @@ class UnhardenedWalletVector extends WalletVector {
     });
 
     return Bytes(bytesList);
-  }
-
-  factory UnhardenedWalletVector.fromStream(Iterator<int> iterator, int derivationIndex) {
-    final childPrivateKey = PrivateKey.fromStream(iterator);
-    final puzzlehash = Puzzlehash.fromStream(iterator);
-
-    final assetIdToOuterPuzzlehashMap = <Puzzlehash, Puzzlehash>{};
-
-    final assetIdMapLength = intFrom32BitsStream(iterator);
-
-    for (var _ = 0; _ < assetIdMapLength; _++) {
-      final assetId = Puzzlehash.fromStream(iterator);
-      final outerPuzzlehash = Puzzlehash.fromStream(iterator);
-      assetIdToOuterPuzzlehashMap[assetId] = outerPuzzlehash;
-    }
-
-    return UnhardenedWalletVector(
-      childPrivateKey: childPrivateKey,
-      puzzlehash: puzzlehash,
-      assetIdtoOuterPuzzlehash: assetIdToOuterPuzzlehashMap,
-      derivationIndex: derivationIndex,
-    );
-  }
-
-  factory UnhardenedWalletVector.fromBytes(Bytes bytes, int derivationIndex) {
-    final iterator = bytes.iterator;
-    return UnhardenedWalletVector.fromStream(iterator, derivationIndex);
   }
 
   @override

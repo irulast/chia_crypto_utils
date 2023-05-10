@@ -14,19 +14,6 @@ class TailInfo with ToJsonMixin {
     required this.clsp,
     required this.hashgreenInfo,
   });
-
-  final String? name;
-  final String? clsp;
-  final Puzzlehash? assetId;
-  final String? code;
-  final String? category;
-  final num? supply;
-  final String? description;
-  final Program? tailProgram;
-  final String? logoUrl;
-  final String? websiteUrl;
-  final HashgreenInfo? hashgreenInfo;
-
   TailInfo.fromJson(Map<String, dynamic> json)
       : name = json['name'] as String?,
         clsp = json['chialisp'] as String?,
@@ -42,6 +29,18 @@ class TailInfo with ToJsonMixin {
             : HashgreenInfo.fromJson(json['hashgreen'] as Map<String, dynamic>),
         logoUrl = json['nft_uri'] as String?,
         websiteUrl = json['website_url'] as String?;
+        
+  final String? name;
+  final String? clsp;
+  final Puzzlehash? assetId;
+  final String? code;
+  final String? category;
+  final num? supply;
+  final String? description;
+  final Program? tailProgram;
+  final String? logoUrl;
+  final String? websiteUrl;
+  final HashgreenInfo? hashgreenInfo;
 
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{

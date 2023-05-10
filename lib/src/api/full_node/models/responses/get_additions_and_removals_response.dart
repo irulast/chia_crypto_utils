@@ -3,9 +3,6 @@ import 'package:meta/meta.dart';
 
 @immutable
 class GetAdditionsAndRemovalsResponse extends ChiaBaseResponse {
-  final List<Coin>? additions;
-  final List<Coin>? removals;
-
   const GetAdditionsAndRemovalsResponse({
     this.additions,
     this.removals,
@@ -31,6 +28,8 @@ class GetAdditionsAndRemovalsResponse extends ChiaBaseResponse {
       );
     }
   }
+  final List<Coin>? additions;
+  final List<Coin>? removals;
 
   static List<Coin> _coinListFromJson(List<Map<String, dynamic>> json) {
     final coins = <Coin>[];

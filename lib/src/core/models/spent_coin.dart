@@ -15,6 +15,20 @@ class SpentCoin extends Coin {
         _solution = solution,
         assert(spentBlockIndex > 0, 'coin must be spent');
 
+  factory SpentCoin.fromJson(Map<String, dynamic> json) {
+    return SpentCoin(
+      confirmedBlockIndex: json['confirmed_block_index'] as int,
+      spentBlockIndex: json['spent_block_index'] as int,
+      coinbase: json['coinbase'] as bool,
+      timestamp: json['timestamp'] as int,
+      parentCoinInfo: Bytes.fromHex(json['parent_coin_info'] as String),
+      puzzlehash: Puzzlehash.fromHex(json['puzzle_hash'] as String),
+      amount: json['amount'] as int,
+      puzzleReveal: Program.deserializeHex(json['puzzle_reveal'] as String),
+      solution: Program.deserializeHex(json['solution'] as String),
+    );
+  }
+
   factory SpentCoin.fromCoinSpend(Coin coin, CoinSpend coinSpend) {
     if (coin.id != coinSpend.coin.id) {
       ArgumentError('Coin spend is not for this coin');
@@ -40,20 +54,6 @@ class SpentCoin extends Coin {
         puzzleReveal: _puzzleReveal,
         solution: _solution,
       );
-
-  factory SpentCoin.fromJson(Map<String, dynamic> json) {
-    return SpentCoin(
-      confirmedBlockIndex: json['confirmed_block_index'] as int,
-      spentBlockIndex: json['spent_block_index'] as int,
-      coinbase: json['coinbase'] as bool,
-      timestamp: json['timestamp'] as int,
-      parentCoinInfo: Bytes.fromHex(json['parent_coin_info'] as String),
-      puzzlehash: Puzzlehash.fromHex(json['puzzle_hash'] as String),
-      amount: json['amount'] as int,
-      puzzleReveal: Program.deserializeHex(json['puzzle_reveal'] as String),
-      solution: Program.deserializeHex(json['solution'] as String),
-    );
-  }
 
   @override
   Map<String, dynamic> toJson() {

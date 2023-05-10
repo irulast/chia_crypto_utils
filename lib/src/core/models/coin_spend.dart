@@ -5,15 +5,37 @@ import 'package:chia_crypto_utils/src/standard/puzzles/p2_delegated_puzzle_or_hi
 import 'package:hex/hex.dart';
 
 class CoinSpend with ToBytesMixin {
-  CoinPrototype coin;
-  Program puzzleReveal;
-  Program solution;
-
   CoinSpend({
     required this.coin,
     required this.puzzleReveal,
     required this.solution,
   });
+
+  factory CoinSpend.fromJson(Map<String, dynamic> json) {
+    return CoinSpend(
+      coin: CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>),
+      puzzleReveal: Program.deserializeHex(json['puzzle_reveal'] as String),
+      solution: Program.deserializeHex(json['solution'] as String),
+    );
+  }
+  factory CoinSpend.fromStream(Iterator<int> iterator) {
+    final coin = CoinPrototype.fromStream(iterator);
+    final puzzleReveal = Program.fromStream(iterator);
+    final solution = Program.fromStream(iterator);
+    return CoinSpend(
+      coin: coin,
+      puzzleReveal: puzzleReveal,
+      solution: solution,
+    );
+  }
+
+  factory CoinSpend.fromBytes(Bytes bytes) {
+    final iterator = bytes.iterator;
+    return CoinSpend.fromStream(iterator);
+  }
+  CoinPrototype coin;
+  Program puzzleReveal;
+  Program solution;
 
   Program get outputProgram => puzzleReveal.run(solution).program;
 
@@ -68,32 +90,9 @@ class CoinSpend with ToBytesMixin {
         'solution': const HexEncoder().convert(solution.serialize())
       };
 
-  factory CoinSpend.fromBytes(Bytes bytes) {
-    final iterator = bytes.iterator;
-    return CoinSpend.fromStream(iterator);
-  }
-  factory CoinSpend.fromStream(Iterator<int> iterator) {
-    final coin = CoinPrototype.fromStream(iterator);
-    final puzzleReveal = Program.fromStream(iterator);
-    final solution = Program.fromStream(iterator);
-    return CoinSpend(
-      coin: coin,
-      puzzleReveal: puzzleReveal,
-      solution: solution,
-    );
-  }
-
   @override
   Bytes toBytes() {
     return coin.toBytes() + Bytes(puzzleReveal.serialize()) + Bytes(solution.serialize());
-  }
-
-  factory CoinSpend.fromJson(Map<String, dynamic> json) {
-    return CoinSpend(
-      coin: CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>),
-      puzzleReveal: Program.deserializeHex(json['puzzle_reveal'] as String),
-      solution: Program.deserializeHex(json['solution'] as String),
-    );
   }
 
   SpendType? get type {
@@ -159,8 +158,7 @@ class CoinSpend with ToBytesMixin {
 enum SpendType { standard, cat, cat1 }
 
 class PaymentsAndAdditions {
+  PaymentsAndAdditions(this.payments, this.additions);
   final List<Payment> payments;
   final List<CoinPrototype> additions;
-
-  PaymentsAndAdditions(this.payments, this.additions);
 }

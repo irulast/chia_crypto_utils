@@ -113,10 +113,9 @@ Future<void> Function(TaskArgumentAndSendPort<R> taskArgumentAndSendPort) _makeA
 }
 
 class TaskArgumentAndSendPort<T> {
+  TaskArgumentAndSendPort(this.taskArgument, this.sendport);
   final T taskArgument;
   final SendPort sendport;
-
-  TaskArgumentAndSendPort(this.taskArgument, this.sendport);
 }
 
 class IsolateException implements Exception {

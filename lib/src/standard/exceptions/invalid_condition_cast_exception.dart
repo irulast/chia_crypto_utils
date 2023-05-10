@@ -1,9 +1,8 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 class InvalidConditionCastException implements Exception {
-  Type intendedCondition;
-
   InvalidConditionCastException(this.intendedCondition);
+  Type intendedCondition;
 
   @override
   String toString() {

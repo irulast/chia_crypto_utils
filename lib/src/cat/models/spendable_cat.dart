@@ -5,18 +5,17 @@ import 'dart:math';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class SpendableCat {
-  CatCoin coin;
-  Program innerPuzzle;
-  Program innerSolution;
-  int? subtotal;
-  int extraDelta;
-
   SpendableCat({
     required this.coin,
     required this.innerPuzzle,
     required this.innerSolution,
     this.extraDelta = 0,
   });
+  CatCoin coin;
+  Program innerPuzzle;
+  Program innerSolution;
+  int? subtotal;
+  int extraDelta;
 
   Program makeStandardCoinProgram() {
     return Program.list([

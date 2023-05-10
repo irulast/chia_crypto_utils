@@ -10,6 +10,37 @@ import 'package:meta/meta.dart';
 class KeychainCoreSecret with ToBytesMixin {
   const KeychainCoreSecret(this.mnemonic, this.masterPrivateKey);
 
+  factory KeychainCoreSecret.fromBytes(Bytes bytes) {
+    final iterator = bytes.iterator;
+    final mnemonicAsString = stringfromStream(iterator);
+    final masterPrivateKey = PrivateKey.fromStream(iterator);
+
+    return KeychainCoreSecret(
+      mnemonicAsString.split(mnemonicWordSeperator),
+      masterPrivateKey,
+    );
+  }
+
+  factory KeychainCoreSecret.fromMnemonicString(String mnemonic) {
+    final seed = bip39.mnemonicToSeed(mnemonic);
+    final privateKey = PrivateKey.fromSeed(seed);
+
+    return KeychainCoreSecret(
+      mnemonic.split(mnemonicWordSeperator),
+      privateKey,
+    );
+  }
+
+  factory KeychainCoreSecret.fromMnemonic(List<String> mnemonic) {
+    final seed = bip39.mnemonicToSeed(mnemonic.join(mnemonicWordSeperator));
+    final privateKey = PrivateKey.fromSeed(seed);
+
+    return KeychainCoreSecret(
+      mnemonic,
+      privateKey,
+    );
+  }
+
   factory KeychainCoreSecret.generate() {
     final mnemonic = generateMnemonic();
     final seed = bip39.mnemonicToSeed(mnemonic.join(mnemonicWordSeperator));
@@ -26,26 +57,6 @@ class KeychainCoreSecret with ToBytesMixin {
     return KeychainCoreSecret(mnemonic, masterPrivateKey);
   }
 
-  factory KeychainCoreSecret.fromMnemonic(List<String> mnemonic) {
-    final seed = bip39.mnemonicToSeed(mnemonic.join(mnemonicWordSeperator));
-    final privateKey = PrivateKey.fromSeed(seed);
-
-    return KeychainCoreSecret(
-      mnemonic,
-      privateKey,
-    );
-  }
-
-  factory KeychainCoreSecret.fromMnemonicString(String mnemonic) {
-    final seed = bip39.mnemonicToSeed(mnemonic);
-    final privateKey = PrivateKey.fromSeed(seed);
-
-    return KeychainCoreSecret(
-      mnemonic.split(mnemonicWordSeperator),
-      privateKey,
-    );
-  }
-
   static Future<KeychainCoreSecret> fromMnemonicAsync(List<String> mnemonic) async {
     final seed = await generateSeedFromMnemonicAsync(mnemonic);
     final privateKey = PrivateKey.fromSeed(seed);
@@ -53,17 +64,6 @@ class KeychainCoreSecret with ToBytesMixin {
     return KeychainCoreSecret(
       mnemonic,
       privateKey,
-    );
-  }
-
-  factory KeychainCoreSecret.fromBytes(Bytes bytes) {
-    final iterator = bytes.iterator;
-    final mnemonicAsString = stringfromStream(iterator);
-    final masterPrivateKey = PrivateKey.fromStream(iterator);
-
-    return KeychainCoreSecret(
-      mnemonicAsString.split(mnemonicWordSeperator),
-      masterPrivateKey,
     );
   }
 

@@ -131,10 +131,9 @@ class ClosestValueCoinSelector implements CoinSelector {
 }
 
 class CoinWithDiff {
+  CoinWithDiff(this.coin, this.diff);
   final CoinPrototype coin;
   final int diff;
-
-  CoinWithDiff(this.coin, this.diff);
 }
 
 List<CoinPrototype> _selectSortedCoinsForAmount(

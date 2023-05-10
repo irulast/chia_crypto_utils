@@ -4,10 +4,6 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/standard/exceptions/invalid_condition_cast_exception.dart';
 
 class CreatePuzzleAnnouncementCondition implements Condition {
-  static int conditionCode = 62;
-
-  Bytes message;
-
   CreatePuzzleAnnouncementCondition(this.message);
 
   factory CreatePuzzleAnnouncementCondition.fromProgram(Program program) {
@@ -17,6 +13,9 @@ class CreatePuzzleAnnouncementCondition implements Condition {
     }
     return CreatePuzzleAnnouncementCondition(Bytes(programList[1].atom));
   }
+  static int conditionCode = 62;
+
+  Bytes message;
 
   @override
   Program toProgram() {

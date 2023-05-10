@@ -12,6 +12,34 @@ class XchToBtcMakerOfferFile implements MakerCrossChainOfferFile {
     required this.lightningPaymentRequest,
   });
 
+  factory XchToBtcMakerOfferFile._fromSerializedOfferFileTask(String serializedOfferFile) {
+    return XchToBtcMakerOfferFile.fromSerializedOfferFile(serializedOfferFile);
+  }
+
+  factory XchToBtcMakerOfferFile.fromSerializedOfferFile(String serializedOfferFile) {
+    final deserializedOfferFile = maybeFromSerializedOfferFile(serializedOfferFile);
+
+    if (deserializedOfferFile == null) {
+      throw InvalidCrossChainOfferType(CrossChainOfferFileType.xchToBtc.name);
+    }
+    return deserializedOfferFile;
+  }
+
+  factory XchToBtcMakerOfferFile.fromJson(Map<String, dynamic> json) {
+    return XchToBtcMakerOfferFile(
+      initializationCoinId: (json['initialization_coin_id'] as String?)?.hexToBytes(),
+      offeredAmount: ExchangeAmount.fromJson(json['offered'] as Map<String, dynamic>),
+      requestedAmount: ExchangeAmount.fromJson(json['requested'] as Map<String, dynamic>),
+      messageAddress:
+          Address((json['message_address'] as Map<String, dynamic>)['address'] as String),
+      validityTime: json['validity_time'] as int,
+      publicKey: JacobianPoint.fromHexG1(json['public_key'] as String),
+      lightningPaymentRequest: decodeLightningPaymentRequest(
+        (json['lightning_payment_request'] as Map<String, dynamic>)['payment_request'] as String,
+      ),
+    );
+  }
+
   @override
   final Bytes? initializationCoinId;
   @override
@@ -48,21 +76,6 @@ class XchToBtcMakerOfferFile implements MakerCrossChainOfferFile {
         }
       };
 
-  factory XchToBtcMakerOfferFile.fromJson(Map<String, dynamic> json) {
-    return XchToBtcMakerOfferFile(
-      initializationCoinId: (json['initialization_coin_id'] as String?)?.hexToBytes(),
-      offeredAmount: ExchangeAmount.fromJson(json['offered'] as Map<String, dynamic>),
-      requestedAmount: ExchangeAmount.fromJson(json['requested'] as Map<String, dynamic>),
-      messageAddress:
-          Address((json['message_address'] as Map<String, dynamic>)['address'] as String),
-      validityTime: json['validity_time'] as int,
-      publicKey: JacobianPoint.fromHexG1(json['public_key'] as String),
-      lightningPaymentRequest: decodeLightningPaymentRequest(
-        (json['lightning_payment_request'] as Map<String, dynamic>)['payment_request'] as String,
-      ),
-    );
-  }
-
   static XchToBtcMakerOfferFile? maybeFromSerializedOfferFile(String serializedOfferFile) {
     try {
       final deserializedOfferFile =
@@ -76,15 +89,6 @@ class XchToBtcMakerOfferFile implements MakerCrossChainOfferFile {
     }
   }
 
-  factory XchToBtcMakerOfferFile.fromSerializedOfferFile(String serializedOfferFile) {
-    final deserializedOfferFile = maybeFromSerializedOfferFile(serializedOfferFile);
-
-    if (deserializedOfferFile == null) {
-      throw InvalidCrossChainOfferType(CrossChainOfferFileType.xchToBtc.name);
-    }
-    return deserializedOfferFile;
-  }
-
   static Future<XchToBtcMakerOfferFile> fromSerializedOfferFileAsync(
     String serializedOfferFile,
   ) async {
@@ -92,10 +96,6 @@ class XchToBtcMakerOfferFile implements MakerCrossChainOfferFile {
         await compute(XchToBtcMakerOfferFile._fromSerializedOfferFileTask, serializedOfferFile);
 
     return result;
-  }
-
-  factory XchToBtcMakerOfferFile._fromSerializedOfferFileTask(String serializedOfferFile) {
-    return XchToBtcMakerOfferFile.fromSerializedOfferFile(serializedOfferFile);
   }
 
   @override

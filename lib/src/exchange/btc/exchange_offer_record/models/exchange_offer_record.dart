@@ -4,6 +4,38 @@ import 'package:intl/intl.dart';
 
 /// A record of all values relevant to an exchange offer that can be restored.
 class ExchangeOfferRecord {
+  ExchangeOfferRecord({
+    required this.initializationCoinId,
+    required this.derivationIndex,
+    required this.type,
+    required this.role,
+    required this.mojos,
+    required this.satoshis,
+    required this.messagePuzzlehash,
+    required this.requestorPublicKey,
+    required this.offerValidityTime,
+    required this.serializedMakerOfferFile,
+    this.submittedToDexie = false,
+    this.lightningPaymentRequest,
+    this.messageCoinId,
+    this.serializedTakerOfferFile,
+    this.fulfillerPublicKey,
+    this.exchangeValidityTime,
+    this.escrowPuzzlehash,
+    this.escrowCoinId,
+    this.initializedTime,
+    this.messageCoinReceivedTime,
+    this.messageCoinAcceptedTime,
+    this.messageCoinDeclinedTime,
+    this.escrowTransferCompletedTime,
+    this.escrowTransferConfirmedTime,
+    this.sweepTime,
+    this.sweepConfirmedTime,
+    this.clawbackTime,
+    this.clawbackConfirmedTime,
+    this.canceledTime,
+  });
+
   /// The ID of the coin that was spent to create a 3 mojo coin at the message puzzlehash.
   final Bytes initializationCoinId;
 
@@ -108,38 +140,6 @@ class ExchangeOfferRecord {
   /// When the 3 mojo coin child of the initialization coin at the message puzzlehash is spent,
   /// indicating cancelation.
   final DateTime? canceledTime;
-
-  ExchangeOfferRecord({
-    required this.initializationCoinId,
-    required this.derivationIndex,
-    required this.type,
-    required this.role,
-    required this.mojos,
-    required this.satoshis,
-    required this.messagePuzzlehash,
-    required this.requestorPublicKey,
-    required this.offerValidityTime,
-    required this.serializedMakerOfferFile,
-    this.submittedToDexie = false,
-    this.lightningPaymentRequest,
-    this.messageCoinId,
-    this.serializedTakerOfferFile,
-    this.fulfillerPublicKey,
-    this.exchangeValidityTime,
-    this.escrowPuzzlehash,
-    this.escrowCoinId,
-    this.initializedTime,
-    this.messageCoinReceivedTime,
-    this.messageCoinAcceptedTime,
-    this.messageCoinDeclinedTime,
-    this.escrowTransferCompletedTime,
-    this.escrowTransferConfirmedTime,
-    this.sweepTime,
-    this.sweepConfirmedTime,
-    this.clawbackTime,
-    this.clawbackConfirmedTime,
-    this.canceledTime,
-  });
 
   Bytes? get paymentHash {
     if (lightningPaymentRequest != null) {

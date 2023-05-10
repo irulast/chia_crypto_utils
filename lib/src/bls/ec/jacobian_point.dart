@@ -13,8 +13,6 @@ import 'package:quiver/core.dart';
 
 @immutable
 class JacobianPoint with ToBytesMixin {
-  static const g1BytesLength = 48;
-  static const g2BytesLength = 96;
   JacobianPoint(this.x, this.y, this.z, this.infinity, {EC? ec})
       : ec = ec ?? defaultEc,
         isExtension = x is! Fq {
@@ -23,6 +21,78 @@ class JacobianPoint with ToBytesMixin {
         'Both x, y, and z should be similar field instances.',
       );
     }
+  }
+
+  factory JacobianPoint.fromBytesG2(List<int> bytes, {bool? isExtension}) {
+    isExtension ??= true;
+    return JacobianPoint.fromBytes(bytes, isExtension, ec: defaultEcTwist);
+  }
+
+  factory JacobianPoint.fromHexG2(String hex, {bool? isExtension}) {
+    return JacobianPoint.fromBytesG2(
+      const HexDecoder().convert(hex.stripBytesPrefix()),
+      isExtension: isExtension,
+    );
+  }
+
+  factory JacobianPoint.fromHexG1(String hex, {bool? isExtension}) {
+    return JacobianPoint.fromBytesG1(
+      const HexDecoder().convert(hex.stripBytesPrefix()),
+      isExtension: isExtension,
+    );
+  }
+
+  factory JacobianPoint.fromBytesG1(List<int> bytes, {bool? isExtension}) {
+    isExtension ??= false;
+    return JacobianPoint.fromBytes(bytes, isExtension, ec: defaultEc);
+  }
+
+  factory JacobianPoint.infinityG2({bool? isExtension}) {
+    isExtension ??= true;
+    return JacobianPoint(
+      isExtension ? Fq2.zero(defaultEcTwist.q) : Fq.zero(defaultEcTwist.q),
+      isExtension ? Fq2.zero(defaultEcTwist.q) : Fq.zero(defaultEcTwist.q),
+      isExtension ? Fq2.zero(defaultEcTwist.q) : Fq.zero(defaultEcTwist.q),
+      true,
+      ec: defaultEcTwist,
+    );
+  }
+
+  factory JacobianPoint.infinityG1({bool? isExtension}) {
+    isExtension ??= false;
+    return JacobianPoint(
+      isExtension ? Fq2.zero(defaultEc.q) : Fq.zero(defaultEc.q),
+      isExtension ? Fq2.zero(defaultEc.q) : Fq.zero(defaultEc.q),
+      isExtension ? Fq2.zero(defaultEc.q) : Fq.zero(defaultEc.q),
+      true,
+      ec: defaultEc,
+    );
+  }
+
+  factory JacobianPoint.generateG2() => AffinePoint(
+        defaultEcTwist.g2x,
+        defaultEcTwist.g2y,
+        false,
+        ec: defaultEcTwist,
+      ).toJacobian();
+
+  factory JacobianPoint.generateG1() =>
+      AffinePoint(defaultEc.gx, defaultEc.gy, false, ec: defaultEc).toJacobian();
+
+  factory JacobianPoint.fromHex(String hex, bool isExtension, {EC? ec}) => JacobianPoint.fromBytes(
+        const HexDecoder().convert(hex),
+        isExtension,
+        ec: ec,
+      );
+
+  factory JacobianPoint.fromStreamG2(Iterator<int> iterator) {
+    final signatureBytes = iterator.extractBytesAndAdvance(g2BytesLength);
+    return JacobianPoint.fromBytesG2(signatureBytes);
+  }
+
+  factory JacobianPoint.fromStreamG1(Iterator<int> iterator) {
+    final publicKeyBytes = iterator.extractBytesAndAdvance(g1BytesLength);
+    return JacobianPoint.fromBytesG1(publicKeyBytes);
   }
 
   factory JacobianPoint.fromBytes(List<int> bytes, bool isExtension, {EC? ec}) {
@@ -73,78 +143,8 @@ class JacobianPoint with ToBytesMixin {
     final y = sign == (bitS != 0) ? yValue : -yValue;
     return AffinePoint(x, y, false, ec: ec).toJacobian();
   }
-
-  factory JacobianPoint.fromStreamG1(Iterator<int> iterator) {
-    final publicKeyBytes = iterator.extractBytesAndAdvance(g1BytesLength);
-    return JacobianPoint.fromBytesG1(publicKeyBytes);
-  }
-
-  factory JacobianPoint.fromStreamG2(Iterator<int> iterator) {
-    final signatureBytes = iterator.extractBytesAndAdvance(g2BytesLength);
-    return JacobianPoint.fromBytesG2(signatureBytes);
-  }
-
-  factory JacobianPoint.fromHex(String hex, bool isExtension, {EC? ec}) => JacobianPoint.fromBytes(
-        const HexDecoder().convert(hex),
-        isExtension,
-        ec: ec,
-      );
-
-  factory JacobianPoint.generateG1() =>
-      AffinePoint(defaultEc.gx, defaultEc.gy, false, ec: defaultEc).toJacobian();
-
-  factory JacobianPoint.generateG2() => AffinePoint(
-        defaultEcTwist.g2x,
-        defaultEcTwist.g2y,
-        false,
-        ec: defaultEcTwist,
-      ).toJacobian();
-
-  factory JacobianPoint.infinityG1({bool? isExtension}) {
-    isExtension ??= false;
-    return JacobianPoint(
-      isExtension ? Fq2.zero(defaultEc.q) : Fq.zero(defaultEc.q),
-      isExtension ? Fq2.zero(defaultEc.q) : Fq.zero(defaultEc.q),
-      isExtension ? Fq2.zero(defaultEc.q) : Fq.zero(defaultEc.q),
-      true,
-      ec: defaultEc,
-    );
-  }
-
-  factory JacobianPoint.infinityG2({bool? isExtension}) {
-    isExtension ??= true;
-    return JacobianPoint(
-      isExtension ? Fq2.zero(defaultEcTwist.q) : Fq.zero(defaultEcTwist.q),
-      isExtension ? Fq2.zero(defaultEcTwist.q) : Fq.zero(defaultEcTwist.q),
-      isExtension ? Fq2.zero(defaultEcTwist.q) : Fq.zero(defaultEcTwist.q),
-      true,
-      ec: defaultEcTwist,
-    );
-  }
-
-  factory JacobianPoint.fromBytesG1(List<int> bytes, {bool? isExtension}) {
-    isExtension ??= false;
-    return JacobianPoint.fromBytes(bytes, isExtension, ec: defaultEc);
-  }
-
-  factory JacobianPoint.fromHexG1(String hex, {bool? isExtension}) {
-    return JacobianPoint.fromBytesG1(
-      const HexDecoder().convert(hex.stripBytesPrefix()),
-      isExtension: isExtension,
-    );
-  }
-
-  factory JacobianPoint.fromHexG2(String hex, {bool? isExtension}) {
-    return JacobianPoint.fromBytesG2(
-      const HexDecoder().convert(hex.stripBytesPrefix()),
-      isExtension: isExtension,
-    );
-  }
-
-  factory JacobianPoint.fromBytesG2(List<int> bytes, {bool? isExtension}) {
-    isExtension ??= true;
-    return JacobianPoint.fromBytes(bytes, isExtension, ec: defaultEcTwist);
-  }
+  static const g1BytesLength = 48;
+  static const g2BytesLength = 96;
 
   final Field x;
   final Field y;
