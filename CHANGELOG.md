@@ -1,4 +1,7 @@
 # Changelog
+## 1.0.18
+
+- Fixes for pub.dev
 
 ## 1.0.17
 
