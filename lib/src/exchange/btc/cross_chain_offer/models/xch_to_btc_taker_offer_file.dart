@@ -10,6 +10,31 @@ class XchToBtcTakerOfferFile implements TakerCrossChainOfferFile {
     required this.lightningPaymentRequest,
   });
 
+  factory XchToBtcTakerOfferFile._fromSerializedOfferFileTask(String serializedOfferFile) {
+    return XchToBtcTakerOfferFile.fromSerializedOfferFile(serializedOfferFile);
+  }
+
+  factory XchToBtcTakerOfferFile.fromSerializedOfferFile(String serializedOfferFile) {
+    final deserializedOfferFile = maybeFromSerializedOfferFile(serializedOfferFile);
+
+    if (deserializedOfferFile == null) {
+      throw InvalidCrossChainOfferType(CrossChainOfferFileType.xchToBtcAccept.name);
+    }
+    return deserializedOfferFile;
+  }
+
+  factory XchToBtcTakerOfferFile.fromJson(Map<String, dynamic> json) {
+    return XchToBtcTakerOfferFile(
+      initializationCoinId: (json['initialization_coin_id'] as String?)?.hexToBytes(),
+      validityTime: json['validity_time'] as int,
+      publicKey: JacobianPoint.fromHexG1(json['public_key'] as String),
+      lightningPaymentRequest: decodeLightningPaymentRequest(
+        (json['lightning_payment_request'] as Map<String, dynamic>)['payment_request'] as String,
+      ),
+      acceptedOfferHash: (json['accepted_offer_hash'] as String).hexToBytes(),
+    );
+  }
+
   @override
   final Bytes? initializationCoinId;
   @override
@@ -33,18 +58,6 @@ class XchToBtcTakerOfferFile implements TakerCrossChainOfferFile {
         'accepted_offer_hash': acceptedOfferHash.toHex(),
       };
 
-  factory XchToBtcTakerOfferFile.fromJson(Map<String, dynamic> json) {
-    return XchToBtcTakerOfferFile(
-      initializationCoinId: (json['initialization_coin_id'] as String?)?.hexToBytes(),
-      validityTime: json['validity_time'] as int,
-      publicKey: JacobianPoint.fromHexG1(json['public_key'] as String),
-      lightningPaymentRequest: decodeLightningPaymentRequest(
-        (json['lightning_payment_request'] as Map<String, dynamic>)['payment_request'] as String,
-      ),
-      acceptedOfferHash: (json['accepted_offer_hash'] as String).hexToBytes(),
-    );
-  }
-
   static XchToBtcTakerOfferFile? maybeFromSerializedOfferFile(String serializedOfferFile) {
     try {
       final deserializedOfferFile =
@@ -58,15 +71,6 @@ class XchToBtcTakerOfferFile implements TakerCrossChainOfferFile {
     }
   }
 
-  factory XchToBtcTakerOfferFile.fromSerializedOfferFile(String serializedOfferFile) {
-    final deserializedOfferFile = maybeFromSerializedOfferFile(serializedOfferFile);
-
-    if (deserializedOfferFile == null) {
-      throw InvalidCrossChainOfferType(CrossChainOfferFileType.xchToBtcAccept.name);
-    }
-    return deserializedOfferFile;
-  }
-
   static Future<XchToBtcTakerOfferFile> fromSerializedOfferFileAsync(
     String serializedOfferFile,
   ) async {
@@ -74,10 +78,6 @@ class XchToBtcTakerOfferFile implements TakerCrossChainOfferFile {
         await compute(XchToBtcTakerOfferFile._fromSerializedOfferFileTask, serializedOfferFile);
 
     return result;
-  }
-
-  factory XchToBtcTakerOfferFile._fromSerializedOfferFileTask(String serializedOfferFile) {
-    return XchToBtcTakerOfferFile.fromSerializedOfferFile(serializedOfferFile);
   }
 
   @override

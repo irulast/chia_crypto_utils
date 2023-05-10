@@ -2,14 +2,6 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:get_it/get_it.dart';
 
 class ChiaEnthusiastBase {
-  final Cat1WalletService cat1WalletService = Cat1WalletService();
-  final Cat2WalletService catWalletService = Cat2WalletService();
-  List<Coin> standardCoins = [];
-  List<CatCoin> cat1Coins = [];
-  List<CatCoin> catCoins = [];
-  late WalletKeychain keychain;
-  late KeychainCoreSecret keychainSecret;
-
   ChiaEnthusiastBase({
     List<String>? mnemonic,
     int walletSize = 1,
@@ -25,6 +17,13 @@ class ChiaEnthusiastBase {
       plotNftWalletSize: plotNftWalletSize,
     );
   }
+  final Cat1WalletService cat1WalletService = Cat1WalletService();
+  final Cat2WalletService catWalletService = Cat2WalletService();
+  List<Coin> standardCoins = [];
+  List<CatCoin> cat1Coins = [];
+  List<CatCoin> catCoins = [];
+  late WalletKeychain keychain;
+  late KeychainCoreSecret keychainSecret;
 
   List<Puzzlehash> get puzzlehashes =>
       keychain.unhardenedMap.values.map((wv) => wv.puzzlehash).toList();

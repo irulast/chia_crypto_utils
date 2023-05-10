@@ -7,20 +7,42 @@ import 'package:meta/meta.dart';
 
 @immutable
 class CoinPrototype with ToBytesMixin {
-  final Bytes parentCoinInfo;
-  final Puzzlehash puzzlehash;
-  final int amount;
-
   const CoinPrototype({
     required this.parentCoinInfo,
     required this.puzzlehash,
     required this.amount,
   });
 
+  factory CoinPrototype.fromStream(Iterator<int> iterator) {
+    final parentCoinInfoBytes = iterator.extractBytesAndAdvance(Puzzlehash.bytesLength);
+    final parentCoinInfo = Bytes(parentCoinInfoBytes);
+
+    final puzzlehashBytes = iterator.extractBytesAndAdvance(Puzzlehash.bytesLength);
+    final puzzlehash = Puzzlehash(puzzlehashBytes);
+
+    // coin amount is encoded with 64 bits
+    final amountBytes = iterator.extractBytesAndAdvance(8);
+    final amount = bytesToInt(amountBytes, Endian.big);
+
+    return CoinPrototype(
+      parentCoinInfo: parentCoinInfo,
+      puzzlehash: puzzlehash,
+      amount: amount,
+    );
+  }
+
+  factory CoinPrototype.fromBytes(Bytes bytes) {
+    final iterator = bytes.iterator;
+    return CoinPrototype.fromStream(iterator);
+  }
+
   CoinPrototype.fromJson(Map<String, dynamic> json)
       : parentCoinInfo = Bytes.fromHex(json['parent_coin_info'] as String),
         puzzlehash = Puzzlehash.fromHex(json['puzzle_hash'] as String),
         amount = (json['amount'] as num).toInt();
+  final Bytes parentCoinInfo;
+  final Puzzlehash puzzlehash;
+  final int amount;
 
   Bytes get id {
     return (parentCoinInfo + puzzlehash + encodeInt(amount)).sha256Hash();
@@ -40,32 +62,9 @@ class CoinPrototype with ToBytesMixin {
         'amount': amount
       };
 
-  factory CoinPrototype.fromBytes(Bytes bytes) {
-    final iterator = bytes.iterator;
-    return CoinPrototype.fromStream(iterator);
-  }
-
   @override
   Bytes toBytes() {
     return parentCoinInfo + puzzlehash + Bytes(intTo64Bits(amount));
-  }
-
-  factory CoinPrototype.fromStream(Iterator<int> iterator) {
-    final parentCoinInfoBytes = iterator.extractBytesAndAdvance(Puzzlehash.bytesLength);
-    final parentCoinInfo = Bytes(parentCoinInfoBytes);
-
-    final puzzlehashBytes = iterator.extractBytesAndAdvance(Puzzlehash.bytesLength);
-    final puzzlehash = Puzzlehash(puzzlehashBytes);
-
-    // coin amount is encoded with 64 bits
-    final amountBytes = iterator.extractBytesAndAdvance(8);
-    final amount = bytesToInt(amountBytes, Endian.big);
-
-    return CoinPrototype(
-      parentCoinInfo: parentCoinInfo,
-      puzzlehash: puzzlehash,
-      amount: amount,
-    );
   }
 
   @override

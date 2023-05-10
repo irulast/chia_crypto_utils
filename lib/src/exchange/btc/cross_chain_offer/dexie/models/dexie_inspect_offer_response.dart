@@ -4,11 +4,6 @@ class DexieInspectOfferResponse {
     this.offerJson,
     this.errorMessage,
   });
-
-  bool success;
-  Map<String, dynamic>? offerJson;
-  String? errorMessage;
-
   factory DexieInspectOfferResponse.fromJson(Map<String, dynamic> json) {
     Map<String, dynamic>? offerJson;
     if (json.containsKey('offer')) {
@@ -26,4 +21,8 @@ class DexieInspectOfferResponse {
       errorMessage: errorMessage,
     );
   }
+
+  bool success;
+  Map<String, dynamic>? offerJson;
+  String? errorMessage;
 }

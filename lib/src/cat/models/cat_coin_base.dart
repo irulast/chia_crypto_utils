@@ -22,6 +22,29 @@ abstract class CatCoin implements CoinPrototype {
       delegate: delegate,
     );
   }
+  factory CatCoin.eve({
+    required CoinSpend parentCoinSpend,
+    required Puzzlehash assetId,
+    required Program catProgram,
+    required CoinPrototype coin,
+  }) =>
+      CatCoin(
+        parentCoinSpend: parentCoinSpend,
+        assetId: assetId,
+        lineageProof: Program.nil,
+        catProgram: catProgram,
+        delegate: coin,
+      );
+
+  factory CatCoin.fromBytes(Bytes bytes) {
+    final iterator = bytes.iterator;
+    final parentSpend = CoinSpend.fromStream(iterator);
+    final coin = CoinPrototype.fromStream(iterator);
+    return CatCoin.fromParentSpend(
+      parentCoinSpend: parentSpend,
+      coin: coin,
+    );
+  }
 
   factory CatCoin.fromParentSpend({
     required CoinSpend parentCoinSpend,
@@ -57,30 +80,6 @@ abstract class CatCoin implements CoinPrototype {
     );
   }
 
-  factory CatCoin.fromBytes(Bytes bytes) {
-    final iterator = bytes.iterator;
-    final parentSpend = CoinSpend.fromStream(iterator);
-    final coin = CoinPrototype.fromStream(iterator);
-    return CatCoin.fromParentSpend(
-      parentCoinSpend: parentSpend,
-      coin: coin,
-    );
-  }
-
-  factory CatCoin.eve({
-    required CoinSpend parentCoinSpend,
-    required Puzzlehash assetId,
-    required Program catProgram,
-    required CoinPrototype coin,
-  }) =>
-      CatCoin(
-        parentCoinSpend: parentCoinSpend,
-        assetId: assetId,
-        lineageProof: Program.nil,
-        catProgram: catProgram,
-        delegate: coin,
-      );
-
   CoinSpend get parentCoinSpend;
   CoinPrototype get delegate;
   Puzzlehash get assetId;
@@ -96,17 +95,6 @@ class _CatCoin with CoinPrototypeDecoratorMixin implements CatCoin {
     required this.assetId,
     required this.delegate,
   });
-  @override
-  final CoinSpend parentCoinSpend;
-  @override
-  final Puzzlehash assetId;
-  @override
-  final Program lineageProof;
-  @override
-  final Program catProgram;
-  @override
-  final CoinPrototype delegate;
-
   factory _CatCoin._fromUncurriedPuzzle({
     required CoinSpend parentCoinSpend,
     required ModAndArguments uncurriedCatProgram,
@@ -137,6 +125,16 @@ class _CatCoin with CoinPrototypeDecoratorMixin implements CatCoin {
       delegate: coin,
     );
   }
+  @override
+  final CoinSpend parentCoinSpend;
+  @override
+  final Puzzlehash assetId;
+  @override
+  final Program lineageProof;
+  @override
+  final Program catProgram;
+  @override
+  final CoinPrototype delegate;
 
   @override
   String toString() =>
@@ -241,10 +239,9 @@ String? _calculateCatP2PuzzleHashTask(_CalculateCatP2PuzzleHashArgument args) {
 }
 
 class _CalculateCatP2PuzzleHashArgument {
+  _CalculateCatP2PuzzleHashArgument(this.coin, this.puzzlehashesToFilterBy);
   final CatCoin coin;
   final Set<Puzzlehash> puzzlehashesToFilterBy;
-
-  _CalculateCatP2PuzzleHashArgument(this.coin, this.puzzlehashesToFilterBy);
 }
 
 extension GroupByAssetId on Iterable<CatCoin> {

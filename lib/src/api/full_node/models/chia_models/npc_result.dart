@@ -1,9 +1,6 @@
 import 'package:chia_crypto_utils/src/api/full_node/models/chia_models/spend_conditions.dart';
 
 class NpcResult {
-  final int? cost;
-  final List<SpendConditions> spendConditionsList;
-
   NpcResult(this.cost, this.spendConditionsList);
 
   factory NpcResult.fromJson(Map<String, dynamic> json) {
@@ -15,4 +12,6 @@ class NpcResult {
 
     return NpcResult(cost, spendConditionsList);
   }
+  final int? cost;
+  final List<SpendConditions> spendConditionsList;
 }

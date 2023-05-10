@@ -3,12 +3,6 @@ import 'package:meta/meta.dart';
 
 @immutable
 class ChiaCoinRecord {
-  final int confirmedBlockIndex;
-  final int spentBlockIndex;
-  final bool coinbase;
-  final int timestamp;
-  final CoinPrototype coin;
-
   const ChiaCoinRecord({
     required this.confirmedBlockIndex,
     required this.spentBlockIndex,
@@ -26,6 +20,11 @@ class ChiaCoinRecord {
       coin: CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>),
     );
   }
+  final int confirmedBlockIndex;
+  final int spentBlockIndex;
+  final bool coinbase;
+  final int timestamp;
+  final CoinPrototype coin;
 
   Coin toCoin() {
     return Coin(

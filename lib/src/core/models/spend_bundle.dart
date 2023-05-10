@@ -9,17 +9,46 @@ import 'package:meta/meta.dart';
 
 @immutable
 class SpendBundle with ToBytesMixin {
-  Bytes get id => toBytes().sha256Hash();
-
-  final List<CoinSpend> coinSpends;
-  final JacobianPoint? aggregatedSignature;
-
-  bool get isSigned => aggregatedSignature != null;
-
   SpendBundle({
     required this.coinSpends,
     this.aggregatedSignature,
   });
+
+  factory SpendBundle.fromBytes(Bytes bytes) {
+    final iterator = bytes.toList().iterator;
+
+    // length of list is encoded with 32 bits
+    final coinSpendsLengthBytes = iterator.extractBytesAndAdvance(4);
+    final coinSpendsLength = bytesToInt(coinSpendsLengthBytes, Endian.big);
+
+    final coinSpends = <CoinSpend>[];
+    for (var i = 0; i < coinSpendsLength; i++) {
+      coinSpends.add(CoinSpend.fromStream(iterator));
+    }
+
+    final signatureExists = iterator.moveNext();
+    if (!signatureExists) {
+      return SpendBundle(coinSpends: coinSpends);
+    }
+
+    final firstSignatureByte = iterator.current;
+    final restOfSignatureBytes = iterator.extractBytesAndAdvance(JacobianPoint.g2BytesLength - 1);
+
+    final signature = JacobianPoint.fromBytesG2(
+      [firstSignatureByte, ...restOfSignatureBytes],
+    );
+
+    return SpendBundle(coinSpends: coinSpends, aggregatedSignature: signature);
+  }
+
+  factory SpendBundle.fromHex(String hex) {
+    return SpendBundle.fromBytes(Bytes.fromHex(hex));
+  }
+  SpendBundle.fromJson(Map<String, dynamic> json)
+      : coinSpends = (json['coin_spends'] as Iterable)
+            .map((dynamic e) => CoinSpend.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        aggregatedSignature = JacobianPoint.fromHexG2(json['aggregated_signature'] as String);
 
   factory SpendBundle.aggregate(List<SpendBundle> bundles) {
     var totalBundle = SpendBundle.empty;
@@ -29,6 +58,12 @@ class SpendBundle with ToBytesMixin {
     }
     return totalBundle;
   }
+  Bytes get id => toBytes().sha256Hash();
+
+  final List<CoinSpend> coinSpends;
+  final JacobianPoint? aggregatedSignature;
+
+  bool get isSigned => aggregatedSignature != null;
 
   List<Program> get outputConditions {
     final conditions = <Program>[];
@@ -73,11 +108,6 @@ class SpendBundle with ToBytesMixin {
         'coin_spends': coinSpends.map((e) => e.toJson()).toList(),
         'aggregated_signature': aggregatedSignature?.toHex(),
       };
-  SpendBundle.fromJson(Map<String, dynamic> json)
-      : coinSpends = (json['coin_spends'] as Iterable)
-            .map((dynamic e) => CoinSpend.fromJson(e as Map<String, dynamic>))
-            .toList(),
-        aggregatedSignature = JacobianPoint.fromHexG2(json['aggregated_signature'] as String);
 
   SpendBundle operator +(SpendBundle other) {
     final signatures = <JacobianPoint>[];
@@ -162,37 +192,6 @@ class SpendBundle with ToBytesMixin {
   @override
   Bytes toBytes() {
     return serializeListChia(coinSpends) + Bytes(aggregatedSignature?.toBytes() ?? []);
-  }
-
-  factory SpendBundle.fromHex(String hex) {
-    return SpendBundle.fromBytes(Bytes.fromHex(hex));
-  }
-
-  factory SpendBundle.fromBytes(Bytes bytes) {
-    final iterator = bytes.toList().iterator;
-
-    // length of list is encoded with 32 bits
-    final coinSpendsLengthBytes = iterator.extractBytesAndAdvance(4);
-    final coinSpendsLength = bytesToInt(coinSpendsLengthBytes, Endian.big);
-
-    final coinSpends = <CoinSpend>[];
-    for (var i = 0; i < coinSpendsLength; i++) {
-      coinSpends.add(CoinSpend.fromStream(iterator));
-    }
-
-    final signatureExists = iterator.moveNext();
-    if (!signatureExists) {
-      return SpendBundle(coinSpends: coinSpends);
-    }
-
-    final firstSignatureByte = iterator.current;
-    final restOfSignatureBytes = iterator.extractBytesAndAdvance(JacobianPoint.g2BytesLength - 1);
-
-    final signature = JacobianPoint.fromBytesG2(
-      [firstSignatureByte, ...restOfSignatureBytes],
-    );
-
-    return SpendBundle(coinSpends: coinSpends, aggregatedSignature: signature);
   }
 
   void debug() {

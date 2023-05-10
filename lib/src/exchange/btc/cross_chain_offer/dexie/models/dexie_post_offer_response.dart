@@ -6,13 +6,6 @@ class DexiePostOfferResponse {
     this.offerJson,
     this.errorMessage,
   });
-
-  bool success;
-  String? id;
-  bool? known;
-  Map<String, dynamic>? offerJson;
-  String? errorMessage;
-
   factory DexiePostOfferResponse.fromJson(Map<String, dynamic> json) {
     String? id;
     if (json.containsKey('id')) {
@@ -36,4 +29,10 @@ class DexiePostOfferResponse {
       errorMessage: errorMessage,
     );
   }
+
+  bool success;
+  String? id;
+  bool? known;
+  Map<String, dynamic>? offerJson;
+  String? errorMessage;
 }

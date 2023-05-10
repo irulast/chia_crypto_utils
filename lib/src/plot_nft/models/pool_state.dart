@@ -15,45 +15,6 @@ class PoolState with ToBytesMixin {
     required this.relativeLockHeight,
   });
 
-  final int version;
-  final PoolSingletonState poolSingletonState;
-  final Puzzlehash targetPuzzlehash;
-  final JacobianPoint ownerPublicKey;
-  final String? poolUrl;
-  final int relativeLockHeight;
-
-  @override
-  Bytes toBytes() {
-    var bytes = <int>[];
-    bytes += intTo8Bits(version);
-    bytes += intTo8Bits(poolSingletonState.code);
-    bytes += targetPuzzlehash;
-    bytes += ownerPublicKey.toBytes();
-    if (poolUrl != null) {
-      bytes += [1, ...serializeItem(poolUrl)];
-    } else {
-      bytes += [0];
-    }
-    bytes += intTo32Bits(relativeLockHeight);
-    return Bytes(bytes);
-  }
-
-  factory PoolState.fromExtraDataProgram(Program extraDataProgram) {
-    final extraDataConsBoxes = extraDataProgram.toList().where(
-          (p) => String.fromCharCode(p.first().toInt()) == PlotNftExtraData.poolStateIdentifier,
-        );
-    if (extraDataConsBoxes.isEmpty || extraDataConsBoxes.length > 1) {
-      throw InvalidPlotNftException();
-    }
-    final poolStateConsBox = extraDataConsBoxes.single;
-    return PoolState.fromBytes(poolStateConsBox.rest().atom);
-  }
-
-  factory PoolState.fromBytes(Bytes bytes) {
-    final iterator = bytes.iterator;
-    return PoolState.fromStream(iterator);
-  }
-
   factory PoolState.fromStream(Iterator<int> iterator) {
     final versionBytes = iterator.extractBytesAndAdvance(1);
     final version = bytesToInt(versionBytes, Endian.big);
@@ -87,6 +48,45 @@ class PoolState with ToBytesMixin {
       poolUrl: poolUrl,
       relativeLockHeight: relativeLockHeight,
     );
+  }
+
+  factory PoolState.fromBytes(Bytes bytes) {
+    final iterator = bytes.iterator;
+    return PoolState.fromStream(iterator);
+  }
+
+  factory PoolState.fromExtraDataProgram(Program extraDataProgram) {
+    final extraDataConsBoxes = extraDataProgram.toList().where(
+          (p) => String.fromCharCode(p.first().toInt()) == PlotNftExtraData.poolStateIdentifier,
+        );
+    if (extraDataConsBoxes.isEmpty || extraDataConsBoxes.length > 1) {
+      throw InvalidPlotNftException();
+    }
+    final poolStateConsBox = extraDataConsBoxes.single;
+    return PoolState.fromBytes(poolStateConsBox.rest().atom);
+  }
+
+  final int version;
+  final PoolSingletonState poolSingletonState;
+  final Puzzlehash targetPuzzlehash;
+  final JacobianPoint ownerPublicKey;
+  final String? poolUrl;
+  final int relativeLockHeight;
+
+  @override
+  Bytes toBytes() {
+    var bytes = <int>[];
+    bytes += intTo8Bits(version);
+    bytes += intTo8Bits(poolSingletonState.code);
+    bytes += targetPuzzlehash;
+    bytes += ownerPublicKey.toBytes();
+    if (poolUrl != null) {
+      bytes += [1, ...serializeItem(poolUrl)];
+    } else {
+      bytes += [0];
+    }
+    bytes += intTo32Bits(relativeLockHeight);
+    return Bytes(bytes);
   }
 
   @override

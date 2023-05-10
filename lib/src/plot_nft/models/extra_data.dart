@@ -6,6 +6,19 @@ import 'package:chia_crypto_utils/src/plot_nft/models/exceptions/invalid_plot_nf
 class PlotNftExtraData with ToBytesMixin {
   PlotNftExtraData(this.poolState, this.delayTime, this.delayPuzzlehash);
 
+  factory PlotNftExtraData.fromStream(Iterator<int> iterator) {
+    final poolState = PoolState.fromStream(iterator);
+    final delayTime = bytesToInt(iterator.extractBytesAndAdvance(4), Endian.big);
+    final delayPuzzlehash = Puzzlehash.fromStream(iterator);
+
+    return PlotNftExtraData(poolState, delayTime, delayPuzzlehash);
+  }
+
+  factory PlotNftExtraData.fromBytes(Bytes bytes) {
+    final iterator = bytes.iterator;
+    return PlotNftExtraData.fromStream(iterator);
+  }
+
   factory PlotNftExtraData.fromProgram(Program extraDataProgram) {
     final poolState = PoolState.fromExtraDataProgram(extraDataProgram);
 
@@ -58,19 +71,6 @@ class PlotNftExtraData with ToBytesMixin {
   @override
   Bytes toBytes() {
     return poolState.toBytes() + intTo32Bits(delayTime) + delayPuzzlehash;
-  }
-
-  factory PlotNftExtraData.fromBytes(Bytes bytes) {
-    final iterator = bytes.iterator;
-    return PlotNftExtraData.fromStream(iterator);
-  }
-
-  factory PlotNftExtraData.fromStream(Iterator<int> iterator) {
-    final poolState = PoolState.fromStream(iterator);
-    final delayTime = bytesToInt(iterator.extractBytesAndAdvance(4), Endian.big);
-    final delayPuzzlehash = Puzzlehash.fromStream(iterator);
-
-    return PlotNftExtraData(poolState, delayTime, delayPuzzlehash);
   }
 
   @override

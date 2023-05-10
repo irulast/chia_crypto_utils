@@ -16,22 +16,24 @@ class Puzzlehash extends Bytes {
     }
   }
 
-  static Puzzlehash? maybe(List<int>? maybeBytesList) {
-    if (maybeBytesList == null) return null;
-    return Puzzlehash(maybeBytesList);
+  Puzzlehash.zeros() : super(List.filled(bytesLength, 0));
+
+  factory Puzzlehash.fromStream(Iterator<int> iterator) {
+    return Puzzlehash(iterator.extractBytesAndAdvance(bytesLength));
   }
 
   factory Puzzlehash.fromHex(String phHex) {
     return Puzzlehash(Bytes.fromHex(phHex));
   }
 
+  static Puzzlehash? maybe(List<int>? maybeBytesList) {
+    if (maybeBytesList == null) return null;
+    return Puzzlehash(maybeBytesList);
+  }
+
   static Puzzlehash? maybeFromHex(String? phHex) {
     if (phHex == null) return null;
     return Puzzlehash(Bytes.fromHex(phHex));
-  }
-
-  factory Puzzlehash.fromStream(Iterator<int> iterator) {
-    return Puzzlehash(iterator.extractBytesAndAdvance(bytesLength));
   }
 
   static Puzzlehash? maybeFromStream(Iterator<int> iterator) {
@@ -45,24 +47,39 @@ class Puzzlehash extends Bytes {
   Address toAddress(String ticker) => Address.fromPuzzlehash(this, ticker);
   Address toAddressWithContext() => Address.fromContext(this);
 
-  Puzzlehash.zeros() : super(List.filled(bytesLength, 0));
-
   static const bytesLength = 32;
   static const hexLength = 64;
 }
 
 class Bytes extends Comparable<Bytes> with ToBytesMixin, ToProgramMixin implements List<int> {
-  final Uint8List _byteList;
   Bytes(List<int> bytesList) : _byteList = Uint8List.fromList(bytesList);
 
-  factory Bytes.zeros(int size) {
-    return Bytes(List.generate(size, (index) => 0));
+  factory Bytes.fromHex(String hex) {
+    if (hex.startsWith(bytesPrefix)) {
+      return Bytes(
+        const HexDecoder().convert(hex.replaceFirst(bytesPrefix, '')),
+      );
+    }
+    return Bytes(const HexDecoder().convert(hex));
+  }
+
+  Bytes.encodeFromString(String text) : _byteList = Uint8List.fromList(utf8.encode(text));
+
+  factory Bytes.fromStream(Iterator<int> iterator) {
+    final lengthBytes = iterator.extractBytesAndAdvance(4);
+    final length = bytesToInt(lengthBytes, Endian.big);
+    return iterator.extractBytesAndAdvance(length);
   }
 
   factory Bytes.random(int size) {
     final random = Random();
     return Bytes(List.generate(size, (index) => random.nextInt(256)));
   }
+
+  factory Bytes.zeros(int size) {
+    return Bytes(List.generate(size, (index) => 0));
+  }
+  final Uint8List _byteList;
 
   static Bytes? maybe(List<int>? maybeBytesList) {
     if (maybeBytesList == null) return null;
@@ -87,23 +104,6 @@ class Bytes extends Comparable<Bytes> with ToBytesMixin, ToProgramMixin implemen
   static Bytes get empty => Bytes([]);
 
   Uint8List get byteList => _byteList;
-
-  factory Bytes.fromStream(Iterator<int> iterator) {
-    final lengthBytes = iterator.extractBytesAndAdvance(4);
-    final length = bytesToInt(lengthBytes, Endian.big);
-    return iterator.extractBytesAndAdvance(length);
-  }
-
-  Bytes.encodeFromString(String text) : _byteList = Uint8List.fromList(utf8.encode(text));
-
-  factory Bytes.fromHex(String hex) {
-    if (hex.startsWith(bytesPrefix)) {
-      return Bytes(
-        const HexDecoder().convert(hex.replaceFirst(bytesPrefix, '')),
-      );
-    }
-    return Bytes(const HexDecoder().convert(hex));
-  }
 
   @override
   bool operator ==(Object other) => other is Bytes && other.toHex() == toHex();
