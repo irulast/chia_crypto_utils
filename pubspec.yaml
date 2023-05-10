@@ -17,12 +17,12 @@ dependencies:
   bs58: ^1.0.2
   compute: ^1.0.2
   crypto: ^3.0.1
-  deep_pick: ^0.10.0
+  deep_pick: ^1.0.0
   get_it: ^7.2.0
   hex: ^0.2.0
   http: ^0.13.4
   injector: ^2.0.0
-  intl: ^0.17.0
+  intl: ^0.18.0
   meta: ^1.7.0
   path: ^1.8.1
   quiver: ^3.0.1+1

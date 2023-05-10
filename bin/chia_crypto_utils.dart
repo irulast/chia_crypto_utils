@@ -47,14 +47,18 @@ Future<void> main(List<String> args) async {
 
   // construct the Chia full node interface
   var fullNodeUrl = results['full-node-url'] as String;
-  if (fullNodeUrl.endsWith('/')) fullNodeUrl = fullNodeUrl.substring(0, fullNodeUrl.length - 1);
+  if (fullNodeUrl.endsWith('/')) {
+    fullNodeUrl = fullNodeUrl.substring(0, fullNodeUrl.length - 1);
+  }
 
   final certBytesPath = results['cert-path'] as String;
   final keyBytesPath = results['key-path'] as String;
 
   if ((certBytesPath.isEmpty && keyBytesPath.isNotEmpty) ||
       (certBytesPath.isNotEmpty && keyBytesPath.isEmpty)) {
-    print('\nTo use options cert-path and key-path both parameters must be provided.');
+    print(
+      '\nTo use options cert-path and key-path both parameters must be provided.',
+    );
   } else if (certBytesPath.isNotEmpty && keyBytesPath.isNotEmpty) {
     try {
       fullNode = ChiaFullNodeInterface.fromURL(
@@ -63,9 +67,13 @@ Future<void> main(List<String> args) async {
         keyBytes: Bytes(File(keyBytesPath).readAsBytesSync()),
       );
     } catch (e) {
-      print('\nThere is a problem with the full node information you provided. Please try again.');
+      print(
+        '\nThere is a problem with the full node information you provided. Please try again.',
+      );
       print('\nThe full node should be in the form https://<SERVER_NAME>.\n');
-      print('\nex: When using a locally synced full node you can specify https://localhost:8555');
+      print(
+        '\nex: When using a locally synced full node you can specify https://localhost:8555',
+      );
       exit(126);
     }
   } else {
@@ -75,7 +83,9 @@ Future<void> main(List<String> args) async {
   try {
     await fullNode.getBlockchainState();
   } catch (e) {
-    print("\nCouldn't verify full node running at URL you provided. Please try again.");
+    print(
+      "\nCouldn't verify full node running at URL you provided. Please try again.",
+    );
     exit(126);
   }
 
@@ -197,8 +207,10 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
     );
 
     if (faucetRequestURL.isNotEmpty && faucetRequestPayload.isNotEmpty) {
-      final theFaucetRequestPayload =
-          faucetRequestPayload.replaceAll(RegExp('SEND_TO_ADDRESS'), coinAddress.address);
+      final theFaucetRequestPayload = faucetRequestPayload.replaceAll(
+        RegExp('SEND_TO_ADDRESS'),
+        coinAddress.address,
+      );
 
       final result = await Process.run('curl', [
         '-s',
@@ -349,7 +361,9 @@ class CrossChainOfferExchangeCommand extends Command<Future<void>> {
 
   @override
   Future<void> run() async {
-    print('\nAre you making a new cross chain offer, accepting an existing one, or');
+    print(
+      '\nAre you making a new cross chain offer, accepting an existing one, or',
+    );
     print('continuing an ongoing exchange?');
     print('\n1. Making cross chain offer');
     print('2. Accepting cross chain offer');
