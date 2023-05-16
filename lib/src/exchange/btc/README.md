@@ -10,17 +10,30 @@ To better understand submarine swaps the following are helpful documentation:
 The original protocol and implementation for Chiaswap can be found [here](https://github.com/richardkiss/chiaswap). The Chia Crypto Utils implementation allows Chiaswap exchanges to take place asynchronously using a mechanism similar to a Chia offer file. 
 
 ## Prerequisites
-You will need the [Evergreen Mobile](https://evergreenminer.com/) and [Muun](https://muun.com/) apps to participate in an exchange. Evergreen Mobile will be used to make and take offers and transfer XCH, and Muun will be used to create and pay the BTC lightning payment request. 
+You will need the Evergreen Mobile app and a Lightning wallet app that supports preimage reveal in order to participate in an exchange. Evergreen Mobile will be used to make and take offers and transfer XCH, and the Lightning wallet app will be used to create and pay the BTC lightning payment request. 
 
-### Evergreen Mobile
+### [Evergreen Mobile](https://evergreenminer.com/)
 iOS - https://apps.apple.com/us/app/evergreen-mobile/id1623296568
 
 Android - https://play.google.com/store/apps/details?id=com.evergreenminer.evergreen
 
-### Muun
+### Compatible Lightning Wallets
+### [Muun](https://muun.com/)
+
+
 iOS - https://apps.apple.com/us/app/muun-wallet/id1482037683
 
 Android - https://play.google.com/store/apps/details?id=io.muun.apollo
+
+### [BlueWallet](https://bluewallet.io/)
+iOS - https://apps.apple.com/us/app/bluewallet-bitcoin-wallet/id1376878040 
+
+Android - https://play.google.com/store/apps/details?id=io.bluewallet.bluewallet 
+
+### [Zeus](https://zeusln.app/)
+iOS - https://apps.apple.com/us/app/zeus-ln/id1456038895 
+
+Android - https://play.google.com/store/apps/details?id=app.zeusln.zeus 
 
 ## Making an Offer
 The maker of an offer needs a keychain and enough XCH to cover the cost of initalizing the offer (3 mojos + mojos for the fee). The maker will input the following values to create the Cross Chain Offer File: 
@@ -48,6 +61,8 @@ After the message coin is accepted, the escrow address is generated on both the 
 
 1. The BTC holder may sweep XCH from the escrow puzzlehash if they provide the preimage receipt, which is revealed only after a lightning payment request is paid, transferring BTC to the XCH holder. This is how the exchange is completed.
 2. If the exchange validity time has passed and the XCH at the escrow puzzlehash has not yet been spent by the BTC holder, the XCH holder may claw the funds back using their private key. This is how the exchange is aborted in the event that the BTC holder decides not to hold up their end of the exchange after the escrow transfer. 
+
+This works in a similar fashion as [Hash Time-Locked Contracts](https://github.com/lnbook/lnbook/blob/develop/08_routing_htlcs.asciidoc#hash-time-locked-contracts) on the Bitcoin blockchain. 
 
 ## Chiaswap Flowchart 
 ![chiaswap flowchart](./exchange_offer_flow_chart.png)
