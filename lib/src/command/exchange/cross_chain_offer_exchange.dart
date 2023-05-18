@@ -143,7 +143,7 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   final coinAddress = Address.fromContext(coinPuzzlehash);
 
   print(
-    'Please send $amountToSend to the following address. These funds will be used to cover the transactions',
+    '\nPlease send $amountToSend to the following address. These funds will be used to cover the transactions',
   );
   print(
     'that make up the exchange. You can use the mnemonic found in the log file to claim any XCH leftover',
@@ -491,7 +491,7 @@ Future<void> takeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   final messagePuzzlehash = messageAddress.toPuzzlehash();
 
   print(
-    'Please send $amountToSend to the following address. These funds will be used to cover the transactions',
+    '\nPlease send $amountToSend to the following address. These funds will be used to cover the transactions',
   );
   print(
     'that make up the exchange. You can use the mnemonic found in the log file to claim any XCH leftover',
@@ -836,7 +836,7 @@ Future<List<Coin>> waitForUserToSendXch(Puzzlehash targetPuzzlehash, int amount)
   var coins = <Coin>[];
 
   while (coins.totalValue < amount) {
-    print('Waiting for coin...');
+    print('Waiting for XCH...');
     await Future<void>.delayed(const Duration(seconds: 10));
 
     if (transactionValidated == false) {

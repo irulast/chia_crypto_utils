@@ -349,10 +349,9 @@ class CrossChainOfferExchangeCommand extends Command<Future<void>> {
 
   @override
   Future<void> run() async {
-    print('\nAre you making a new cross chain offer, accepting an existing one, or');
-    print('continuing an ongoing exchange?');
-    print('\n1. Making cross chain offer');
-    print('2. Taking cross chain offer');
+    print('\nAre you making a new cross chain offer or taking an existing offer?');
+    print('\n1. Making offer');
+    print('2. Taking offer');
 
     String? choice;
     while (choice != '1' && choice != '2') {
