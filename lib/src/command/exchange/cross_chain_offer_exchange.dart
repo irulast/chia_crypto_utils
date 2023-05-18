@@ -148,7 +148,7 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   print(
     'that make up the exchange. You can use the mnemonic found in the log file to claim any XCH leftover',
   );
-  print('at the end of the exchange');
+  print('at the end of the exchange or in the event that the program closes prematurely.');
   print(coinAddress.address);
 
   final coinsForInitialization = await waitForUserToSendXch(coinPuzzlehash, amountToSend);
@@ -496,7 +496,7 @@ Future<void> takeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   print(
     'that make up the exchange. You can use the mnemonic found in the log file to claim any XCH leftover',
   );
-  print('at the end of the exchange');
+  print('at the end of the exchange or in the event that the program closes prematurely.');
   print(coinAddress.address);
 
   final coinsForMessageCoin =
