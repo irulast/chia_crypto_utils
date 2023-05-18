@@ -3,7 +3,7 @@ import 'package:compute/compute.dart';
 
 class BtcToXchTakerOfferFile implements TakerCrossChainOfferFile {
   BtcToXchTakerOfferFile({
-    this.initializationCoinId,
+    required this.initializationCoinId,
     required this.validityTime,
     required this.publicKey,
     required this.acceptedOfferHash,
@@ -24,7 +24,7 @@ class BtcToXchTakerOfferFile implements TakerCrossChainOfferFile {
 
   factory BtcToXchTakerOfferFile.fromJson(Map<String, dynamic> json) {
     return BtcToXchTakerOfferFile(
-      initializationCoinId: (json['initialization_coin_id'] as String?)?.hexToBytes(),
+      initializationCoinId: (json['initialization_coin_id'] as String).hexToBytes(),
       validityTime: json['validity_time'] as int,
       publicKey: JacobianPoint.fromHexG1(json['public_key'] as String),
       acceptedOfferHash: (json['accepted_offer_hash'] as String).hexToBytes(),
@@ -32,7 +32,7 @@ class BtcToXchTakerOfferFile implements TakerCrossChainOfferFile {
   }
 
   @override
-  final Bytes? initializationCoinId;
+  final Bytes initializationCoinId;
   @override
   final int validityTime;
   @override
@@ -44,7 +44,7 @@ class BtcToXchTakerOfferFile implements TakerCrossChainOfferFile {
 
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'initialization_coin_id': initializationCoinId?.toHex(),
+        'initialization_coin_id': initializationCoinId.toHex(),
         'validity_time': validityTime,
         'public_key': publicKey.toHex(),
         'accepted_offer_hash': acceptedOfferHash.toHex(),
@@ -70,37 +70,6 @@ class BtcToXchTakerOfferFile implements TakerCrossChainOfferFile {
         await compute(BtcToXchTakerOfferFile._fromSerializedOfferFileTask, serializedOfferFile);
 
     return result;
-  }
-
-  @override
-  CrossChainOfferExchangeInfo getExchangeInfo(
-    CrossChainOfferFile offerFile,
-    PrivateKey requestorPrivateKey,
-  ) {
-    final xchToBtcOfferFile = offerFile as XchToBtcMakerOfferFile;
-
-    final amountMojos = xchToBtcOfferFile.offeredAmount.amount;
-    final amountSatoshis = xchToBtcOfferFile.requestedAmount.amount;
-    final paymentRequest = xchToBtcOfferFile.lightningPaymentRequest;
-    final paymentHash = paymentRequest.tags.paymentHash!;
-    final fulfillerPublicKey = xchToBtcOfferFile.publicKey;
-
-    final escrowPuzzlehash = BtcToXchService.generateEscrowPuzzlehash(
-      requestorPrivateKey: requestorPrivateKey,
-      clawbackDelaySeconds: validityTime,
-      sweepPaymentHash: paymentHash,
-      fulfillerPublicKey: fulfillerPublicKey,
-    );
-
-    return CrossChainOfferExchangeInfo(
-      requestorPublicKey: requestorPrivateKey.getG1(),
-      fulfillerPublicKey: fulfillerPublicKey,
-      amountMojos: amountMojos,
-      amountSatoshis: amountSatoshis,
-      validityTime: validityTime,
-      escrowPuzzlehash: escrowPuzzlehash,
-      paymentRequest: paymentRequest,
-    );
   }
 
   @override

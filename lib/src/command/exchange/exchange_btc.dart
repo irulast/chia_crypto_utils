@@ -179,7 +179,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
   } else {
     print('\nEnter the address where the XCH will be returned in the event the exchange');
     print('is aborted or fails.');
-    clawbackPuzzlehash = getRequestorPuzzlehash();
+    clawbackPuzzlehash = getUserPuzzlehash();
     await updateLogFile(clawbackPuzzlehash.toHex());
   }
 
@@ -384,7 +384,7 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
     sweepPuzzlehash = Puzzlehash.fromHex(logList[7]);
   } else {
     print('\nEnter the address where you would like the XCH delivered.');
-    sweepPuzzlehash = getRequestorPuzzlehash();
+    sweepPuzzlehash = getUserPuzzlehash();
     await updateLogFile(sweepPuzzlehash.toHex());
   }
 
@@ -665,7 +665,7 @@ Future<Bytes> getPaymentHash() async {
   }
 }
 
-Puzzlehash getRequestorPuzzlehash() {
+Puzzlehash getUserPuzzlehash() {
   // get puzzlehash where user would like to receive XCH at
   while (true) {
     stdout.write('> ');

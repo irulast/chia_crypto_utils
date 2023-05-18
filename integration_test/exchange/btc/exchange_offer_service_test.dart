@@ -21,7 +21,7 @@ Future<void> main() async {
   final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
 
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
-  final crossChainOfferService = CrossChainOfferService(fullNodeSimulator);
+  final crossChainOfferFileService = CrossChainOfferFileService();
   final exchangeOfferService = ExchangeOfferService(fullNodeSimulator);
 
   // constants
@@ -80,7 +80,8 @@ Future<void> main() async {
     final currentUnixTimeStamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     offerValidityTime = currentUnixTimeStamp + (offerValidityTimeHours * 60 * 60);
 
-    final offerFile = crossChainOfferService.createXchToBtcOfferFile(
+    final offerFile = crossChainOfferFileService.createXchToBtcMakerOfferFile(
+      initializationCoinId: initializationCoin.id,
       amountMojos: mojos,
       amountSatoshis: satoshis,
       messageAddress: messageAddress,
@@ -128,8 +129,9 @@ Future<void> main() async {
     takerPrivateKey = takerWalletVector.childPrivateKey;
     takerPublicKey = takerWalletVector.childPublicKey;
 
-    final offerAcceptFile = crossChainOfferService.createBtcToXchAcceptFile(
-      serializedOfferFile: serializedOfferFile,
+    final offerAcceptFile = crossChainOfferFileService.createBtcToXchTakerOfferFile(
+      initializationCoinId: initializationCoin.id,
+      serializedMakerOfferFile: serializedOfferFile,
       validityTime: exchangeValidityTime,
       requestorPublicKey: takerPublicKey,
     );
@@ -751,8 +753,9 @@ Future<void> main() async {
   });
 
   test('should not get message coin info for coin with wrong offer file type', () async {
-    final xchToBtcOfferAcceptFile = crossChainOfferService.createXchToBtcAcceptFile(
-      serializedOfferFile: serializedOfferFile,
+    final xchToBtcOfferAcceptFile = crossChainOfferFileService.createXchToBtcTakerOfferFile(
+      initializationCoinId: initializationCoin.id,
+      serializedMakerOfferFile: serializedOfferFile,
       validityTime: exchangeValidityTime,
       requestorPublicKey: takerPublicKey,
       paymentRequest: decodedPaymentRequest,
