@@ -5,6 +5,7 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
 
 late final ChiaFullNodeInterface fullNode;
+late final File logFile;
 final xchToBtcService = XchToBtcService();
 final btcToXchService = BtcToXchService();
 final crossChainOfferService = CrossChainOfferFileService();
@@ -181,7 +182,16 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
 
   final serializedOfferFile = offerFile.serialize(requestorPrivateKey);
 
-  await exchangeOfferService.pushInitializationSpendBundle(
+  print('\nBelow is your serialized offer file.');
+  print(serializedOfferFile);
+
+  logFile = await generateLogFile(
+    mnemonicSeed: keychainCoreSecret.mnemonicString,
+    requestorPrivateKey: requestorPrivateKey,
+    serializedOfferFile: serializedOfferFile,
+  );
+
+  final initializationSpendBundle = exchangeOfferWalletService.createInitializationSpendBundle(
     messagePuzzlehash: messagePuzzlehash,
     coinsInput: coinsForInitialization,
     initializationCoinId: initializationCoinId,
@@ -192,16 +202,15 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
     fee: 50,
   );
 
-  await waitForInitializationToComplete(messagePuzzlehash, initializationCoinId);
+  await fullNode.pushTransaction(initializationSpendBundle);
 
-  print('\nBelow is your serialized offer file.');
-  print(serializedOfferFile);
-
-  await generateLogFile(
-    keychainCoreSecret.mnemonicString,
-    requestorPrivateKey,
-    serializedOfferFile,
+  await writeToLogFile(
+    logFile,
+    'Initialization Spend Bundle',
+    initializationSpendBundle.toJson().toString(),
   );
+
+  await waitForInitializationToComplete(messagePuzzlehash, initializationCoinId);
 
   print('\nSend serialized offer file to Dexie? Y/N');
 
@@ -243,7 +252,8 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
     }
 
     final messageCoin = messageCoinInfo.messageCoin;
-    final messageCoinChild = (await fullNode.getSingleChildCoinFromCoin(messageCoin))!.id;
+    final messageCoinChild = await fullNode.getSingleChildCoinFromCoin(messageCoin);
+    final messageCoinChildId = messageCoinChild!.id;
 
     print('\nA message has arrived!');
     print('\nValidity Time: ${messageCoinInfo.exchangeValidityTime}');
@@ -264,19 +274,30 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
       stdout.write('> ');
       messageCoinDecision = stdin.readLineSync()!.trim().toLowerCase();
       if (messageCoinDecision.startsWith('y')) {
-        await exchangeOfferService.acceptMessageCoin(
+        await writeToLogFile(
+          logFile,
+          'Taker Offer File',
+          messageCoinInfo!.serializedOfferAcceptFile,
+        );
+
+        final messageCoinAcceptanceSpendBundle =
+            exchangeOfferWalletService.createMessageCoinAcceptanceSpendBundle(
           initializationCoinId: initializationCoinId,
-          messageCoin: messageCoin,
-          masterPrivateKey: masterPrivateKey,
-          derivationIndex: derivationIndex,
-          serializedOfferFile: serializedOfferFile,
+          messageCoinChild: messageCoinChild,
           targetPuzzlehash: requestorPuzzlehash,
-          changePuzzlehash: requestorPuzzlehash,
-          fee: 50,
+          walletVector: walletVector,
+        );
+
+        await fullNode.pushTransaction(messageCoinAcceptanceSpendBundle);
+
+        await writeToLogFile(
+          logFile,
+          'Message Coin Acceptance Spend Bundle',
+          initializationSpendBundle.toJson().toString(),
         );
 
         await waitForTransactionToComplete(
-          coinBeingSpentId: messageCoinChild,
+          coinBeingSpentId: messageCoinChildId,
           startMessage: 'Accepting message coin...',
           waitingMessage: 'Waiting for transaction to complete...',
           completionMessage: 'Message coin acceptance transaction complete!',
@@ -295,7 +316,7 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
         );
 
         await waitForTransactionToComplete(
-          coinBeingSpentId: messageCoin.id,
+          coinBeingSpentId: messageCoinChildId,
           startMessage: 'Declining message coin...',
           waitingMessage: 'Waiting for transaction to complete...',
           completionMessage: 'Message coin acceptance transaction complete!',
@@ -350,7 +371,7 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   }
 }
 
-Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
+Future<void> takeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   fullNode = fullNodeFromUrl;
 
   final keychainCoreSecret = KeychainCoreSecret.generate();
@@ -419,7 +440,6 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
   TakerCrossChainOfferFile? takerOfferFile;
   ExchangeType exchangeType;
   LightningPaymentRequest? requestorPaymentRequest;
-
   if (makerOfferFile.exchangeType == ExchangeType.btcToXch) {
     print(
       '\nCreate a lightning payment request for $satoshis satoshis and paste it here:',
@@ -454,11 +474,11 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
 
   final serializedTakerOfferFile = takerOfferFile.serialize(requestorPrivateKey);
 
-  await generateLogFile(
-    keychainCoreSecret.mnemonicString,
-    requestorPrivateKey,
-    serializedOfferFile,
-    serializedTakerOfferFile,
+  logFile = await generateLogFile(
+    mnemonicSeed: keychainCoreSecret.mnemonicString,
+    requestorPrivateKey: requestorPrivateKey,
+    serializedOfferFile: serializedOfferFile,
+    serializedTakerOfferFile: serializedTakerOfferFile,
   );
 
   // ask for enough XCH for the exchange from user to cover message coin send, escrow transfer (in case of XCH holder)
@@ -492,7 +512,13 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
     changePuzzlehash: requestorPuzzlehash,
   );
 
-  print('\nSending coin with memo to message address...\n');
+  await fullNode.pushTransaction(messageSpendBundle);
+
+  await writeToLogFile(
+    logFile,
+    'Message Spend Bundle',
+    messageSpendBundle.toJson().toString(),
+  );
 
   final messageCoinId = messageSpendBundle.coinSpends
       .where(
@@ -553,148 +579,6 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
         requestorPrivateKey: requestorPrivateKey,
       );
       break;
-  }
-}
-
-Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNodeFromUrl) async {
-  fullNode = fullNodeFromUrl;
-  print('\nPlease paste in the original cross chain offer file:');
-  String? serializedOfferFile;
-  MakerCrossChainOfferFile? makerOfferFile;
-  while (makerOfferFile == null) {
-    stdout.write('> ');
-    try {
-      stdin.lineMode = false;
-      serializedOfferFile = stdin.readLineSync()!.trim();
-      stdin.lineMode = true;
-
-      makerOfferFile = MakerCrossChainOfferFile.fromSerializedOfferFile(serializedOfferFile);
-    } catch (e) {
-      if (serializedOfferFile!.startsWith('ccoffer_accept')) {
-        print(
-          "Wrong offer file type. The prefix should be 'ccoffer,' not 'ccoffer_accept.'",
-        );
-        print('\nPlease enter a valid cross chain offer file:');
-      } else {
-        print('\nPlease enter a valid cross chain offer file:');
-      }
-    }
-  }
-
-  try {
-    CrossChainOfferFileService.checkValidity(makerOfferFile);
-  } catch (e) {
-    print('\nThis cross chain offer has expired. Try again with a still valid offer.');
-    exit(exitCode);
-  }
-
-  print('\nPlease paste in the cross chain offer accept file:');
-  TakerCrossChainOfferFile? takerOfferFile;
-  String? serializedOfferAcceptFile;
-  while (takerOfferFile == null) {
-    stdout.write('> ');
-    try {
-      stdin.lineMode = false;
-      serializedOfferAcceptFile = stdin.readLineSync()!.trim();
-      stdin.lineMode = true;
-
-      takerOfferFile = TakerCrossChainOfferFile.fromSerializedOfferFile(serializedOfferAcceptFile);
-    } catch (e) {
-      if (serializedOfferFile!.startsWith('ccoffer') &&
-          !serializedOfferFile.startsWith('ccoffer_accept')) {
-        print(
-          "Wrong offer file type. The prefix should be 'ccoffer_accept,' not 'ccoffer.'",
-        );
-        print('\nPlease enter a valid cross chain offer accept file:');
-      } else {
-        print('\nPlease enter a valid cross chain offer accept file:');
-      }
-    }
-  }
-
-  final initializationCoinId = makerOfferFile.initializationCoinId;
-  final mojos = makerOfferFile.mojos;
-  final exchangeValidityTime = takerOfferFile.validityTime;
-  final lightningPaymentRequest =
-      (makerOfferFile.lightningPaymentRequest ?? takerOfferFile.lightningPaymentRequest)!;
-  final paymentHash = lightningPaymentRequest.paymentHash!;
-
-  print('\nPlease paste in the private key you used for this exchange:');
-  PrivateKey? requestorPrivateKey;
-  while (requestorPrivateKey == null) {
-    stdout.write('> ');
-    try {
-      final privateKeyInput = PrivateKey.fromHex(stdin.readLineSync()!.trim());
-      if (makerOfferFile.publicKey == privateKeyInput.getG1()) {
-        // user is maker
-        requestorPrivateKey = privateKeyInput;
-        final fulfillerPublicKey = takerOfferFile.publicKey;
-
-        final escrowPuzzlehash = makerOfferFile.getEscrowPuzzlehash(
-          requestorPrivateKey: requestorPrivateKey,
-          clawbackDelaySeconds: exchangeValidityTime,
-          sweepPaymentHash: paymentHash,
-          fulfillerPublicKey: fulfillerPublicKey,
-        );
-
-        if (makerOfferFile.type == CrossChainOfferFileType.xchToBtc) {
-          await completeXchToBtcExchange(
-            mojos: mojos,
-            exchangeValidityTime: exchangeValidityTime,
-            escrowPuzzlehash: escrowPuzzlehash,
-            initializationCoinId: initializationCoinId,
-            paymentHash: paymentHash,
-            fulfillerPublicKey: fulfillerPublicKey,
-            requestorPrivateKey: requestorPrivateKey,
-          );
-        } else {
-          await completeBtcToXchExchange(
-            mojos: mojos,
-            exchangeValidityTime: exchangeValidityTime,
-            escrowPuzzlehash: escrowPuzzlehash,
-            initializationCoinId: initializationCoinId,
-            lightningPaymentRequest: lightningPaymentRequest,
-            fulfillerPublicKey: fulfillerPublicKey,
-            requestorPrivateKey: requestorPrivateKey,
-          );
-        }
-      } else if (takerOfferFile.publicKey == privateKeyInput.getG1()) {
-        // user is taker
-        requestorPrivateKey = privateKeyInput;
-        final fulfillerPublicKey = makerOfferFile.publicKey;
-
-        final escrowPuzzlehash = takerOfferFile.getEscrowPuzzlehash(
-          requestorPrivateKey: requestorPrivateKey,
-          clawbackDelaySeconds: exchangeValidityTime,
-          sweepPaymentHash: paymentHash,
-          fulfillerPublicKey: fulfillerPublicKey,
-        );
-
-        if (takerOfferFile.type == CrossChainOfferFileType.xchToBtcAccept) {
-          await completeXchToBtcExchange(
-            mojos: mojos,
-            exchangeValidityTime: exchangeValidityTime,
-            escrowPuzzlehash: escrowPuzzlehash,
-            initializationCoinId: initializationCoinId,
-            paymentHash: paymentHash,
-            fulfillerPublicKey: fulfillerPublicKey,
-            requestorPrivateKey: requestorPrivateKey,
-          );
-        } else {
-          await completeBtcToXchExchange(
-            mojos: mojos,
-            exchangeValidityTime: exchangeValidityTime,
-            escrowPuzzlehash: escrowPuzzlehash,
-            initializationCoinId: initializationCoinId,
-            lightningPaymentRequest: lightningPaymentRequest,
-            fulfillerPublicKey: fulfillerPublicKey,
-            requestorPrivateKey: requestorPrivateKey,
-          );
-        }
-      }
-    } catch (e) {
-      print('\nInvalid key. Please try again:');
-    }
   }
 }
 
@@ -815,8 +699,9 @@ Future<void> completeBtcToXchExchange({
     fulfillerPublicKey: fulfillerPublicKey,
   );
 
+  await writeToLogFile(logFile, 'Sweep Spend Bundle', sweepSpendBundle.toJson().toString());
+
   print('\nPushing spend bundle to sweep XCH to your address...');
-  await generateSpendBundleFile(sweepSpendBundle);
   try {
     await fullNode.pushTransaction(sweepSpendBundle);
     await verifyTransaction(escrowCoins, sweepPuzzlehash, fullNode);
@@ -854,6 +739,8 @@ Future<void> completeXchToBtcExchange({
     fulfillerPublicKey: fulfillerPublicKey,
   );
 
+  await writeToLogFile(logFile, 'Clawback Spend Bundle', clawbackSpendBundle.toJson().toString());
+
   final validityTimeMinutes = exchangeValidityTime ~/ 60;
 
   print('\nOnce your counter party has paid the lightning invoice you may safely exit the');
@@ -862,23 +749,54 @@ Future<void> completeXchToBtcExchange({
   print('\nIf your counter party does not pay the lightning invoice, you may claw back');
   print('your XCH after $validityTimeMinutes minutes.');
 
-  await confirmClawback(
-    clawbackSpendBundle: clawbackSpendBundle,
-    clawbackDelayMinutes: validityTimeMinutes,
-    escrowCoins: escrowCoins,
-    clawbackPuzzlehash: clawbackPuzzlehash,
-    fullNode: fullNode,
-  );
+  print("\nIf $validityTimeMinutes minutes haven't passed, the spend bundle will be rejected.");
+  print('Proceed? Y/N');
+
+  var confirmation = '';
+  while (!confirmation.startsWith('y')) {
+    stdout.write('> ');
+    confirmation = stdin.readLineSync()!.trim().toLowerCase();
+    if (confirmation.toLowerCase().startsWith('y')) {
+      print('\nPushing spend bundle to claw back XCH to your address...');
+
+      try {
+        await fullNode.pushTransaction(clawbackSpendBundle);
+        await verifyTransaction(escrowCoins, clawbackPuzzlehash, fullNode);
+      } catch (e) {
+        print('\nTRANSACTION FAILED. The spend bundle was rejected. If the clawback delay');
+        print("period hasn't passed yet, keep waiting and manually push the transaction");
+        print(
+          'using spend bundle in log file with the following command:',
+        );
+        print('https://docs.chia.net/full-node-rpc/#push_tx');
+        print(
+          'If it has, your counterparty may have already claimed funds from the escrow address.',
+        );
+      }
+    } else if (confirmation.startsWith('n')) {
+      print(
+        '\nOnce $validityTimeMinutes minutes have passed, you may reclaim the XCH either by responding',
+      );
+      print(
+        "with 'Y' here or by manually pushing the spend bundle using the spend bundle found in",
+      );
+      print('the log file.');
+      await Future<void>.delayed(const Duration(seconds: 2));
+      print(
+        '\nHave $validityTimeMinutes minutes passed? If so, push spend bundle to claw back funds?',
+      );
+    } else {
+      print('\nNot a valid choice.');
+    }
+  }
 }
 
-Future<void> generateLogFile(
-  String mnemonicSeed,
-  PrivateKey requestorPrivateKey,
-  String serializedOfferFile, [
-  String? serializedOfferAcceptFile,
-]) async {
-  // note that log file can only be used to restore an exchange after message coin has been accepted
-
+Future<File> generateLogFile({
+  required String mnemonicSeed,
+  required PrivateKey requestorPrivateKey,
+  required String serializedOfferFile,
+  String? serializedTakerOfferFile,
+}) async {
   final logFile = File('exchange-log-${DateTime.now().toString().replaceAll(' ', '-')}.txt')
     ..createSync(recursive: true)
     ..writeAsStringSync('Mnemonic Seed:\n$mnemonicSeed', mode: FileMode.append)
@@ -888,7 +806,7 @@ Future<void> generateLogFile(
     )
     ..writeAsStringSync('\n\nOffer File:\n$serializedOfferFile', mode: FileMode.append);
 
-  if (serializedOfferAcceptFile == null) {
+  if (serializedTakerOfferFile == null) {
     print(
       '\nPrinting generated mnemonic, exchange private key, and serialized offer file to log file...',
     );
@@ -898,10 +816,16 @@ Future<void> generateLogFile(
     );
     print('files to log file...');
     logFile.writeAsStringSync(
-      '\n\nOffer Accept File:\n$serializedOfferAcceptFile',
+      '\n\nTaker Offer File:\n$serializedTakerOfferFile',
       mode: FileMode.append,
     );
   }
+
+  return logFile;
+}
+
+Future<void> writeToLogFile(File logFile, String label, String content) async {
+  await logFile.writeAsString('\n\n$label:\n$content', mode: FileMode.append);
 }
 
 Future<List<Coin>> waitForUserToSendXch(Puzzlehash targetPuzzlehash, int amount) async {
