@@ -4,7 +4,7 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
-// TODO(meeragjoshi): rewrite test
+// TODO(meeragjoshi):rewrite test
 
 // Future<void> main() async {
 //   if (!(await SimulatorUtils.checkIfSimulatorIsRunning())) {

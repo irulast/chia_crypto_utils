@@ -5,7 +5,6 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
 
 late final ChiaFullNodeInterface fullNode;
-late final WalletKeychain keychain;
 final xchToBtcService = XchToBtcService();
 final btcToXchService = BtcToXchService();
 final crossChainOfferService = CrossChainOfferFileService();
@@ -19,7 +18,7 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   fullNode = fullNodeFromUrl;
 
   final keychainCoreSecret = KeychainCoreSecret.generate();
-  keychain = WalletKeychain.fromCoreSecret(keychainCoreSecret);
+  final keychain = WalletKeychain.fromCoreSecret(keychainCoreSecret);
   final masterPrivateKey = keychainCoreSecret.masterPrivateKey;
   final derivationIndex = ExchangeOfferService.randomDerivationIndexForExchange();
 
@@ -146,8 +145,9 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
     'Please send $amountToSend to the following address. These funds will be used to cover the transactions',
   );
   print(
-    'that make up the exchange. Any remaining XCH will be returned to you at the end of the exchange.',
+    'that make up the exchange. You can use the mnemonic found in the log file to claim any XCH leftover',
   );
+  print('at the end of the exchange');
   print(coinAddress.address);
 
   final coinsForInitialization = await waitForUserToSendXch(coinPuzzlehash, amountToSend);
@@ -197,7 +197,11 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   print('\nBelow is your serialized offer file.');
   print(serializedOfferFile);
 
-  await generateLogFile(requestorPrivateKey, serializedOfferFile);
+  await generateLogFile(
+    keychainCoreSecret.mnemonicString,
+    requestorPrivateKey,
+    serializedOfferFile,
+  );
 
   print('\nSend serialized offer file to Dexie? Y/N');
 
@@ -450,10 +454,15 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
 
   final serializedTakerOfferFile = takerOfferFile.serialize(requestorPrivateKey);
 
-  await generateLogFile(requestorPrivateKey, serializedOfferFile, serializedTakerOfferFile);
+  await generateLogFile(
+    keychainCoreSecret.mnemonicString,
+    requestorPrivateKey,
+    serializedOfferFile,
+    serializedTakerOfferFile,
+  );
 
   // ask for enough XCH for the exchange from user to cover message coin send, escrow transfer (in case of XCH holder)
-  // and clawback or sweep
+  // and clawback OR sweep
   final amountToSend = minimumNotificationCoinAmount +
       (fee * 2) +
       (exchangeType == ExchangeType.xchToBtc ? makerOfferFile.mojos + fee : 0);
@@ -465,8 +474,9 @@ Future<void> acceptCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async 
     'Please send $amountToSend to the following address. These funds will be used to cover the transactions',
   );
   print(
-    'that make up the exchange. Any remaining XCH will be returned to you at the end of the exchange.',
+    'that make up the exchange. You can use the mnemonic found in the log file to claim any XCH leftover',
   );
+  print('at the end of the exchange');
   print(coinAddress.address);
 
   final coinsForMessageCoin =
@@ -621,10 +631,11 @@ Future<void> resumeCrossChainOfferExchange(ChiaFullNodeInterface fullNodeFromUrl
         final fulfillerPublicKey = takerOfferFile.publicKey;
 
         final escrowPuzzlehash = makerOfferFile.getEscrowPuzzlehash(
-            requestorPrivateKey: requestorPrivateKey,
-            clawbackDelaySeconds: exchangeValidityTime,
-            sweepPaymentHash: paymentHash,
-            fulfillerPublicKey: fulfillerPublicKey);
+          requestorPrivateKey: requestorPrivateKey,
+          clawbackDelaySeconds: exchangeValidityTime,
+          sweepPaymentHash: paymentHash,
+          fulfillerPublicKey: fulfillerPublicKey,
+        );
 
         if (makerOfferFile.type == CrossChainOfferFileType.xchToBtc) {
           await completeXchToBtcExchange(
@@ -861,32 +872,35 @@ Future<void> completeXchToBtcExchange({
 }
 
 Future<void> generateLogFile(
+  String mnemonicSeed,
   PrivateKey requestorPrivateKey,
   String serializedOfferFile, [
   String? serializedOfferAcceptFile,
 ]) async {
+  // note that log file can only be used to restore an exchange after message coin has been accepted
+
   final logFile = File('exchange-log-${DateTime.now().toString().replaceAll(' ', '-')}.txt')
     ..createSync(recursive: true)
-    ..writeAsStringSync('Offer File:\n$serializedOfferFile', mode: FileMode.append);
-
-  if (serializedOfferAcceptFile == null) {
-    print('\nPrinting serialized offer file and disposable private key to a file...');
-    logFile.writeAsStringSync(
+    ..writeAsStringSync('Mnemonic Seed:\n$mnemonicSeed', mode: FileMode.append)
+    ..writeAsStringSync(
       '\n\nPrivate Key:\n${requestorPrivateKey.toHex()}',
       mode: FileMode.append,
+    )
+    ..writeAsStringSync('\n\nOffer File:\n$serializedOfferFile', mode: FileMode.append);
+
+  if (serializedOfferAcceptFile == null) {
+    print(
+      '\nPrinting generated mnemonic, exchange private key, and serialized offer file to log file...',
     );
   } else {
-    print('\nPrinting serialized offer file, serialized offer accept file, and');
-    print('disposable private key to a file...');
-    logFile
-      ..writeAsStringSync(
-        '\n\nOffer Accept File:\n$serializedOfferAcceptFile',
-        mode: FileMode.append,
-      )
-      ..writeAsStringSync(
-        '\n\nPrivate Key:\n${requestorPrivateKey.toHex()}',
-        mode: FileMode.append,
-      );
+    print(
+      '\nPrinting generated mnemonic, exchange private key, and serialized maker and taker offer',
+    );
+    print('files to log file...');
+    logFile.writeAsStringSync(
+      '\n\nOffer Accept File:\n$serializedOfferAcceptFile',
+      mode: FileMode.append,
+    );
   }
 }
 
@@ -997,34 +1011,7 @@ Future<void> waitForMakerToSpendMessageCoinChild({
         return;
       } else {
         print('\nMaker declined your message coin. The exchange will not proceed.');
-        await returnRemainingXchToUser();
       }
     }
   }
-}
-
-Future<void> returnRemainingXchToUser() async {
-  final coinsInput = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
-
-  if (coinsInput.totalValue > 0) {
-    print('\nPlease enter the address where you would like any remaining XCH returned to you:');
-    final returnPuzzlehash = getUserPuzzlehash();
-
-    final spendBundle = standardWalletService.createSpendBundle(
-      payments: [Payment(coinsInput.totalValue - fee, returnPuzzlehash)],
-      coinsInput: coinsInput,
-      keychain: keychain,
-      fee: fee,
-    );
-
-    await fullNode.pushTransaction(spendBundle);
-
-    await waitForTransactionToComplete(
-      coinBeingSpentId: coinsInput.first.id,
-      startMessage: 'Pushing spend bundle to return remaining XCH...',
-      waitingMessage: 'Waiting for transaction to complete...',
-      completionMessage: 'XCH has been returned.',
-    );
-  }
-  exit(exitCode);
 }
