@@ -143,7 +143,7 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   final coinAddress = Address.fromContext(coinPuzzlehash);
 
   print(
-    '\nPlease send $amountToSend mojos to the following address. These funds will be used to cover the transactions',
+    '\nPlease send ${amountToSend > mojoCutoff ? '${(amountToSend / mojosPerXch).toStringAsFixed(9)} XCH' : '$amountToSend mojos'} to the following address. These funds will be used to cover the transactions',
   );
   print(
     'that make up the exchange. You can use the mnemonic found in the log file to claim any XCH leftover',
@@ -390,7 +390,7 @@ Future<void> takeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   final requestorPublicKey = requestorPrivateKey.getG1();
   final requestorPuzzlehash = keychain.puzzlehashes.first;
 
-  print('\nPaste in the serialized cross chain offer file you want to accept:');
+  print('\nPaste in the serialized cross chain offer file you want to take:');
   String? serializedOfferFile;
   MakerCrossChainOfferFile? makerOfferFile;
   while (makerOfferFile == null) {
@@ -496,7 +496,7 @@ Future<void> takeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   final messagePuzzlehash = messageAddress.toPuzzlehash();
 
   print(
-    '\nPlease send $amountToSend mojos to the following address. These funds will be used to cover the transactions',
+    '\nPlease send ${amountToSend > mojoCutoff ? '${(amountToSend / mojosPerXch).toStringAsFixed(9)} XCH' : '$amountToSend mojos'} to the following address. These funds will be used to cover the transactions',
   );
   print(
     'that make up the exchange. You can use the mnemonic found in the log file to claim any XCH leftover',
