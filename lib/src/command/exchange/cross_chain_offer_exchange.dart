@@ -187,6 +187,12 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
 
   final serializedOfferFile = offerFile.serialize(requestorPrivateKey);
 
+  await writeToLogFile(
+    logFile,
+    'Maker Offer File',
+    serializedOfferFile,
+  );
+
   print('\nBelow is your serialized offer file.');
   print(serializedOfferFile);
 
@@ -278,12 +284,6 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
       stdout.write('> ');
       messageCoinDecision = stdin.readLineSync()!.trim().toLowerCase();
       if (messageCoinDecision.startsWith('y')) {
-        await writeToLogFile(
-          logFile,
-          'Taker Offer File',
-          messageCoinInfo!.serializedOfferAcceptFile,
-        );
-
         final messageCoinAcceptanceSpendBundle =
             exchangeOfferWalletService.createMessageCoinAcceptanceSpendBundle(
           initializationCoinId: initializationCoinId,
@@ -298,6 +298,12 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
           logFile,
           'Message Coin Acceptance Spend Bundle',
           initializationSpendBundle.toJson().toString(),
+        );
+
+        await writeToLogFile(
+          logFile,
+          'Taker Offer File',
+          messageCoinInfo!.serializedOfferAcceptFile,
         );
 
         await waitForTransactionToComplete(
@@ -485,6 +491,8 @@ Future<void> takeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   logFile = await generateLogFile(
     mnemonicSeed: keychainCoreSecret.mnemonicString,
     requestorPrivateKey: requestorPrivateKey,
+    serializedOfferFile: serializedOfferFile,
+    serializedTakerOfferFile: serializedTakerOfferFile,
   );
 
   // ask for enough XCH for the exchange from user to cover message coin send, escrow transfer (in case of XCH holder)
@@ -544,6 +552,9 @@ Future<void> takeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   final messageCoin = await fullNode.getCoinById(messageCoinId);
   final messageCoinChild = await fullNode.getSingleChildCoinFromCoin(messageCoin!);
 
+  print('\nPress any key to start waiting for maker to accept for decline your message coin');
+  stdin.readLineSync();
+
   await waitForMakerToSpendMessageCoinChild(
     messageCoinChildId: messageCoinChild!.id,
     initializationCoinId: initializationCoinId,
@@ -600,7 +611,6 @@ Future<List<Coin>> waitForEscrowCoins({
   var transactionValidated = false;
   var escrowCoins = <Coin>[];
 
-  print('');
   while (escrowCoins.totalValue < amount) {
     if (transactionValidated == false) {
       print(waitingMessage);
@@ -624,11 +634,11 @@ Future<List<Coin>> waitForEscrowCoins({
   final sufficientConfirmationsHeight = parentCoin!.spentBlockIndex + 32;
 
   print(
-    '\nWaiting 32 blocks for escrow transfer confirmation (until block ${parentCoin.spentBlockIndex})',
+    '\nWaiting 32 blocks for escrow transfer confirmation (until block ${parentCoin.spentBlockIndex}).\n',
   );
 
   while (true) {
-    await Future<void>.delayed(const Duration(seconds: 10));
+    await Future<void>.delayed(const Duration(seconds: 30));
 
     final currentHeight = await fullNode.getCurrentBlockIndex();
 
@@ -659,9 +669,10 @@ Future<void> completeBtcToXchExchange({
   stdin.readLineSync();
 
   final escrowCoins = await waitForEscrowCoins(
-      amount: mojos,
-      escrowPuzzlehash: escrowPuzzlehash,
-      waitingMessage: 'Waiting for escrow transfer...');
+    amount: mojos,
+    escrowPuzzlehash: escrowPuzzlehash,
+    waitingMessage: 'Waiting for escrow transfer...',
+  );
 
   print('\nPlease paste the following lightning invoice into your BTC wallet and pay it.');
   print('Note that you must use a wallet that supports preimage reveal, such as Muun.');
@@ -741,6 +752,13 @@ Future<void> completeXchToBtcExchange({
   required Puzzlehash requestorPuzzlehash,
   required WalletKeychain keychain,
 }) async {
+  print(
+    '\nNext the program will send the amount of XCH being exchanged to the escrow address, where',
+  );
+  print('it will be held until your counterparty pays the lightning invoice');
+  print('Press any key to proceed.');
+  stdin.readLineSync();
+
   var unspentCoins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
 
   final escrowTransferSpendBundle = exchangeOfferWalletService.createEscrowTransferSpendBundle(
@@ -853,6 +871,8 @@ Future<void> completeXchToBtcExchange({
 Future<File> generateLogFile({
   required String mnemonicSeed,
   required PrivateKey requestorPrivateKey,
+  String? serializedOfferFile,
+  String? serializedTakerOfferFile,
 }) async {
   final logFile = File('exchange-log-${DateTime.now().toString().replaceAll(' ', '-')}.txt')
     ..createSync(recursive: true)
@@ -862,7 +882,20 @@ Future<File> generateLogFile({
       mode: FileMode.append,
     );
 
-  print('\nPrinting generated mnemonic and exchange private key to log file...');
+  if (serializedOfferFile != null && serializedTakerOfferFile != null) {
+    print(
+      '\nPrinting generated mnemonic, exchange private key, and serialized maker and taker offer',
+    );
+    print('files to log file...');
+    logFile
+      ..writeAsStringSync('\n\nOffer File:\n$serializedOfferFile', mode: FileMode.append)
+      ..writeAsStringSync(
+        '\n\nTaker Offer File:\n$serializedTakerOfferFile',
+        mode: FileMode.append,
+      );
+  } else {
+    print('\nPrinting generated mnemonic and exchange private key to log file...');
+  }
 
   return logFile;
 }
