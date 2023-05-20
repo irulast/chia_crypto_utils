@@ -352,14 +352,16 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   switch (exchangeType) {
     case ExchangeType.xchToBtc:
       await completeXchToBtcExchange(
-          mojos: mojos,
-          exchangeValidityTime: exchangeValidityTime,
-          escrowPuzzlehash: escrowPuzzlehash,
-          initializationCoinId: initializationCoinId,
-          paymentHash: paymentHash,
-          fulfillerPublicKey: fulfillerPublicKey,
-          requestorPrivateKey: requestorPrivateKey,
-          keychain: keychain);
+        mojos: mojos,
+        exchangeValidityTime: exchangeValidityTime,
+        escrowPuzzlehash: escrowPuzzlehash,
+        initializationCoinId: initializationCoinId,
+        paymentHash: paymentHash,
+        fulfillerPublicKey: fulfillerPublicKey,
+        requestorPrivateKey: requestorPrivateKey,
+        requestorPuzzlehash: requestorPuzzlehash,
+        keychain: keychain,
+      );
 
       break;
     case ExchangeType.btcToXch:
@@ -371,6 +373,8 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
         lightningPaymentRequest: lightningPaymentRequest,
         fulfillerPublicKey: fulfillerPublicKey,
         requestorPrivateKey: requestorPrivateKey,
+        requestorPuzzlehash: requestorPuzzlehash,
+        keychain: keychain,
       );
       break;
   }
@@ -563,26 +567,29 @@ Future<void> takeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   switch (exchangeType) {
     case ExchangeType.xchToBtc:
       await completeXchToBtcExchange(
-          mojos: mojos,
-          exchangeValidityTime: exchangeValidityTime,
-          escrowPuzzlehash: escrowPuzzlehash,
-          initializationCoinId: initializationCoinId,
-          paymentHash: paymentHash,
-          fulfillerPublicKey: fulfillerPublicKey,
-          requestorPrivateKey: requestorPrivateKey,
-          keychain: keychain);
-
-      break;
-    case ExchangeType.btcToXch:
-      await completeBtcToXchExchange(
         mojos: mojos,
         exchangeValidityTime: exchangeValidityTime,
         escrowPuzzlehash: escrowPuzzlehash,
         initializationCoinId: initializationCoinId,
-        lightningPaymentRequest: lightningPaymentRequest,
+        paymentHash: paymentHash,
         fulfillerPublicKey: fulfillerPublicKey,
         requestorPrivateKey: requestorPrivateKey,
+        requestorPuzzlehash: requestorPuzzlehash,
+        keychain: keychain,
       );
+
+      break;
+    case ExchangeType.btcToXch:
+      await completeBtcToXchExchange(
+          mojos: mojos,
+          exchangeValidityTime: exchangeValidityTime,
+          escrowPuzzlehash: escrowPuzzlehash,
+          initializationCoinId: initializationCoinId,
+          lightningPaymentRequest: lightningPaymentRequest,
+          fulfillerPublicKey: fulfillerPublicKey,
+          requestorPuzzlehash: requestorPuzzlehash,
+          requestorPrivateKey: requestorPrivateKey,
+          keychain: keychain);
       break;
   }
 }
@@ -646,6 +653,8 @@ Future<void> completeBtcToXchExchange({
   required LightningPaymentRequest lightningPaymentRequest,
   required JacobianPoint fulfillerPublicKey,
   required PrivateKey requestorPrivateKey,
+  required Puzzlehash requestorPuzzlehash,
+  required WalletKeychain keychain,
 }) async {
   print('\nYour counter party will send $mojos mojos to the following escrow address:');
   print(Address.fromContext(escrowPuzzlehash).address);
@@ -697,13 +706,24 @@ Future<void> completeBtcToXchExchange({
     fulfillerPublicKey: fulfillerPublicKey,
   );
 
-  await writeToLogFile(logFile, 'Sweep Spend Bundle', sweepSpendBundle.toJson().toString());
+  final unspentCoins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
+
+  final feeSpendBundle = standardWalletService.createFeeSpendBundle(
+    fee: fee,
+    standardCoins: selectCoinsForAmount(unspentCoins, fee),
+    keychain: keychain,
+    changePuzzlehash: requestorPuzzlehash,
+  );
+
+  final totalSpendBundle = sweepSpendBundle + feeSpendBundle;
+
+  await writeToLogFile(logFile, 'Sweep Spend Bundle', totalSpendBundle.toJson().toString());
 
   try {
-    await fullNode.pushTransaction(sweepSpendBundle);
+    await fullNode.pushTransaction(totalSpendBundle);
     await waitForTransactionToComplete(
       coinBeingSpentId: escrowCoins.first.id,
-      startMessage: 'Sweeping escrow puzzlehash...',
+      startMessage: 'Sweeping escrow address...',
       waitingMessage: 'Waiting for sweep transaction to complete...',
       completionMessage: 'XCH swept to your address. Exchange complete.',
     );
@@ -721,19 +741,20 @@ Future<void> completeXchToBtcExchange({
   required Bytes paymentHash,
   required JacobianPoint fulfillerPublicKey,
   required PrivateKey requestorPrivateKey,
+  required Puzzlehash requestorPuzzlehash,
   required WalletKeychain keychain,
 }) async {
-  final unspentCoins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
-  final coinsForEscrowTransfer = selectCoinsForAmount(unspentCoins, mojos + fee);
+  var unspentCoins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
 
   final escrowTransferSpendBundle = exchangeOfferWalletService.createEscrowTransferSpendBundle(
     initializationCoinId: initializationCoinId,
     mojos: mojos,
     escrowPuzzlehash: escrowPuzzlehash,
-    coinsInput: coinsForEscrowTransfer,
+    coinsInput: selectCoinsForAmount(unspentCoins, mojos + fee),
     keychain: keychain,
     requestorPrivateKey: requestorPrivateKey,
     fee: fee,
+    changePuzzlehash: requestorPuzzlehash,
   );
 
   await fullNode.pushTransaction(escrowTransferSpendBundle);
@@ -766,7 +787,18 @@ Future<void> completeXchToBtcExchange({
     fulfillerPublicKey: fulfillerPublicKey,
   );
 
-  await writeToLogFile(logFile, 'Clawback Spend Bundle', clawbackSpendBundle.toJson().toString());
+  unspentCoins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
+
+  final feeSpendBundle = standardWalletService.createFeeSpendBundle(
+    fee: fee,
+    standardCoins: selectCoinsForAmount(unspentCoins, fee),
+    keychain: keychain,
+    changePuzzlehash: requestorPuzzlehash,
+  );
+
+  final totalSpendBundle = clawbackSpendBundle + feeSpendBundle;
+
+  await writeToLogFile(logFile, 'Clawback Spend Bundle', totalSpendBundle.toJson().toString());
 
   final validityTimeMinutes = exchangeValidityTime ~/ 60;
 
@@ -784,11 +816,14 @@ Future<void> completeXchToBtcExchange({
     stdout.write('> ');
     confirmation = stdin.readLineSync()!.trim().toLowerCase();
     if (confirmation.toLowerCase().startsWith('y')) {
-      print('\nPushing spend bundle to claw back XCH to your address...');
-
       try {
-        await fullNode.pushTransaction(clawbackSpendBundle);
-        await verifyTransaction(escrowCoins, clawbackPuzzlehash, fullNode);
+        await fullNode.pushTransaction(totalSpendBundle);
+        await waitForTransactionToComplete(
+          coinBeingSpentId: escrowCoins.first.id,
+          startMessage: 'Clawing back XCH from escrow address...',
+          waitingMessage: 'Waiting for clawback to complete...',
+          completionMessage: 'XCH has been clawed back. Exchange successfully aborted.',
+        );
       } catch (e) {
         print('\nTRANSACTION FAILED. The spend bundle was rejected. If the clawback delay');
         print("period hasn't passed yet, keep waiting and manually push the transaction");
