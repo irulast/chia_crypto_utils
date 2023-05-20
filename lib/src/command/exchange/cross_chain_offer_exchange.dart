@@ -142,6 +142,11 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   final coinPuzzlehash = keychain.puzzlehashes.first;
   final coinAddress = Address.fromContext(coinPuzzlehash);
 
+  logFile = await generateLogFile(
+    mnemonicSeed: keychainCoreSecret.mnemonicString,
+    requestorPrivateKey: requestorPrivateKey,
+  );
+
   print(
     '\nPlease send ${amountToSend > mojoCutoff ? '${(amountToSend / mojosPerXch).toStringAsFixed(9)} XCH' : '$amountToSend mojos'} to the following address. These funds will be used to cover the transactions',
   );
@@ -184,12 +189,6 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
 
   print('\nBelow is your serialized offer file.');
   print(serializedOfferFile);
-
-  logFile = await generateLogFile(
-    mnemonicSeed: keychainCoreSecret.mnemonicString,
-    requestorPrivateKey: requestorPrivateKey,
-    serializedOfferFile: serializedOfferFile,
-  );
 
   final initializationSpendBundle = exchangeOfferWalletService.createInitializationSpendBundle(
     messagePuzzlehash: messagePuzzlehash,
@@ -486,8 +485,6 @@ Future<void> takeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   logFile = await generateLogFile(
     mnemonicSeed: keychainCoreSecret.mnemonicString,
     requestorPrivateKey: requestorPrivateKey,
-    serializedOfferFile: serializedOfferFile,
-    serializedTakerOfferFile: serializedTakerOfferFile,
   );
 
   // ask for enough XCH for the exchange from user to cover message coin send, escrow transfer (in case of XCH holder)
@@ -856,8 +853,6 @@ Future<void> completeXchToBtcExchange({
 Future<File> generateLogFile({
   required String mnemonicSeed,
   required PrivateKey requestorPrivateKey,
-  required String serializedOfferFile,
-  String? serializedTakerOfferFile,
 }) async {
   final logFile = File('exchange-log-${DateTime.now().toString().replaceAll(' ', '-')}.txt')
     ..createSync(recursive: true)
@@ -865,23 +860,9 @@ Future<File> generateLogFile({
     ..writeAsStringSync(
       '\n\nPrivate Key:\n${requestorPrivateKey.toHex()}',
       mode: FileMode.append,
-    )
-    ..writeAsStringSync('\n\nOffer File:\n$serializedOfferFile', mode: FileMode.append);
+    );
 
-  if (serializedTakerOfferFile == null) {
-    print(
-      '\nPrinting generated mnemonic, exchange private key, and serialized offer file to log file...',
-    );
-  } else {
-    print(
-      '\nPrinting generated mnemonic, exchange private key, and serialized maker and taker offer',
-    );
-    print('files to log file...');
-    logFile.writeAsStringSync(
-      '\n\nTaker Offer File:\n$serializedTakerOfferFile',
-      mode: FileMode.append,
-    );
-  }
+  print('\nPrinting generated mnemonic and exchange private key to log file...');
 
   return logFile;
 }
