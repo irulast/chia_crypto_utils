@@ -210,7 +210,12 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
     initializationSpendBundle.toJson().toString(),
   );
 
-  await waitForInitializationToComplete(messagePuzzlehash, initializationCoinId);
+  await waitForTransactionToComplete(
+    coinBeingSpentId: initializationCoinId,
+    startMessage: 'Initializating offer...',
+    waitingMessage: 'Waiting for initialization transaction to complete...',
+    completionMessage: 'Offer initialized!',
+  );
 
   print('\nSend serialized offer file to Dexie? Y/N');
 
@@ -582,33 +587,6 @@ Future<void> takeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   }
 }
 
-Future<void> waitForInitializationToComplete(
-  Puzzlehash messagePuzzlehash,
-  Bytes initializationCoinId,
-) async {
-  var transactionValidated = false;
-  var messagePuzzlehashCoins = <Coin>[];
-
-  while (true) {
-    print('Waiting for initialization transaction to complete...');
-    await Future<void>.delayed(const Duration(seconds: 10));
-
-    if (transactionValidated == false) {
-      transactionValidated = await isTransactionValidatedFromSpentCoinId(initializationCoinId);
-    }
-
-    messagePuzzlehashCoins = await fullNode.getCoinsByPuzzleHashes(
-      [messagePuzzlehash],
-    );
-
-    if (messagePuzzlehashCoins.map((coin) => coin.id).toList().contains(initializationCoinId)) {
-      print('\nOffer initialized!');
-
-      return;
-    }
-  }
-}
-
 Future<List<Coin>> waitForEscrowCoins({
   required int amount,
   required Puzzlehash escrowPuzzlehash,
@@ -637,7 +615,26 @@ Future<List<Coin>> waitForEscrowCoins({
 
   print('\nThe escrow address has received sufficient XCH!');
 
-  return escrowCoins;
+  final parentCoin = await fullNode.getCoinById(escrowCoins.first.parentCoinInfo);
+  final sufficientConfirmationsHeight = parentCoin!.spentBlockIndex + 32;
+
+  print(
+    '\nWaiting 32 blocks for escrow transfer confirmation (until block ${parentCoin.spentBlockIndex})',
+  );
+
+  while (true) {
+    await Future<void>.delayed(const Duration(seconds: 10));
+
+    final currentHeight = await fullNode.getCurrentBlockIndex();
+
+    if (currentHeight != null) {
+      print('${sufficientConfirmationsHeight - currentHeight} blocks remaining...');
+
+      if (currentHeight >= sufficientConfirmationsHeight) {
+        return escrowCoins;
+      }
+    }
+  }
 }
 
 Future<void> completeBtcToXchExchange({
@@ -701,10 +698,14 @@ Future<void> completeBtcToXchExchange({
 
   await writeToLogFile(logFile, 'Sweep Spend Bundle', sweepSpendBundle.toJson().toString());
 
-  print('\nPushing spend bundle to sweep XCH to your address...');
   try {
     await fullNode.pushTransaction(sweepSpendBundle);
-    await verifyTransaction(escrowCoins, sweepPuzzlehash, fullNode);
+    await waitForTransactionToComplete(
+      coinBeingSpentId: escrowCoins.first.id,
+      startMessage: 'Sweeping escrow puzzlehash...',
+      waitingMessage: 'Waiting for sweep transaction to complete...',
+      completionMessage: 'XCH swept to your address. Exchange complete.',
+    );
   } catch (e) {
     print('\nTRANSACTION FAILED. The spend bundle was rejected. You may have responded');
     print('too late.');
