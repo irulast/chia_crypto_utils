@@ -148,12 +148,15 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   );
 
   print(
-    '\nPlease send ${amountToSend > mojoCutoff ? '${(amountToSend / mojosPerXch).toStringAsFixed(9)} XCH' : '$amountToSend mojos'} to the following address. These funds will be used to cover the transactions',
+    '\nPlease send ${amountToSend > mojoCutoff ? '${(amountToSend / mojosPerXch).toStringAsFixed(9)} XCH' : '$amountToSend mojos'} to the following address.',
   );
   print(
-    'that make up the exchange. You can use the mnemonic found in the log file to claim any XCH leftover',
+    'These funds will be used to cover the transactions that make up the exchange.',
   );
-  print('at the end of the exchange or in the event that the program closes prematurely.');
+  print(
+    'You can use the mnemonic found in the log file to claim any XCH leftover',
+  );
+  print('at the end of the exchange or if the program closes prematurely.');
   print(coinAddress.address);
 
   final sentCoins = await waitForUserToSendXch(coinPuzzlehash, amountToSend);
@@ -246,8 +249,8 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
     }
   }
 
-  print('\nPress any key to start waiting for a message coin with a taker offer file');
-  print('to arrive at the address you supplied.');
+  print('\nPress any key to start waiting for a message coin with a taker offer');
+  print('file to arrive at the address you supplied.');
   stdin.readLineSync();
 
   var messageCoinAccepted = false;
@@ -358,9 +361,11 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
         await waitForTransactionToComplete(
           coinBeingSpentId: messageCoinChildId,
           startMessage: 'Declining message coin...',
-          waitingMessage: 'Waiting for transaction to complete...',
+          waitingMessage: 'Waiting for declination transaction to complete...',
           completionMessage: 'Message coin declination transaction complete.',
         );
+
+        print('');
 
         messageCoinInfo = null;
       } else {
@@ -535,12 +540,15 @@ Future<void> takeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   final messagePuzzlehash = messageAddress.toPuzzlehash();
 
   print(
-    '\nPlease send ${amountToSend > mojoCutoff ? '${(amountToSend / mojosPerXch).toStringAsFixed(9)} XCH' : '$amountToSend mojos'} to the following address. These funds will be used to cover the transactions',
+    '\nPlease send ${amountToSend > mojoCutoff ? '${(amountToSend / mojosPerXch).toStringAsFixed(9)} XCH' : '$amountToSend mojos'} to the following address.',
   );
   print(
-    'that make up the exchange. You can use the mnemonic found in the log file to claim any XCH leftover',
+    'These funds will be used to cover the transactions that make up the exchange.',
   );
-  print('at the end of the exchange or in the event that the program closes prematurely.');
+  print(
+    'You can use the mnemonic found in the log file to claim any XCH leftover',
+  );
+  print('at the end of the exchange or if the program closes prematurely.');
   print(coinAddress.address);
 
   final sentCoins = await waitForUserToSendXch(coinPuzzlehash, amountToSend);
@@ -672,11 +680,11 @@ Future<List<Coin>> waitForEscrowCoins({
     final currentHeight = await fullNode.getCurrentBlockIndex();
 
     if (currentHeight != null) {
-      print('${sufficientConfirmationsHeight - currentHeight} blocks remaining...');
-
       if (currentHeight >= sufficientConfirmationsHeight) {
+        print('\nEscrow transfer confirmed!');
         return escrowCoins;
       }
+      print('${sufficientConfirmationsHeight - currentHeight} blocks remaining...');
     }
   }
 }
@@ -783,11 +791,10 @@ Future<void> completeXchToBtcExchange({
   required WalletKeychain keychain,
 }) async {
   print(
-    '\nNext the program will send the amount of XCH being exchanged to the escrow address, where it',
+    '\nThe program will send the amount of XCH being exchanged to the escrow address,',
   );
-  print(
-    'will be held until your counterparty pays the lightning invoice. Press any key to proceed.',
-  );
+  print('where it will be held until your counterparty pays the lightning invoice.');
+  print('Press any key to proceed.');
   stdin.readLineSync();
 
   var unspentCoins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
@@ -1042,7 +1049,7 @@ Future<void> waitForMakerToSpendMessageCoinChild({
         print('\nMaker accepted message coin!');
         return;
       } else {
-        print('\nMaker declined your message coin. The exchange will not proceed.');
+        print('\nMaker declined message coin. The exchange will not proceed.');
         exit(exitCode);
       }
     }
