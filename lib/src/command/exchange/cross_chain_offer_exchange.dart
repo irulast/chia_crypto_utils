@@ -292,12 +292,24 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
           walletVector: walletVector,
         );
 
-        await fullNode.pushTransaction(messageCoinAcceptanceSpendBundle);
+        final unspentCoins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
+
+        final feeSpendBundle = standardWalletService.createFeeSpendBundle(
+          fee: fee,
+          standardCoins: selectCoinsForAmount(unspentCoins, fee),
+          keychain: keychain,
+          changePuzzlehash: requestorPuzzlehash,
+        );
+
+        final totalMessageCoinAcceptanceSpendBundle =
+            messageCoinAcceptanceSpendBundle + feeSpendBundle;
+
+        await fullNode.pushTransaction(totalMessageCoinAcceptanceSpendBundle);
 
         await writeToLogFile(
           logFile,
           'Message Coin Acceptance Spend Bundle',
-          initializationSpendBundle.toJson().toString(),
+          totalMessageCoinAcceptanceSpendBundle.toJson().toString(),
         );
 
         await writeToLogFile(
@@ -314,16 +326,26 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
         );
         messageCoinAccepted = true;
       } else if (messageCoinDecision.startsWith('n')) {
-        await exchangeOfferService.declineMessageCoin(
-          initializationCoinId: initializationCoinId,
-          messageCoin: messageCoin,
-          masterPrivateKey: masterPrivateKey,
-          derivationIndex: derivationIndex,
-          serializedOfferFile: serializedOfferFile,
+        final messageCoinDeclinationSpendBundle =
+            exchangeOfferWalletService.createMessageCoinDeclinationSpendBundle(
+          messageCoinChild: messageCoinChild,
           targetPuzzlehash: requestorPuzzlehash,
-          changePuzzlehash: requestorPuzzlehash,
-          fee: 50,
+          walletVector: walletVector,
         );
+
+        final unspentCoins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
+
+        final feeSpendBundle = standardWalletService.createFeeSpendBundle(
+          fee: fee,
+          standardCoins: selectCoinsForAmount(unspentCoins, fee),
+          keychain: keychain,
+          changePuzzlehash: requestorPuzzlehash,
+        );
+
+        final totalMessageCoinDeclinationSpendBundle =
+            messageCoinDeclinationSpendBundle + feeSpendBundle;
+
+        await fullNode.pushTransaction(totalMessageCoinDeclinationSpendBundle);
 
         await waitForTransactionToComplete(
           coinBeingSpentId: messageCoinChildId,
@@ -430,20 +452,21 @@ Future<void> takeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
 
   print('\nEnter how many minutes you want to allow for the exchange to complete before');
   print('it is aborted. Must be at least 60 minutes.');
-  int? exchangeValidityTime;
-  while (exchangeValidityTime == null || exchangeValidityTime < 600) {
-    stdout.write('> ');
-    try {
-      exchangeValidityTime = int.parse(stdin.readLineSync()!.trim()) * 60;
-      if (exchangeValidityTime < 3600) {
-        print('\nMust be at least 60 minutes.');
-      }
-    } catch (e) {
-      print(
-        '\nPlease enter a valid duration in terms of minutes:',
-      );
-    }
-  }
+  // int? exchangeValidityTime;
+  // while (exchangeValidityTime == null || exchangeValidityTime < 3600) {
+  //   stdout.write('> ');
+  //   try {
+  //     exchangeValidityTime = int.parse(stdin.readLineSync()!.trim()) * 60;
+  //     if (exchangeValidityTime < 3600) {
+  //       print('\nMust be at least 60 minutes.');
+  //     }
+  //   } catch (e) {
+  //     print(
+  //       '\nPlease enter a valid duration in terms of minutes:',
+  //     );
+  //   }
+  // }
+  final exchangeValidityTime = 60;
 
   final messageAddress = makerOfferFile.messageAddress;
   final initializationCoinId = makerOfferFile.initializationCoinId;
@@ -700,7 +723,7 @@ Future<void> completeBtcToXchExchange({
     }
   }
 
-  print('\nPlease enter the address where you want to receive the XCH:');
+  print('\nPlease enter the address where you want the XCH to be swept to:');
   final sweepPuzzlehash = getUserPuzzlehash();
 
   final sweepSpendBundle = exchangeOfferWalletService.createSweepSpendBundle(
@@ -723,22 +746,23 @@ Future<void> completeBtcToXchExchange({
     changePuzzlehash: requestorPuzzlehash,
   );
 
-  final totalSpendBundle = sweepSpendBundle + feeSpendBundle;
+  final totalSweepSpendBundle = sweepSpendBundle + feeSpendBundle;
 
-  await writeToLogFile(logFile, 'Sweep Spend Bundle', totalSpendBundle.toJson().toString());
+  await writeToLogFile(logFile, 'Sweep Spend Bundle', totalSweepSpendBundle.toJson().toString());
 
   try {
-    await fullNode.pushTransaction(totalSpendBundle);
-    await waitForTransactionToComplete(
-      coinBeingSpentId: escrowCoins.first.id,
-      startMessage: 'Sweeping escrow address...',
-      waitingMessage: 'Waiting for sweep transaction to complete...',
-      completionMessage: 'XCH swept to your address. Exchange complete.',
-    );
+    await fullNode.pushTransaction(totalSweepSpendBundle);
   } catch (e) {
     print('\nTRANSACTION FAILED. The spend bundle was rejected. You may have responded');
     print('too late.');
   }
+
+  await waitForTransactionToComplete(
+    coinBeingSpentId: escrowCoins.first.id,
+    startMessage: 'Sweeping escrow address...',
+    waitingMessage: 'Waiting for sweep transaction to complete...',
+    completionMessage: 'XCH swept to your address. Exchange complete.',
+  );
 }
 
 Future<void> completeXchToBtcExchange({
@@ -811,9 +835,13 @@ Future<void> completeXchToBtcExchange({
     changePuzzlehash: requestorPuzzlehash,
   );
 
-  final totalSpendBundle = clawbackSpendBundle + feeSpendBundle;
+  final totalClawbackSpendBundle = clawbackSpendBundle + feeSpendBundle;
 
-  await writeToLogFile(logFile, 'Clawback Spend Bundle', totalSpendBundle.toJson().toString());
+  await writeToLogFile(
+    logFile,
+    'Clawback Spend Bundle',
+    totalClawbackSpendBundle.toJson().toString(),
+  );
 
   final validityTimeMinutes = exchangeValidityTime ~/ 60;
 
@@ -832,13 +860,7 @@ Future<void> completeXchToBtcExchange({
     confirmation = stdin.readLineSync()!.trim().toLowerCase();
     if (confirmation.toLowerCase().startsWith('y')) {
       try {
-        await fullNode.pushTransaction(totalSpendBundle);
-        await waitForTransactionToComplete(
-          coinBeingSpentId: escrowCoins.first.id,
-          startMessage: 'Clawing back XCH from escrow address...',
-          waitingMessage: 'Waiting for clawback to complete...',
-          completionMessage: 'XCH has been clawed back. Exchange successfully aborted.',
-        );
+        await fullNode.pushTransaction(totalClawbackSpendBundle);
       } catch (e) {
         print('\nTRANSACTION FAILED. The spend bundle was rejected. If the clawback delay');
         print("period hasn't passed yet, keep waiting and manually push the transaction");
@@ -866,6 +888,13 @@ Future<void> completeXchToBtcExchange({
       print('\nNot a valid choice.');
     }
   }
+
+  await waitForTransactionToComplete(
+    coinBeingSpentId: escrowCoins.first.id,
+    startMessage: 'Clawing back XCH from escrow address...',
+    waitingMessage: 'Waiting for clawback to complete...',
+    completionMessage: 'XCH has been clawed back. Exchange successfully aborted.',
+  );
 }
 
 Future<File> generateLogFile({
@@ -874,6 +903,8 @@ Future<File> generateLogFile({
   String? serializedOfferFile,
   String? serializedTakerOfferFile,
 }) async {
+  print('Generating log file...');
+
   final logFile = File('exchange-log-${DateTime.now().toString().replaceAll(' ', '-')}.txt')
     ..createSync(recursive: true)
     ..writeAsStringSync('Mnemonic Seed:\n$mnemonicSeed', mode: FileMode.append)
@@ -883,18 +914,12 @@ Future<File> generateLogFile({
     );
 
   if (serializedOfferFile != null && serializedTakerOfferFile != null) {
-    print(
-      '\nPrinting generated mnemonic, exchange private key, and serialized maker and taker offer',
-    );
-    print('files to log file...');
     logFile
       ..writeAsStringSync('\n\nOffer File:\n$serializedOfferFile', mode: FileMode.append)
       ..writeAsStringSync(
         '\n\nTaker Offer File:\n$serializedTakerOfferFile',
         mode: FileMode.append,
       );
-  } else {
-    print('\nPrinting generated mnemonic and exchange private key to log file...');
   }
 
   return logFile;
