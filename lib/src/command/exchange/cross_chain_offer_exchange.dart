@@ -626,15 +626,16 @@ Future<void> takeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
       break;
     case ExchangeType.btcToXch:
       await completeBtcToXchExchange(
-          mojos: mojos,
-          exchangeValidityTime: exchangeValidityTime,
-          escrowPuzzlehash: escrowPuzzlehash,
-          initializationCoinId: initializationCoinId,
-          lightningPaymentRequest: lightningPaymentRequest,
-          fulfillerPublicKey: fulfillerPublicKey,
-          requestorPuzzlehash: requestorPuzzlehash,
-          requestorPrivateKey: requestorPrivateKey,
-          keychain: keychain);
+        mojos: mojos,
+        exchangeValidityTime: exchangeValidityTime,
+        escrowPuzzlehash: escrowPuzzlehash,
+        initializationCoinId: initializationCoinId,
+        lightningPaymentRequest: lightningPaymentRequest,
+        fulfillerPublicKey: fulfillerPublicKey,
+        requestorPuzzlehash: requestorPuzzlehash,
+        requestorPrivateKey: requestorPrivateKey,
+        keychain: keychain,
+      );
       break;
   }
 }
