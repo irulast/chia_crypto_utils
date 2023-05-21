@@ -156,7 +156,9 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   print('at the end of the exchange or in the event that the program closes prematurely.');
   print(coinAddress.address);
 
-  final coinsForInitialization = await waitForUserToSendXch(coinPuzzlehash, amountToSend);
+  final sentCoins = await waitForUserToSendXch(coinPuzzlehash, amountToSend);
+
+  final coinsForInitialization = selectCoinsForAmount(sentCoins, 3 + fee);
 
   final initializationCoinId = coinsForInitialization.first.id;
 
@@ -250,14 +252,18 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
 
   var messageCoinAccepted = false;
   MessageCoinInfo? messageCoinInfo;
+  final declinedMessageCoinIds = <Bytes>[];
   while (!messageCoinAccepted) {
     while (messageCoinInfo == null) {
+      print('Waiting for message coin...');
+      await Future<void>.delayed(const Duration(seconds: 10));
       messageCoinInfo = await exchangeOfferService.getNextValidMessageCoin(
         initializationCoinId: initializationCoinId,
         serializedOfferFile: serializedOfferFile,
         messagePuzzlehash: messagePuzzlehash,
         exchangeType: exchangeType,
         satoshis: exchangeType == ExchangeType.btcToXch ? offerFile.satoshis : null,
+        declinedMessageCoinIds: declinedMessageCoinIds,
       );
     }
 
@@ -347,11 +353,13 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
 
         await fullNode.pushTransaction(totalMessageCoinDeclinationSpendBundle);
 
+        declinedMessageCoinIds.add(messageCoin.id);
+
         await waitForTransactionToComplete(
           coinBeingSpentId: messageCoinChildId,
           startMessage: 'Declining message coin...',
           waitingMessage: 'Waiting for transaction to complete...',
-          completionMessage: 'Message coin acceptance transaction complete!',
+          completionMessage: 'Message coin declination transaction complete.',
         );
 
         messageCoinInfo = null;
@@ -452,21 +460,20 @@ Future<void> takeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
 
   print('\nEnter how many minutes you want to allow for the exchange to complete before');
   print('it is aborted. Must be at least 60 minutes.');
-  // int? exchangeValidityTime;
-  // while (exchangeValidityTime == null || exchangeValidityTime < 3600) {
-  //   stdout.write('> ');
-  //   try {
-  //     exchangeValidityTime = int.parse(stdin.readLineSync()!.trim()) * 60;
-  //     if (exchangeValidityTime < 3600) {
-  //       print('\nMust be at least 60 minutes.');
-  //     }
-  //   } catch (e) {
-  //     print(
-  //       '\nPlease enter a valid duration in terms of minutes:',
-  //     );
-  //   }
-  // }
-  final exchangeValidityTime = 60;
+  int? exchangeValidityTime;
+  while (exchangeValidityTime == null || exchangeValidityTime < 3600) {
+    stdout.write('> ');
+    try {
+      exchangeValidityTime = int.parse(stdin.readLineSync()!.trim()) * 60;
+      if (exchangeValidityTime < 3600) {
+        print('\nMust be at least 60 minutes.');
+      }
+    } catch (e) {
+      print(
+        '\nPlease enter a valid duration in terms of minutes:',
+      );
+    }
+  }
 
   final messageAddress = makerOfferFile.messageAddress;
   final initializationCoinId = makerOfferFile.initializationCoinId;
@@ -536,12 +543,11 @@ Future<void> takeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   print('at the end of the exchange or in the event that the program closes prematurely.');
   print(coinAddress.address);
 
-  final coinsForMessageCoin =
-      await waitForUserToSendXch(coinPuzzlehash, minimumNotificationCoinAmount + 50);
+  final sentCoins = await waitForUserToSendXch(coinPuzzlehash, amountToSend);
 
   final messageSpendBundle = exchangeOfferWalletService.createMessageSpendBundle(
     messagePuzzlehash: messagePuzzlehash,
-    coinsInput: coinsForMessageCoin,
+    coinsInput: selectCoinsForAmount(sentCoins, minimumNotificationCoinAmount),
     keychain: keychain,
     serializedTakerOfferFile: serializedTakerOfferFile,
     initializationCoinId: initializationCoinId,
@@ -567,7 +573,7 @@ Future<void> takeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
 
   await waitForTransactionToComplete(
     coinBeingSpentId: messageCoinId,
-    startMessage: 'Sending message coin to message address...',
+    startMessage: 'Sending message coin to maker...',
     waitingMessage: 'Waiting for transaction to complete...',
     completionMessage: 'Your message coin has arrived!',
   );
@@ -575,7 +581,7 @@ Future<void> takeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   final messageCoin = await fullNode.getCoinById(messageCoinId);
   final messageCoinChild = await fullNode.getSingleChildCoinFromCoin(messageCoin!);
 
-  print('\nPress any key to start waiting for maker to accept for decline your message coin');
+  print('\nPress any key to start waiting for maker to accept or decline your message coin');
   stdin.readLineSync();
 
   await waitForMakerToSpendMessageCoinChild(
@@ -777,10 +783,11 @@ Future<void> completeXchToBtcExchange({
   required WalletKeychain keychain,
 }) async {
   print(
-    '\nNext the program will send the amount of XCH being exchanged to the escrow address, where',
+    '\nNext the program will send the amount of XCH being exchanged to the escrow address, where it',
   );
-  print('it will be held until your counterparty pays the lightning invoice');
-  print('Press any key to proceed.');
+  print(
+    'will be held until your counterparty pays the lightning invoice. Press any key to proceed.',
+  );
   stdin.readLineSync();
 
   var unspentCoins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
@@ -804,7 +811,7 @@ Future<void> completeXchToBtcExchange({
     escrowTransferSpendBundle.toJson().toString(),
   );
 
-  print('\nTransfering XCH to escrow address...');
+  print('Transfering XCH to escrow address...\n');
 
   final escrowCoins = await waitForEscrowCoins(
     amount: mojos,
@@ -903,7 +910,7 @@ Future<File> generateLogFile({
   String? serializedOfferFile,
   String? serializedTakerOfferFile,
 }) async {
-  print('Generating log file...');
+  print('\nGenerating log file...');
 
   final logFile = File('exchange-log-${DateTime.now().toString().replaceAll(' ', '-')}.txt')
     ..createSync(recursive: true)
@@ -1018,7 +1025,6 @@ Future<void> waitForMakerToSpendMessageCoinChild({
 }) async {
   var transactionValidated = false;
 
-  print('');
   while (true) {
     print('Waiting for maker to accept or decline message coin...');
     await Future<void>.delayed(const Duration(seconds: 10));
@@ -1037,6 +1043,7 @@ Future<void> waitForMakerToSpendMessageCoinChild({
         return;
       } else {
         print('\nMaker declined your message coin. The exchange will not proceed.');
+        exit(exitCode);
       }
     }
   }
