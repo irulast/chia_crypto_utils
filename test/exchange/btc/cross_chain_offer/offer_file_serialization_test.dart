@@ -2,8 +2,6 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/exceptions/invalid_cross_chain_offer_file.dart';
 import 'package:test/test.dart';
 
-// TODO(meeragjoshi): update serialized ccoffer files to have initialization coin ids
-
 void main() {
   final initializationCoinId =
       Bytes.fromHex('5db0138082bf1aa2144b736d67bdbcaa7d2cd9b07bab3bba15c8cd3d97df7eb4');
@@ -142,7 +140,7 @@ void main() {
 
   test('should throw exception when trying to sign offer with wrong private key', () {
     final wrongPrivateKey =
-        PrivateKey.fromHex('308f34305ed545c7b6bdefe9fff88176dc3b1a68c40f9065e2cf24c98bf6a4e1');
+        PrivateKey.fromHex('076dc9996037449beaf87d5f1aa5287d392585e175a916e1b15a30b18b7e933c');
 
     const offeredAmount = ExchangeAmount(type: ExchangeAmountType.XCH, amount: 1000);
 
