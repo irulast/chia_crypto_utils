@@ -3,7 +3,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/command/exchange/cross_chain_offer_exchange.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
