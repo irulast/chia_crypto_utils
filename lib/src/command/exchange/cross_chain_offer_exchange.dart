@@ -148,7 +148,7 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   );
 
   print(
-    '\nPlease send ${amountToSend > mojoCutoff ? '${(amountToSend / mojosPerXch).toStringAsFixed(9)} XCH' : '$amountToSend mojos'} to the following address.',
+    '\nPlease send ${amountToSend > mojoCutoff ? '${(amountToSend / mojosPerXch).toStringAsFixed(12)} XCH' : '$amountToSend mojos'} to the following address.',
   );
   print(
     'These funds will be used to cover the transactions that make up the exchange.',
@@ -540,7 +540,7 @@ Future<void> takeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
   final messagePuzzlehash = messageAddress.toPuzzlehash();
 
   print(
-    '\nPlease send ${amountToSend > mojoCutoff ? '${(amountToSend / mojosPerXch).toStringAsFixed(9)} XCH' : '$amountToSend mojos'} to the following address.',
+    '\nPlease send ${amountToSend > mojoCutoff ? '${(amountToSend / mojosPerXch).toStringAsFixed(12)} XCH' : '$amountToSend mojos'} to the following address.',
   );
   print(
     'These funds will be used to cover the transactions that make up the exchange.',
