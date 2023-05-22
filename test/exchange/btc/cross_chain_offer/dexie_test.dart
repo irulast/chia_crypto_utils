@@ -4,6 +4,8 @@ import 'package:test/test.dart';
 Future<void> main() async {
   final dexieApi = DexieApi();
 
+  final initializationCoinId =
+      Bytes.fromHex('5db0138082bf1aa2144b736d67bdbcaa7d2cd9b07bab3bba15c8cd3d97df7eb4');
   final currentUnixTimeStamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
   final offerValidityTime = currentUnixTimeStamp + 3600;
   const offeredAmount = ExchangeAmount(type: ExchangeAmountType.XCH, amount: 1000000000000);
@@ -13,49 +15,28 @@ Future<void> main() async {
       'lnbc2m1pjq55klpp5trkvjhdsplmnsg458yaesk7ejpe4e3a4zx4tqucaqcl8ekh6j9vqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdertnqk95dh65cqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldertnqk95dh65cqqqqryqqqqthqqpysp5t9es5tal7dzrzu9t076w54qyr9h9eeguk0yw5efywn8898lg53gq9qypqsqr3c469cu5t6wd6zmsequvp33ccvg83aymgs2hj6ljrzkngk8y73knlj7zdtnt82jzths0mp87e9uenr2ejj05nwqsjcwc0s54gnnteqqlg9uls';
   final lightningPaymentRequest = decodeLightningPaymentRequest(serializedLightningPaymentRequest);
 
-  group(
-    'should successfully send post request with offer file to dexie',
-    () {
-      test('without initialization coin id', () async {
-        final privateKey = PrivateKey.generate();
-        final publicKey = privateKey.getG1();
+  test(
+    'should send post request to dexie',
+    () async {
+      final privateKey = PrivateKey.generate();
+      final publicKey = privateKey.getG1();
 
-        final offerFile = XchToBtcMakerOfferFile(
-          offeredAmount: offeredAmount,
-          requestedAmount: requestedAmount,
-          messageAddress: messageAddress,
-          validityTime: offerValidityTime,
-          publicKey: publicKey,
-          lightningPaymentRequest: lightningPaymentRequest,
-        );
+      final offerFile = XchToBtcMakerOfferFile(
+        initializationCoinId:
+            Bytes.fromHex('5db0138082bf1aa2144b736d67bdbcaa7d2cd9b07bab3bba15c8cd3d97df7eb4'),
+        offeredAmount: offeredAmount,
+        requestedAmount: requestedAmount,
+        messageAddress: messageAddress,
+        validityTime: offerValidityTime,
+        publicKey: publicKey,
+        lightningPaymentRequest: lightningPaymentRequest,
+      );
 
-        final serializedOfferFile = offerFile.serialize(privateKey);
-        final response = await dexieApi.postOffer(serializedOfferFile);
+      final serializedOfferFile = offerFile.serialize(privateKey);
 
-        expect(response.success, equals(true));
-      });
+      final response = await dexieApi.postOffer(serializedOfferFile);
 
-      test('with initialization coin id', () async {
-        final privateKey = PrivateKey.generate();
-        final publicKey = privateKey.getG1();
-
-        final offerFile = XchToBtcMakerOfferFile(
-          initializationCoinId:
-              Bytes.fromHex('5db0138082bf1aa2144b736d67bdbcaa7d2cd9b07bab3bba15c8cd3d97df7eb4'),
-          offeredAmount: offeredAmount,
-          requestedAmount: requestedAmount,
-          messageAddress: messageAddress,
-          validityTime: offerValidityTime,
-          publicKey: publicKey,
-          lightningPaymentRequest: lightningPaymentRequest,
-        );
-
-        final serializedOfferFile = offerFile.serialize(privateKey);
-
-        final response = await dexieApi.postOffer(serializedOfferFile);
-
-        expect(response.success, equals(true));
-      });
+      expect(response.success, equals(true));
     },
     skip: 'sends post request to dexie',
   );
@@ -74,6 +55,7 @@ Future<void> main() async {
     final publicKey = privateKey.getG1();
 
     final offerFile = XchToBtcMakerOfferFile(
+      initializationCoinId: initializationCoinId,
       offeredAmount: offeredAmount,
       requestedAmount: requestedAmount,
       messageAddress: messageAddress,

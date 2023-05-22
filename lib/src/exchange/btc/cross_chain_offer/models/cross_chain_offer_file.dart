@@ -22,7 +22,7 @@ abstract class CrossChainOfferFile {
   }
   CrossChainOfferFilePrefix get prefix;
   CrossChainOfferFileType get type;
-  Bytes? get initializationCoinId;
+  Bytes get initializationCoinId;
   int get validityTime;
   JacobianPoint get publicKey;
   LightningPaymentRequest? get lightningPaymentRequest;
@@ -35,11 +35,6 @@ abstract class CrossChainOfferFile {
     required Bytes sweepPaymentHash,
     required JacobianPoint fulfillerPublicKey,
   });
-
-  CrossChainOfferExchangeInfo getExchangeInfo(
-    CrossChainOfferFile fulfillerOfferFile,
-    PrivateKey requestorPrivateKey,
-  );
 
   static CrossChainOfferFile? maybeFromSerializedOfferFile(String serializedOfferFile) {
     try {
