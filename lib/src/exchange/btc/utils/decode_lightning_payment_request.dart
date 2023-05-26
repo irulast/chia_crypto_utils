@@ -92,6 +92,10 @@ LightningPaymentRequest decodeLightningPaymentRequest(String paymentRequest) {
       taggedFieldData = routingInfoData;
     }
 
+    if (type == 5) {
+      taggedFieldData = dataBlob;
+    }
+
     encodedTags[type] = taggedFieldData;
   }
 
@@ -125,7 +129,7 @@ PaymentRequestTags decodeTags(Map<int, dynamic> encodedTags) {
   Bytes? paymentHash;
   Bytes? paymentSecret;
   final routingInfo = <RouteInfo>[];
-  int? featureBits;
+  String? featureBits;
   int? expirationTime;
   FallbackAddress? fallbackAddress;
   String? description;
@@ -149,7 +153,9 @@ PaymentRequestTags decodeTags(Map<int, dynamic> encodedTags) {
         }
         break;
       case 5:
-        featureBits = data != null ? int.parse((data as BigInt).toRadixString(2)) : null;
+        if (data != null) {
+          featureBits = decodeFeatureBits(data as List<int>);
+        }
         break;
       case 6:
         final expirationTimeData = data != null ? (data as BigInt) : null;
@@ -222,4 +228,12 @@ RouteInfo decodeRouteInfo(List<int> data) {
     feeProportionalMillionths: feeProportionalMillionths,
     cltvExpiryDelta: cltvExpiryDelta,
   );
+}
+
+// cribbed from: https://github.com/Xtrimmer/lndecode/blob/master/js/utils.js
+String decodeFeatureBits(List<int> data) {
+  return data.map((byte) {
+    final string = '000000${byte.toRadixString(2)}';
+    return string.substring(string.length - 5);
+  }).join();
 }
