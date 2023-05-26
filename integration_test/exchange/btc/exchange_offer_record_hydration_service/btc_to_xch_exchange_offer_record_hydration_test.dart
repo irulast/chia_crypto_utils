@@ -751,8 +751,13 @@ Future<void> main() async {
       final escrowCoin =
           (await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash])).single;
       final escrowCoinParent = await fullNodeSimulator.getCoinById(escrowCoin.parentCoinInfo);
+
+      final escrowTransferCompletedBlockIndex = escrowCoinParent!.spentBlockIndex;
       final expectedEscrowTransferCompletedTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowCoinParent!.spentBlockIndex);
+          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowTransferCompletedBlockIndex);
+
+      final expectedEscrowTransferConfirmedBlockIndex =
+          escrowTransferCompletedBlockIndex + blocksForSufficientConfirmation;
 
       // restoring exchange offer record
       final initializationCoins =
@@ -844,6 +849,10 @@ Future<void> main() async {
         hydratedExchangeOfferRecord.escrowTransferCompletedTime,
         equals(expectedEscrowTransferCompletedTime),
       );
+      expect(
+        hydratedExchangeOfferRecord.escrowTransferConfirmedBlockIndex,
+        equals(expectedEscrowTransferConfirmedBlockIndex),
+      );
       expect(hydratedExchangeOfferRecord.escrowTransferConfirmedTime, isNull);
     });
 
@@ -908,11 +917,16 @@ Future<void> main() async {
       final escrowCoin =
           (await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash])).single;
       final escrowCoinParent = await fullNodeSimulator.getCoinById(escrowCoin.parentCoinInfo);
+
+      final escrowTransferCompletedBlockIndex = escrowCoinParent!.spentBlockIndex;
       final expectedEscrowTransferCompletedTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowCoinParent!.spentBlockIndex);
+          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowTransferCompletedBlockIndex);
+
+      final expectedEscrowTransferConfirmedBlockIndex =
+          escrowTransferCompletedBlockIndex + blocksForSufficientConfirmation;
 
       // wait for sufficient confirmations
-      await fullNodeSimulator.moveToNextBlock(32);
+      await fullNodeSimulator.moveToNextBlock(blocksForSufficientConfirmation);
       final expectedEscrowTransferConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
 
       // restoring exchange offer record
@@ -1004,6 +1018,10 @@ Future<void> main() async {
       expect(
         hydratedExchangeOfferRecord.escrowTransferCompletedTime,
         equals(expectedEscrowTransferCompletedTime),
+      );
+      expect(
+        hydratedExchangeOfferRecord.escrowTransferConfirmedBlockIndex,
+        equals(expectedEscrowTransferConfirmedBlockIndex),
       );
       expect(
         hydratedExchangeOfferRecord.escrowTransferConfirmedTime,
@@ -1072,11 +1090,15 @@ Future<void> main() async {
       final escrowCoin =
           (await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash])).single;
       final escrowCoinParent = await fullNodeSimulator.getCoinById(escrowCoin.parentCoinInfo);
-      final expectedEscrowTransferCompletedTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowCoinParent!.spentBlockIndex);
 
+      final escrowTransferCompletedBlockIndex = escrowCoinParent!.spentBlockIndex;
+      final expectedEscrowTransferCompletedTime =
+          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowTransferCompletedBlockIndex);
+
+      final expectedEscrowTransferConfirmedBlockIndex =
+          escrowTransferCompletedBlockIndex + blocksForSufficientConfirmation;
       // wait for sufficient confirmations
-      await fullNodeSimulator.moveToNextBlock(32);
+      await fullNodeSimulator.moveToNextBlock(blocksForSufficientConfirmation);
       final expectedEscrowTransferConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
 
       // maker sweeps escrow puzzlehash
@@ -1195,211 +1217,15 @@ Future<void> main() async {
         equals(expectedEscrowTransferCompletedTime),
       );
       expect(
-        hydratedExchangeOfferRecord.escrowTransferConfirmedTime,
-        expectedEscrowTransferConfirmedTime,
-      );
-      expect(hydratedExchangeOfferRecord.sweepTime, equals(expectedSweepTime));
-      expect(hydratedExchangeOfferRecord.sweepConfirmedTime, isNull);
-      expect(hydratedExchangeOfferRecord.clawbackTime, isNull);
-      expect(hydratedExchangeOfferRecord.clawbackConfirmedTime, isNull);
-      expect(hydratedExchangeOfferRecord.canceledTime, isNull);
-    });
-
-    test('after sweep is confirmed', () async {
-      // taker sends message coin
-      final coinForMessageSpend = taker.standardCoins.first;
-
-      await exchangeOfferService.sendMessageCoin(
-        initializationCoinId: initializationCoinId,
-        messagePuzzlehash: messagePuzzlehash,
-        coinsInput: [coinForMessageSpend],
-        keychain: taker.keychain,
-        serializedTakerOfferFile: serializedTakerOfferFile,
-        changePuzzlehash: taker.firstPuzzlehash,
-      );
-
-      await fullNodeSimulator.moveToNextBlock();
-      await taker.refreshCoins();
-
-      // maker accepts message coin
-      final messageCoinInfo = await exchangeOfferService.getNextValidMessageCoin(
-        initializationCoinId: initializationCoinId,
-        serializedOfferFile: serializedOfferFile,
-        messagePuzzlehash: messagePuzzlehash,
-        exchangeType: makerExchangeType,
-        satoshis: satoshis,
-      );
-
-      await exchangeOfferService.acceptMessageCoin(
-        initializationCoinId: initializationCoinId,
-        messageCoin: messageCoinInfo!.messageCoin,
-        masterPrivateKey: makerMasterPrivateKey,
-        derivationIndex: makerDerivationIndex,
-        serializedOfferFile: serializedOfferFile,
-        targetPuzzlehash: maker.firstPuzzlehash,
-      );
-
-      await fullNodeSimulator.moveToNextBlock();
-
-      final spentMessageCoinChild =
-          await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoinInfo.messageCoin);
-
-      expect(spentMessageCoinChild, isNotNull);
-
-      final expectedMessageCoinAcceptedTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(spentMessageCoinChild!.spentBlockIndex);
-
-      // taker transfers funds to escrow puzzlehash
-      await exchangeOfferService.transferFundsToEscrowPuzzlehash(
-        initializationCoinId: initializationCoinId,
-        mojos: mojos,
-        escrowPuzzlehash: escrowPuzzlehash,
-        requestorPrivateKey: takerPrivateKey,
-        coinsInput: [taker.standardCoins.first],
-        keychain: taker.keychain,
-        changePuzzlehash: taker.firstPuzzlehash,
-      );
-
-      await fullNodeSimulator.moveToNextBlock();
-      await taker.refreshCoins();
-
-      final escrowCoin =
-          (await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash])).single;
-      final escrowCoinParent = await fullNodeSimulator.getCoinById(escrowCoin.parentCoinInfo);
-      final expectedEscrowTransferCompletedTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowCoinParent!.spentBlockIndex);
-
-      // wait for sufficient confirmations
-      await fullNodeSimulator.moveToNextBlock(32);
-      final expectedEscrowTransferConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
-
-      // maker sweeps escrow puzzlehash
-      final makerEscrowPuzzlehash = BtcToXchService.generateEscrowPuzzlehash(
-        requestorPrivateKey: makerPrivateKey,
-        clawbackDelaySeconds: exchangeValidityTime,
-        sweepPaymentHash: paymentHash,
-        fulfillerPublicKey: takerPublicKey,
-      );
-
-      await exchangeOfferService.sweepEscrowPuzzlehash(
-        initializationCoinId: initializationCoinId,
-        escrowPuzzlehash: makerEscrowPuzzlehash,
-        requestorPuzzlehash: maker.firstPuzzlehash,
-        requestorPrivateKey: makerPrivateKey,
-        exchangeValidityTime: exchangeValidityTime,
-        paymentHash: paymentHash,
-        preimage: preimage,
-        fulfillerPublicKey: takerPublicKey,
-      );
-
-      await fullNodeSimulator.moveToNextBlock();
-
-      final spentEscrowCoin = await fullNodeSimulator.getCoinById(escrowCoin.id);
-      final expectedSweepTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(spentEscrowCoin!.spentBlockIndex);
-
-      // wait for sufficient confirmations
-      await fullNodeSimulator.moveToNextBlock(32);
-      final expectedSweepConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
-
-      // restoring exchange offer record
-      final initializationCoins =
-          await fullNodeSimulator.scroungeForExchangeInitializationCoins(maker.puzzlehashes);
-
-      expect(initializationCoins.length, equals(1));
-      expect(initializationCoins.contains(initializationCoin), isTrue);
-
-      final hydratedExchangeOfferRecord =
-          await exchangeOfferRecordHydrationService.hydrateExchangeInitializationCoin(
-        initializationCoins.single,
-        makerMasterPrivateKey,
-        maker.keychain,
-      );
-
-      expect(hydratedExchangeOfferRecord, isNotNull);
-      expect(
-        hydratedExchangeOfferRecord.initializationCoinId,
-        equals(initializationCoinId),
-      );
-      expect(
-        hydratedExchangeOfferRecord.derivationIndex,
-        equals(makerDerivationIndex),
-      );
-      expect(
-        hydratedExchangeOfferRecord.type.name,
-        equals(makerExchangeType.name),
-      );
-      expect(
-        hydratedExchangeOfferRecord.role.name,
-        equals(ExchangeRole.maker.name),
-      );
-      expect(
-        hydratedExchangeOfferRecord.mojos,
-        equals(mojos),
-      );
-      expect(
-        hydratedExchangeOfferRecord.satoshis,
-        equals(satoshis),
-      );
-      expect(
-        hydratedExchangeOfferRecord.messagePuzzlehash,
-        equals(messagePuzzlehash),
-      );
-      expect(
-        hydratedExchangeOfferRecord.requestorPublicKey,
-        equals(makerPublicKey),
-      );
-      expect(
-        hydratedExchangeOfferRecord.offerValidityTime,
-        equals(offerValidityTime),
-      );
-      expect(
-        hydratedExchangeOfferRecord.serializedMakerOfferFile,
-        equals(serializedOfferFile),
-      );
-      expect(
-        hydratedExchangeOfferRecord.lightningPaymentRequest!.paymentRequest,
-        equals(paymentRequest),
-      );
-      expect(
-        hydratedExchangeOfferRecord.initializedTime,
-        equals(initializedTime),
-      );
-      expect(hydratedExchangeOfferRecord.messageCoinId, equals(messageCoinInfo.id));
-      expect(
-        hydratedExchangeOfferRecord.messageCoinReceivedTime,
-        equals(messageCoinInfo.messageCoinReceivedTime),
-      );
-      expect(
-        hydratedExchangeOfferRecord.serializedTakerOfferFile,
-        equals(serializedTakerOfferFile),
-      );
-      expect(
-        hydratedExchangeOfferRecord.exchangeValidityTime,
-        equals(exchangeValidityTime),
-      );
-      expect(hydratedExchangeOfferRecord.fulfillerPublicKey, equals(takerPublicKey));
-      expect(
-        hydratedExchangeOfferRecord.escrowPuzzlehash,
-        equals(escrowPuzzlehash),
-      );
-      expect(
-        hydratedExchangeOfferRecord.messageCoinAcceptedTime,
-        equals(expectedMessageCoinAcceptedTime),
-      );
-      expect(hydratedExchangeOfferRecord.escrowCoinId, escrowCoin.id);
-      expect(
-        hydratedExchangeOfferRecord.escrowTransferCompletedTime,
-        equals(expectedEscrowTransferCompletedTime),
+        hydratedExchangeOfferRecord.escrowTransferConfirmedBlockIndex,
+        equals(expectedEscrowTransferConfirmedBlockIndex),
       );
       expect(
         hydratedExchangeOfferRecord.escrowTransferConfirmedTime,
         expectedEscrowTransferConfirmedTime,
       );
       expect(hydratedExchangeOfferRecord.sweepTime, equals(expectedSweepTime));
-      expect(hydratedExchangeOfferRecord.sweepConfirmedTime, equals(expectedSweepConfirmedTime));
       expect(hydratedExchangeOfferRecord.clawbackTime, isNull);
-      expect(hydratedExchangeOfferRecord.clawbackConfirmedTime, isNull);
       expect(hydratedExchangeOfferRecord.canceledTime, isNull);
     });
 
@@ -1487,11 +1313,16 @@ Future<void> main() async {
           (await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehashWithShortenedValidity]))
               .single;
       final escrowCoinParent = await fullNodeSimulator.getCoinById(escrowCoin.parentCoinInfo);
+
+      final escrowTransferCompletedBlockIndex = escrowCoinParent!.spentBlockIndex;
       final expectedEscrowTransferCompletedTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowCoinParent!.spentBlockIndex);
+          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowTransferCompletedBlockIndex);
+
+      final expectedEscrowTransferConfirmedBlockIndex =
+          escrowTransferCompletedBlockIndex + blocksForSufficientConfirmation;
 
       // wait for sufficient confirmations
-      await fullNodeSimulator.moveToNextBlock(32);
+      await fullNodeSimulator.moveToNextBlock(blocksForSufficientConfirmation);
       final expectedEscrowTransferConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
 
       // the earliest you can spend a time-locked coin is 2 blocks later, since the time is checked
@@ -1606,234 +1437,15 @@ Future<void> main() async {
           equals(expectedEscrowTransferCompletedTime),
         );
         expect(
-          hydratedExchangeOfferRecord.escrowTransferConfirmedTime,
-          expectedEscrowTransferConfirmedTime,
-        );
-        expect(hydratedExchangeOfferRecord.sweepTime, isNull);
-        expect(hydratedExchangeOfferRecord.sweepConfirmedTime, isNull);
-        expect(hydratedExchangeOfferRecord.clawbackTime, equals(expectedClawbackTime));
-        expect(hydratedExchangeOfferRecord.clawbackConfirmedTime, isNull);
-        expect(hydratedExchangeOfferRecord.canceledTime, isNull);
-      });
-    });
-
-    test('after clawback is confirmed', () async {
-      // shorten delay for testing purposes
-      const shortenedValidity = 5;
-
-      final takerOfferFileWithShortenedValidity =
-          crossChainOfferFileService.createXchToBtcTakerOfferFile(
-        initializationCoinId: initializationCoinId,
-        serializedMakerOfferFile: serializedOfferFile,
-        validityTime: shortenedValidity,
-        requestorPublicKey: takerPublicKey,
-        paymentRequest: decodedPaymentRequest,
-      );
-
-      final serializedTakerOfferFileWithShortenedValidity =
-          await takerOfferFileWithShortenedValidity.serializeAsync(takerPrivateKey);
-
-      // taker sends message coin
-      final coinForMessageSpend = taker.standardCoins.first;
-
-      await exchangeOfferService.sendMessageCoin(
-        initializationCoinId: initializationCoinId,
-        messagePuzzlehash: messagePuzzlehash,
-        coinsInput: [coinForMessageSpend],
-        keychain: taker.keychain,
-        serializedTakerOfferFile: serializedTakerOfferFileWithShortenedValidity,
-        changePuzzlehash: taker.firstPuzzlehash,
-      );
-
-      await fullNodeSimulator.moveToNextBlock();
-      await taker.refreshCoins();
-
-      // maker accepts message coin
-      final messageCoinInfo = await exchangeOfferService.getNextValidMessageCoin(
-        initializationCoinId: initializationCoinId,
-        serializedOfferFile: serializedOfferFile,
-        messagePuzzlehash: messagePuzzlehash,
-        exchangeType: makerExchangeType,
-        satoshis: satoshis,
-      );
-
-      await exchangeOfferService.acceptMessageCoin(
-        initializationCoinId: initializationCoinId,
-        messageCoin: messageCoinInfo!.messageCoin,
-        masterPrivateKey: makerMasterPrivateKey,
-        derivationIndex: makerDerivationIndex,
-        serializedOfferFile: serializedOfferFile,
-        targetPuzzlehash: maker.firstPuzzlehash,
-      );
-
-      await fullNodeSimulator.moveToNextBlock();
-
-      final spentMessageCoinChild =
-          await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoinInfo.messageCoin);
-
-      expect(spentMessageCoinChild, isNotNull);
-
-      final expectedMessageCoinAcceptedTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(spentMessageCoinChild!.spentBlockIndex);
-
-      // taker transfers funds to escrow puzzlehash
-      final escrowPuzzlehashWithShortenedValidity = XchToBtcService.generateEscrowPuzzlehash(
-        requestorPrivateKey: takerPrivateKey,
-        clawbackDelaySeconds: shortenedValidity,
-        sweepPaymentHash: paymentHash,
-        fulfillerPublicKey: makerPublicKey,
-      );
-
-      await exchangeOfferService.transferFundsToEscrowPuzzlehash(
-        initializationCoinId: initializationCoinId,
-        mojos: mojos,
-        escrowPuzzlehash: escrowPuzzlehashWithShortenedValidity,
-        requestorPrivateKey: takerPrivateKey,
-        coinsInput: [taker.standardCoins.first],
-        keychain: taker.keychain,
-        changePuzzlehash: taker.firstPuzzlehash,
-      );
-
-      await fullNodeSimulator.moveToNextBlock();
-      await maker.refreshCoins();
-
-      final escrowCoin =
-          (await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehashWithShortenedValidity]))
-              .single;
-      final escrowCoinParent = await fullNodeSimulator.getCoinById(escrowCoin.parentCoinInfo);
-      final expectedEscrowTransferCompletedTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowCoinParent!.spentBlockIndex);
-
-      // wait for sufficient confirmations
-      await fullNodeSimulator.moveToNextBlock(32);
-      final expectedEscrowTransferConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
-
-      // the earliest you can spend a time-locked coin is 2 blocks later, since the time is checked
-      // against the timestamp of the previous block
-      for (var i = 0; i < 2; i++) {
-        await fullNodeSimulator.moveToNextBlock();
-      }
-
-      // wait until clawback delay period has passed
-      await Future<void>.delayed(const Duration(seconds: 10), () async {
-        // taker claws back funds at escrow puzzlehash
-        await exchangeOfferService.clawbackEscrowFunds(
-          initializationCoinId: initializationCoinId,
-          escrowPuzzlehash: escrowPuzzlehashWithShortenedValidity,
-          requestorPuzzlehash: taker.firstPuzzlehash,
-          requestorPrivateKey: takerPrivateKey,
-          exchangeValidityTime: shortenedValidity,
-          paymentHash: paymentHash,
-          fulfillerPublicKey: makerPublicKey,
-        );
-
-        await fullNodeSimulator.moveToNextBlock();
-
-        final spentEscrowCoin = await fullNodeSimulator.getCoinById(escrowCoin.id);
-        final expectedClawbackTime =
-            await fullNodeSimulator.getDateTimeFromBlockIndex(spentEscrowCoin!.spentBlockIndex);
-
-        // wait for sufficient confirmations
-        await fullNodeSimulator.moveToNextBlock(32);
-        final expectedClawbackConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
-
-        // restoring exchange offer record
-        final initializationCoins =
-            await fullNodeSimulator.scroungeForExchangeInitializationCoins(maker.puzzlehashes);
-
-        expect(initializationCoins.length, equals(1));
-        expect(initializationCoins.contains(initializationCoin), isTrue);
-
-        final hydratedExchangeOfferRecord =
-            await exchangeOfferRecordHydrationService.hydrateExchangeInitializationCoin(
-          initializationCoins.single,
-          makerMasterPrivateKey,
-          maker.keychain,
-        );
-
-        expect(hydratedExchangeOfferRecord, isNotNull);
-        expect(
-          hydratedExchangeOfferRecord.initializationCoinId,
-          equals(initializationCoinId),
-        );
-        expect(
-          hydratedExchangeOfferRecord.derivationIndex,
-          equals(makerDerivationIndex),
-        );
-        expect(
-          hydratedExchangeOfferRecord.type.name,
-          equals(makerExchangeType.name),
-        );
-        expect(
-          hydratedExchangeOfferRecord.role.name,
-          equals(ExchangeRole.maker.name),
-        );
-        expect(
-          hydratedExchangeOfferRecord.mojos,
-          equals(mojos),
-        );
-        expect(
-          hydratedExchangeOfferRecord.satoshis,
-          equals(satoshis),
-        );
-        expect(
-          hydratedExchangeOfferRecord.messagePuzzlehash,
-          equals(messagePuzzlehash),
-        );
-        expect(
-          hydratedExchangeOfferRecord.requestorPublicKey,
-          equals(makerPublicKey),
-        );
-        expect(
-          hydratedExchangeOfferRecord.offerValidityTime,
-          equals(offerValidityTime),
-        );
-        expect(
-          hydratedExchangeOfferRecord.serializedMakerOfferFile,
-          equals(serializedOfferFile),
-        );
-        expect(
-          hydratedExchangeOfferRecord.lightningPaymentRequest!.paymentRequest,
-          equals(paymentRequest),
-        );
-        expect(hydratedExchangeOfferRecord.messageCoinId, equals(messageCoinInfo.id));
-        expect(
-          hydratedExchangeOfferRecord.messageCoinReceivedTime,
-          equals(messageCoinInfo.messageCoinReceivedTime),
-        );
-        expect(
-          hydratedExchangeOfferRecord.serializedTakerOfferFile,
-          equals(serializedTakerOfferFileWithShortenedValidity),
-        );
-        expect(
-          hydratedExchangeOfferRecord.exchangeValidityTime,
-          equals(shortenedValidity),
-        );
-        expect(hydratedExchangeOfferRecord.fulfillerPublicKey, equals(takerPublicKey));
-        expect(
-          hydratedExchangeOfferRecord.escrowPuzzlehash,
-          equals(escrowPuzzlehashWithShortenedValidity),
-        );
-        expect(
-          hydratedExchangeOfferRecord.messageCoinAcceptedTime,
-          equals(expectedMessageCoinAcceptedTime),
-        );
-        expect(hydratedExchangeOfferRecord.escrowCoinId, escrowCoin.id);
-        expect(
-          hydratedExchangeOfferRecord.escrowTransferCompletedTime,
-          equals(expectedEscrowTransferCompletedTime),
+          hydratedExchangeOfferRecord.escrowTransferConfirmedBlockIndex,
+          equals(expectedEscrowTransferConfirmedBlockIndex),
         );
         expect(
           hydratedExchangeOfferRecord.escrowTransferConfirmedTime,
           expectedEscrowTransferConfirmedTime,
         );
         expect(hydratedExchangeOfferRecord.sweepTime, isNull);
-        expect(hydratedExchangeOfferRecord.sweepConfirmedTime, isNull);
         expect(hydratedExchangeOfferRecord.clawbackTime, equals(expectedClawbackTime));
-        expect(
-          hydratedExchangeOfferRecord.clawbackConfirmedTime,
-          equals(expectedClawbackConfirmedTime),
-        );
         expect(hydratedExchangeOfferRecord.canceledTime, isNull);
       });
     });
@@ -2417,11 +2029,15 @@ Future<void> main() async {
       final escrowCoin =
           (await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash])).single;
       final escrowCoinParent = await fullNodeSimulator.getCoinById(escrowCoin.parentCoinInfo);
+
+      final escrowTransferCompletedBlockIndex = escrowCoinParent!.spentBlockIndex;
       final expectedEscrowTransferCompletedTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowCoinParent!.spentBlockIndex);
+          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowTransferCompletedBlockIndex);
+
+      final expectedEscrowTransferConfirmedBlockIndex =
+          escrowTransferCompletedBlockIndex + blocksForSufficientConfirmation;
 
       // restoring exchange offer record
-
       final sentMessageCoins =
           await fullNodeSimulator.scroungeForSentNotificationCoins(taker.puzzlehashes);
 
@@ -2505,6 +2121,10 @@ Future<void> main() async {
         hydratedExchangeOfferRecord.escrowTransferCompletedTime,
         expectedEscrowTransferCompletedTime,
       );
+      expect(
+        hydratedExchangeOfferRecord.escrowTransferConfirmedBlockIndex,
+        equals(expectedEscrowTransferConfirmedBlockIndex),
+      );
       expect(hydratedExchangeOfferRecord.escrowTransferConfirmedTime, isNull);
       expect(hydratedExchangeOfferRecord.escrowCoinId, equals(escrowCoin.id));
       expect(hydratedExchangeOfferRecord.sweepTime, isNull);
@@ -2580,11 +2200,16 @@ Future<void> main() async {
       final escrowCoin =
           (await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash])).single;
       final escrowCoinParent = await fullNodeSimulator.getCoinById(escrowCoin.parentCoinInfo);
+
+      final escrowTransferCompletedBlockIndex = escrowCoinParent!.spentBlockIndex;
       final expectedEscrowTransferCompletedTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowCoinParent!.spentBlockIndex);
+          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowTransferCompletedBlockIndex);
+
+      final expectedEscrowTransferConfirmedBlockIndex =
+          escrowTransferCompletedBlockIndex + blocksForSufficientConfirmation;
 
       // wait for sufficient confirmations
-      await fullNodeSimulator.moveToNextBlock(32);
+      await fullNodeSimulator.moveToNextBlock(blocksForSufficientConfirmation);
       final expectedEscrowTransferConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
 
       // restoring exchange offer record
@@ -2670,6 +2295,10 @@ Future<void> main() async {
       expect(
         hydratedExchangeOfferRecord.escrowTransferCompletedTime,
         expectedEscrowTransferCompletedTime,
+      );
+      expect(
+        hydratedExchangeOfferRecord.escrowTransferConfirmedBlockIndex,
+        equals(expectedEscrowTransferConfirmedBlockIndex),
       );
       expect(
         hydratedExchangeOfferRecord.escrowTransferConfirmedTime,
@@ -2748,11 +2377,16 @@ Future<void> main() async {
       final escrowCoin =
           (await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash])).single;
       final escrowCoinParent = await fullNodeSimulator.getCoinById(escrowCoin.parentCoinInfo);
+
+      final escrowTransferCompletedBlockIndex = escrowCoinParent!.spentBlockIndex;
       final expectedEscrowTransferCompletedTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowCoinParent!.spentBlockIndex);
+          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowTransferCompletedBlockIndex);
+
+      final expectedEscrowTransferConfirmedBlockIndex =
+          escrowTransferCompletedBlockIndex + blocksForSufficientConfirmation;
 
       // wait for sufficient confirmations
-      await fullNodeSimulator.moveToNextBlock(32);
+      await fullNodeSimulator.moveToNextBlock(blocksForSufficientConfirmation);
       final expectedEscrowTransferConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
 
       // maker sweeps escrow puzzlehash
@@ -2865,203 +2499,8 @@ Future<void> main() async {
         expectedEscrowTransferCompletedTime,
       );
       expect(
-        hydratedExchangeOfferRecord.escrowTransferConfirmedTime,
-        expectedEscrowTransferConfirmedTime,
-      );
-      expect(hydratedExchangeOfferRecord.escrowCoinId, equals(escrowCoin.id));
-      expect(hydratedExchangeOfferRecord.sweepTime, equals(expectedSweepTime));
-      expect(hydratedExchangeOfferRecord.sweepConfirmedTime, isNull);
-      expect(hydratedExchangeOfferRecord.clawbackTime, isNull);
-      expect(hydratedExchangeOfferRecord.clawbackConfirmedTime, isNull);
-      expect(hydratedExchangeOfferRecord.canceledTime, isNull);
-    });
-
-    test('after sweep is confirmed', () async {
-      // taker sends message coin
-      final coinForMessageSpend = taker.standardCoins.first;
-
-      await exchangeOfferService.sendMessageCoin(
-        initializationCoinId: initializationCoinId,
-        messagePuzzlehash: messagePuzzlehash,
-        coinsInput: [coinForMessageSpend],
-        keychain: taker.keychain,
-        serializedTakerOfferFile: serializedTakerOfferFile,
-        changePuzzlehash: taker.firstPuzzlehash,
-      );
-
-      await fullNodeSimulator.moveToNextBlock();
-      await taker.refreshCoins();
-
-      final expectedMessageCoin =
-          (await fullNodeSimulator.scroungeForReceivedNotificationCoins([messagePuzzlehash]))
-              .single;
-
-      final expectedMessageCoinReceivedTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(expectedMessageCoin.spentBlockIndex);
-
-      // maker accepts message coin
-      final messageCoinInfo = await exchangeOfferService.getNextValidMessageCoin(
-        initializationCoinId: initializationCoinId,
-        serializedOfferFile: serializedOfferFile,
-        messagePuzzlehash: messagePuzzlehash,
-        exchangeType: makerExchangeType,
-        satoshis: satoshis,
-      );
-
-      await exchangeOfferService.acceptMessageCoin(
-        initializationCoinId: initializationCoinId,
-        messageCoin: messageCoinInfo!.messageCoin,
-        masterPrivateKey: makerMasterPrivateKey,
-        derivationIndex: makerDerivationIndex,
-        serializedOfferFile: serializedOfferFile,
-        targetPuzzlehash: maker.firstPuzzlehash,
-      );
-
-      await fullNodeSimulator.moveToNextBlock();
-
-      final spentMessageCoinChild =
-          await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoinInfo.messageCoin);
-
-      expect(spentMessageCoinChild, isNotNull);
-      final expectedMessageCoinAcceptedTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(spentMessageCoinChild!.spentBlockIndex);
-
-      // taker transfers funds to escrow puzzlehash
-      await exchangeOfferService.transferFundsToEscrowPuzzlehash(
-        initializationCoinId: initializationCoinId,
-        mojos: mojos,
-        escrowPuzzlehash: escrowPuzzlehash,
-        requestorPrivateKey: takerPrivateKey,
-        coinsInput: [taker.standardCoins.first],
-        keychain: taker.keychain,
-        changePuzzlehash: taker.firstPuzzlehash,
-      );
-
-      await fullNodeSimulator.moveToNextBlock();
-      await taker.refreshCoins();
-
-      final escrowCoin =
-          (await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash])).single;
-      final escrowCoinParent = await fullNodeSimulator.getCoinById(escrowCoin.parentCoinInfo);
-      final expectedEscrowTransferCompletedTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowCoinParent!.spentBlockIndex);
-
-      // wait for sufficient confirmations
-      await fullNodeSimulator.moveToNextBlock(32);
-      final expectedEscrowTransferConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
-
-      // maker sweeps escrow puzzlehash
-      final makerEscrowPuzzlehash = BtcToXchService.generateEscrowPuzzlehash(
-        requestorPrivateKey: makerPrivateKey,
-        clawbackDelaySeconds: exchangeValidityTime,
-        sweepPaymentHash: paymentHash,
-        fulfillerPublicKey: takerPublicKey,
-      );
-
-      await exchangeOfferService.sweepEscrowPuzzlehash(
-        initializationCoinId: initializationCoinId,
-        escrowPuzzlehash: makerEscrowPuzzlehash,
-        requestorPuzzlehash: maker.firstPuzzlehash,
-        requestorPrivateKey: makerPrivateKey,
-        exchangeValidityTime: exchangeValidityTime,
-        paymentHash: paymentHash,
-        preimage: preimage,
-        fulfillerPublicKey: takerPublicKey,
-      );
-
-      await fullNodeSimulator.moveToNextBlock();
-
-      final spentEscrowCoin = await fullNodeSimulator.getCoinById(escrowCoin.id);
-      final expectedSweepTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(spentEscrowCoin!.spentBlockIndex);
-
-      // wait for sufficient confirmations
-      await fullNodeSimulator.moveToNextBlock(32);
-      final expectedSweepConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
-
-      // restoring exchange offer record
-      final sentMessageCoins =
-          await fullNodeSimulator.scroungeForSentNotificationCoins(taker.puzzlehashes);
-
-      expect(sentMessageCoins.length, equals(1));
-
-      final hydratedExchangeOfferRecord =
-          await exchangeOfferRecordHydrationService.hydrateSentMessageCoin(
-        sentMessageCoins.first,
-        taker.keychain,
-      );
-
-      expect(hydratedExchangeOfferRecord, isNotNull);
-      expect(
-        hydratedExchangeOfferRecord.initializationCoinId,
-        equals(initializationCoinId),
-      );
-      expect(
-        hydratedExchangeOfferRecord.derivationIndex,
-        equals(takerDerivationIndex),
-      );
-      expect(
-        hydratedExchangeOfferRecord.type.name,
-        equals(takerExchangeType.name),
-      );
-      expect(
-        hydratedExchangeOfferRecord.role.name,
-        equals(ExchangeRole.taker.name),
-      );
-      expect(
-        hydratedExchangeOfferRecord.mojos,
-        equals(mojos),
-      );
-      expect(
-        hydratedExchangeOfferRecord.satoshis,
-        equals(satoshis),
-      );
-      expect(
-        hydratedExchangeOfferRecord.messagePuzzlehash,
-        equals(messagePuzzlehash),
-      );
-      expect(
-        hydratedExchangeOfferRecord.requestorPublicKey,
-        equals(takerPublicKey),
-      );
-      expect(
-        hydratedExchangeOfferRecord.offerValidityTime,
-        equals(offerValidityTime),
-      );
-      expect(
-        hydratedExchangeOfferRecord.serializedMakerOfferFile,
-        equals(serializedOfferFile),
-      );
-      expect(
-        hydratedExchangeOfferRecord.lightningPaymentRequest!.paymentRequest,
-        equals(paymentRequest),
-      );
-      expect(hydratedExchangeOfferRecord.messageCoinId, equals(expectedMessageCoin.id));
-      expect(
-        hydratedExchangeOfferRecord.messageCoinReceivedTime,
-        equals(expectedMessageCoinReceivedTime),
-      );
-      expect(
-        hydratedExchangeOfferRecord.serializedTakerOfferFile,
-        equals(serializedTakerOfferFile),
-      );
-      expect(
-        hydratedExchangeOfferRecord.exchangeValidityTime,
-        equals(exchangeValidityTime),
-      );
-      expect(hydratedExchangeOfferRecord.fulfillerPublicKey, equals(makerPublicKey));
-      expect(
-        hydratedExchangeOfferRecord.escrowPuzzlehash,
-        equals(escrowPuzzlehash),
-      );
-      expect(
-        hydratedExchangeOfferRecord.messageCoinAcceptedTime,
-        equals(expectedMessageCoinAcceptedTime),
-      );
-      expect(hydratedExchangeOfferRecord.messageCoinDeclinedTime, isNull);
-      expect(
-        hydratedExchangeOfferRecord.escrowTransferCompletedTime,
-        expectedEscrowTransferCompletedTime,
+        hydratedExchangeOfferRecord.escrowTransferConfirmedBlockIndex,
+        equals(expectedEscrowTransferConfirmedBlockIndex),
       );
       expect(
         hydratedExchangeOfferRecord.escrowTransferConfirmedTime,
@@ -3069,9 +2508,7 @@ Future<void> main() async {
       );
       expect(hydratedExchangeOfferRecord.escrowCoinId, equals(escrowCoin.id));
       expect(hydratedExchangeOfferRecord.sweepTime, equals(expectedSweepTime));
-      expect(hydratedExchangeOfferRecord.sweepConfirmedTime, equals(expectedSweepConfirmedTime));
       expect(hydratedExchangeOfferRecord.clawbackTime, isNull);
-      expect(hydratedExchangeOfferRecord.clawbackConfirmedTime, isNull);
       expect(hydratedExchangeOfferRecord.canceledTime, isNull);
     });
 
@@ -3159,11 +2596,16 @@ Future<void> main() async {
           (await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehashWithShortenedValidity]))
               .single;
       final escrowCoinParent = await fullNodeSimulator.getCoinById(escrowCoin.parentCoinInfo);
+
+      final escrowTransferCompletedBlockIndex = escrowCoinParent!.spentBlockIndex;
       final expectedEscrowTransferCompletedTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowCoinParent!.spentBlockIndex);
+          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowTransferCompletedBlockIndex);
+
+      final expectedEscrowTransferConfirmedBlockIndex =
+          escrowTransferCompletedBlockIndex + blocksForSufficientConfirmation;
 
       // wait for sufficient confirmations
-      await fullNodeSimulator.moveToNextBlock(32);
+      await fullNodeSimulator.moveToNextBlock(blocksForSufficientConfirmation);
       final expectedEscrowTransferConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
 
       // the earliest you can spend a time-locked coin is 2 blocks later, since the time is checked
@@ -3275,220 +2717,8 @@ Future<void> main() async {
           expectedEscrowTransferCompletedTime,
         );
         expect(
-          hydratedExchangeOfferRecord.escrowTransferConfirmedTime,
-          expectedEscrowTransferConfirmedTime,
-        );
-        expect(hydratedExchangeOfferRecord.escrowCoinId, equals(escrowCoin.id));
-        expect(hydratedExchangeOfferRecord.sweepTime, isNull);
-        expect(hydratedExchangeOfferRecord.sweepConfirmedTime, isNull);
-        expect(hydratedExchangeOfferRecord.clawbackTime, equals(expectedClawbackTime));
-        expect(hydratedExchangeOfferRecord.clawbackConfirmedTime, isNull);
-        expect(hydratedExchangeOfferRecord.canceledTime, isNull);
-      });
-    });
-
-    test('after clawback is confirmed', () async {
-      // shorten delay for testing purposes
-      const shortenedValidity = 5;
-
-      final takerOfferFileWithShortenedValidity =
-          crossChainOfferFileService.createXchToBtcTakerOfferFile(
-        initializationCoinId: initializationCoinId,
-        serializedMakerOfferFile: serializedOfferFile,
-        validityTime: shortenedValidity,
-        requestorPublicKey: takerPublicKey,
-        paymentRequest: decodedPaymentRequest,
-      );
-
-      final serializedTakerOfferFileWithShortenedValidity =
-          await takerOfferFileWithShortenedValidity.serializeAsync(takerPrivateKey);
-
-      // taker sends message coin
-      final coinForMessageSpend = taker.standardCoins.first;
-
-      await exchangeOfferService.sendMessageCoin(
-        initializationCoinId: initializationCoinId,
-        messagePuzzlehash: messagePuzzlehash,
-        coinsInput: [coinForMessageSpend],
-        keychain: taker.keychain,
-        serializedTakerOfferFile: serializedTakerOfferFileWithShortenedValidity,
-        changePuzzlehash: taker.firstPuzzlehash,
-      );
-
-      await fullNodeSimulator.moveToNextBlock();
-      await taker.refreshCoins();
-
-      // maker accepts message coin
-      final messageCoinInfo = await exchangeOfferService.getNextValidMessageCoin(
-        initializationCoinId: initializationCoinId,
-        serializedOfferFile: serializedOfferFile,
-        messagePuzzlehash: messagePuzzlehash,
-        exchangeType: makerExchangeType,
-        satoshis: satoshis,
-      );
-
-      await exchangeOfferService.acceptMessageCoin(
-        initializationCoinId: initializationCoinId,
-        messageCoin: messageCoinInfo!.messageCoin,
-        masterPrivateKey: makerMasterPrivateKey,
-        derivationIndex: makerDerivationIndex,
-        serializedOfferFile: serializedOfferFile,
-        targetPuzzlehash: maker.firstPuzzlehash,
-      );
-
-      await fullNodeSimulator.moveToNextBlock();
-
-      final spentMessageCoinChild =
-          await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoinInfo.messageCoin);
-
-      expect(spentMessageCoinChild, isNotNull);
-
-      final expectedMessageCoinAcceptedTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(spentMessageCoinChild!.spentBlockIndex);
-
-      // taker transfers funds to escrow puzzlehash
-      final escrowPuzzlehashWithShortenedValidity = XchToBtcService.generateEscrowPuzzlehash(
-        requestorPrivateKey: takerPrivateKey,
-        clawbackDelaySeconds: shortenedValidity,
-        sweepPaymentHash: paymentHash,
-        fulfillerPublicKey: makerPublicKey,
-      );
-
-      await exchangeOfferService.transferFundsToEscrowPuzzlehash(
-        initializationCoinId: initializationCoinId,
-        mojos: mojos,
-        escrowPuzzlehash: escrowPuzzlehashWithShortenedValidity,
-        requestorPrivateKey: takerPrivateKey,
-        coinsInput: [taker.standardCoins.first],
-        keychain: taker.keychain,
-        changePuzzlehash: taker.firstPuzzlehash,
-      );
-
-      await fullNodeSimulator.moveToNextBlock();
-      await maker.refreshCoins();
-
-      final escrowCoin =
-          (await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehashWithShortenedValidity]))
-              .single;
-      final escrowCoinParent = await fullNodeSimulator.getCoinById(escrowCoin.parentCoinInfo);
-      final expectedEscrowTransferCompletedTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(escrowCoinParent!.spentBlockIndex);
-
-      // wait for sufficient confirmations
-      await fullNodeSimulator.moveToNextBlock(32);
-      final expectedEscrowTransferConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
-
-      // the earliest you can spend a time-locked coin is 2 blocks later, since the time is checked
-      // against the timestamp of the previous block
-      for (var i = 0; i < 2; i++) {
-        await fullNodeSimulator.moveToNextBlock();
-      }
-
-      await Future<void>.delayed(const Duration(seconds: 10), () async {
-        // maker claws back funds at escrow puzzlehash
-        await exchangeOfferService.clawbackEscrowFunds(
-          initializationCoinId: initializationCoinId,
-          escrowPuzzlehash: escrowPuzzlehashWithShortenedValidity,
-          requestorPuzzlehash: taker.firstPuzzlehash,
-          requestorPrivateKey: takerPrivateKey,
-          exchangeValidityTime: shortenedValidity,
-          paymentHash: paymentHash,
-          fulfillerPublicKey: makerPublicKey,
-        );
-
-        await fullNodeSimulator.moveToNextBlock();
-
-        final spentEscrowCoin = await fullNodeSimulator.getCoinById(escrowCoin.id);
-        final expectedClawbackTime =
-            await fullNodeSimulator.getDateTimeFromBlockIndex(spentEscrowCoin!.spentBlockIndex);
-
-        // wait for sufficient confirmations
-        await fullNodeSimulator.moveToNextBlock(32);
-        final expectedClawbackConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
-
-        // restoring exchange offer record
-        final sentMessageCoins =
-            await fullNodeSimulator.scroungeForSentNotificationCoins(taker.puzzlehashes);
-
-        expect(sentMessageCoins.length, equals(1));
-
-        final hydratedExchangeOfferRecord =
-            await exchangeOfferRecordHydrationService.hydrateSentMessageCoin(
-          sentMessageCoins.first,
-          taker.keychain,
-        );
-
-        expect(hydratedExchangeOfferRecord, isNotNull);
-        expect(
-          hydratedExchangeOfferRecord.initializationCoinId,
-          equals(initializationCoinId),
-        );
-        expect(
-          hydratedExchangeOfferRecord.derivationIndex,
-          equals(takerDerivationIndex),
-        );
-        expect(
-          hydratedExchangeOfferRecord.type.name,
-          equals(takerExchangeType.name),
-        );
-        expect(
-          hydratedExchangeOfferRecord.role.name,
-          equals(ExchangeRole.taker.name),
-        );
-        expect(
-          hydratedExchangeOfferRecord.mojos,
-          equals(mojos),
-        );
-        expect(
-          hydratedExchangeOfferRecord.satoshis,
-          equals(satoshis),
-        );
-        expect(
-          hydratedExchangeOfferRecord.messagePuzzlehash,
-          equals(messagePuzzlehash),
-        );
-        expect(
-          hydratedExchangeOfferRecord.requestorPublicKey,
-          equals(takerPublicKey),
-        );
-        expect(
-          hydratedExchangeOfferRecord.offerValidityTime,
-          equals(offerValidityTime),
-        );
-        expect(
-          hydratedExchangeOfferRecord.serializedMakerOfferFile,
-          equals(serializedOfferFile),
-        );
-        expect(
-          hydratedExchangeOfferRecord.lightningPaymentRequest!.paymentRequest,
-          equals(paymentRequest),
-        );
-        expect(hydratedExchangeOfferRecord.messageCoinId, equals(messageCoinInfo.id));
-        expect(
-          hydratedExchangeOfferRecord.messageCoinReceivedTime,
-          equals(messageCoinInfo.messageCoinReceivedTime),
-        );
-        expect(
-          hydratedExchangeOfferRecord.serializedTakerOfferFile,
-          equals(serializedTakerOfferFileWithShortenedValidity),
-        );
-        expect(
-          hydratedExchangeOfferRecord.exchangeValidityTime,
-          equals(shortenedValidity),
-        );
-        expect(hydratedExchangeOfferRecord.fulfillerPublicKey, equals(makerPublicKey));
-        expect(
-          hydratedExchangeOfferRecord.escrowPuzzlehash,
-          equals(escrowPuzzlehashWithShortenedValidity),
-        );
-        expect(
-          hydratedExchangeOfferRecord.messageCoinAcceptedTime,
-          equals(expectedMessageCoinAcceptedTime),
-        );
-        expect(hydratedExchangeOfferRecord.messageCoinDeclinedTime, isNull);
-        expect(
-          hydratedExchangeOfferRecord.escrowTransferCompletedTime,
-          expectedEscrowTransferCompletedTime,
+          hydratedExchangeOfferRecord.escrowTransferConfirmedBlockIndex,
+          equals(expectedEscrowTransferConfirmedBlockIndex),
         );
         expect(
           hydratedExchangeOfferRecord.escrowTransferConfirmedTime,
@@ -3496,12 +2726,7 @@ Future<void> main() async {
         );
         expect(hydratedExchangeOfferRecord.escrowCoinId, equals(escrowCoin.id));
         expect(hydratedExchangeOfferRecord.sweepTime, isNull);
-        expect(hydratedExchangeOfferRecord.sweepConfirmedTime, isNull);
         expect(hydratedExchangeOfferRecord.clawbackTime, equals(expectedClawbackTime));
-        expect(
-          hydratedExchangeOfferRecord.clawbackConfirmedTime,
-          equals(expectedClawbackConfirmedTime),
-        );
         expect(hydratedExchangeOfferRecord.canceledTime, isNull);
       });
     });

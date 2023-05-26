@@ -4,38 +4,6 @@ import 'package:intl/intl.dart';
 
 /// A record of all values relevant to an exchange offer that can be restored.
 class ExchangeOfferRecord {
-  ExchangeOfferRecord({
-    required this.initializationCoinId,
-    required this.derivationIndex,
-    required this.type,
-    required this.role,
-    required this.mojos,
-    required this.satoshis,
-    required this.messagePuzzlehash,
-    required this.requestorPublicKey,
-    required this.offerValidityTime,
-    required this.serializedMakerOfferFile,
-    this.submittedToDexie = false,
-    this.lightningPaymentRequest,
-    this.messageCoinId,
-    this.serializedTakerOfferFile,
-    this.fulfillerPublicKey,
-    this.exchangeValidityTime,
-    this.escrowPuzzlehash,
-    this.escrowCoinId,
-    this.initializedTime,
-    this.messageCoinReceivedTime,
-    this.messageCoinAcceptedTime,
-    this.messageCoinDeclinedTime,
-    this.escrowTransferCompletedTime,
-    this.escrowTransferConfirmedTime,
-    this.sweepTime,
-    this.sweepConfirmedTime,
-    this.clawbackTime,
-    this.clawbackConfirmedTime,
-    this.canceledTime,
-  });
-
   /// The ID of the coin that was spent to create a 3 mojo coin at the message puzzlehash.
   final Bytes initializationCoinId;
 
@@ -122,24 +90,52 @@ class ExchangeOfferRecord {
   final DateTime? escrowTransferCompletedTime;
 
   /// 32 blocks after escrow transfer completes.
+  final int? escrowTransferConfirmedBlockIndex;
+
+  /// When 32 blocks have passed since escrow transfer has completed.
   final DateTime? escrowTransferConfirmedTime;
 
   /// When the BTC holder spends the XCH at the escrow puzzlehash in order to claim it.
   final DateTime? sweepTime;
 
-  /// 32 blocks after sweep completes.
-  final DateTime? sweepConfirmedTime;
-
   /// When the XCH holder spends the XCH at the escrow puzzlehash in order to reclaim it after the
   /// exchange validity time passes.
   final DateTime? clawbackTime;
 
-  /// 32 blocks after sweep completes.
-  final DateTime? clawbackConfirmedTime;
-
   /// When the 3 mojo coin child of the initialization coin at the message puzzlehash is spent,
   /// indicating cancelation.
   final DateTime? canceledTime;
+
+  ExchangeOfferRecord({
+    required this.initializationCoinId,
+    required this.derivationIndex,
+    required this.type,
+    required this.role,
+    required this.mojos,
+    required this.satoshis,
+    required this.messagePuzzlehash,
+    required this.requestorPublicKey,
+    required this.offerValidityTime,
+    required this.serializedMakerOfferFile,
+    required this.submittedToDexie,
+    this.lightningPaymentRequest,
+    this.messageCoinId,
+    this.serializedTakerOfferFile,
+    this.fulfillerPublicKey,
+    this.exchangeValidityTime,
+    this.escrowPuzzlehash,
+    this.escrowCoinId,
+    this.initializedTime,
+    this.messageCoinReceivedTime,
+    this.messageCoinAcceptedTime,
+    this.messageCoinDeclinedTime,
+    this.escrowTransferCompletedTime,
+    this.escrowTransferConfirmedBlockIndex,
+    this.escrowTransferConfirmedTime,
+    this.sweepTime,
+    this.clawbackTime,
+    this.canceledTime,
+  });
 
   Bytes? get paymentHash {
     if (lightningPaymentRequest != null) {
@@ -204,7 +200,7 @@ class ExchangeOfferRecord {
     return null;
   }
 
-  bool get completed => sweepConfirmedTime != null;
+  bool get completed => sweepTime != null;
 
   String get dexieId => generateDexieId(serializedMakerOfferFile);
 
@@ -265,6 +261,7 @@ class ExchangeOfferRecord {
     JacobianPoint? requestorPublicKey,
     int? offerValidityTime,
     String? serializedMakerOfferFile,
+    bool? submittedToDexie,
     String? serializedTakerOfferFile,
     LightningPaymentRequest? lightningPaymentRequest,
     JacobianPoint? fulfillerPublicKey,
@@ -277,11 +274,10 @@ class ExchangeOfferRecord {
     DateTime? messageCoinAcceptedTime,
     DateTime? messageCoinDeclinedTime,
     DateTime? escrowTransferCompletedTime,
+    int? escrowTransferConfirmedBlockIndex,
     DateTime? escrowTransferConfirmedTime,
     DateTime? sweepTime,
-    DateTime? sweepConfirmedTime,
     DateTime? clawbackTime,
-    DateTime? clawbackConfirmedTime,
     DateTime? canceledTime,
   }) {
     return ExchangeOfferRecord(
@@ -295,6 +291,7 @@ class ExchangeOfferRecord {
       requestorPublicKey: requestorPublicKey ?? this.requestorPublicKey,
       offerValidityTime: offerValidityTime ?? this.offerValidityTime,
       serializedMakerOfferFile: serializedMakerOfferFile ?? this.serializedMakerOfferFile,
+      submittedToDexie: submittedToDexie ?? this.submittedToDexie,
       serializedTakerOfferFile: serializedTakerOfferFile ?? this.serializedTakerOfferFile,
       lightningPaymentRequest: lightningPaymentRequest ?? this.lightningPaymentRequest,
       fulfillerPublicKey: fulfillerPublicKey ?? this.fulfillerPublicKey,
@@ -307,11 +304,11 @@ class ExchangeOfferRecord {
       messageCoinDeclinedTime: messageCoinDeclinedTime ?? this.messageCoinDeclinedTime,
       messageCoinAcceptedTime: messageCoinAcceptedTime ?? this.messageCoinAcceptedTime,
       escrowTransferCompletedTime: escrowTransferCompletedTime ?? this.escrowTransferCompletedTime,
+      escrowTransferConfirmedBlockIndex:
+          escrowTransferConfirmedBlockIndex ?? this.escrowTransferConfirmedBlockIndex,
       escrowTransferConfirmedTime: escrowTransferConfirmedTime ?? this.escrowTransferConfirmedTime,
       sweepTime: sweepTime ?? this.sweepTime,
-      sweepConfirmedTime: sweepConfirmedTime ?? this.sweepConfirmedTime,
       clawbackTime: clawbackTime ?? this.clawbackTime,
-      clawbackConfirmedTime: clawbackConfirmedTime ?? this.clawbackConfirmedTime,
       canceledTime: canceledTime ?? this.canceledTime,
     );
   }
