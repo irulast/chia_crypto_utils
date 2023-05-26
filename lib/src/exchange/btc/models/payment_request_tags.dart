@@ -1,8 +1,7 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
+/// [LightningPaymentRequest] tagged data fields. All tagged fields are optional. See https://github.com/lightning/bolts/blob/master/11-payment-encoding.md#tagged-fields for more information.
 class PaymentRequestTags {
-  // according to Bolt #11 protocol, tagged fields are optional
-
   PaymentRequestTags({
     this.paymentHash,
     this.paymentSecret,
@@ -21,7 +20,9 @@ class PaymentRequestTags {
   Bytes? paymentHash;
   Bytes? paymentSecret;
   List<RouteInfo>? routingInfo;
-  int? featureBits;
+
+  // featureBits is in binary string representation
+  String? featureBits;
   int? timeout;
   FallbackAddress? fallbackAddress;
   String? description;
