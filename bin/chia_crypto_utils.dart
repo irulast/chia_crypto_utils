@@ -280,18 +280,7 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
 
   @override
   Future<void> run() async {
-    final mnemonicPhrase = stdin.readLineSync();
-    if (mnemonicPhrase == null) {
-      throw ArgumentError('Must supply a mnemonic phrase to check');
-    }
-
-    final mnemonic = mnemonicPhrase.split(' ');
-
-    if (mnemonic.length != 12 && mnemonic.length != 24) {
-      throw ArgumentError(
-        'Invalid mnemonic phrase. Must contain either 12 or 24 seed words',
-      );
-    }
+    final mnemonic = getUserMnemonic();
 
     final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
     final keychain = WalletKeychain.fromCoreSecret(
@@ -386,18 +375,7 @@ class TransferDidCommand extends Command<Future<void>> {
 
   @override
   Future<void> run() async {
-    final mnemonicPhrase = stdin.readLineSync();
-    if (mnemonicPhrase == null) {
-      throw ArgumentError('Must supply a mnemonic phrase');
-    }
-
-    final mnemonic = mnemonicPhrase.split(' ');
-
-    if (mnemonic.length != 12 && mnemonic.length != 24) {
-      throw ArgumentError(
-        'Invalid mnemonic phrase. Must contain either 12 or 24 seed words',
-      );
-    }
+    final mnemonic = getUserMnemonic();
 
     final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
     final keychain = WalletKeychain.fromCoreSecret(
@@ -467,4 +445,21 @@ PoolService _getPoolServiceImpl(String poolUrl, String certificateBytesPath) {
   );
 
   return PoolServiceImpl(poolInterface, fullNode);
+}
+
+List<String> getUserMnemonic() {
+  final mnemonicPhrase = stdin.readLineSync();
+  if (mnemonicPhrase == null) {
+    throw ArgumentError('Must supply a mnemonic phrase');
+  }
+
+  final mnemonic = mnemonicPhrase.split(' ');
+
+  if (mnemonic.length != 12 && mnemonic.length != 24) {
+    throw ArgumentError(
+      'Invalid mnemonic phrase. Must contain either 12 or 24 seed words',
+    );
+  }
+
+  return mnemonic;
 }
