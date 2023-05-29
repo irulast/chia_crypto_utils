@@ -369,6 +369,42 @@ class CrossChainOfferExchangeCommand extends Command<Future<void>> {
   }
 }
 
+class TransferDidCommand extends Command<Future<void>> {
+  TransferDidCommand() {
+    argParser.addOption(
+      'certificate-bytes-path',
+      defaultsTo: 'mozilla-ca/cacert.pem',
+    );
+  }
+
+  @override
+  String get description => 'Transfers DID';
+
+  @override
+  String get name => 'Transfer-DID';
+
+  @override
+  Future<void> run() async {
+    final mnemonicPhrase = stdin.readLineSync();
+    if (mnemonicPhrase == null) {
+      throw ArgumentError('Must supply a mnemonic phrase');
+    }
+
+    final mnemonic = mnemonicPhrase.split(' ');
+
+    if (mnemonic.length != 12 && mnemonic.length != 24) {
+      throw ArgumentError(
+        'Invalid mnemonic phrase. Must contain either 12 or 24 seed words',
+      );
+    }
+
+    final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
+    final keychain = WalletKeychain.fromCoreSecret(
+      keychainSecret,
+    );
+  }
+}
+
 void printUsage(CommandRunner<dynamic> runner) {
   print(runner.argParser.usage);
   print('\nAvailable commands:');
