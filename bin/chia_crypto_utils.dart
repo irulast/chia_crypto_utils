@@ -29,7 +29,8 @@ Future<void> main(List<String> args) async {
     ..addCommand(GetFarmingStatusCommand())
     ..addCommand(GetCoinRecords())
     ..addCommand(ExchangeBtcCommand())
-    ..addCommand(CrossChainOfferExchangeCommand());
+    ..addCommand(CrossChainOfferExchangeCommand())
+    ..addCommand(TransferDidCommand());
 
   final results = runner.argParser.parse(args);
 
@@ -402,6 +403,41 @@ class TransferDidCommand extends Command<Future<void>> {
     final keychain = WalletKeychain.fromCoreSecret(
       keychainSecret,
     );
+
+    final dids = await fullNode.getDIDInfosByPuzzleHashes(keychain.puzzlehashes);
+
+    if (dids.isEmpty) {
+      print('\nNo DIDs found. Make sure you entered your mnemonic correctly.');
+      exit(exitCode);
+    }
+
+    print('\nPlease select which DID to transfer:');
+    for (var i = 0; i < dids.length; i++) {
+      print('${i + 1}. ${dids[i].did}');
+    }
+
+    DidRecord? didToTransfer;
+    while (didToTransfer == null) {
+      stdout.write('> ');
+
+      try {
+        final input = stdin.readLineSync()!.trim();
+        final choice = int.parse(input) - 1;
+
+        if (choice <= dids.length) {
+          didToTransfer = dids[choice];
+        } else {
+          print('Not a valid choice.');
+        }
+      } catch (e) {
+        print('Not a valid choice.');
+      }
+    }
+
+    print('\nEnter the destination address:');
+    final destinationPuzzlehash = getUserPuzzlehash();
+
+    // TODO: transfer DID
   }
 }
 
