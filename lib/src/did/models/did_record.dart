@@ -139,21 +139,9 @@ class _DidRecord implements DidRecord {
       case SpendMode.runInnerPuzzle:
         return didRecord;
       case SpendMode.recovery:
-        //puzzle has been changed: new pubkey
-        final publicKeyBytes = innerSolution.toList()[4].atom;
-        final uncurriedInnerPuzzle = UncurriedDidInnerPuzzle.fromProgram(parentInnerPuzzle);
-
-        final didInnerPuzzle = DIDWalletService.createInnerPuzzleForPk(
-          publicKey: JacobianPoint.fromBytesG1(publicKeyBytes),
-          backupIdsHash: uncurriedInnerPuzzle.backUpIdsHash,
-          launcherCoinId: did,
-          nVerificationsRequired: uncurriedInnerPuzzle.nVerificationsRequired,
-          metadataProgram: uncurriedInnerPuzzle.metadataProgram,
-        );
-        return DidInfo(
-          delegate: didRecord,
-          innerPuzzle: didInnerPuzzle,
-        );
+        // TODO(nvjoshi2): support recovery
+        LoggingContext().error('Unsuported spend mode for DID $did: $mode');
+        return null;
     }
   }
 
