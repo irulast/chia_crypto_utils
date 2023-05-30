@@ -129,4 +129,38 @@ class ChiaEnthusiast extends ChiaEnthusiastBase {
     await refreshCoins();
     return assetId;
   }
+
+  Future<void> issueDid([List<Bytes> recoveryIds = const []]) async {
+    final didRecoverySpendBundle = didWalletService.createGenerateDIDSpendBundle(
+      standardCoins: [standardCoins[0]],
+      targetPuzzleHash: firstWalletVector.puzzlehash,
+      keychain: keychain,
+      changePuzzlehash: firstWalletVector.puzzlehash,
+      backupIds: recoveryIds,
+      metadata: const DidMetadata({'name': 'test_did', 'role': 'admin'}),
+    );
+
+    await fullNodeSimulator.pushTransaction(didRecoverySpendBundle);
+
+    await fullNodeSimulator.moveToNextBlock();
+
+    final didInfos = await fullNodeSimulator.getDidRecordsFromHint(firstWalletVector.puzzlehash);
+
+    if (didInfos.length > 1) {
+      throw Exception('Chia enthusiast can only have one did');
+    }
+
+    didInfo = didInfos[0].toDidInfo(keychain);
+  }
+
+  Future<void> refreshDidInfo() async {
+    if (didInfo == null) {
+      throw Exception('Did must be issued before it can be refreshed');
+    }
+    didInfo = (await fullNodeSimulator.getDidRecordForDid(didInfo!.did))?.toDidInfo(keychain);
+  }
+
+  Future<void> recoverDid(Bytes did) async {
+    didInfo = (await fullNodeSimulator.getDidRecordForDid(did))?.toDidInfo(keychain);
+  }
 }
