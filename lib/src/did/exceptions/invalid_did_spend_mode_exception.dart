@@ -1,7 +1,7 @@
 class InvalidDIDSpendModeCodeException implements Exception {
-  int invalidCode;
 
   InvalidDIDSpendModeCodeException({required this.invalidCode});
+  int invalidCode;
 
   @override
   String toString() {

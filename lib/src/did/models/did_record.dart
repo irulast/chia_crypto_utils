@@ -1,6 +1,5 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/core/exceptions/keychain_mismatch_exception.dart';
-import 'package:chia_crypto_utils/src/did/models/did_metadata.dart';
 import 'package:chia_crypto_utils/src/did/models/uncurried_did_inner_puzzle.dart';
 
 abstract class DidRecord {
@@ -18,8 +17,14 @@ abstract class DidRecord {
   List<Puzzlehash> get hints;
   List<Bytes>? get backupIds;
   Bytes get did;
-  DIDInfo? getSpendableDidForPk(JacobianPoint publicKey);
-  DIDInfo? toSpendableDidFromParentInfo();
+
+  /// Tries to convert [DidRecord] into spendable [DidInfo]
+  ///
+  ///
+  /// returns [DidInfo] if the full puzzle hash calculated by [publicKey] matches [coin].puzzlehash.
+  /// return null if it does not.
+  DidInfo? toDidInfoForPk(JacobianPoint publicKey);
+  DidInfo? toDidInfoFromParentInfo();
 }
 
 class _DidRecord implements DidRecord {
@@ -56,8 +61,8 @@ class _DidRecord implements DidRecord {
     final innerSolution = parentSpend.solution.rest().rest().first();
     final didExitConditions = DIDWalletService.extractP2ConditionsFromInnerSolution(
       innerSolution,
-      DIDExitCondition.isThisCondition,
-      DIDExitCondition.fromProgram,
+      DidExitCondition.isThisCondition,
+      DidExitCondition.fromProgram,
     );
 
     if (didExitConditions.isNotEmpty) {
@@ -145,7 +150,7 @@ class _DidRecord implements DidRecord {
           nVerificationsRequired: uncurriedInnerPuzzle.nVerificationsRequired,
           metadataProgram: uncurriedInnerPuzzle.metadataProgram,
         );
-        return DIDInfo(
+        return DidInfo(
           delegate: didRecord,
           innerPuzzle: didInnerPuzzle,
         );
@@ -183,20 +188,21 @@ class _DidRecord implements DidRecord {
   }) {
     final backupIds = backUpIdsHash == Program.list([]).hash() ? <Bytes>[] : this.backupIds;
     return _DidRecord(
-        did: did,
-        coin: coin,
-        lineageProof: lineageProof,
-        metadata: metadata,
-        singletonStructure: singletonStructure,
-        backUpIdsHash: backUpIdsHash,
-        hints: hints,
-        nVerificationsRequired: nVerificationsRequired,
-        backupIds: backupIds,
-        parentSpend: parentSpend);
+      did: did,
+      coin: coin,
+      lineageProof: lineageProof,
+      metadata: metadata,
+      singletonStructure: singletonStructure,
+      backUpIdsHash: backUpIdsHash,
+      hints: hints,
+      nVerificationsRequired: nVerificationsRequired,
+      backupIds: backupIds,
+      parentSpend: parentSpend,
+    );
   }
 
   @override
-  DIDInfo? getSpendableDidForPk(JacobianPoint publicKey) {
+  DidInfo? toDidInfoForPk(JacobianPoint publicKey) {
     final didInnerPuzzle = DIDWalletService.createInnerPuzzleForPk(
       publicKey: publicKey,
       backupIdsHash: backUpIdsHash,
@@ -207,7 +213,7 @@ class _DidRecord implements DidRecord {
     final fullPuzzle = DIDWalletService.makeFullPuzzle(didInnerPuzzle, did);
 
     if (fullPuzzle.hash() == coin.puzzlehash) {
-      return DIDInfo(
+      return DidInfo(
         delegate: this,
         innerPuzzle: didInnerPuzzle,
       );
@@ -226,7 +232,7 @@ class _DidRecord implements DidRecord {
         DIDWalletService.makeFullPuzzle(emptyBackUpIdsInnerPuzzle, did);
 
     if (emptyBackUpIdsFullPuzzle.hash() == coin.puzzlehash) {
-      return DIDInfo(
+      return DidInfo(
         delegate: copyWith(backUpIdsHash: emptyBackupIdsHash),
         innerPuzzle: emptyBackUpIdsInnerPuzzle,
       );
@@ -235,14 +241,14 @@ class _DidRecord implements DidRecord {
   }
 
   @override
-  DIDInfo? toSpendableDidFromParentInfo() {
+  DidInfo? toDidInfoFromParentInfo() {
     final uncurriedPuzzle = parentSpend.puzzleReveal.uncurry();
     final arguments = uncurriedPuzzle.arguments;
 
     final parentInnerPuzzle = arguments[1];
     final fullPuzzle = DIDWalletService.makeFullPuzzle(parentInnerPuzzle, did);
     if (fullPuzzle.hash() == coin.puzzlehash) {
-      return DIDInfo(delegate: this, innerPuzzle: parentInnerPuzzle);
+      return DidInfo(delegate: this, innerPuzzle: parentInnerPuzzle);
     }
     return null;
   }
@@ -252,23 +258,26 @@ class _DidRecord implements DidRecord {
 }
 
 extension ToSpendableDid on DidRecord {
-  DIDInfo toSpendableDidForPkOrThrow(JacobianPoint publicKey) {
-    final did = getSpendableDidForPk(publicKey);
+  DidInfo toDidInfoForPkOrThrow(JacobianPoint publicKey) {
+    final did = toDidInfoForPk(publicKey);
     if (did != null) {
       return did;
     }
     throw KeychainMismatchException(coin.puzzlehash);
   }
 
-  DIDInfo toSpendableDidFromParentInfoOrThrow() {
-    final did = toSpendableDidFromParentInfo();
+  DidInfo toDidInfoFromParentInfoOrThrow() {
+    final did = toDidInfoFromParentInfo();
     if (did != null) {
       return did;
     }
     throw KeychainMismatchException(coin.puzzlehash);
   }
 
-  DIDInfo? toSpendableDid(WalletKeychain keychain) {
+  /// convert to spendable [DidInfo] using the owner [WalletKeychain]
+  ///
+  /// tries to find the correct public key using [toDidInfoForPk]
+  DidInfo? toDidInfo(WalletKeychain keychain) {
     for (final innerPh in [
       ...hints,
       ...keychain.puzzlehashes,
@@ -277,7 +286,7 @@ extension ToSpendableDid on DidRecord {
       if (walletVector == null) {
         continue;
       }
-      final did = getSpendableDidForPk(walletVector.childPublicKey);
+      final did = toDidInfoForPk(walletVector.childPublicKey);
       if (did != null) {
         return did;
       }
@@ -285,8 +294,8 @@ extension ToSpendableDid on DidRecord {
     return null;
   }
 
-  DIDInfo toSpendableDidOrThrow(WalletKeychain keychain) {
-    final did = toSpendableDid(keychain);
+  DidInfo toDidInfoOrThrow(WalletKeychain keychain) {
+    final did = toDidInfo(keychain);
     if (did != null) {
       return did;
     }

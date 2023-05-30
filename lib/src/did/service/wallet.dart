@@ -9,8 +9,10 @@ import 'package:chia_crypto_utils/src/utils/curry_and_tree_hash.dart';
 class DIDWalletService extends BaseWalletService {
   final StandardWalletService standardWalletService = StandardWalletService();
   static const defaultDidAmount = 1;
+
+  // TODO(nvjoshi2): use chia's did update spending method (intermediary spend for new inner puzzle reveal)
   SpendBundle createUpdateSpend(
-    DIDInfo didInfo,
+    DidInfo didInfo,
     PrivateKey privateKey,
     Puzzlehash newInnerPuzzlehash,
   ) {
@@ -34,7 +36,7 @@ class DIDWalletService extends BaseWalletService {
 
   SpendBundle createExitSpend(
     Puzzlehash destinationPuzzlehash,
-    DIDInfo didInfo,
+    DidInfo didInfo,
     PrivateKey privateKey,
   ) {
     final p2Solution = BaseWalletService.makeSolutionFromConditions([
@@ -43,7 +45,7 @@ class DIDWalletService extends BaseWalletService {
         didInfo.coin.amount - 1,
         memos: [destinationPuzzlehash],
       ),
-      DIDExitCondition(),
+      DidExitCondition(),
     ]);
 
     final innerSolution = makeRunInnerPuzzleModeInnerSolution(p2Solution);
@@ -71,7 +73,7 @@ class DIDWalletService extends BaseWalletService {
     List<Bytes> recoveryIds,
     SpendBundle messageSpendBundle,
   ) {
-    final recoveringDidInfo = recoveringDidRecord.toSpendableDidFromParentInfoOrThrow();
+    final recoveringDidInfo = recoveringDidRecord.toDidInfoFromParentInfoOrThrow();
     final recoveringCoin = recoveringDidInfo.coin;
     final newPublicKey = newPrivateKey.getG1();
 
@@ -105,9 +107,8 @@ class DIDWalletService extends BaseWalletService {
     return SpendBundle(coinSpends: [coinSpend], aggregatedSignature: aggSigs) + messageSpendBundle;
   }
 
-  // TODO(nvjoshi2): use chia's did spending method (intermediary spend for new inner puzzle reveal)
   SpendBundle createSpendBundle({
-    required DIDInfo didInfo,
+    required DidInfo didInfo,
     Puzzlehash? newP2Puzzlehash,
     List<Payment> additionalPayments = const [],
     List<Bytes> puzzlesToAnnounce = const [],
@@ -130,8 +131,29 @@ class DIDWalletService extends BaseWalletService {
     );
   }
 
+  SpendBundle createTransferSpendBundle({
+    required DidInfo didInfo,
+    required Puzzlehash newP2Puzzlehash,
+    Puzzlehash? changePuzzlehash,
+    List<CoinPrototype> coinsForFee = const [],
+    int fee = 0,
+    required WalletKeychain keychain,
+  }) {
+    return createSpendBundle(
+          didInfo: didInfo,
+          newP2Puzzlehash: newP2Puzzlehash,
+          keychain: keychain,
+        ) +
+        standardWalletService.createFeeSpendBundle(
+          fee: fee,
+          standardCoins: coinsForFee,
+          keychain: keychain,
+          changePuzzlehash: changePuzzlehash,
+        );
+  }
+
   SpendBundle createSpendBundleFromPrivateKey({
-    required DIDInfo didInfo,
+    required DidInfo didInfo,
     required PrivateKey privateKey,
     bool revealBackupIds = false,
     Puzzlehash? newP2Puzzlehash,
@@ -201,7 +223,7 @@ class DIDWalletService extends BaseWalletService {
   }
 
   Attestment createAttestment({
-    required DIDInfo attestmentMakerDidInfo,
+    required DidInfo attestmentMakerDidInfo,
     required DidRecord recoveringDidInfo,
     required PrivateKey attestmentMakerPrivateKey,
     required JacobianPoint newPublicKey,
@@ -278,7 +300,7 @@ class DIDWalletService extends BaseWalletService {
     required List<CoinPrototype> standardCoins,
     required Puzzlehash targetPuzzleHash,
     required WalletKeychain keychain,
-    Map<String, String>? metadata,
+    DidMetadata? metadata,
     int fee = 0,
     Puzzlehash? changePuzzlehash,
     List<Bytes> backupIds = const [],
@@ -512,30 +534,6 @@ class DIDWalletService extends BaseWalletService {
       solution.toList()[1],
       conditionChecker,
       conditionFromProgramConstructor,
-    );
-  }
-}
-
-extension _ToMetadata on Program {
-  Map<String, String> toMetadata() {
-    return Map.fromEntries(
-      toList().map(
-        (e) {
-          final cons = e.cons;
-
-          return MapEntry(cons[0].string, cons[1].string);
-        },
-      ),
-    );
-  }
-}
-
-extension _ToProgram on Map<String, String> {
-  Program toProgram() {
-    return Program.list(
-      entries
-          .map((e) => Program.cons(Program.fromString(e.key), Program.fromString(e.value)))
-          .toList(),
     );
   }
 }

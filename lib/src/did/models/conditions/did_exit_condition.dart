@@ -3,18 +3,18 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/standard/exceptions/invalid_condition_cast_exception.dart';
 
-class DIDExitCondition implements Condition {
+class DidExitCondition implements Condition {
+  DidExitCondition();
+
+  factory DidExitCondition.fromProgram(Program program) {
+    if (!isThisCondition(program)) {
+      throw InvalidConditionCastException(DidExitCondition);
+    }
+    return DidExitCondition();
+  }
+
   static int conditionCode = 51;
   static int magicNumber = -113;
-
-  DIDExitCondition();
-
-  factory DIDExitCondition.fromProgram(Program program) {
-    if (!isThisCondition(program)) {
-      throw InvalidConditionCastException(DIDExitCondition);
-    }
-    return DIDExitCondition();
-  }
 
   @override
   Program toProgram() {

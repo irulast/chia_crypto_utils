@@ -1,21 +1,19 @@
 // ignore_for_file: hash_and_equals, lines_longer_than_80_chars
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/did/models/did_metadata.dart';
-import 'package:chia_crypto_utils/src/did/models/did_record.dart';
 import 'package:meta/meta.dart';
-import 'package:quiver/collection.dart';
 
+/// Decorator on [DidRecord] that has an inner puzzle and can be spent
 @immutable
-class DIDInfo implements DidRecord {
-  DIDInfo({
+class DidInfo implements DidRecord {
+  DidInfo({
     required this.delegate,
     required this.innerPuzzle,
 
     // p2Puzzle is first curried argument of did inner puzzle
   }) : p2Puzzle = innerPuzzle.uncurry().arguments[0] {
     if (coin.puzzlehash != fullPuzzle.hash()) {
-      throw InvalidDIDException(
+      throw InvalidDidException(
         message: 'Provided inner puzzle does not match did coin puzzlehash',
       );
     }
@@ -42,22 +40,6 @@ class DIDInfo implements DidRecord {
     }
 
     return Bytes.fromHex(serializedDid);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-    if (other is! DIDInfo) {
-      return false;
-    }
-    return did == other.did &&
-        coin == other.coin &&
-        p2Puzzle == other.p2Puzzle &&
-        innerPuzzle == other.innerPuzzle &&
-        lineageProof == other.lineageProof &&
-        setsEqual(backupIds?.toSet(), other.backupIds?.toSet());
   }
 
   @override
@@ -91,12 +73,12 @@ class DIDInfo implements DidRecord {
   CoinSpend get parentSpend => delegate.parentSpend;
 
   @override
-  DIDInfo getSpendableDidForPk(JacobianPoint publicKey) {
+  DidInfo toDidInfoForPk(JacobianPoint publicKey) {
     return this;
   }
 
   @override
-  DIDInfo toSpendableDidFromParentInfo() {
+  DidInfo toDidInfoFromParentInfo() {
     return this;
   }
 }

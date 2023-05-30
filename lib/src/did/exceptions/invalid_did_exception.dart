@@ -1,7 +1,7 @@
-class InvalidDIDException implements Exception {
-  String? message;
+class InvalidDidException implements Exception {
+  InvalidDidException({this.message});
 
-  InvalidDIDException({this.message});
+  final String? message;
 
   @override
   String toString() {

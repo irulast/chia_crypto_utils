@@ -1,5 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/did/models/did_metadata.dart';
 
 class UncurriedDidInnerPuzzle {
   UncurriedDidInnerPuzzle._({
@@ -13,7 +12,7 @@ class UncurriedDidInnerPuzzle {
   factory UncurriedDidInnerPuzzle.fromProgram(Program innerPuzzle) {
     final uncurried = _fromUncurriedFullPuzzle(innerPuzzle.uncurry());
     if (uncurried == null) {
-      throw InvalidDIDException();
+      throw InvalidDidException();
     }
 
     return uncurried;
