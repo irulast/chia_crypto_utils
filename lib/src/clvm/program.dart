@@ -16,13 +16,13 @@ import 'package:path/path.dart' as path;
 import 'package:quiver/core.dart';
 
 class Output {
-  final Program program;
-  final BigInt cost;
   Output(this.program, this.cost);
 
   Output.fromJson(Map<String, dynamic> json)
       : cost = BigInt.parse(json['cost'] as String),
         program = Program.parse(json['program'] as String);
+  final Program program;
+  final BigInt cost;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'cost': cost.toString(),
@@ -31,9 +31,10 @@ class Output {
 }
 
 class RunOptions {
+  RunOptions({this.maxCost, bool? strict}) : strict = strict ?? false;
+
   final BigInt? maxCost;
   final bool strict;
-  RunOptions({this.maxCost, bool? strict}) : strict = strict ?? false;
 }
 
 typedef Validator = bool Function(Program);
@@ -56,43 +57,6 @@ typedef Validator = bool Function(Program);
 /// program.get_tree_hash() => program.hash()
 /// ```
 class Program with ToBytesMixin, ToProgramMixin {
-  List<Program>? _cons;
-  Bytes? _atom;
-  Position? position;
-
-  static int cost = 11000000000;
-  static Program nil = Program.fromBytes([]);
-
-  @override
-  Program toProgram() => this;
-
-  @override
-  bool operator ==(Object other) =>
-      other is Program &&
-      isCons == other.isCons &&
-      (isCons
-          ? first() == other.first() && rest() == other.rest()
-          : toBigInt() == other.toBigInt());
-
-  @override
-  int get hashCode => isCons ? hash2(first().hashCode, rest().hashCode) : toBigInt().hashCode;
-
-  bool get isNull => isAtom && atom.isEmpty;
-  bool get isAtom => _atom != null;
-  bool get isCons => _cons != null;
-  Bytes get atom => _atom!;
-  Bytes? get maybeAtom => _atom?.isNotEmpty == true ? _atom : null;
-  List<Program> get cons => _cons!;
-  String get positionSuffix => position == null ? '' : ' at $position';
-
-  Program.cons(ToProgramMixin left, ToProgramMixin right)
-      : _cons = [left.toProgram(), right.toProgram()];
-  Program.fromBytes(List<int> atom) : _atom = Bytes(atom);
-  static Program? maybeFromBytes(List<int>? atom) {
-    if (atom == null) return null;
-    return Program.fromBytes(atom);
-  }
-
   factory Program.fromBytesOrNil(List<int>? atom) {
     if (atom == null) return Program.nil;
     return Program.fromBytes(atom);
@@ -157,13 +121,46 @@ class Program with ToBytesMixin, ToProgramMixin {
     }
   }
 
-  factory Program.deserializeHex(String source) {
-    var _source = source;
-    if (source.startsWith('0x')) {
-      _source = source.replaceFirst('0x', '');
-    }
-    return Program.deserialize(const HexDecoder().convert(_source));
+  factory Program.deserializeHex(String inputSource) {
+    return Program.deserialize(Bytes.fromHex(inputSource));
   }
+  Program.cons(ToProgramMixin left, ToProgramMixin right)
+      : _cons = [left.toProgram(), right.toProgram()];
+  Program.fromBytes(List<int> atom) : _atom = Bytes(atom);
+  static Program? maybeFromBytes(List<int>? atom) {
+    if (atom == null) return null;
+    return Program.fromBytes(atom);
+  }
+
+  List<Program>? _cons;
+  Bytes? _atom;
+  Position? position;
+
+  static int cost = 11000000000;
+  static Program nil = Program.fromBytes([]);
+
+  @override
+  Program toProgram() => this;
+
+  @override
+  bool operator ==(Object other) =>
+      other is Program &&
+      isCons == other.isCons &&
+      (isCons
+          ? first() == other.first() && rest() == other.rest()
+          : toBigInt() == other.toBigInt());
+
+  @override
+  int get hashCode => isCons ? hash2(first().hashCode, rest().hashCode) : toBigInt().hashCode;
+
+  bool get isNull => isAtom && atom.isEmpty;
+  bool get isAtom => _atom != null;
+  bool get isCons => _cons != null;
+  Bytes get atom => _atom!;
+  // ignore: use_if_null_to_convert_nulls_to_bools
+  Bytes? get maybeAtom => _atom?.isNotEmpty == true ? _atom : null;
+  List<Program> get cons => _cons!;
+  String get positionSuffix => position == null ? '' : ' at $position';
 
   static Output runProgramIsolateTask(PuzzleAndSolution puzzleAndSolution) {
     final puzzle = puzzleAndSolution.puzzle;
@@ -212,6 +209,7 @@ class Program with ToBytesMixin, ToProgramMixin {
         ),
       );
     }
+    // ignore: noop_primitive_operations
     return Program.parse('(a (q . ${toString()}) ${current.toString()})');
   }
 
@@ -601,15 +599,14 @@ class ModAndArguments {
 }
 
 class PuzzleAndSolution {
-  final Program puzzle;
-  final Program solution;
-  final RunOptions? options;
-
   PuzzleAndSolution({
     required this.puzzle,
     required this.solution,
     required this.options,
   });
+  final Program puzzle;
+  final Program solution;
+  final RunOptions? options;
 }
 
 class CurryIsolateArguments {

@@ -135,6 +135,39 @@ class ChiaFullNodeInterface {
     return coinsByHints;
   }
 
+  Future<DidRecord?> getDIDInfoFromHint(Puzzlehash hint, Bytes did) async {
+    final coins = await getCoinsByHint(hint);
+    final didInfos = await getDIDInfosFromCoins(coins);
+    final matches = didInfos.where((element) => element.did == did);
+
+    if (matches.isEmpty) return null;
+    return matches.single;
+  }
+
+  Future<List<DidRecord>> getDIDInfosFromHint(Puzzlehash hint) async {
+    final coins = await getCoinsByHint(hint);
+    return getDIDInfosFromCoins(coins);
+  }
+
+  Future<List<DidRecord>> getDIDInfosFromCoins(List<Coin> coins) async {
+    final didInfos = <DidRecord>[];
+    for (final coin in coins) {
+      if (coin.amount.isEven) {
+        continue;
+      }
+      final parentSpend = await getParentSpend(coin);
+      final nftRecord = DidRecord.fromParentCoinSpend(
+        parentSpend!,
+        coin,
+      );
+      if (nftRecord != null) {
+        didInfos.add(nftRecord);
+      }
+    }
+
+    return didInfos;
+  }
+
   Future<CoinSpend?> getParentSpend(Coin coin) async {
     if (coin.coinbase) return null;
     final coinSpendResponse =
@@ -422,6 +455,85 @@ class ChiaFullNodeInterface {
     return response;
   }
 
+  Future<List<DidRecord>> getDIDInfosByPuzzleHashes(List<Puzzlehash> puzzlehashes) async {
+    final spentCoins = (await getCoinsByPuzzleHashes(puzzlehashes, includeSpentCoins: true))
+        .where((coin) => coin.spentBlockIndex != 0);
+
+    final launcherCoinPrototypes = <CoinPrototype>[];
+    for (final spentCoin in spentCoins) {
+      final coinSpend = await getCoinSpend(spentCoin);
+      final createCoinConditions = BaseWalletService.extractConditionsFromSolution(
+        coinSpend!.solution,
+        CreateCoinCondition.isThisCondition,
+        CreateCoinCondition.fromProgram,
+      );
+
+      for (final ccc in createCoinConditions) {
+        if (ccc.destinationPuzzlehash == singletonLauncherProgram.hash()) {
+          launcherCoinPrototypes.add(
+            CoinPrototype(
+              parentCoinInfo: coinSpend.coin.id,
+              puzzlehash: ccc.destinationPuzzlehash,
+              amount: ccc.amount,
+            ),
+          );
+        }
+      }
+    }
+
+    final didInfos = <DidRecord>[];
+    for (final launcherCoinPrototype in launcherCoinPrototypes) {
+      try {
+        final didInfo = await getDIDInfoForDID(launcherCoinPrototype.id);
+        if (didInfo != null) {
+          didInfos.add(didInfo);
+        }
+      } catch (_) {
+        // pass
+      }
+    }
+    return didInfos;
+  }
+
+  Future<DidRecord?> getDIDInfoForDID(Bytes did) async {
+    final originCoin = await getCoinById(did);
+    final originCoinSpend = await getCoinSpend(originCoin!);
+
+    // didPuzzlehash is first argument in origin coin spend solution
+    final didPuzzlehash = Puzzlehash(originCoinSpend!.solution.toList()[0].atom);
+
+    final eveCoinPrototype = CoinPrototype(
+      parentCoinInfo: originCoin.id,
+      puzzlehash: didPuzzlehash,
+      amount: originCoin.amount,
+    );
+
+    final eveCoin = await getCoinById(eveCoinPrototype.id);
+
+    final eveCoinSpend = await getCoinSpend(eveCoin!);
+
+    final originalDidCoinPrototype = CoinPrototype(
+      parentCoinInfo: eveCoin.id,
+      puzzlehash: didPuzzlehash,
+      amount: eveCoin.amount,
+    );
+
+    var didCoin = await getCoinById(originalDidCoinPrototype.id);
+    var didCoinParentSpend = eveCoinSpend;
+
+    // find latest did coin
+    while (didCoin!.isSpent) {
+      didCoinParentSpend = await getCoinSpend(didCoin);
+      final nextSingletonCoinPrototype =
+          SingletonService.getMostRecentSingletonCoinFromCoinSpend(didCoinParentSpend!);
+
+      didCoin = await getCoinById(nextSingletonCoinPrototype.id);
+    }
+
+    if (didCoinParentSpend == null) return null;
+    return DidRecord.fromParentCoinSpend(didCoinParentSpend, didCoin);
+  }
+
   static void mapResponseToError(
     ChiaBaseResponse baseResponse, {
     List<String> passStrings = const [],
@@ -484,6 +596,126 @@ class ChiaFullNodeInterface {
     } catch (e) {
       return null;
     }
+  }
+
+  Future<DidRecord?> getDidRecordFromHint(Puzzlehash hint, Bytes did) async {
+    final coins = await getCoinsByHint(hint);
+    final didInfos = await getDidsFromCoins(coins);
+    final matches = didInfos.where((element) => element.did == did);
+
+    if (matches.isEmpty) return null;
+    return matches.single;
+  }
+
+  Future<List<DidRecord>> getDidRecordsFromHints(List<Puzzlehash> hints) async {
+    final coins = await getCoinsByHints(hints);
+    final didInfos = await getDidsFromCoins(coins);
+    return didInfos;
+  }
+
+  Future<List<DidRecord>> getDidRecordsFromHint(Puzzlehash hint) async {
+    final coins = await getCoinsByHint(hint);
+    return getDidsFromCoins(coins);
+  }
+
+  Future<List<DidRecord>> getDidsFromCoins(List<Coin> coins) async {
+    final didInfos = <DidRecord>[];
+    for (final coin in coins) {
+      if (coin.amount.isEven) {
+        continue;
+      }
+      final parentSpend = await getParentSpend(coin);
+      final nftRecord = DidRecord.fromParentCoinSpend(
+        parentSpend!,
+        coin,
+      );
+      if (nftRecord != null) {
+        didInfos.add(nftRecord);
+      }
+    }
+
+    return didInfos;
+  }
+  
+  /// look for dids by checking for spent launcher coins
+  Future<List<DidRecord>> getDidRecordsByPuzzleHashes(List<Puzzlehash> puzzlehashes) async {
+    final spentCoins = (await getCoinsByPuzzleHashes(puzzlehashes, includeSpentCoins: true))
+        .where((coin) => coin.spentBlockIndex != 0);
+
+    final launcherCoinPrototypes = <CoinPrototype>[];
+    for (final spentCoin in spentCoins) {
+      final coinSpend = await getCoinSpend(spentCoin);
+      final createCoinConditions = BaseWalletService.extractConditionsFromSolution(
+        coinSpend!.solution,
+        CreateCoinCondition.isThisCondition,
+        CreateCoinCondition.fromProgram,
+      );
+
+      for (final ccc in createCoinConditions) {
+        if (ccc.destinationPuzzlehash == singletonLauncherProgram.hash()) {
+          launcherCoinPrototypes.add(
+            CoinPrototype(
+              parentCoinInfo: coinSpend.coin.id,
+              puzzlehash: ccc.destinationPuzzlehash,
+              amount: ccc.amount,
+            ),
+          );
+        }
+      }
+    }
+
+    final didRecords = <DidRecord>[];
+    for (final launcherCoinPrototype in launcherCoinPrototypes) {
+      try {
+        final didInfo = await getDidRecordForDid(launcherCoinPrototype.id);
+        if (didInfo != null) {
+          didRecords.add(didInfo);
+        }
+      } catch (_) {
+        // pass
+      }
+    }
+    return didRecords;
+  }
+
+  /// look for DID by following it from launcher spend to current spend
+  Future<DidRecord?> getDidRecordForDid(Bytes did) async {
+    final originCoin = await getCoinById(did);
+    final originCoinSpend = await getCoinSpend(originCoin!);
+
+    // didPuzzlehash is first argument in origin coin spend solution
+    final didPuzzlehash = Puzzlehash(originCoinSpend!.solution.toList()[0].atom);
+
+    final eveCoinPrototype = CoinPrototype(
+      parentCoinInfo: originCoin.id,
+      puzzlehash: didPuzzlehash,
+      amount: originCoin.amount,
+    );
+
+    final eveCoin = await getCoinById(eveCoinPrototype.id);
+
+    final eveCoinSpend = await getCoinSpend(eveCoin!);
+
+    final originalDidCoinPrototype = CoinPrototype(
+      parentCoinInfo: eveCoin.id,
+      puzzlehash: didPuzzlehash,
+      amount: eveCoin.amount,
+    );
+
+    var didCoin = await getCoinById(originalDidCoinPrototype.id);
+    var didCoinParentSpend = eveCoinSpend;
+
+    // find latest did coin
+    while (didCoin!.isSpent) {
+      didCoinParentSpend = await getCoinSpend(didCoin);
+      final nextSingletonCoinPrototype =
+          SingletonService.getMostRecentSingletonCoinFromCoinSpend(didCoinParentSpend!);
+
+      didCoin = await getCoinById(nextSingletonCoinPrototype.id);
+    }
+
+    if (didCoinParentSpend == null) return null;
+    return DidRecord.fromParentCoinSpend(didCoinParentSpend, didCoin);
   }
 }
 

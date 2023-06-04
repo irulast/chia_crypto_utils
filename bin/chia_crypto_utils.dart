@@ -29,7 +29,8 @@ Future<void> main(List<String> args) async {
     ..addCommand(GetFarmingStatusCommand())
     ..addCommand(GetCoinRecords())
     ..addCommand(ExchangeBtcCommand())
-    ..addCommand(CrossChainOfferExchangeCommand());
+    ..addCommand(CrossChainOfferExchangeCommand())
+    ..addCommand(TransferDidCommand());
 
   final results = runner.argParser.parse(args);
 
@@ -279,18 +280,7 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
 
   @override
   Future<void> run() async {
-    final mnemonicPhrase = stdin.readLineSync();
-    if (mnemonicPhrase == null) {
-      throw ArgumentError('Must supply a mnemonic phrase to check');
-    }
-
-    final mnemonic = mnemonicPhrase.split(' ');
-
-    if (mnemonic.length != 12 && mnemonic.length != 24) {
-      throw ArgumentError(
-        'Invalid mnemonic phrase. Must contain either 12 or 24 seed words',
-      );
-    }
+    final mnemonic = getUserMnemonic();
 
     final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
     final keychain = WalletKeychain.fromCoreSecret(
@@ -369,6 +359,116 @@ class CrossChainOfferExchangeCommand extends Command<Future<void>> {
   }
 }
 
+class TransferDidCommand extends Command<Future<void>> {
+  TransferDidCommand() {
+    argParser
+      ..addOption(
+        'certificate-bytes-path',
+        defaultsTo: 'mozilla-ca/cacert.pem',
+      )
+      ..addOption('mnemonic', defaultsTo: '')
+      ..addOption('wallet-size', defaultsTo: '50')
+      ..addOption('current-did-address', defaultsTo: '')
+      ..addOption('fee', defaultsTo: '50');
+  }
+
+  @override
+  String get description => 'Transfers DID';
+
+  @override
+  String get name => 'Transfer-DID';
+
+  @override
+  Future<void> run() async {
+    final walletSize = parseArgument(argResults!['wallet-size'], int.parse)!;
+    final fee = parseArgument(argResults!['fee'], int.parse)!;
+    final currentDidAddress = parseArgument(
+      argResults!['current-did-address'],
+      (e) => Address(e).toPuzzlehash().toAddressWithContext(),
+    );
+
+    var mnemonic = parseArgument(argResults!['mnemonic'], parseValidMnemonic);
+
+    if (mnemonic == null) {
+      print('\nEnter your mneomnic');
+      mnemonic = getUserMnemonic();
+    }
+    final secret = KeychainCoreSecret.fromMnemonic(mnemonic);
+    final keychain = WalletKeychain.fromCoreSecret(secret, walletSize: walletSize);
+    final coins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
+    final dids = (currentDidAddress != null
+        ? await fullNode.getDidRecordsFromHint(currentDidAddress.toPuzzlehash())
+        : await fullNode.getDidRecordsFromHints(keychain.puzzlehashes));
+
+    final coinsForFee = () {
+      try {
+        return selectCoinsForAmount(
+          coins,
+          fee,
+          minMojos: 20,
+        );
+      } on InsufficientBalanceException catch (e) {
+        print('Insufficient balance to cover fee of $fee mojos: ${e.currentBalance} mojos');
+        return null;
+      }
+    }();
+    if (coinsForFee == null) {
+      exit(exitCode);
+    }
+
+    if (dids.isEmpty) {
+      print('\nNo DIDs found. Make sure you entered your mnemonic correctly.');
+      exit(exitCode);
+    }
+
+    print('\nPlease select which DID to transfer:');
+    for (var i = 0; i < dids.length; i++) {
+      print('${i + 1}. ${dids[i].did}');
+    }
+
+    DidRecord? didToTransfer;
+    while (didToTransfer == null) {
+      stdout.write('> ');
+
+      try {
+        final input = stdin.readLineSync()!.trim();
+        final choice = int.parse(input) - 1;
+
+        if (choice <= dids.length) {
+          didToTransfer = dids[choice];
+        } else {
+          print('Not a valid choice.');
+        }
+      } catch (e) {
+        print('Not a valid choice.');
+      }
+    }
+
+    print('\nEnter the destination address:');
+    final destinationPuzzlehash = getUserPuzzlehash();
+
+    final spendableDid = didToTransfer.toDidInfo(keychain);
+
+    if (spendableDid == null) {
+      print('Could not match inner puzzle for ${didToTransfer.did} with this keychain');
+      exit(exitCode);
+    }
+
+    final spendBundle = DIDWalletService().createTransferSpendBundle(
+      didInfo: spendableDid,
+      newP2Puzzlehash: destinationPuzzlehash,
+      keychain: keychain,
+      changePuzzlehash: keychain.puzzlehashes.random,
+      fee: fee,
+      coinsForFee: coinsForFee,
+    );
+
+    await fullNode.pushAndWaitForSpendBundle(spendBundle);
+    print('DID transfer complete!');
+    exit(0);
+  }
+}
+
 void printUsage(CommandRunner<dynamic> runner) {
   print(runner.argParser.usage);
   print('\nAvailable commands:');
@@ -395,4 +495,30 @@ PoolService _getPoolServiceImpl(String poolUrl, String certificateBytesPath) {
   );
 
   return PoolServiceImpl(poolInterface, fullNode);
+}
+
+T? parseArgument<T>(dynamic argument, T Function(String) parser) {
+  final stringArgument = argument as String?;
+  if (stringArgument == null || stringArgument.isEmpty) return null;
+  return parser(stringArgument);
+}
+
+List<String> getUserMnemonic() {
+  final mnemonicPhrase = stdin.readLineSync();
+  if (mnemonicPhrase == null) {
+    throw ArgumentError('Must supply a mnemonic phrase');
+  }
+  return parseValidMnemonic(mnemonicPhrase);
+}
+
+List<String> parseValidMnemonic(String mnemonicString) {
+  final mnemonic = mnemonicString.split(' ');
+
+  if (mnemonic.length != 12 && mnemonic.length != 24) {
+    throw ArgumentError(
+      'Invalid mnemonic phrase. Must contain either 12 or 24 seed words',
+    );
+  }
+
+  return mnemonic;
 }
