@@ -394,11 +394,12 @@ class TransferDidCommand extends Command<Future<void>> {
       mnemonic = getUserMnemonic();
     }
     final secret = KeychainCoreSecret.fromMnemonic(mnemonic);
+    print('\nkeychain fingerprint: ${secret.fingerprint}');
     final keychain = WalletKeychain.fromCoreSecret(secret, walletSize: walletSize);
     final coins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
-    final dids = (currentDidAddress != null
+    final dids = currentDidAddress != null
         ? await fullNode.getDidRecordsFromHint(currentDidAddress.toPuzzlehash())
-        : await fullNode.getDidRecordsFromHints(keychain.puzzlehashes));
+        : await fullNode.getDidRecordsFromHints(keychain.puzzlehashes);
 
     final coinsForFee = () {
       try {
