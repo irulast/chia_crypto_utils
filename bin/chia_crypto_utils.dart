@@ -520,6 +520,15 @@ List<String> parseValidMnemonic(String mnemonicString) {
       'Invalid mnemonic phrase. Must contain either 12 or 24 seed words',
     );
   }
+  final invalidWords = <String>[];
+  for (final word in mnemonic) {
+    if (!bip39Words.contains(word)) {
+      invalidWords.add(word);
+    }
+  }
 
+  if (invalidWords.isNotEmpty) {
+    throw ArgumentError('Invalid bip 39 words in mnemonic: $invalidWords');
+  }
   return mnemonic;
 }
