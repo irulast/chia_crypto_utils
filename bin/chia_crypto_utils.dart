@@ -113,11 +113,11 @@ class GetCoinRecords extends Command<Future<void>> {
     final includeSpentCoinsArg = argResults?['includeSpentCoins'] as String;
 
     if (puzzlehashArg.isEmpty && addressArg.isEmpty) {
-      throw ArgumentError('Must supply either a puzzlehash or address');
+      exitWithMessage('Must supply either a puzzlehash or address');
     }
 
     if (puzzlehashArg.isNotEmpty && addressArg.isNotEmpty) {
-      throw ArgumentError('Must not supply both puzzlehash and address');
+      exitWithMessage('Must not supply both puzzlehash and address');
     }
 
     final includeSpentCoins = includeSpentCoinsArg == 'true';
@@ -128,7 +128,7 @@ class GetCoinRecords extends Command<Future<void>> {
           ? Address(addressArg).toPuzzlehash()
           : Puzzlehash.fromHex(puzzlehashArg);
     } catch (e) {
-      throw ArgumentError('Invalid address or puzzlehash');
+      exitWithMessage('Invalid address or puzzlehash: $puzzlehashArg');
     }
 
     var coins = <Coin>[];
@@ -507,7 +507,7 @@ T? parseArgument<T>(dynamic argument, T Function(String) parser) {
 List<String> getUserMnemonic() {
   final mnemonicPhrase = stdin.readLineSync();
   if (mnemonicPhrase == null) {
-    throw ArgumentError('Must supply a mnemonic phrase');
+    exitWithMessage('Must supply a mnemonic phrase');
   }
   return parseValidMnemonic(mnemonicPhrase);
 }
@@ -516,7 +516,7 @@ List<String> parseValidMnemonic(String mnemonicString) {
   final mnemonic = mnemonicString.split(' ');
 
   if (mnemonic.length != 12 && mnemonic.length != 24) {
-    throw ArgumentError(
+    exitWithMessage(
       'Invalid mnemonic phrase. Must contain either 12 or 24 seed words',
     );
   }
@@ -528,7 +528,12 @@ List<String> parseValidMnemonic(String mnemonicString) {
   }
 
   if (invalidWords.isNotEmpty) {
-    throw ArgumentError('Invalid bip 39 words in mnemonic: $invalidWords');
+    exitWithMessage('Invalid bip 39 words in mnemonic: $invalidWords');
   }
   return mnemonic;
+}
+
+Never exitWithMessage(String message) {
+  print('\n$message\n');
+  exit(0);
 }
