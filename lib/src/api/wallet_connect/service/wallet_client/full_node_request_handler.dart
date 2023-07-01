@@ -8,7 +8,7 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
     required this.coreSecret,
     required this.fullNode,
     this.approveRequest = true,
-  });
+  }) : supportedCommands = fullNodeSupportedCommandTypes.commandNames;
 
   final ChiaFullNodeInterface fullNode;
 
@@ -23,7 +23,7 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
   Map<int, ChiaWalletInfo>? walletMap;
 
   @override
-  List<String> get supportedCommands => fullNodeSupportedCommandTypes.commandNames;
+  List<String> supportedCommands;
 
   @override
   Future<void> indexWalletMap() async {
