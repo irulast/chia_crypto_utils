@@ -44,6 +44,11 @@ class CoinPrototype with ToBytesMixin {
   final Puzzlehash puzzlehash;
   final int amount;
 
+  CoinPrototype.fromCamelJson(Map<String, dynamic> json)
+      : parentCoinInfo = Bytes.fromHex(json['parentCoinInfo'] as String),
+        puzzlehash = Puzzlehash.fromHex(json['puzzleHash'] as String),
+        amount = (json['amount'] as num).toInt();
+
   Bytes get id {
     return (parentCoinInfo + puzzlehash + encodeInt(amount)).sha256Hash();
   }
@@ -59,6 +64,12 @@ class CoinPrototype with ToBytesMixin {
   Map<String, dynamic> toJson() => <String, dynamic>{
         'parent_coin_info': parentCoinInfo.toHex(),
         'puzzle_hash': puzzlehash.toHex(),
+        'amount': amount
+      };
+
+  Map<String, dynamic> toCamelJson() => <String, dynamic>{
+        'parentCoinInfo': parentCoinInfo.toHexWithPrefix(),
+        'puzzleHash': puzzlehash.toHexWithPrefix(),
         'amount': amount
       };
 

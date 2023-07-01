@@ -29,6 +29,14 @@ class CoinSpend with ToBytesMixin {
     );
   }
 
+  factory CoinSpend.fromCamelJson(Map<String, dynamic> json) {
+    return CoinSpend(
+      coin: CoinPrototype.fromCamelJson(json['coin'] as Map<String, dynamic>),
+      puzzleReveal: Program.deserializeHex(json['puzzleReveal'] as String),
+      solution: Program.deserializeHex(json['solution'] as String),
+    );
+  }
+
   factory CoinSpend.fromBytes(Bytes bytes) {
     final iterator = bytes.iterator;
     return CoinSpend.fromStream(iterator);
@@ -88,6 +96,12 @@ class CoinSpend with ToBytesMixin {
         'coin': coin.toJson(),
         'puzzle_reveal': const HexEncoder().convert(puzzleReveal.serialize()),
         'solution': const HexEncoder().convert(solution.serialize())
+      };
+
+  Map<String, dynamic> toCamelJson() => <String, dynamic>{
+        'coin': coin.toCamelJson(),
+        'puzzleReveal': puzzleReveal.toHexWithPrefix(),
+        'solution': solution.toHexWithPrefix(),
       };
 
   @override

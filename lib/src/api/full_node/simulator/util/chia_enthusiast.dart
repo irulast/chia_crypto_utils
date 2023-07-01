@@ -131,6 +131,7 @@ class ChiaEnthusiast extends ChiaEnthusiastBase {
   }
 
   Future<void> issueDid([List<Bytes> recoveryIds = const []]) async {
+    await refreshCoins();
     final didRecoverySpendBundle = didWalletService.createGenerateDIDSpendBundle(
       standardCoins: [standardCoins[0]],
       targetPuzzleHash: firstWalletVector.puzzlehash,
@@ -151,6 +152,7 @@ class ChiaEnthusiast extends ChiaEnthusiastBase {
     }
 
     didInfo = didInfos[0].toDidInfo(keychain);
+    await refreshCoins();
   }
 
   Future<void> refreshDidInfo() async {
