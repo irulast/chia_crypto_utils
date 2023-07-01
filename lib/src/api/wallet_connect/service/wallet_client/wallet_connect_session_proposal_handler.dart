@@ -41,7 +41,7 @@ extension ProcessProposal on WalletConnectSessionProposalHandler {
     requiredNamespaces.forEach(
       (key, value) => unsupportedCommands.addAll(
         value.methods
-            .where((method) => !WalletConnectCommandType.getSupportedCommands().contains(method)),
+            .where((method) => !WalletConnectCommandType.values.commandNames.contains(method)),
       ),
     );
 

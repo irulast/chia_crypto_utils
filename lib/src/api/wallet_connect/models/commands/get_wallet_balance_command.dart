@@ -4,14 +4,14 @@ import 'package:deep_pick/deep_pick.dart';
 class GetWalletBalanceCommand implements WalletConnectCommand {
   const GetWalletBalanceCommand({this.walletId = 1});
 
+  factory GetWalletBalanceCommand.fromParams(Map<String, dynamic> params) {
+    return GetWalletBalanceCommand(walletId: pick(params, 'walletId').asIntOrNull());
+  }
+
   @override
   WalletConnectCommandType get type => WalletConnectCommandType.getWalletBalance;
 
   final int? walletId;
-
-  factory GetWalletBalanceCommand.fromParams(Map<String, dynamic> params) {
-    return GetWalletBalanceCommand(walletId: pick(params, 'walletId').asIntOrNull());
-  }
 
   @override
   Map<String, dynamic> paramsToJson() {
@@ -24,16 +24,16 @@ class GetWalletBalanceResponse
     implements WalletConnectCommandBaseResponse {
   const GetWalletBalanceResponse(this.delegate, this.balance);
 
-  @override
-  final WalletConnectCommandBaseResponse delegate;
-  final WalletBalance balance;
-
   factory GetWalletBalanceResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
     final balance = WalletBalance.fromJson(pick(json, 'data').letJsonOrThrow((json) => json));
     return GetWalletBalanceResponse(baseResponse, balance);
   }
+
+  @override
+  final WalletConnectCommandBaseResponse delegate;
+  final WalletBalance balance;
 
   @override
   Map<String, dynamic> toJson() {
@@ -58,17 +58,6 @@ class WalletBalance {
     required this.walletType,
   });
 
-  final int confirmedWalletBalance;
-  final int fingerprint;
-  final int maxSendAmount;
-  final int pendingChange;
-  final int pendingCoinRemovalCount;
-  final int spendableBalance;
-  final int unconfirmedWalletBalance;
-  final int unspentCoinCount;
-  final int walletId;
-  final ChiaWalletType walletType;
-
   factory WalletBalance.fromJson(Map<String, dynamic> json) {
     return WalletBalance(
       confirmedWalletBalance: pick(json, 'confirmedWalletBalance').asIntOrThrow(),
@@ -83,6 +72,17 @@ class WalletBalance {
       walletType: ChiaWalletType.fromIndex(pick(json, 'walletType').asIntOrThrow()),
     );
   }
+
+  final int confirmedWalletBalance;
+  final int fingerprint;
+  final int maxSendAmount;
+  final int pendingChange;
+  final int pendingCoinRemovalCount;
+  final int spendableBalance;
+  final int unconfirmedWalletBalance;
+  final int unspentCoinCount;
+  final int walletId;
+  final ChiaWalletType walletType;
 
   Map<String, dynamic> toJson() {
     return {

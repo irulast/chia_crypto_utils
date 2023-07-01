@@ -10,6 +10,17 @@ class VerifySignatureCommand implements WalletConnectCommand {
     this.signingMode,
   });
 
+  factory VerifySignatureCommand.fromParams(Map<String, dynamic> params) {
+    return VerifySignatureCommand(
+      publicKey: JacobianPoint.fromHexG1(pick(params, 'pubkey').asStringOrThrow()),
+      message: pick(params, 'message').asStringOrThrow(),
+      signature: JacobianPoint.fromHexG2(pick(params, 'signature').asStringOrThrow()),
+      address:
+          params['address'] != null ? Address(pick(params, 'address').asStringOrThrow()) : null,
+      signingMode: SigningMode.maybeFromString(pick(params, 'signingMode').asStringOrNull()),
+    );
+  }
+
   @override
   WalletConnectCommandType get type => WalletConnectCommandType.verifySignature;
 
@@ -21,17 +32,6 @@ class VerifySignatureCommand implements WalletConnectCommand {
   // Even though parameter is optional in Chia documentation and code, Lite Wallet will throw error when trying
   // to sign if signing mode not included
   final SigningMode? signingMode;
-
-  factory VerifySignatureCommand.fromParams(Map<String, dynamic> params) {
-    return VerifySignatureCommand(
-      publicKey: JacobianPoint.fromHexG1(pick(params, 'pubkey').asStringOrThrow()),
-      message: pick(params, 'message').asStringOrThrow(),
-      signature: JacobianPoint.fromHexG2(pick(params, 'signature').asStringOrThrow()),
-      address:
-          params['address'] != null ? Address(pick(params, 'address').asStringOrThrow()) : null,
-      signingMode: SigningMode.maybeFromString(pick(params, 'signingMode').asStringOrNull()),
-    );
-  }
 
   @override
   Map<String, dynamic> paramsToJson() {
@@ -59,10 +59,6 @@ class VerifySignatureResponse
     implements WalletConnectCommandBaseResponse {
   const VerifySignatureResponse(this.delegate, this.verifySignatureData);
 
-  @override
-  final WalletConnectCommandBaseResponse delegate;
-  final VerifySignatureData verifySignatureData;
-
   factory VerifySignatureResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
@@ -71,6 +67,10 @@ class VerifySignatureResponse
       pick(json, 'data').letJsonOrThrow(VerifySignatureData.fromJson),
     );
   }
+
+  @override
+  final WalletConnectCommandBaseResponse delegate;
+  final VerifySignatureData verifySignatureData;
 
   @override
   Map<String, dynamic> toJson() {
@@ -87,15 +87,15 @@ class VerifySignatureData {
     required this.success,
   });
 
-  final bool isValid;
-  final bool success;
-
   factory VerifySignatureData.fromJson(Map<String, dynamic> json) {
     return VerifySignatureData(
       isValid: pick(json, 'isValid').asBoolOrThrow(),
       success: pick(json, 'success').asBoolOrThrow(),
     );
   }
+
+  final bool isValid;
+  final bool success;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -112,11 +112,11 @@ enum SigningMode {
 
   const SigningMode(this.fullName);
 
-  final String fullName;
-
   factory SigningMode.fromString(String modeString) {
     return SigningMode.values.where((value) => value.fullName == modeString).single;
   }
+
+  final String fullName;
 
   static SigningMode? maybeFromString(String? modeString) {
     if (modeString == null) {

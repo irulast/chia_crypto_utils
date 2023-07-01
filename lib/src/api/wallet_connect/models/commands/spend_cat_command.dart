@@ -11,16 +11,6 @@ class SpendCatCommand implements WalletConnectCommand {
     this.memos = const [],
   });
 
-  @override
-  WalletConnectCommandType get type => WalletConnectCommandType.spendCAT;
-
-  final int walletId;
-  final Address address;
-  final int amount;
-  final int fee;
-  final bool waitForConfirmation;
-  final List<String> memos;
-
   factory SpendCatCommand.fromParams(Map<String, dynamic> params) {
     return SpendCatCommand(
       walletId: pick(params, 'walletId').asIntOrThrow(),
@@ -31,6 +21,16 @@ class SpendCatCommand implements WalletConnectCommand {
       memos: pick(params, 'memos').letStringListOrNull((string) => string) ?? [],
     );
   }
+
+  @override
+  WalletConnectCommandType get type => WalletConnectCommandType.spendCAT;
+
+  final int walletId;
+  final Address address;
+  final int amount;
+  final int fee;
+  final bool waitForConfirmation;
+  final List<String> memos;
 
   @override
   Map<String, dynamic> paramsToJson() {

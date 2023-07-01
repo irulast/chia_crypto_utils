@@ -7,18 +7,18 @@ class GetNextAddressCommand implements WalletConnectCommand {
     this.newAddress = true,
   });
 
-  @override
-  WalletConnectCommandType get type => WalletConnectCommandType.getNextAddress;
-
-  final int? walletId;
-  final bool? newAddress;
-
   factory GetNextAddressCommand.fromParams(Map<String, dynamic> params) {
     return GetNextAddressCommand(
       walletId: pick(params, 'walletId').asIntOrNull(),
       newAddress: pick(params, 'newAddress').asBoolOrNull(),
     );
   }
+
+  @override
+  WalletConnectCommandType get type => WalletConnectCommandType.getNextAddress;
+
+  final int? walletId;
+  final bool? newAddress;
 
   @override
   Map<String, dynamic> paramsToJson() {
@@ -31,16 +31,16 @@ class GetAddressResponse
     implements WalletConnectCommandBaseResponse {
   const GetAddressResponse(this.delegate, this.address);
 
-  @override
-  final WalletConnectCommandBaseResponse delegate;
-  final Address address;
-
   factory GetAddressResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
     final addressData = pick(json, 'data').letStringOrThrow(Address.new);
     return GetAddressResponse(baseResponse, addressData);
   }
+
+  @override
+  final WalletConnectCommandBaseResponse delegate;
+  final Address address;
 
   @override
   Map<String, dynamic> toJson() {

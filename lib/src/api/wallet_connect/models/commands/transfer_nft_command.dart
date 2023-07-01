@@ -9,14 +9,6 @@ class TransferNftCommand implements WalletConnectCommand {
     required this.fee,
   });
 
-  @override
-  WalletConnectCommandType get type => WalletConnectCommandType.transferNFT;
-
-  final int walletId;
-  final Address targetAddress;
-  final List<Bytes> nftCoinIds;
-  final int fee;
-
   factory TransferNftCommand.fromParams(Map<String, dynamic> params) {
     return TransferNftCommand(
       walletId: pick(params, 'walletId').asIntOrThrow(),
@@ -25,6 +17,14 @@ class TransferNftCommand implements WalletConnectCommand {
       fee: pick(params, 'fee').asIntOrThrow(),
     );
   }
+
+  @override
+  WalletConnectCommandType get type => WalletConnectCommandType.transferNFT;
+
+  final int walletId;
+  final Address targetAddress;
+  final List<Bytes> nftCoinIds;
+  final int fee;
 
   @override
   Map<String, dynamic> paramsToJson() {
@@ -42,16 +42,16 @@ class TransferNftResponse
     implements WalletConnectCommandBaseResponse {
   const TransferNftResponse(this.delegate, this.transferNftData);
 
-  @override
-  final WalletConnectCommandBaseResponse delegate;
-  final TransferNftData transferNftData;
-
   factory TransferNftResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
     final transferNftData = pick(json, 'data').letJsonOrThrow(TransferNftData.fromJson);
     return TransferNftResponse(baseResponse, transferNftData);
   }
+
+  @override
+  final WalletConnectCommandBaseResponse delegate;
+  final TransferNftData transferNftData;
 
   @override
   Map<String, dynamic> toJson() {
@@ -68,11 +68,6 @@ class TransferNftData {
     required this.walletId,
     this.transactionNumber,
   });
-
-  final SpendBundle spendBundle;
-
-  final List<int> walletId;
-  final int? transactionNumber;
 
   factory TransferNftData.fromJson(Map<String, dynamic> json) {
     // Chia lite wallet may return either int or List<int> so here we always convert it to List<int>
@@ -91,6 +86,10 @@ class TransferNftData {
       transactionNumber: pick(json, 'txNum').asIntOrNull(),
     );
   }
+
+  final SpendBundle spendBundle;
+  final List<int> walletId;
+  final int? transactionNumber;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{

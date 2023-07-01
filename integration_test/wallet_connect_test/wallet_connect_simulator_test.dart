@@ -91,7 +91,7 @@ Future<void> main() async {
 
     // pair with wallet client
     sessionData = await appClient.pair(
-      requiredCommandTypes: WalletConnectCommandType.getFullNodeSupportedCommandTypes(),
+      requiredCommandTypes: fullNodeSupportedCommandTypes,
     );
   });
 

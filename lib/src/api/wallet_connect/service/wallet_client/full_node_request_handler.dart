@@ -23,7 +23,7 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
   Map<int, ChiaWalletInfo>? walletMap;
 
   @override
-  List<String> get supportedCommands => WalletConnectCommandType.getFullNodeSupportedCommands();
+  List<String> get supportedCommands => fullNodeSupportedCommandTypes.commandNames;
 
   @override
   Future<void> indexWalletMap() async {
@@ -725,3 +725,17 @@ class InvalidDIDException implements Exception {
     return 'Could not find DID on keychain';
   }
 }
+
+const fullNodeSupportedCommandTypes = [
+  WalletConnectCommandType.getCurrentAddress,
+  WalletConnectCommandType.getNextAddress,
+  WalletConnectCommandType.getSyncStatus,
+  WalletConnectCommandType.getWalletBalance,
+  WalletConnectCommandType.getWallets,
+  WalletConnectCommandType.logIn,
+  WalletConnectCommandType.sendTransaction,
+  WalletConnectCommandType.signMessageByAddress,
+  WalletConnectCommandType.signMessageById,
+  WalletConnectCommandType.spendCAT,
+  WalletConnectCommandType.verifySignature,
+];

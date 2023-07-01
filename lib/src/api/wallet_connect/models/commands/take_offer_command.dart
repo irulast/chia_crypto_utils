@@ -143,10 +143,10 @@ enum TradeStatus {
   confirmed('CONFIRMED'),
   failed('FAILED');
 
-  final String upperCaseLabel;
-
   const TradeStatus(this.upperCaseLabel);
 
   factory TradeStatus.fromString(String label) =>
       TradeStatus.values.where((value) => value.upperCaseLabel == label).single;
+
+  final String upperCaseLabel;
 }

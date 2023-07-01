@@ -6,16 +6,16 @@ class GetNftInfoCommand implements WalletConnectCommand {
     required this.coinId,
   });
 
-  @override
-  WalletConnectCommandType get type => WalletConnectCommandType.getNFTInfo;
-
-  final Bytes coinId;
-
   factory GetNftInfoCommand.fromParams(Map<String, dynamic> params) {
     return GetNftInfoCommand(
       coinId: (pick(params, 'coinId').asStringOrThrow()).hexToBytes(),
     );
   }
+
+  @override
+  WalletConnectCommandType get type => WalletConnectCommandType.getNFTInfo;
+
+  final Bytes coinId;
 
   @override
   Map<String, dynamic> paramsToJson() {
@@ -28,16 +28,16 @@ class GetNftInfoResponse
     implements WalletConnectCommandBaseResponse {
   const GetNftInfoResponse(this.delegate, this.nftInfo);
 
-  @override
-  final WalletConnectCommandBaseResponse delegate;
-  final NftInfo nftInfo;
-
   factory GetNftInfoResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
     final nftInfo = NftInfo.fromJson(pick(json, 'data').letJsonOrThrow((json) => json));
     return GetNftInfoResponse(baseResponse, nftInfo);
   }
+
+  @override
+  final WalletConnectCommandBaseResponse delegate;
+  final NftInfo nftInfo;
 
   @override
   Map<String, dynamic> toJson() {
@@ -49,26 +49,6 @@ class GetNftInfoResponse
 }
 
 class NftInfo {
-  final Bytes launcherId;
-  final Puzzlehash launcherPuzzlehash;
-  final Bytes nftCoinId;
-  final Bytes dataHash;
-  final List<String> dataUris;
-  final String chainInfo;
-  final Bytes licenseHash;
-  final List<String> licenseUris;
-  final Bytes metadataHash;
-  final List<String> metadataUris;
-  final int mintHeight;
-  final bool pendingTransaction;
-  final int editionNumber;
-  final int editionTotal;
-  final bool supportsDid;
-  final Puzzlehash updaterPuzzlehash;
-  final Bytes? ownerDid;
-  final int? royaltyPercentage;
-  final Puzzlehash? royaltyPuzzlehash;
-
   const NftInfo({
     required this.launcherId,
     required this.launcherPuzzlehash,
@@ -115,6 +95,26 @@ class NftInfo {
           : null,
     );
   }
+
+  final Bytes launcherId;
+  final Puzzlehash launcherPuzzlehash;
+  final Bytes nftCoinId;
+  final Bytes dataHash;
+  final List<String> dataUris;
+  final String chainInfo;
+  final Bytes licenseHash;
+  final List<String> licenseUris;
+  final Bytes metadataHash;
+  final List<String> metadataUris;
+  final int mintHeight;
+  final bool pendingTransaction;
+  final int editionNumber;
+  final int editionTotal;
+  final bool supportsDid;
+  final Puzzlehash updaterPuzzlehash;
+  final Bytes? ownerDid;
+  final int? royaltyPercentage;
+  final Puzzlehash? royaltyPuzzlehash;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{

@@ -4,12 +4,6 @@ import 'package:deep_pick/deep_pick.dart';
 class SignMessageByAddressCommand implements WalletConnectCommand {
   const SignMessageByAddressCommand({required this.address, required this.message});
 
-  @override
-  WalletConnectCommandType get type => WalletConnectCommandType.signMessageByAddress;
-
-  final Address address;
-  final String message;
-
   factory SignMessageByAddressCommand.fromParams(Map<String, dynamic> params) {
     return SignMessageByAddressCommand(
       address: Address(pick(params, 'address').asStringOrThrow()),
@@ -18,12 +12,17 @@ class SignMessageByAddressCommand implements WalletConnectCommand {
   }
 
   @override
+  WalletConnectCommandType get type => WalletConnectCommandType.signMessageByAddress;
+
+  final Address address;
+  final String message;
+
+  @override
   Map<String, dynamic> paramsToJson() {
     return <String, dynamic>{'address': address.address, 'message': message};
   }
 }
 
-// Chia Lite Wallet only responds with data field for this command
 class SignMessageByAddressResponse
     with ToJsonMixin, WalletConnectCommandResponseDecoratorMixin
     implements WalletConnectCommandBaseResponse {
@@ -31,10 +30,6 @@ class SignMessageByAddressResponse
     this.delegate,
     this.signData,
   );
-
-  @override
-  final WalletConnectCommandBaseResponse delegate;
-  final SignMessageByAddressData signData;
 
   factory SignMessageByAddressResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
@@ -44,6 +39,10 @@ class SignMessageByAddressResponse
       pick(json, 'data').letJsonOrThrow(SignMessageByAddressData.fromJson),
     );
   }
+
+  @override
+  final WalletConnectCommandBaseResponse delegate;
+  final SignMessageByAddressData signData;
 
   @override
   Map<String, dynamic> toJson() {
@@ -62,11 +61,6 @@ class SignMessageByAddressData {
     required this.success,
   });
 
-  final JacobianPoint publicKey;
-  final JacobianPoint signature;
-  final SigningMode signingMode;
-  final bool success;
-
   factory SignMessageByAddressData.fromJson(Map<String, dynamic> json) {
     return SignMessageByAddressData(
       publicKey: JacobianPoint.fromHexG1(pick(json, 'pubkey').asStringOrThrow()),
@@ -75,6 +69,11 @@ class SignMessageByAddressData {
       success: pick(json, 'success').asBoolOrThrow(),
     );
   }
+
+  final JacobianPoint publicKey;
+  final JacobianPoint signature;
+  final SigningMode signingMode;
+  final bool success;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{

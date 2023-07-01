@@ -6,14 +6,14 @@ class GetWalletsCommand implements WalletConnectCommand {
     this.includeData = false,
   });
 
+  factory GetWalletsCommand.fromParams(Map<String, dynamic> params) {
+    return GetWalletsCommand(includeData: pick(params, 'includeData').asBoolOrFalse());
+  }
+
   @override
   WalletConnectCommandType get type => WalletConnectCommandType.getWallets;
 
   final bool includeData;
-
-  factory GetWalletsCommand.fromParams(Map<String, dynamic> params) {
-    return GetWalletsCommand(includeData: pick(params, 'includeData').asBoolOrFalse());
-  }
 
   @override
   Map<String, dynamic> paramsToJson() {
@@ -26,10 +26,6 @@ class GetWalletsResponse
     implements WalletConnectCommandBaseResponse {
   const GetWalletsResponse(this.delegate, this.wallets);
 
-  @override
-  final WalletConnectCommandBaseResponse delegate;
-  final List<ChiaWalletInfo> wallets;
-
   factory GetWalletsResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
@@ -37,6 +33,10 @@ class GetWalletsResponse
 
     return GetWalletsResponse(baseResponse, wallets);
   }
+
+  @override
+  final WalletConnectCommandBaseResponse delegate;
+  final List<ChiaWalletInfo> wallets;
 
   @override
   Map<String, dynamic> toJson() {

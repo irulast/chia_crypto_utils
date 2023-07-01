@@ -7,16 +7,16 @@ class GetTransactionCommand implements WalletConnectCommand {
     required this.transactionId,
   });
 
-  @override
-  WalletConnectCommandType get type => WalletConnectCommandType.getTransaction;
-
-  final Bytes transactionId;
-
   factory GetTransactionCommand.fromParams(Map<String, dynamic> params) {
     return GetTransactionCommand(
       transactionId: pick(params, 'transactionId').letStringOrThrow(Bytes.fromHex),
     );
   }
+
+  @override
+  WalletConnectCommandType get type => WalletConnectCommandType.getTransaction;
+
+  final Bytes transactionId;
 
   @override
   Map<String, dynamic> paramsToJson() {
@@ -32,17 +32,17 @@ class GetTransactionResponse
     this.transactionRecord,
   );
 
-  @override
-  final WalletConnectCommandBaseResponse delegate;
-
-  final TransactionRecord transactionRecord;
-
   factory GetTransactionResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
     final transactionRecord = pick(json, 'data').letJsonOrThrow(TransactionRecord.fromJson);
     return GetTransactionResponse(baseResponse, transactionRecord);
   }
+
+  @override
+  final WalletConnectCommandBaseResponse delegate;
+
+  final TransactionRecord transactionRecord;
 
   @override
   Map<String, dynamic> toJson() {
@@ -73,24 +73,6 @@ class TransactionRecord {
     required this.type,
     required this.walletId,
   });
-
-  final List<CoinPrototype> additions;
-  final int amount;
-  final bool confirmed;
-  final int confirmedAtHeight;
-  final int createdAtTime;
-  final int feeAmount;
-  final Map<Bytes, List<Memo>> memos;
-  final Bytes name;
-  final List<CoinPrototype> removals;
-  final int sent;
-  final List<String> sentTo;
-  final SpendBundle? spendBundle;
-  final Address toAddress;
-  final Puzzlehash toPuzzlehash;
-  final Bytes? tradeId;
-  final ChiaTransactionType type;
-  final int walletId;
 
   factory TransactionRecord.fromJson(Map<String, dynamic> json) {
     // Chia Lite Wallet might return memos as Map<String, List<String>> or Map<String, String>
@@ -134,6 +116,24 @@ class TransactionRecord {
       tradeId: (pick(json, 'tradeId').asStringOrNull())?.hexToBytes(),
     );
   }
+
+  final List<CoinPrototype> additions;
+  final int amount;
+  final bool confirmed;
+  final int confirmedAtHeight;
+  final int createdAtTime;
+  final int feeAmount;
+  final Map<Bytes, List<Memo>> memos;
+  final Bytes name;
+  final List<CoinPrototype> removals;
+  final int sent;
+  final List<String> sentTo;
+  final SpendBundle? spendBundle;
+  final Address toAddress;
+  final Puzzlehash toPuzzlehash;
+  final Bytes? tradeId;
+  final ChiaTransactionType type;
+  final int walletId;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -193,10 +193,10 @@ enum InclusionStatus {
   pending(2),
   failed(3);
 
-  final int value;
-
   const InclusionStatus(this.value);
 
   factory InclusionStatus.fromIndex(int index) =>
       InclusionStatus.values.where((value) => value.value == index).single;
+
+  final int value;
 }

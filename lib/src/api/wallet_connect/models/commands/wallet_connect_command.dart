@@ -3,10 +3,6 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 abstract class WalletConnectCommand {
   const WalletConnectCommand();
 
-  WalletConnectCommandType get type;
-
-  Map<String, dynamic> paramsToJson();
-
   factory WalletConnectCommand.fromParams(
     WalletConnectCommandType type,
     Map<String, dynamic> params,
@@ -50,6 +46,10 @@ abstract class WalletConnectCommand {
         return LogInCommand.fromParams(params);
     }
   }
+
+  WalletConnectCommandType get type;
+
+  Map<String, dynamic> paramsToJson();
 }
 
 enum WalletConnectCommandType {
@@ -72,22 +72,6 @@ enum WalletConnectCommandType {
   getSyncStatus,
   logIn;
 
-  String get commandName => 'chia_$name';
-
-  static List<String> getSupportedCommands() =>
-      values.map((command) => command.commandName).toList();
-
-  static List<WalletConnectCommandType> getFullNodeSupportedCommandTypes() => values
-      .where(
-        (command) =>
-            command != WalletConnectCommandType.getTransaction &&
-            command != WalletConnectCommandType.checkOfferValidity,
-      )
-      .toList();
-
-  static List<String> getFullNodeSupportedCommands() =>
-      getFullNodeSupportedCommandTypes().map((command) => command.commandName).toList();
-
   factory WalletConnectCommandType.fromString(String commandString) {
     return WalletConnectCommandType.values.where((value) => value.name == commandString).single;
   }
@@ -95,4 +79,10 @@ enum WalletConnectCommandType {
   factory WalletConnectCommandType.fromMethod(String method) {
     return WalletConnectCommandType.values.where((value) => value.commandName == method).single;
   }
+
+  String get commandName => 'chia_$name';
+}
+
+extension CommandNames on List<WalletConnectCommandType> {
+  List<String> get commandNames => map((command) => command.commandName).toList();
 }

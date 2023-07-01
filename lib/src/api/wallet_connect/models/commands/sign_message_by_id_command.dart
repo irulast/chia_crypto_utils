@@ -4,18 +4,18 @@ import 'package:deep_pick/deep_pick.dart';
 class SignMessageByIdCommand implements WalletConnectCommand {
   const SignMessageByIdCommand({required this.id, required this.message});
 
-  @override
-  WalletConnectCommandType get type => WalletConnectCommandType.signMessageById;
-
-  final Bytes id;
-  final String message;
-
   factory SignMessageByIdCommand.fromParams(Map<String, dynamic> params) {
     return SignMessageByIdCommand(
       id: DidInfo.parseDidFromEitherFormat(pick(params, 'id').asStringOrThrow()),
       message: pick(params, 'message').asStringOrThrow(),
     );
   }
+
+  @override
+  WalletConnectCommandType get type => WalletConnectCommandType.signMessageById;
+
+  final Bytes id;
+  final String message;
 
   @override
   Map<String, dynamic> paramsToJson() {
@@ -26,15 +26,10 @@ class SignMessageByIdCommand implements WalletConnectCommand {
   }
 }
 
-// Chia Lite Wallet only responds with data field for this command
 class SignMessageByIdResponse
     with ToJsonMixin, WalletConnectCommandResponseDecoratorMixin
     implements WalletConnectCommandBaseResponse {
   const SignMessageByIdResponse(this.delegate, this.signData);
-
-  @override
-  final WalletConnectCommandBaseResponse delegate;
-  final SignMessageByIdData signData;
 
   factory SignMessageByIdResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
@@ -44,6 +39,10 @@ class SignMessageByIdResponse
       pick(json, 'data').letJsonOrThrow(SignMessageByIdData.fromJson),
     );
   }
+
+  @override
+  final WalletConnectCommandBaseResponse delegate;
+  final SignMessageByIdData signData;
 
   @override
   Map<String, dynamic> toJson() {
@@ -63,12 +62,6 @@ class SignMessageByIdData {
     required this.success,
   });
 
-  final Bytes latestCoinId;
-  final JacobianPoint publicKey;
-  final JacobianPoint signature;
-  final SigningMode signingMode;
-  final bool success;
-
   factory SignMessageByIdData.fromJson(Map<String, dynamic> json) {
     return SignMessageByIdData(
       latestCoinId: pick(json, 'latestCoinId').asStringOrThrow().hexToBytes(),
@@ -78,6 +71,12 @@ class SignMessageByIdData {
       success: pick(json, 'success').asBoolOrThrow(),
     );
   }
+
+  final Bytes latestCoinId;
+  final JacobianPoint publicKey;
+  final JacobianPoint signature;
+  final SigningMode signingMode;
+  final bool success;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{

@@ -6,14 +6,14 @@ class LogInCommand implements WalletConnectCommand {
     required this.fingerprint,
   });
 
+  factory LogInCommand.fromParams(Map<String, dynamic> params) {
+    return LogInCommand(fingerprint: pick(params, 'fingerprint').asIntOrThrow());
+  }
+
   @override
   WalletConnectCommandType get type => WalletConnectCommandType.logIn;
 
   final int fingerprint;
-
-  factory LogInCommand.fromParams(Map<String, dynamic> params) {
-    return LogInCommand(fingerprint: pick(params, 'fingerprint').asIntOrThrow());
-  }
 
   @override
   Map<String, dynamic> paramsToJson() {
@@ -26,15 +26,15 @@ class LogInResponse
     implements WalletConnectCommandBaseResponse {
   const LogInResponse(this.delegate, this.logInData);
 
-  @override
-  final WalletConnectCommandBaseResponse delegate;
-  final LogInData logInData;
-
   factory LogInResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
     return LogInResponse(baseResponse, pick(json, 'data').letJsonOrThrow(LogInData.fromJson));
   }
+
+  @override
+  final WalletConnectCommandBaseResponse delegate;
+  final LogInData logInData;
 
   @override
   Map<String, dynamic> toJson() {
@@ -48,15 +48,15 @@ class LogInResponse
 class LogInData with ToJsonMixin {
   const LogInData({required this.fingerprint, required this.success});
 
-  final int fingerprint;
-  final bool success;
-
   factory LogInData.fromJson(Map<String, dynamic> json) {
     return LogInData(
       fingerprint: pick(json, 'fingerprint').asIntOrThrow(),
       success: pick(json, 'success').asBoolOrThrow(),
     );
   }
+
+  final int fingerprint;
+  final bool success;
 
   @override
   Map<String, dynamic> toJson() {

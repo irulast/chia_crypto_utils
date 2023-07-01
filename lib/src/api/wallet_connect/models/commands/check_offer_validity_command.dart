@@ -6,16 +6,16 @@ class CheckOfferValidityCommand implements WalletConnectCommand {
     required this.offerData,
   });
 
-  @override
-  WalletConnectCommandType get type => WalletConnectCommandType.checkOfferValidity;
-
-  final String offerData;
-
   factory CheckOfferValidityCommand.fromParams(Map<String, dynamic> params) {
     return CheckOfferValidityCommand(
       offerData: pick(params, 'offerData').asStringOrThrow(),
     );
   }
+
+  @override
+  WalletConnectCommandType get type => WalletConnectCommandType.checkOfferValidity;
+
+  final String offerData;
 
   @override
   Map<String, dynamic> paramsToJson() {
@@ -28,10 +28,6 @@ class CheckOfferValidityResponse
     implements WalletConnectCommandBaseResponse {
   const CheckOfferValidityResponse(this.delegate, this.offerValidityData);
 
-  @override
-  final WalletConnectCommandBaseResponse delegate;
-  final OfferValidityData offerValidityData;
-
   factory CheckOfferValidityResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
@@ -40,6 +36,10 @@ class CheckOfferValidityResponse
 
     return CheckOfferValidityResponse(baseResponse, offerValidityData);
   }
+
+  @override
+  final WalletConnectCommandBaseResponse delegate;
+  final OfferValidityData offerValidityData;
 
   @override
   Map<String, dynamic> toJson() {
@@ -56,15 +56,15 @@ class OfferValidityData {
     required this.id,
   });
 
-  final bool valid;
-  final Bytes id;
-
   factory OfferValidityData.fromJson(Map<String, dynamic> json) {
     return OfferValidityData(
       valid: json['valid'] as bool,
       id: pick(json, 'id').asStringOrThrow().hexToBytes(),
     );
   }
+
+  final bool valid;
+  final Bytes id;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{

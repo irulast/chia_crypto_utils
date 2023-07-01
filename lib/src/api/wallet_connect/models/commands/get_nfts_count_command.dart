@@ -6,16 +6,16 @@ class GetNftsCountCommand implements WalletConnectCommand {
     required this.walletIds,
   });
 
-  @override
-  WalletConnectCommandType get type => WalletConnectCommandType.getNFTsCount;
-
-  final List<int> walletIds;
-
   factory GetNftsCountCommand.fromParams(Map<String, dynamic> params) {
     return GetNftsCountCommand(
       walletIds: pick(params, 'walletIds').asListOrThrow<int>((json) => json.asIntOrThrow()),
     );
   }
+
+  @override
+  WalletConnectCommandType get type => WalletConnectCommandType.getNFTsCount;
+
+  final List<int> walletIds;
 
   @override
   Map<String, dynamic> paramsToJson() {
@@ -28,11 +28,6 @@ class GetNftCountResponse
     implements WalletConnectCommandBaseResponse {
   const GetNftCountResponse(this.delegate, this.countData);
 
-  @override
-  final WalletConnectCommandBaseResponse delegate;
-
-  final Map<String, int> countData;
-
   factory GetNftCountResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
@@ -40,6 +35,11 @@ class GetNftCountResponse
 
     return GetNftCountResponse(baseResponse, countData);
   }
+
+  @override
+  final WalletConnectCommandBaseResponse delegate;
+
+  final Map<String, int> countData;
 
   @override
   Map<String, dynamic> toJson() {

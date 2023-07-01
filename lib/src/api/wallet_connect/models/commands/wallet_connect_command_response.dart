@@ -45,6 +45,52 @@ class WalletConnectCommandBaseResponseImp
     this.isError,
   });
 
+  factory WalletConnectCommandBaseResponseImp.fromJson(Map<String, dynamic> json) {
+    return WalletConnectCommandBaseResponseImp(
+      status: pick(json, 'status').asStringOrNull(),
+      endpointName: pick(json, 'endpointName').letStringOrNull(WalletConnectCommandType.fromString),
+      requestId: pick(json, 'requestId').asStringOrNull(),
+      originalArgs: pick(json, 'originalArgs').letJsonOrNull((json) => json),
+      startedTimeStamp: pick(json, 'startedTimeStamp').asIntOrNull(),
+      fulfilledTimeStamp: pick(json, 'fulfilledTimeStamp').asIntOrNull(),
+      isUninitialized: pick(json, 'isUninitialized').asBoolOrNull(),
+      isLoading: pick(json, 'isLoading').asBoolOrNull(),
+      isSuccess: pick(json, 'isSuccess').asBoolOrNull(),
+      isError: pick(json, 'isError').asBoolOrNull(),
+    );
+  }
+
+  factory WalletConnectCommandBaseResponseImp.success({
+    required WalletConnectCommand command,
+    required int startedTimeStamp,
+    String? requestId,
+  }) {
+    return WalletConnectCommandBaseResponseImp(
+      status: 'fulfilled',
+      endpointName: command.type,
+      requestId: requestId,
+      originalArgs: command.paramsToJson(),
+      startedTimeStamp: startedTimeStamp,
+      fulfilledTimeStamp: DateTime.now().unixTimeStamp,
+      isUninitialized: false,
+      isLoading: false,
+      isSuccess: true,
+      isError: false,
+    );
+  }
+
+  WalletConnectCommandBaseResponseImp.error({
+    required this.endpointName,
+    this.requestId,
+    required this.originalArgs,
+    required this.startedTimeStamp,
+  })  : status = 'error',
+        fulfilledTimeStamp = null,
+        isUninitialized = false,
+        isLoading = false,
+        isSuccess = false,
+        isError = true;
+
   @override
   final String? status;
   @override
@@ -118,52 +164,6 @@ class WalletConnectCommandBaseResponseImp
 
     return json;
   }
-
-  factory WalletConnectCommandBaseResponseImp.fromJson(Map<String, dynamic> json) {
-    return WalletConnectCommandBaseResponseImp(
-      status: pick(json, 'status').asStringOrNull(),
-      endpointName: pick(json, 'endpointName').letStringOrNull(WalletConnectCommandType.fromString),
-      requestId: pick(json, 'requestId').asStringOrNull(),
-      originalArgs: pick(json, 'originalArgs').letJsonOrNull((json) => json),
-      startedTimeStamp: pick(json, 'startedTimeStamp').asIntOrNull(),
-      fulfilledTimeStamp: pick(json, 'fulfilledTimeStamp').asIntOrNull(),
-      isUninitialized: pick(json, 'isUninitialized').asBoolOrNull(),
-      isLoading: pick(json, 'isLoading').asBoolOrNull(),
-      isSuccess: pick(json, 'isSuccess').asBoolOrNull(),
-      isError: pick(json, 'isError').asBoolOrNull(),
-    );
-  }
-
-  factory WalletConnectCommandBaseResponseImp.success({
-    required WalletConnectCommand command,
-    required int startedTimeStamp,
-    String? requestId,
-  }) {
-    return WalletConnectCommandBaseResponseImp(
-      status: 'fulfilled',
-      endpointName: command.type,
-      requestId: requestId,
-      originalArgs: command.paramsToJson(),
-      startedTimeStamp: startedTimeStamp,
-      fulfilledTimeStamp: DateTime.now().unixTimeStamp,
-      isUninitialized: false,
-      isLoading: false,
-      isSuccess: true,
-      isError: false,
-    );
-  }
-
-  WalletConnectCommandBaseResponseImp.error({
-    required this.endpointName,
-    this.requestId,
-    required this.originalArgs,
-    required this.startedTimeStamp,
-  })  : status = 'error',
-        fulfilledTimeStamp = null,
-        isUninitialized = false,
-        isLoading = false,
-        isSuccess = false,
-        isError = true;
 }
 
 mixin WalletConnectCommandResponseDecoratorMixin implements WalletConnectCommandBaseResponse {

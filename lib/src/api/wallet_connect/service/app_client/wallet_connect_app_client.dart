@@ -31,7 +31,7 @@ class WalletConnectAppClient {
   }) async {
     final methods = requiredCommandTypes.isNotEmpty
         ? requiredCommandTypes.map((type) => type.commandName).toList()
-        : WalletConnectCommandType.getSupportedCommands();
+        : WalletConnectCommandType.values.commandNames;
 
     final connectResponse = await _web3App.connect(
       requiredNamespaces: {
@@ -64,7 +64,7 @@ class WalletConnectAppClient {
 
     final methods = requiredCommandTypes.isNotEmpty
         ? requiredCommandTypes.map((type) => type.commandName).toList()
-        : WalletConnectCommandType.getSupportedCommands();
+        : WalletConnectCommandType.values.commandNames;
 
     final connectResponse = await _web3App.connect(
       requiredNamespaces: {

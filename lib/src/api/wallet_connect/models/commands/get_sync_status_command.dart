@@ -18,10 +18,6 @@ class GetSyncStatusResponse
     implements WalletConnectCommandBaseResponse {
   const GetSyncStatusResponse(this.delegate, this.syncStatusData);
 
-  @override
-  final WalletConnectCommandBaseResponse delegate;
-  final SyncStatusData syncStatusData;
-
   factory GetSyncStatusResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
@@ -30,6 +26,10 @@ class GetSyncStatusResponse
 
     return GetSyncStatusResponse(baseResponse, syncStatusData);
   }
+
+  @override
+  final WalletConnectCommandBaseResponse delegate;
+  final SyncStatusData syncStatusData;
 
   @override
   Map<String, dynamic> toJson() {
@@ -47,10 +47,6 @@ class SyncStatusData {
     required this.syncing,
   });
 
-  final bool genesisInitialized;
-  final bool synced;
-  final bool syncing;
-
   factory SyncStatusData.fromJson(Map<String, dynamic> json) {
     return SyncStatusData(
       genesisInitialized: pick(json, 'genesisInitialized').asBoolOrThrow(),
@@ -58,6 +54,10 @@ class SyncStatusData {
       syncing: pick(json, 'syncing').asBoolOrThrow(),
     );
   }
+
+  final bool genesisInitialized;
+  final bool synced;
+  final bool syncing;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{

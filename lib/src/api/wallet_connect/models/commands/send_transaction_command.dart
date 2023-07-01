@@ -11,16 +11,6 @@ class SendTransactionCommand implements WalletConnectCommand {
     this.memos,
   });
 
-  @override
-  WalletConnectCommandType get type => WalletConnectCommandType.sendTransaction;
-
-  final int? walletId;
-  final Address address;
-  final int amount;
-  final int fee;
-  final bool waitForConfirmation;
-  final List<String>? memos;
-
   factory SendTransactionCommand.fromParams(Map<String, dynamic> params) {
     return SendTransactionCommand(
       walletId: pick(params, 'walletId').asIntOrNull(),
@@ -31,6 +21,16 @@ class SendTransactionCommand implements WalletConnectCommand {
       memos: pick(params, 'memos').letStringListOrNull((string) => string),
     );
   }
+
+  @override
+  WalletConnectCommandType get type => WalletConnectCommandType.sendTransaction;
+
+  final int? walletId;
+  final Address address;
+  final int amount;
+  final int fee;
+  final bool waitForConfirmation;
+  final List<String>? memos;
 
   @override
   Map<String, dynamic> paramsToJson() {
@@ -45,14 +45,10 @@ class SendTransactionCommand implements WalletConnectCommand {
   }
 }
 
-// Chia Lite Wallet only responds with data field for this command
 class SendTransactionResponse
     with ToJsonMixin, WalletConnectCommandResponseDecoratorMixin
     implements WalletConnectCommandBaseResponse {
   const SendTransactionResponse(this.delegate, this.sentTransactionData);
-
-  @override
-  final WalletConnectCommandBaseResponse delegate;
 
   factory SendTransactionResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
@@ -60,6 +56,9 @@ class SendTransactionResponse
     final sentTransactionData = pick(json, 'data').letJsonOrThrow(SentTransactionData.fromJson);
     return SendTransactionResponse(baseResponse, sentTransactionData);
   }
+
+  @override
+  final WalletConnectCommandBaseResponse delegate;
 
   final SentTransactionData sentTransactionData;
 
@@ -79,10 +78,6 @@ class SentTransactionData {
     required this.success,
   });
 
-  final TransactionRecord transaction;
-  final Bytes transactionId;
-  final bool success;
-
   factory SentTransactionData.fromJson(Map<String, dynamic> json) {
     return SentTransactionData(
       transaction: pick(json, 'transaction').letJsonOrThrow(TransactionRecord.fromJson),
@@ -90,6 +85,10 @@ class SentTransactionData {
       success: pick(json, 'success').asBoolOrThrow(),
     );
   }
+
+  final TransactionRecord transaction;
+  final Bytes transactionId;
+  final bool success;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{

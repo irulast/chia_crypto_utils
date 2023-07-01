@@ -1,5 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/wallet_connect/service/wallet_client/full_node_request_handler.dart';
 import 'package:deep_pick/deep_pick.dart';
 
 abstract class ChiaWalletInfo {
@@ -99,8 +98,6 @@ enum ChiaWalletType {
 
   const ChiaWalletType(this.chiaIndex);
 
-  final int chiaIndex;
-
   factory ChiaWalletType.fromString(String typeString) {
     return ChiaWalletType.values.where((type) => typeString.split('_').first == type.name).single;
   }
@@ -108,6 +105,8 @@ enum ChiaWalletType {
   factory ChiaWalletType.fromIndex(int index) {
     return ChiaWalletType.values.where((type) => type.chiaIndex == index).single;
   }
+
+  final int chiaIndex;
 }
 
 extension WalletsOfType on Map<int, ChiaWalletInfo> {

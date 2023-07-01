@@ -3,10 +3,6 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 class CatWalletInfo with WalletInfoDecorator implements ChiaWalletInfo {
   const CatWalletInfo(this.delegate, this.assetId);
 
-  @override
-  final ChiaWalletInfo delegate;
-  final Puzzlehash assetId;
-
   factory CatWalletInfo.fromAssetId({required Puzzlehash assetId, required int id, String? name}) {
     final delegate = ChiaWalletInfoImp(
       id: id,
@@ -21,4 +17,8 @@ class CatWalletInfo with WalletInfoDecorator implements ChiaWalletInfo {
 
     return CatWalletInfo(delegate, assetId);
   }
+
+  @override
+  final ChiaWalletInfo delegate;
+  final Puzzlehash assetId;
 }

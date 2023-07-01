@@ -6,10 +6,6 @@ class WalletConnectCommandErrorResponse
     implements WalletConnectCommandBaseResponse {
   const WalletConnectCommandErrorResponse(this.delegate, this.error);
 
-  @override
-  final WalletConnectCommandBaseResponse delegate;
-  final String error;
-
   factory WalletConnectCommandErrorResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
@@ -17,6 +13,10 @@ class WalletConnectCommandErrorResponse
 
     return WalletConnectCommandErrorResponse(baseResponse, error);
   }
+
+  @override
+  final WalletConnectCommandBaseResponse delegate;
+  final String error;
 
   @override
   Map<String, dynamic> toJson() {
