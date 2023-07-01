@@ -20,11 +20,9 @@ import 'package:walletconnect_flutter_v2/apis/web3wallet/web3wallet.dart';
 
 Future<void> main() async {
   // Set these variables before running the test
-  const mainnetUrl = 'https://chia.irulast-prod.com';
-  const mnemonic =
-      'myself coral chicken confirm recall scheme elder cliff acid convince tobacco battle illegal era domain bounce fluid amazing bamboo solve wear still just spawn';
-  const mintGardenLink =
-      'wc:17197d0ff5f453ee0a42d1b21c7928e6dca81e51b6a56c03e17aed99658765e3@2?relay-protocol=irn&symKey=a4af42c97f8ed9be9989d2502f33ff26a141b847e73097416fafb7a771cee6d7';
+  const mainnetUrl = '';
+  const mnemonic = '';
+  const mintGardenLink = '';
 
   const fullNodeHttpRpc = FullNodeHttpRpc(mainnetUrl, timeout: Duration(minutes: 10));
 
