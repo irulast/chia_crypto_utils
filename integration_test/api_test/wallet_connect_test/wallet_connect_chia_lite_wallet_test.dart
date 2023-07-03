@@ -20,6 +20,7 @@ import 'package:walletconnect_flutter_v2/apis/web3app/web3app.dart';
 Future<void> main() async {
   final core = Core(projectId: walletConnectProjectId);
   final web3App = Web3App(core: core, metadata: defaultPairingMetadata);
+  const message = 'hello, world';
 
   late final WalletConnectAppClient appClient;
   late final SessionData sessionData;
@@ -209,7 +210,7 @@ Future<void> main() async {
 
     print(signMessageResponse.toJson());
 
-    final verifySignatureResposne = await appClient.verifySignature(
+    final verifySignatureResponse = await appClient.verifySignature(
       fingerprint: fingerprint,
       publicKey: signMessageResponse.signData.publicKey,
       message: message,
@@ -218,7 +219,7 @@ Future<void> main() async {
       signingMode: signMessageResponse.signData.signingMode,
     );
 
-    print(verifySignatureResposne.toJson());
+    print(verifySignatureResponse.toJson());
   });
 
   test('Should request Chia Lite Wallet to sign message by id and then verify signature', () async {
@@ -228,8 +229,6 @@ Future<void> main() async {
 
     const didHex = 'dcedefe5669c68a291fe808ba627d97ea4cb89c18603507fc3378331c76153c2';
 
-    const message = 'hello, world';
-
     final signMessageResponse = await appClient.signMessageById(
       fingerprint: fingerprint,
       id: didHex.hexToBytes(),
@@ -238,7 +237,7 @@ Future<void> main() async {
 
     print(signMessageResponse.toJson());
 
-    final verifySignatureResposne = await appClient.verifySignature(
+    final response = await appClient.verifySignature(
       fingerprint: fingerprint,
       publicKey: signMessageResponse.signData.publicKey,
       message: message,
@@ -246,7 +245,7 @@ Future<void> main() async {
       signingMode: signMessageResponse.signData.signingMode,
     );
 
-    print(verifySignatureResposne.toJson());
+    print(response.toJson());
   });
 
   test('Should request new session using same pairing', () async {

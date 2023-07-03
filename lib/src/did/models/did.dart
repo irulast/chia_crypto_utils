@@ -44,9 +44,9 @@ class DidInfo implements DidRecord {
   }
 
   // conforms to Chia's DidInfo JSON format
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toChiaJson(CoinPrototype originCoin) {
     return <String, dynamic>{
-      'origin_coin': coin.toJson(),
+      'origin_coin': originCoin.toJson(),
       'backup_ids': backupIds?.map((id) => id.toHex()).toList(),
       'num_of_backup_ids_needed': backupIds?.length ?? 0,
       'parent_info': [

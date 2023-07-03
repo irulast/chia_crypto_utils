@@ -14,9 +14,8 @@ import 'package:walletconnect_flutter_v2/apis/web3wallet/web3wallet.dart';
 // 4. Run test (individual test, not as suite).
 // 5. After connection is established, click 'Fetch profiles' in MintGarden.
 // 7. If it shows a DID, test is successful.
-// 8. Click 'Disconnect' in MintGarden.
-
-// Note: signing with MintGarden not working yet
+// 8. Select DID and sign message to test signing if DID has not already been claimed.
+// 9. Click 'Disconnect' in MintGarden.
 
 Future<void> main() async {
   // Set these variables before running the test

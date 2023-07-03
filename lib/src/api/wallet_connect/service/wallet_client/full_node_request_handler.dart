@@ -107,12 +107,14 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
 
     for (final didRecord in didRecords) {
       final didInfo = didRecord.toDidInfo(keychain);
-      if (didInfo != null) {
+      if (didInfo != null && didInfo.lineageProof.parentCoinInfo != null) {
+        final originCoin = await fullNode.getCoinById(didInfo.lineageProof.parentCoinInfo!);
+
         id++;
-        tempWalletMap[id] = DIDWalletInfo.fromDID(did: didInfo, id: id);
+        tempWalletMap[id] = DIDWalletInfo.fromDID(did: didInfo, originCoin: originCoin!, id: id);
       } else {
         LoggingContext().error(
-          'Found did ${didRecord.did} does not belong to keychain ${coreSecret.fingerprint}',
+          'Found did ${didRecord.did.toHex()} does not belong to keychain ${coreSecret.fingerprint}',
         );
       }
     }
@@ -419,8 +421,11 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
 
     final walletVector = keychain.getWalletVector(puzzlehash);
 
-    final signature =
-        AugSchemeMPL.sign(walletVector!.childPrivateKey, Bytes.encodeFromString(command.message));
+    final syntheticSecretKey = calculateSyntheticPrivateKey(walletVector!.childPrivateKey);
+
+    final message = constructMessageForWCSignature(command.message);
+
+    final signature = AugSchemeMPL.sign(syntheticSecretKey, message);
 
     return SignMessageByAddressResponse(
       WalletConnectCommandBaseResponseImp.success(
@@ -428,9 +433,9 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
         startedTimeStamp: startedTimeStamp,
       ),
       SignMessageByAddressData(
-        publicKey: walletVector.childPublicKey,
+        publicKey: syntheticSecretKey.getG1(),
         signature: signature,
-        signingMode: SigningMode.blsMessageAugHex,
+        signingMode: SigningMode.chip0002,
         success: true,
       ),
     );
@@ -458,8 +463,11 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
 
     final walletVector = keychain.getWalletVector(p2Puzzlehash);
 
-    final signature =
-        AugSchemeMPL.sign(walletVector!.childPrivateKey, Bytes.encodeFromString(command.message));
+    final syntheticSecretKey = calculateSyntheticPrivateKey(walletVector!.childPrivateKey);
+
+    final message = constructMessageForWCSignature(command.message);
+
+    final signature = AugSchemeMPL.sign(syntheticSecretKey, message);
 
     return SignMessageByIdResponse(
       WalletConnectCommandBaseResponseImp.success(
@@ -468,9 +476,9 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
       ),
       SignMessageByIdData(
         latestCoinId: didInfo.coin.id,
-        publicKey: walletVector.childPublicKey,
+        publicKey: syntheticSecretKey.getG1(),
         signature: signature,
-        signingMode: SigningMode.blsMessageAugHex,
+        signingMode: SigningMode.chip0002,
         success: true,
       ),
     );
@@ -705,7 +713,7 @@ class UnsupportedCommandException implements Exception {
 
   @override
   String toString() {
-    return "The full node implementation of the WalletConnectWalletClient doesn't support command $commandType";
+    return "The full node implementation of the WalletConnectWalletClient doesn't support command ${commandType.commandName}";
   }
 }
 

@@ -303,9 +303,11 @@ Future<void> main() async {
       message: message,
     );
 
+    final expectedMessage = constructMessageForWCSignature(message);
+
     final verification = AugSchemeMPL.verify(
-      walletVector.childPublicKey,
-      Bytes.encodeFromString(message),
+      response.signData.publicKey,
+      expectedMessage,
       response.signData.signature,
     );
 
@@ -314,9 +316,6 @@ Future<void> main() async {
 
   test('Should request to sign by id and receive signature data', () async {
     final didInfo = meera.didInfo!;
-    final p2Puzzlehash = didInfo.p2Puzzle.hash();
-
-    final walletVector = meera.keychain.getWalletVector(p2Puzzlehash)!;
 
     final response = await appClient.signMessageById(
       fingerprint: fingerprint,
@@ -324,9 +323,11 @@ Future<void> main() async {
       message: message,
     );
 
+    final expectedMessage = constructMessageForWCSignature(message);
+
     final verification = AugSchemeMPL.verify(
-      walletVector.childPublicKey,
-      Bytes.encodeFromString(message),
+      response.signData.publicKey,
+      expectedMessage,
       response.signData.signature,
     );
 
