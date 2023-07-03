@@ -8,7 +8,7 @@ import 'package:path/path.dart' as path;
 
 class SimulatorUtils {
   static String simulatorUrlEnvironmentVariableName = 'FULL_NODE_SIMULATOR_URL';
-  static String defaultUrl = 'https://localhost:5000';
+  static String defaultUrl = 'http://localhost:5000';
   static String? generatedFilesPathOverride;
 
   static String? get generatedFilePathFromFile {
@@ -68,13 +68,13 @@ class SimulatorUtils {
   static Future<bool> checkIfSimulatorIsRunning() async {
     final simulatorRpc = SimulatorHttpRpc(
       simulatorUrl,
-      certBytes: certBytes,
-      keyBytes: keyBytes,
     );
 
     final simulator = SimulatorFullNodeInterface(simulatorRpc);
     try {
       await simulator.getBlockchainState();
+      // keep simulator backwards compatibale with current code
+      await simulator.setShouldAutofarm(shouldAutofarm: false);
     } on NotRunningException {
       return false;
     }

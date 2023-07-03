@@ -12,13 +12,7 @@ Future<void> main() async {
     return;
   }
 
-  final simulatorHttpRpc = SimulatorHttpRpc(
-    SimulatorUtils.simulatorUrl,
-    certBytes: SimulatorUtils.certBytes,
-    keyBytes: SimulatorUtils.keyBytes,
-  );
-
-  final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
+  final fullNodeSimulator = SimulatorFullNodeInterface.withDefaultUrl();
 
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
   final crossChainOfferFileService = CrossChainOfferFileService();
@@ -194,7 +188,7 @@ Future<void> main() async {
     expect(escrowPuzzlehashCoins.totalValue, equals(mojos));
 
     // wait for sufficient confirmations
-    await fullNodeSimulator.moveToNextBlock(32);
+    await fullNodeSimulator.moveToNextBlock(blocks: blocksForSufficientConfirmation);
 
     // taker sweeps escrow puzzlehash
     await exchangeOfferService.sweepEscrowPuzzlehash(
@@ -374,7 +368,7 @@ Future<void> main() async {
     expect(escrowPuzzlehashCoins.totalValue, equals(mojos));
 
     // wait for sufficient confirmations
-    await fullNodeSimulator.moveToNextBlock(32);
+    await fullNodeSimulator.moveToNextBlock(blocks: blocksForSufficientConfirmation);
 
     // maker sweeps escrow puzzlehash
     final makerEscrowPuzzlehash = BtcToXchService.generateEscrowPuzzlehash(

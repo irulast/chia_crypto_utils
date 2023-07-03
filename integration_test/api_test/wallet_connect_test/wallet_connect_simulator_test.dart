@@ -14,11 +14,7 @@ Future<void> main() async {
     return;
   }
 
-  final simulatorHttpRpc = SimulatorHttpRpc(
-    SimulatorUtils.simulatorUrl,
-    certBytes: SimulatorUtils.certBytes,
-    keyBytes: SimulatorUtils.keyBytes,
-  );
+  final simulatorHttpRpc = SimulatorHttpRpc(SimulatorUtils.simulatorUrl);
 
   final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
 
