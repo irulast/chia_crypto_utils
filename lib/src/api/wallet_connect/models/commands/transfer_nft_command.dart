@@ -66,36 +66,28 @@ class TransferNftData {
   const TransferNftData({
     required this.spendBundle,
     required this.walletId,
-    this.transactionNumber,
+    required this.success,
   });
 
   factory TransferNftData.fromJson(Map<String, dynamic> json) {
-    // Chia lite wallet may return either int or List<int> so here we always convert it to List<int>
-    final walletIdPick = pick(json, 'walletId');
-
-    late final List<int> walletId;
-    try {
-      walletId = walletIdPick.asListOrThrow((p0) => p0.asIntOrThrow());
-    } catch (e) {
-      walletId = [walletIdPick.asIntOrThrow()];
-    }
-
     return TransferNftData(
-      spendBundle: pick(json, 'spendBundle').letJsonOrThrow(SpendBundle.fromCamelJson),
-      walletId: walletId,
-      transactionNumber: pick(json, 'txNum').asIntOrNull(),
+      spendBundle: pick(json, 'spendBundle').letJsonOrThrow(
+        SpendBundle.fromCamelJson,
+      ),
+      walletId: pick(json, 'walletId').asIntOrThrow(),
+      success: pick(json, 'success').asBoolOrThrow(),
     );
   }
 
   final SpendBundle spendBundle;
-  final List<int> walletId;
-  final int? transactionNumber;
+  final int walletId;
+  final bool success;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'spendBundle': spendBundle.toCamelJson(),
       'walletId': walletId,
-      'txNum': transactionNumber,
+      'success': success,
     };
   }
 }

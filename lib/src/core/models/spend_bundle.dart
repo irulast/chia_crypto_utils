@@ -51,7 +51,7 @@ class SpendBundle with ToBytesMixin {
         aggregatedSignature = JacobianPoint.fromHexG2(json['aggregated_signature'] as String);
 
   SpendBundle.fromCamelJson(Map<String, dynamic> json)
-      : coinSpends = (json['coinSpends'] as Iterable)
+      : coinSpends = ((json['coinSpends'] ?? json['coinSolutions']) as Iterable)
             .map((dynamic e) => CoinSpend.fromCamelJson(e as Map<String, dynamic>))
             .toList(),
         aggregatedSignature = JacobianPoint.fromHexG2(json['aggregatedSignature'] as String);

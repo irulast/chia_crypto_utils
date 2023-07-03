@@ -100,8 +100,8 @@ class CoinSpend with ToBytesMixin {
 
   Map<String, dynamic> toCamelJson() => <String, dynamic>{
         'coin': coin.toCamelJson(),
-        'puzzleReveal': puzzleReveal.toHexWithPrefix(),
-        'solution': solution.toHexWithPrefix(),
+        'puzzleReveal': const HexEncoder().convert(puzzleReveal.serialize()),
+        'solution': const HexEncoder().convert(solution.serialize()),
       };
 
   @override

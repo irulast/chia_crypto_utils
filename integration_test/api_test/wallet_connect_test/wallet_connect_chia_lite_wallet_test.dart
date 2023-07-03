@@ -260,6 +260,33 @@ Future<void> main() async {
     print(response.toJson());
   });
 
+  test('Should request NFT transfer from Chia Lite Wallet', () async {
+    // manually set nftCoinId of the NFT you want to transfer and the targetAddress you want to transfer to
+
+    const nftCoinId = '';
+    const targetAddress = '';
+
+    final getWalletsResponse = await appClient.getWallets(
+      fingerprint: fingerprint,
+      includeData: true,
+    );
+
+    final nftWallets =
+        getWalletsResponse.wallets.where((wallet) => wallet.type == ChiaWalletType.nft).toList();
+
+    // the wallet ID needs to be an NFT wallet, but it doesn't need to be the NFT wallet associated
+    // with the NFT being transferred
+    final response = await appClient.transferNFT(
+      fingerprint: fingerprint,
+      walletId: nftWallets.first.id,
+      targetAddress: const Address(targetAddress),
+      nftCoinIds: [Bytes.fromHex(nftCoinId)],
+      fee: 50,
+    );
+
+    print(response.toJson());
+  });
+
   test('Should request new session using same pairing', () async {
     final getWalletsResponse = await appClient.getWallets(
       fingerprint: fingerprint,
