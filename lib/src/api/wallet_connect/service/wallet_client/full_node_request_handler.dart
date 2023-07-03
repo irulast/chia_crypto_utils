@@ -22,6 +22,7 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
   @override
   Map<int, ChiaWalletInfo>? walletMap;
 
+  // Note that this implementation does not include NFT wallets in wallet map.
   @override
   Future<void> indexWalletMap() async {
     final catCoins = <CatCoin>[];

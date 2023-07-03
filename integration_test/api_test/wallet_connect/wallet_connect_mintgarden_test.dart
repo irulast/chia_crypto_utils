@@ -1,8 +1,6 @@
 @Skip('This is an interactive test using MintGarden')
 @Timeout(Duration(minutes: 5))
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/wallet_connect/service/wallet_client/full_node_request_handler.dart';
-import 'package:chia_crypto_utils/src/api/wallet_connect/service/wallet_client/test_session_proposal_handler.dart';
 import 'package:test/test.dart';
 import 'package:walletconnect_flutter_v2/apis/core/core.dart';
 import 'package:walletconnect_flutter_v2/apis/web3wallet/web3wallet.dart';

@@ -1,22 +1,19 @@
-@Timeout(Duration(minutes: 10))
+@Timeout(Duration(minutes: 5))
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/wallet_connect/service/wallet_client/full_node_request_handler.dart';
-import 'package:chia_crypto_utils/src/api/wallet_connect/service/wallet_client/test_session_proposal_handler.dart';
 import 'package:test/test.dart';
 import 'package:walletconnect_flutter_v2/apis/core/core.dart';
 import 'package:walletconnect_flutter_v2/apis/sign_api/models/session_models.dart';
 import 'package:walletconnect_flutter_v2/apis/web3app/web3app.dart';
 import 'package:walletconnect_flutter_v2/apis/web3wallet/web3wallet.dart';
 
+// If one of these tests is taking a while or times out, try running it again.
 Future<void> main() async {
   if (!(await SimulatorUtils.checkIfSimulatorIsRunning())) {
     print(SimulatorUtils.simulatorNotRunningWarning);
     return;
   }
 
-  final simulatorHttpRpc = SimulatorHttpRpc(SimulatorUtils.simulatorUrl);
-
-  final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
+  final fullNodeSimulator = SimulatorFullNodeInterface.withDefaultUrl();
 
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
 
@@ -147,19 +144,19 @@ Future<void> main() async {
   test('Should request and receive wallets data', () async {
     final response = await appClient.getWallets(fingerprint: fingerprint);
 
-    expect(response.wallets.length, equals(4));
+    expect(response.wallets.length, equals(3));
 
     final walletTypes = response.wallets.map((wallet) => wallet.type);
 
     final standardWallets = walletTypes.where((type) => type == ChiaWalletType.standard);
-    final nftWallets = walletTypes.where((type) => type == ChiaWalletType.nft);
     final didWallets = walletTypes.where((type) => type == ChiaWalletType.did);
     final catWallets = walletTypes.where((type) => type == ChiaWalletType.cat);
+    final nftWallets = walletTypes.where((type) => type == ChiaWalletType.nft);
 
     expect(standardWallets.length, equals(1));
-    expect(nftWallets.length, equals(1));
     expect(didWallets.length, equals(1));
     expect(catWallets.length, equals(1));
+    expect(nftWallets.length, equals(0));
   });
 
   test('Should make transaction request, wait for confirmation, and receive sent transaction data',
@@ -341,6 +338,7 @@ Future<void> main() async {
       publicKey: walletVector.childPublicKey,
       message: message,
       signature: signature,
+      signingMode: SigningMode.blsMessageAugUtf8,
     );
 
     expect(response.verifySignatureData.isValid, isTrue);
@@ -357,6 +355,7 @@ Future<void> main() async {
       publicKey: nathan.keychain.unhardenedWalletVectors.first.childPublicKey,
       message: message,
       signature: signature,
+      signingMode: SigningMode.blsMessageAugUtf8,
     );
 
     expect(response.verifySignatureData.isValid, isFalse);

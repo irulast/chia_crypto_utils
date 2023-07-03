@@ -48,7 +48,7 @@ class WalletConnectAppClient {
       await displayUri(uri);
     }
 
-    return waitForSessionApproval(connectResponse);
+    return _waitForSessionApproval(connectResponse);
   }
 
   /// Request a new session with a wallet that has already been paired
@@ -75,15 +75,16 @@ class WalletConnectAppClient {
       pairingTopic: pairingTopic,
     );
 
-    return waitForSessionApproval(connectResponse);
+    return _waitForSessionApproval(connectResponse);
   }
 
-  Future<SessionData> waitForSessionApproval(ConnectResponse connectResponse) async {
+  Future<SessionData> _waitForSessionApproval(ConnectResponse connectResponse) async {
     print('waiting for session to be approved');
     try {
       final sessionData = await connectResponse.session.future;
       _sessionData = sessionData;
 
+      print('wallet approved session');
       return sessionData;
     } catch (e) {
       if (e.toString().contains('User rejected')) {

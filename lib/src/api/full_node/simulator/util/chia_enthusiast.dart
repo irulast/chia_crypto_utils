@@ -81,10 +81,10 @@ class ChiaEnthusiast extends ChiaEnthusiastBase {
     final spendBundle = cat1WalletService.makeIssuanceSpendbundle(
       tail: curriedTail,
       solution: tailSolution,
-      standardCoins: [standardCoins.firstWhere((coin) => coin.amount >= 10000)],
+      standardCoins: [standardCoins.firstWhere((coin) => coin.amount >= 100000000)],
       destinationPuzzlehash: firstWalletVector.puzzlehash,
       changePuzzlehash: firstWalletVector.puzzlehash,
-      amount: 10000,
+      amount: 100000000,
       makeSignature: (_) => signature,
       keychain: keychain,
       originId: originCoin.id,

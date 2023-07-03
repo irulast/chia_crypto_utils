@@ -1,7 +1,5 @@
-@Timeout(Duration(minutes: 10))
+@Timeout(Duration(minutes: 5))
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/wallet_connect/service/wallet_client/full_node_request_handler.dart';
-import 'package:chia_crypto_utils/src/api/wallet_connect/service/wallet_client/test_session_proposal_handler.dart';
 import 'package:test/test.dart';
 import 'package:walletconnect_flutter_v2/apis/core/core.dart';
 import 'package:walletconnect_flutter_v2/apis/web3app/web3app.dart';
@@ -13,13 +11,7 @@ Future<void> main() async {
     return;
   }
 
-  final simulatorHttpRpc = SimulatorHttpRpc(
-    SimulatorUtils.simulatorUrl,
-    certBytes: SimulatorUtils.certBytes,
-    keyBytes: SimulatorUtils.keyBytes,
-  );
-
-  final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
+  final fullNodeSimulator = SimulatorFullNodeInterface.withDefaultUrl();
 
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
 
@@ -57,7 +49,7 @@ Future<void> main() async {
     await appClient.init();
 
     expect(
-      () async => {await appClient.pair()},
+      () async => {await appClient.pair(requiredCommandTypes: testSupportedCommandTypes)},
       throwsA(isA<RejectedSessionProposalException>()),
     );
   });

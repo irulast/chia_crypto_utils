@@ -59,6 +59,7 @@ extension ProcessProposal on WalletConnectSessionProposalHandler {
     final approved = await handleProposal(args: args);
 
     if (approved) {
+      print('approving session');
       await approve();
     } else {
       await reject(Errors.getSdkError(Errors.USER_REJECTED));
