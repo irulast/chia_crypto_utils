@@ -320,7 +320,7 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
 
     final targetPuzzlehash = command.address.toPuzzlehash();
 
-    final memos = command.memos?.map((memo) => Memo(Bytes.encodeFromString(memo))).toList() ?? [];
+    final memos = command.memos.map((memo) => Memo(Bytes.encodeFromString(memo))).toList();
 
     late final SpendBundle spendBundle;
     if (wallet.type == ChiaWalletType.nft) {
