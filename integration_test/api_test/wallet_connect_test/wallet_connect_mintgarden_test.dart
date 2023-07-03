@@ -53,7 +53,7 @@ Future<void> main() async {
     requestHandler,
   );
 
-  test('Should approve session and send wallet data to MintGarden', () async {
+  test('Should approve session and correctly show DID in MintGarden', () async {
     await walletClient.init();
 
     await walletClient.pair(Uri.parse(mintGardenLink));
