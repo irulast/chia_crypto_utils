@@ -12,13 +12,8 @@ Future<void> main() async {
     return;
   }
 
-  final simulatorHttpRpc = SimulatorHttpRpc(
-    SimulatorUtils.simulatorUrl,
-    certBytes: SimulatorUtils.certBytes,
-    keyBytes: SimulatorUtils.keyBytes,
-  );
+  final fullNodeSimulator = SimulatorFullNodeInterface.withDefaultUrl();
 
-  final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
   final crossChainOfferFileService = CrossChainOfferFileService();
   final exchangeOfferService = ExchangeOfferService(fullNodeSimulator);
@@ -926,7 +921,7 @@ Future<void> main() async {
           escrowTransferCompletedBlockIndex + blocksForSufficientConfirmation;
 
       // wait for sufficient confirmations
-      await fullNodeSimulator.moveToNextBlock(blocksForSufficientConfirmation);
+      await fullNodeSimulator.moveToNextBlock(blocks: blocksForSufficientConfirmation);
       final expectedEscrowTransferConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
 
       // restoring exchange offer record
@@ -1098,7 +1093,7 @@ Future<void> main() async {
       final expectedEscrowTransferConfirmedBlockIndex =
           escrowTransferCompletedBlockIndex + blocksForSufficientConfirmation;
       // wait for sufficient confirmations
-      await fullNodeSimulator.moveToNextBlock(blocksForSufficientConfirmation);
+      await fullNodeSimulator.moveToNextBlock(blocks: blocksForSufficientConfirmation);
       final expectedEscrowTransferConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
 
       // maker sweeps escrow puzzlehash
@@ -1322,7 +1317,7 @@ Future<void> main() async {
           escrowTransferCompletedBlockIndex + blocksForSufficientConfirmation;
 
       // wait for sufficient confirmations
-      await fullNodeSimulator.moveToNextBlock(blocksForSufficientConfirmation);
+      await fullNodeSimulator.moveToNextBlock(blocks: blocksForSufficientConfirmation);
       final expectedEscrowTransferConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
 
       // the earliest you can spend a time-locked coin is 2 blocks later, since the time is checked
@@ -2209,7 +2204,7 @@ Future<void> main() async {
           escrowTransferCompletedBlockIndex + blocksForSufficientConfirmation;
 
       // wait for sufficient confirmations
-      await fullNodeSimulator.moveToNextBlock(blocksForSufficientConfirmation);
+      await fullNodeSimulator.moveToNextBlock(blocks: blocksForSufficientConfirmation);
       final expectedEscrowTransferConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
 
       // restoring exchange offer record
@@ -2386,7 +2381,7 @@ Future<void> main() async {
           escrowTransferCompletedBlockIndex + blocksForSufficientConfirmation;
 
       // wait for sufficient confirmations
-      await fullNodeSimulator.moveToNextBlock(blocksForSufficientConfirmation);
+      await fullNodeSimulator.moveToNextBlock(blocks: blocksForSufficientConfirmation);
       final expectedEscrowTransferConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
 
       // maker sweeps escrow puzzlehash
@@ -2605,7 +2600,7 @@ Future<void> main() async {
           escrowTransferCompletedBlockIndex + blocksForSufficientConfirmation;
 
       // wait for sufficient confirmations
-      await fullNodeSimulator.moveToNextBlock(blocksForSufficientConfirmation);
+      await fullNodeSimulator.moveToNextBlock(blocks: blocksForSufficientConfirmation);
       final expectedEscrowTransferConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
 
       // the earliest you can spend a time-locked coin is 2 blocks later, since the time is checked

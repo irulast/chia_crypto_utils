@@ -5,8 +5,4 @@ void main() async {
     print(SimulatorUtils.simulatorNotRunningWarning);
     return;
   }
-
-  print('cert bytes:\n${SimulatorUtils.certBytes}');
-  print('\n----------------------------------\n');
-  print('key bytes:\n${SimulatorUtils.certBytes}');
 }

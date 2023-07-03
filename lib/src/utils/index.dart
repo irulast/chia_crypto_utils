@@ -1,5 +1,5 @@
 export './exceptions/insufficient_balance_exception.dart';
-export './extensions/iterable.dart';
+export './extensions/index.dart';
 export './key_derivation.dart';
 export './mixins/summable_mixin.dart';
 export './mixins/to_program_mixin.dart';

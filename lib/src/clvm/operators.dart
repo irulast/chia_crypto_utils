@@ -159,7 +159,7 @@ Map<BigInt, Operator> operators = {
     final list = args.toAtomList(size: 2, suffix: 'in >s');
     final cost = Cost.grsBaseCost +
         (BigInt.from(list[0].atom.length) + BigInt.from(list[1].atom.length)) * Cost.grsCostPerByte;
-    return Output(Program.fromBool(list[0].toHex().compareTo(list[1].toHex()) == 1), cost);
+    return Output(Program.fromBool(list[0].atomHex().compareTo(list[1].atomHex()) == 1), cost);
   },
   keywords['pubkey_for_exp']!: (args) {
     final list = args.toAtomList(size: 1, suffix: 'in pubkey_for_exp');

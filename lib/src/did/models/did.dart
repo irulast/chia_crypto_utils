@@ -2,6 +2,7 @@
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:meta/meta.dart';
+import 'package:tuple/tuple.dart';
 
 /// Decorator on [DidRecord] that has an inner puzzle and can be spent
 @immutable
@@ -40,6 +41,24 @@ class DidInfo implements DidRecord {
     }
 
     return Bytes.fromHex(serializedDid);
+  }
+
+  // conforms to Chia's DidInfo JSON format
+  Map<String, dynamic> toChiaJson(CoinPrototype originCoin) {
+    return <String, dynamic>{
+      'origin_coin': originCoin.toJson(),
+      'backup_ids': backupIds?.map((id) => id.toHex()).toList(),
+      'num_of_backup_ids_needed': backupIds?.length ?? 0,
+      'parent_info': [
+        Tuple2(coin.id.toHex(), lineageProof.toJson()).toList(),
+      ],
+      'current_inner': innerPuzzle.toBytes().toHex(),
+      'temp_coin': null,
+      'temp_puzhash': null,
+      'temp_pubkey': null,
+      'sent_recovery_transaction': false,
+      'metadata': metadata.map.toString(),
+    };
   }
 
   @override

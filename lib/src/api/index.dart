@@ -8,3 +8,4 @@ export './pool/index.dart';
 export './standard/xch_service.dart';
 export './tail_database/index.dart';
 export './utils/index.dart';
+export './wallet_connect/index.dart';

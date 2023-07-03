@@ -2,7 +2,6 @@
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/standard/puzzles/p2_delegated_puzzle_or_hidden_puzzle/p2_delegated_puzzle_or_hidden_puzzle.clvm.hex.dart';
-import 'package:hex/hex.dart';
 
 class CoinSpend with ToBytesMixin {
   CoinSpend({
@@ -26,6 +25,14 @@ class CoinSpend with ToBytesMixin {
       coin: coin,
       puzzleReveal: puzzleReveal,
       solution: solution,
+    );
+  }
+
+  factory CoinSpend.fromCamelJson(Map<String, dynamic> json) {
+    return CoinSpend(
+      coin: CoinPrototype.fromCamelJson(json['coin'] as Map<String, dynamic>),
+      puzzleReveal: Program.deserializeHex(json['puzzleReveal'] as String),
+      solution: Program.deserializeHex(json['solution'] as String),
     );
   }
 
@@ -86,8 +93,14 @@ class CoinSpend with ToBytesMixin {
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'coin': coin.toJson(),
-        'puzzle_reveal': const HexEncoder().convert(puzzleReveal.serialize()),
-        'solution': const HexEncoder().convert(solution.serialize())
+        'puzzle_reveal': puzzleReveal.toHexWithPrefix(),
+        'solution': solution.toHexWithPrefix(),
+      };
+
+  Map<String, dynamic> toCamelJson() => <String, dynamic>{
+        'coin': coin.toCamelJson(),
+        'puzzle_reveal': puzzleReveal.toHexWithPrefix(),
+        'solution': solution.toHexWithPrefix(),
       };
 
   @override

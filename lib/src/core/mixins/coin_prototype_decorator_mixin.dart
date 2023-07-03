@@ -27,6 +27,9 @@ mixin CoinPrototypeDecoratorMixin implements CoinPrototype {
   Map<String, dynamic> toJson() => delegate.toJson();
 
   @override
+  Map<String, dynamic> toCamelJson() => delegate.toCamelJson();
+
+  @override
   Program toProgram() => delegate.toProgram();
 
   @override

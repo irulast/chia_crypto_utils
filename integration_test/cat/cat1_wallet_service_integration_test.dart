@@ -11,12 +11,7 @@ Future<void> main() async {
     return;
   }
 
-  final simulatorHttpRpc = SimulatorHttpRpc(
-    SimulatorUtils.simulatorUrl,
-    certBytes: SimulatorUtils.certBytes,
-    keyBytes: SimulatorUtils.keyBytes,
-  );
-  final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
+  final fullNodeSimulator = SimulatorFullNodeInterface.withDefaultUrl();
 
   final secret = KeychainCoreSecret.generate();
 
@@ -61,7 +56,7 @@ Future<void> main() async {
     destinationPuzzlehash: senderPuzzlehash,
     changePuzzlehash: senderPuzzlehash,
     amount: 10000,
-    makeSignature:(_) => signature,
+    makeSignature: (_) => signature,
     keychain: keychain,
   );
 
@@ -111,7 +106,7 @@ Future<void> main() async {
       (int previousValue, coin) => previousValue + coin.amount,
     );
     final amountToSend = (totalNateCoinValue * 0.8).round();
-    final payment =CatPayment(amountToSend, receiverPuzzlehash);
+    final payment = CatPayment(amountToSend, receiverPuzzlehash);
 
     final spendBundle = catWalletService.createSpendBundle(
       payments: [payment],

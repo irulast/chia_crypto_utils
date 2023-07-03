@@ -482,8 +482,7 @@ class Program with ToBytesMixin, ToProgramMixin {
     ).map((arg) => arg.toBigInt()).toList();
   }
 
-  @override
-  String toHex() {
+  String atomHex() {
     if (isCons) {
       throw StateError(
         'Cannot convert ${toString()} to hex format$positionSuffix.',
@@ -536,21 +535,21 @@ class Program with ToBytesMixin, ToProgramMixin {
           final string = utf8.decode(atom);
           for (var i = 0; i < string.length; i++) {
             if (!printable.contains(string[i])) {
-              return '0x${toHex()}';
+              return '0x${atomHex()}';
             }
           }
           if (string.contains('"') && string.contains("'")) {
-            return '0x${toHex()}';
+            return '0x${atomHex()}';
           }
           final quote = string.contains('"') ? "'" : '"';
           return quote + string + quote;
         } catch (e) {
-          return '0x${toHex()}';
+          return '0x${atomHex()}';
         }
       } else if (bytesEqual(encodeInt(decodeInt(atom)), atom)) {
         return decodeInt(atom).toString();
       } else {
-        return '0x${toHex()}';
+        return '0x${atomHex()}';
       }
     } else {
       final buffer = StringBuffer('(');

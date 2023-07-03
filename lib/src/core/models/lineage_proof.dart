@@ -57,4 +57,12 @@ class LineageProof with ToBytesMixin, ToProgramMixin {
       ...optionallySerializeInt(amount),
     ]);
   }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'parent_name': parentCoinInfo?.toHex(),
+      'inner_puzzle_hash': innerPuzzlehash?.toHex(),
+      'amount': amount,
+    };
+  }
 }
