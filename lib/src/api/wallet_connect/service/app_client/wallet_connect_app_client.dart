@@ -27,10 +27,9 @@ class WalletConnectAppClient {
   /// Establish a connection with a new wallet
   Future<SessionData> pair({
     List<WalletConnectCommandType> requiredCommandTypes = const [],
-    String? pairingTopic,
   }) async {
     final methods = requiredCommandTypes.isNotEmpty
-        ? requiredCommandTypes.map((type) => type.commandName).toList()
+        ? requiredCommandTypes.commandNames
         : WalletConnectCommandType.values.commandNames;
 
     final connectResponse = await _web3App.connect(
@@ -41,7 +40,6 @@ class WalletConnectAppClient {
           events: [],
         ),
       },
-      pairingTopic: pairingTopic,
     );
 
     final uri = connectResponse.uri;
@@ -206,12 +204,12 @@ class WalletConnectAppClient {
 
   Future<CheckOfferValidityResponse> checkOfferValidity({
     required int fingerprint,
-    required String offerData,
+    required String offer,
   }) async {
     return request(
       fingerprint: fingerprint,
       command: CheckOfferValidityCommand(
-        offerData: offerData,
+        offer: offer,
       ),
       parseResponse: CheckOfferValidityResponse.fromJson,
     );
@@ -447,7 +445,7 @@ class JsonRpcErrorWalletResponseException implements Exception {
 
   @override
   String toString() =>
-      'Wallet responded with JsonRpcError: $message. This may be due to user rejection or an request with the incorrect format or parameters';
+      'Wallet responded with JsonRpcError: $message. This may be due to user rejection or a request with the incorrect format or parameters';
 }
 
 class GeneralWalletResponseException implements Exception {

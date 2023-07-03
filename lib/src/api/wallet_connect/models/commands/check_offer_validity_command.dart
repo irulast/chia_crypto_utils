@@ -3,23 +3,23 @@ import 'package:deep_pick/deep_pick.dart';
 
 class CheckOfferValidityCommand implements WalletConnectCommand {
   const CheckOfferValidityCommand({
-    required this.offerData,
+    required this.offer,
   });
 
   factory CheckOfferValidityCommand.fromParams(Map<String, dynamic> params) {
     return CheckOfferValidityCommand(
-      offerData: pick(params, 'offerData').asStringOrThrow(),
+      offer: pick(params, 'offer').asStringOrThrow(),
     );
   }
 
   @override
   WalletConnectCommandType get type => WalletConnectCommandType.checkOfferValidity;
 
-  final String offerData;
+  final String offer;
 
   @override
   Map<String, dynamic> paramsToJson() {
-    return <String, dynamic>{'offerData': offerData};
+    return <String, dynamic>{'offer': offer};
   }
 }
 

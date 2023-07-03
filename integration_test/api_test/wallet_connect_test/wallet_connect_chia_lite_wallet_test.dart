@@ -248,6 +248,18 @@ Future<void> main() async {
     print(response.toJson());
   });
 
+  test('Should request offer validity data from Chia Lite Wallet', () async {
+    const offer =
+        'offer1qqr83wcuu2rykcmqvpsxygqqemhmlaekcenaz02ma6hs5w600dhjlvfjn477nkwz369h88kll73h37fefnwk3qqnz8s0lle0lzwfpjm87m4vx3e3y6chtrhmzv0r720xmq7mxsae767d3ynrrfflfyupftepvf2adffnhckpccftjak9e8zvs8vfh7nlz48nga0w0wdm2m60gmd3lakccr9j6gl33s8kxj08lllfaru7428mhlt4hkm9akajg50nhdhvu4rhjeu5406en5hz3mzadn8thl8ps7y3r7lmuee2t24kk0hwmkh0lk0yn49jl3gu8kkf5u6ecg93xles7t87gedklgadklgadkmgadkmfavxn60yvkm0734mmqgt7uz7d7e7y77xkmf5mcmrwvn2gthfzkxx75q7vu7hqmrw6r8vmfwj8264q42evwl46m3mp366skmk8mmv29fznatzpteynryf8uwpl44r7hqmmerfy7625s9wuzr0xg3ukrq3hdsf7ekalamevt42y2m9el8aknna0ecfndjx37t8m22sva4053llv7mhulmfkva9uwemw2jum0c4w7tlekcpr0qq2xwsqp5mrl2lgz50raalr828yg9vpej23n0lqkwnhcnhyhevc5nvtkg2uahurk04yjlvthje2q233ath7uvu7vajemsx2z2lmlc9z597lwkf7ewkjh4hye3vdg2ln8lxhr30j7v86amj7d3sntj4zdhd03jrjtel7p2w90ztul5c73ltxsyc3e5yl6j9ceamushtve7fwyl5m9gtrnwsnt6jmywwdlut7syf990gfa6amld7n6gzac7wnhj0txhm6wen494lrqurd4e5ae26xe0svkjx4zvl2lcp5xrpd4pjv2xq57h50n3nh3thev7pndetda77hhw679z2222mdnpsfpaq927kn4h28fg2xs8p6rfu75m24ks05sjc54gnr30la2ztdan0dw7veevz3g4xvjlsfqn456zahl4d9gr8auw9vgl6ltm7jwn7cxhnlnkk8maagunk5tfc8z80py7sz06vf7t0xlz7kac2wg009g9lkn069w4c7mdtfan0s2sjkwux275r9cqdadsd4yl2ydqs';
+
+    final response = await appClient.checkOfferValidity(
+      fingerprint: fingerprint,
+      offer: offer,
+    );
+
+    print(response.toJson());
+  });
+
   test('Should request new session using same pairing', () async {
     final getWalletsResponse = await appClient.getWallets(
       fingerprint: fingerprint,
