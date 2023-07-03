@@ -5,6 +5,10 @@ import 'package:walletconnect_flutter_v2/apis/utils/errors.dart';
 
 /// Handles session proposals received from apps that have been paired with wallet client.
 abstract class WalletConnectSessionProposalHandler {
+  /// Commands that can be executed by the request handler. The requested commands that are included
+  /// in the session proposal are checked against these before the session can be approved.
+  List<String> get supportedCommands;
+
   /// Displays session proposal information to user and allows them to reject or approve the session.
   Future<bool> handleProposal({
     required SessionProposalEvent args,
@@ -40,8 +44,7 @@ extension ProcessProposal on WalletConnectSessionProposalHandler {
     final unsupportedCommands = <String>[];
     requiredNamespaces.forEach(
       (key, value) => unsupportedCommands.addAll(
-        value.methods
-            .where((method) => !WalletConnectCommandType.values.commandNames.contains(method)),
+        value.methods.where((method) => !supportedCommands.contains(method)),
       ),
     );
 

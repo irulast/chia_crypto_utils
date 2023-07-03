@@ -36,15 +36,16 @@ Future<void> main() async {
 
   final keychain = WalletKeychain.fromCoreSecret(coreSecret);
 
-  final sessionProposalHandler = TestSessionProposalHandler();
-
   // override correct supported commands for the purpose of connecting to MintGarden, since session
-  // cannot be approved if expected commands are unsupported
+  // cannot be approved if requested commands are unsupported
+  final sessionProposalHandler = TestSessionProposalHandler()
+    ..supportedCommands = WalletConnectCommandType.values.commandNames;
+
   final requestHandler = FullNodeWalletConnectRequestHandler(
     coreSecret: coreSecret,
     keychain: keychain,
     fullNode: fullNodeInterface,
-  )..supportedCommands = WalletConnectCommandType.values.commandNames;
+  );
 
   final walletClient = WalletConnectWalletClient(
     web3Wallet,

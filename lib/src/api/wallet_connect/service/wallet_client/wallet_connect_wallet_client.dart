@@ -55,7 +55,7 @@ class WalletConnectWalletClient {
     final namespaces = {
       'chia': Namespace(
         accounts: ['$walletConnectChainId:$fingerprint'],
-        methods: requestHandler.supportedCommands,
+        methods: sessionProposalHandler.supportedCommands,
         events: [],
       )
     };

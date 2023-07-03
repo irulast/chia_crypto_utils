@@ -8,8 +8,6 @@ import 'package:chia_crypto_utils/src/api/wallet_connect/models/commands/wallet_
 abstract class WalletConnectRequestHandler {
   Map<int, ChiaWalletInfo>? get walletMap;
 
-  List<String> get supportedCommands;
-
   /// Creates a mapping of walletId to [ChiaWalletInfo] for the sake of comforming to Chia's standard.
   Future<void> indexWalletMap();
 
