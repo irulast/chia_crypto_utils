@@ -423,7 +423,7 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
 
     final syntheticSecretKey = calculateSyntheticPrivateKey(walletVector!.childPrivateKey);
 
-    final message = constructMessageForWCSignature(command.message);
+    final message = constructChip002Message(command.message);
 
     final signature = AugSchemeMPL.sign(syntheticSecretKey, message);
 
@@ -465,7 +465,7 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
 
     final syntheticSecretKey = calculateSyntheticPrivateKey(walletVector!.childPrivateKey);
 
-    final message = constructMessageForWCSignature(command.message);
+    final message = constructChip002Message(command.message);
 
     final signature = AugSchemeMPL.sign(syntheticSecretKey, message);
 
@@ -628,9 +628,15 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
   VerifySignatureResponse verifySignature(VerifySignatureCommand command) {
     final startedTimeStamp = DateTime.now().unixTimeStamp;
 
+    // default to CHIP-002 because that is how messages are signed with the sign methods on this handler
+    final message = constructMessageForSignature(
+      command.message,
+      command.signingMode ?? SigningMode.chip0002,
+    );
+
     final verification = AugSchemeMPL.verify(
       command.publicKey,
-      Bytes.encodeFromString(command.message),
+      message,
       command.signature,
     );
 

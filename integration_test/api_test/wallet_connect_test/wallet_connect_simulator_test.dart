@@ -303,7 +303,7 @@ Future<void> main() async {
       message: message,
     );
 
-    final expectedMessage = constructMessageForWCSignature(message);
+    final expectedMessage = constructChip002Message(message);
 
     final verification = AugSchemeMPL.verify(
       response.signData.publicKey,
@@ -323,7 +323,7 @@ Future<void> main() async {
       message: message,
     );
 
-    final expectedMessage = constructMessageForWCSignature(message);
+    final expectedMessage = constructChip002Message(message);
 
     final verification = AugSchemeMPL.verify(
       response.signData.publicKey,
