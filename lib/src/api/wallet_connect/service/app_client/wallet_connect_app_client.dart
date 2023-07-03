@@ -251,7 +251,7 @@ class WalletConnectAppClient {
         address: address,
         amount: amount,
         fee: fee,
-        memos: memos,
+        memos: memos ?? [],
         waitForConfirmation: waitForConfirmation,
       ),
       parseResponse: SendTransactionResponse.fromJson,

@@ -9,10 +9,13 @@ import 'package:walletconnect_flutter_v2/apis/web3app/web3app.dart';
 // To run these tests, you must have a Chia Lite Wallet running.
 // Run tests one at a time.
 // When the test pauses, click on the WalletConnect icon in your wallet, click "Enable WalletConnect",
-// then "Add Connection" and paste in the URI string the test has printed out.
+// then 'Add Connection' and paste in the URI string the test has printed out.
+// Select 'Confirm' when prompted to execute a command in the Chia Lite Wallet.
 
 // If the Chia Lite Wallet says that it has connected to an Unkown Application instead of Chia Crypto Utils,
 // make sure you are on the latest version of the Chia Lite Wallet and try restarting it.
+
+// If you receive a JsonRpcError, try running the test again.
 
 // After the test is completed, the Chia Lite Wallet WalletConnect dialog will show that it is connected
 // to an Unknown Application because the app client has disconnected. You may simply close the dialog.
@@ -93,9 +96,9 @@ Future<void> main() async {
   });
 
   test('Should request NFT info from Chia Lite Wallet', () async {
-    // Navigate to NFTs, click on NFT you want to test, copy the launcher id and set it manually below
+    // Navigate to NFTs, click on NFT you want to test, copy the NFT Coin ID and set it manually below
 
-    const coinId = '67f3481bdcf4eb8db50004462e35bea89afbcd2c650db5f35b21e6f6e7e53a51';
+    const coinId = '2c4d8ba5d31c147a70e47d676b0440531dd5a66a7a9a7cf1b6fa94edb0d0b534';
 
     final response = await appClient.getNFTInfo(
       fingerprint: fingerprint,

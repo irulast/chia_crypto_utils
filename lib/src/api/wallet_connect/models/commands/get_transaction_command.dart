@@ -81,21 +81,26 @@ class TransactionRecord {
     final memoMap = pick(json, 'memos').asMapOrThrow<String, dynamic>();
 
     late final Map<Bytes, List<Memo>> memos;
-    try {
-      memos = memoMap.map(
-        (key, value) => MapEntry(
-          key.hexToBytes(),
-          (value as List<dynamic>).map((memo) => Memo(memo.toString().hexToBytes())).toList(),
-        ),
-      );
-    } catch (e) {
-      memos = memoMap.map(
-        (key, value) => MapEntry(
-          key.hexToBytes(),
-          [Memo((value as String).hexToBytes())],
-        ),
-      );
+    if (memoMap.isNotEmpty) {
+      try {
+        memos = memoMap.map(
+          (key, value) => MapEntry(
+            key.hexToBytes(),
+            (value as List<dynamic>).map((memo) => Memo(memo.toString().hexToBytes())).toList(),
+          ),
+        );
+      } catch (e) {
+        memos = memoMap.map(
+          (key, value) => MapEntry(
+            key.hexToBytes(),
+            [Memo((value as String).hexToBytes())],
+          ),
+        );
+      }
+    } else {
+      memos = {};
     }
+
     return TransactionRecord(
       additions: pick(json, 'additions').letJsonListOrThrow(CoinPrototype.fromCamelJson),
       amount: pick(json, 'amount').asIntOrThrow(),

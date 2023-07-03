@@ -8,7 +8,7 @@ class SendTransactionCommand implements WalletConnectCommand {
     required this.amount,
     this.waitForConfirmation = false,
     required this.fee,
-    this.memos,
+    this.memos = const [],
   });
 
   factory SendTransactionCommand.fromParams(Map<String, dynamic> params) {
@@ -18,7 +18,7 @@ class SendTransactionCommand implements WalletConnectCommand {
       amount: pick(params, 'amount').asIntOrThrow(),
       fee: pick(params, 'fee').asIntOrThrow(),
       waitForConfirmation: pick(params, 'waitForConfirmation').asBoolOrFalse(),
-      memos: pick(params, 'memos').letStringListOrNull((string) => string),
+      memos: pick(params, 'memos').asListOrEmpty((p0) => p0.asString()),
     );
   }
 
@@ -30,7 +30,7 @@ class SendTransactionCommand implements WalletConnectCommand {
   final int amount;
   final int fee;
   final bool waitForConfirmation;
-  final List<String>? memos;
+  final List<String> memos;
 
   @override
   Map<String, dynamic> paramsToJson() {
