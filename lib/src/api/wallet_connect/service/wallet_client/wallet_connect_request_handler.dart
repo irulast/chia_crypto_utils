@@ -54,7 +54,7 @@ abstract class WalletConnectRequestHandler {
 }
 
 extension ProcessRequest on WalletConnectRequestHandler {
-  Future<ToJsonMixin> processRequest(
+  Future<WalletConnectCommandBaseResponse> processRequest(
     WalletConnectCommandType type,
     String topic,
     dynamic params,
@@ -69,7 +69,7 @@ extension ProcessRequest on WalletConnectRequestHandler {
       }
 
       try {
-        late final ToJsonMixin response;
+        late final WalletConnectCommandBaseResponse response;
         switch (type) {
           case WalletConnectCommandType.getTransaction:
             response = await getTransaction(command as GetTransactionCommand);
