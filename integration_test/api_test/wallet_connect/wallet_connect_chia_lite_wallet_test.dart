@@ -98,7 +98,7 @@ Future<void> main() async {
   test('Should request NFT info from Chia Lite Wallet', () async {
     // Navigate to NFTs, click on NFT you want to test, copy the NFT Coin ID and set it manually below
 
-    const coinId = '2c4d8ba5d31c147a70e47d676b0440531dd5a66a7a9a7cf1b6fa94edb0d0b534';
+    const coinId = '';
 
     final response = await appClient.getNFTInfo(
       fingerprint: fingerprint,
@@ -128,9 +128,12 @@ Future<void> main() async {
 
   test('Should request Chia Lite Wallet to send a transaction and then get transaction data',
       () async {
+    // set the destination address below
+    const address = '';
+
     final response = await appClient.sendTransaction(
       fingerprint: fingerprint,
-      address: const Address('xch1wekp5n7hqznmh7mtzw8pyxvqxzaaq5h4mlgca25pdsnnz7krhygqfyj2m3'),
+      address: const Address(address),
       amount: 50,
       fee: 50,
     );
@@ -146,6 +149,9 @@ Future<void> main() async {
   });
 
   test('Should request Chia Lite Wallet to spend CAT and then get transaction data', () async {
+    // set the destination address below
+    const address = '';
+
     final getWalletsResponse = await appClient.getWallets(
       fingerprint: fingerprint,
     );
@@ -155,7 +161,7 @@ Future<void> main() async {
 
     final response = await appClient.spendCat(
       fingerprint: fingerprint,
-      address: const Address('xch174hc9f64a9j5xl6w2zvuvue2sn009mhyrqdkraarh00vale29ugsnzzfuu'),
+      address: const Address(address),
       amount: 1,
       fee: 50,
       walletId: catWallets.first.id,
@@ -184,9 +190,8 @@ Future<void> main() async {
   });
 
   test('Should request Chia Lite Wallet to take offer', () async {
-    // paste offer to accept below
-    const offer =
-        'offer1qqr83wcuu2rykcmqvpsxygqqemhmlaekcenaz02ma6hs5w600dhjlvfjn477nkwz369h88kll73h37fefnwk3qqnz8s0lle04zdeuudx78t72v5hm8za94hjftnkd00c7h8ul6q3a09v3ma09llfkpev9qt5cjm7h5s09pk0cs62m0hfq5l5mt4s6hvcw8zwp9xt0rks6r0fumq372letmv07gdqdvp4af45a6z0nsc4k79x6w46f2t970lajam8tlev5v7ah0kc7g6nu9jdr5z92azmemu7ttg3l38qk98802dvswjl7wa9d60mjl84qx0de87ec2l5zg50lyzje7jxrdh68rdh68rdk68rdk60rp57nerpkml5dw7gzzlhqhn0k038h34k6dx7xcmny6jza6g433h4q8n884cxcmksemx6t536k4g92ktrhawkuwcvwk59ka377mz32g5l2cs27fycezflrs0adgl4cx77g6f8kj4ypthqsme3509scydjdmzhtmuk8dnrexfrndlxl39m3gf6kay7hma748k52kdlzmcflle0clekl638ecyh9wwwn2427slth7ldfpvdm7pqc6yqxnv0uteq6nm0hhcydsupq4sxxtf7dlcz67lsl8vj3an6lxnxdk20cd2l9lxymu6augv7ufx9n2czdx2akvxdvqj4m8l47u9xgj5zytn4vafs8w7tjh37znc4x0nycuw0thcwethh5xfjarxf4aujr20el7ppl9eju644ah55a6wjm5nvrkwtqd05et2c2tn8efalvkm7wqu7lle83gydwdlndrxk479lvrhay07zp88elvr7tmylr6nz2e3ghxlqfjlz0t5xngpxaqflwmw4mhswkjx9q2ltlupy9mfv2pgr2yr962ha2rd6p3uhxmaa0x2fsatl8m36hqh4ju3ellwk9ux4qww42d6f0dcqvgfzs9zkul7xulp9tydf8sakncla0gwdez5aesjvw7jml85wc4c72r7t3mz9emtue7enw0uzxulmjgnw468dg9hxkdjunfu2net66w75kevdvmmrc27t6rynmxp6vnvuv5s9ajn2k8z6ql9jczw20nnfrvm9fhw7hf4f2eeeqr7zcqf3pepptq';
+    // Set offer variable to offer you would like to accept
+    const offer = '';
 
     final response = await appClient.takeOffer(
       fingerprint: fingerprint,
@@ -230,7 +235,7 @@ Future<void> main() async {
     // navigate to Settings > Profiles, hover over the DID and copy the DID ID (Hex)
     // manually set it to variable below
 
-    const didHex = 'dcedefe5669c68a291fe808ba627d97ea4cb89c18603507fc3378331c76153c2';
+    const didHex = '';
 
     final signMessageResponse = await appClient.signMessageById(
       fingerprint: fingerprint,
@@ -309,7 +314,7 @@ Future<void> main() async {
   test(
       'Should throw exception when Chia Lite Wallet response with JsonRpcError after user rejection',
       () async {
-    // for this test, approve the session proposal but reject the request
+    // for this test, reject the getWallets request
 
     expect(
       () async => {
