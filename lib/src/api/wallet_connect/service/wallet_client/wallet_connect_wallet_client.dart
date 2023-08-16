@@ -12,6 +12,9 @@ class WalletConnectWalletClient {
   );
 
   final Web3Wallet web3Wallet;
+
+  /// Displays session proposal to the user, allowing them to approve or reject. Returns fingerprints
+  /// if approved and null if rejected.
   WalletConnectSessionProposalHandler? handleProposal;
   WalletConnectRequestHandler? requestHandler;
 
