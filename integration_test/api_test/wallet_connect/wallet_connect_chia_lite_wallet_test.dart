@@ -103,7 +103,7 @@ Future<void> main() async {
   test('Should request NFT info from Chia Lite Wallet', () async {
     // Navigate to NFTs, click on NFT you want to test, copy the NFT Coin ID and set it manually below
 
-    const coinId = '5011cdcdcfe38738f855f2ff9a08ef49c6e298761f97dd261173fb9b2a76bac3';
+    const coinId = '';
 
     final response = await appClient.getNFTInfo(
       fingerprint: fingerprint,
@@ -233,7 +233,7 @@ Future<void> main() async {
     // navigate to Settings > Profiles, hover over DID and copy the DID ID (Hex)
     // manually set it to variable below
 
-    const didHex = '2c3b970e57261a7c77ca395072890c698b0d6e5fdd3447aaa43eea948df95b8c';
+    const didHex = '';
 
     final signMessageResponse = await appClient.signMessageById(
       fingerprint: fingerprint,
