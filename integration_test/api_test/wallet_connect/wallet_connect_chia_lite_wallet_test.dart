@@ -162,6 +162,7 @@ Future<void> main() async {
     final catWallets =
         getWalletsResponse.wallets.where((wallet) => wallet.type == ChiaWalletType.cat);
 
+    // in order to go through first CAT wallet must have a non-zero balance
     final response = await appClient.spendCat(
       fingerprint: fingerprint,
       address: const Address('xch17c3q8nrd88a06rs2kjdacj5w5p3mtnf0cqmpgxseh2xfzp5tgeesn7pwr9'),
