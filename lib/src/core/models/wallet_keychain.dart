@@ -290,12 +290,16 @@ class WalletKeychain with ToBytesMixin {
       ).toList();
 
   List<Puzzlehash> getOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
-    if (!unhardenedMap.values.first.assetIdtoOuterPuzzlehash.containsKey(assetId)) {
+    if (!hasAssetId(assetId)) {
       throw ArgumentError(
         'Puzzlehashes for given Asset Id are not in keychain',
       );
     }
     return unhardenedMap.values.map((v) => v.assetIdtoOuterPuzzlehash[assetId]!).toList();
+  }
+
+  bool hasAssetId(Puzzlehash assetId) {
+    return unhardenedMap.values.first.assetIdtoOuterPuzzlehash.containsKey(assetId);
   }
 
   HardenedAndUnhardenedPuzzleHashes addPuzzleHashes(

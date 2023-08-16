@@ -53,4 +53,14 @@ void main() {
       returnsNormally,
     );
   });
+
+  test('should return normally async', () async {
+    final didInfoAsync = await didRecord!.toDidInfoAsync(ownerKeychain);
+    final didInfo = didRecord.toDidInfo(ownerKeychain);
+
+    expect(
+      didInfoAsync!.innerPuzzle,
+      equals(didInfo!.innerPuzzle),
+    );
+  });
 }

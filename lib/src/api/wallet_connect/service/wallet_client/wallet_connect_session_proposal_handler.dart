@@ -1,77 +1,58 @@
+import 'dart:async';
+
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:walletconnect_flutter_v2/apis/models/basic_models.dart';
 import 'package:walletconnect_flutter_v2/apis/sign_api/models/sign_client_events.dart';
+import 'package:walletconnect_flutter_v2/apis/sign_api/models/sign_client_models.dart';
 import 'package:walletconnect_flutter_v2/apis/utils/errors.dart';
 
 /// Handles session proposals received from apps that have been paired with wallet client.
 abstract class WalletConnectSessionProposalHandler {
-  /// List of commands that can be executed by the request handler. The required commands that are included
-  /// in a session proposal are checked against these before the session can be approved.
-  List<String> get supportedCommands;
-
-  /// Displays session proposal information to user and allows them to reject or approve the session.
-  Future<bool> handleProposal({
-    required SessionProposalEvent args,
+  /// Displays session proposal information to user and allows them to reject or approve the session,
+  /// and, in the case of approval, select the fingerprints they would like to pair.
+  Future<List<int>?> handleProposal({
+    required SessionProposalEvent sessionProposal,
   });
 }
 
 extension ProcessProposal on WalletConnectSessionProposalHandler {
   /// Validates session proposal before handling proposal.
   Future<void> processProposal({
-    required SessionProposalEvent args,
+    required SessionProposalEvent sessionProposal,
     required Future<void> Function(WalletConnectError reason) reject,
-    required Future<void> Function() approve,
+    required Future<ApproveResponse> Function(List<String> accounts, List<String> commands) approve,
   }) async {
-    final requiredNamespaces = args.params.requiredNamespaces;
+    final requiredNamespaces = sessionProposal.params.requiredNamespaces;
 
-    if (requiredNamespaces['chia'] == null) {
+    final chiaNamespace = requiredNamespaces['chia'];
+
+    if (chiaNamespace == null) {
       await reject(Errors.getSdkError(Errors.NON_CONFORMING_NAMESPACES));
-      print('rejecting due to chia namespace missing');
+      LoggingContext().info('rejecting due to chia namespace missing');
       return;
     }
 
-    final unsupportedChains = <String>[];
+    final commands = <String>[];
     requiredNamespaces.forEach(
-      (key, value) => unsupportedChains.addAll(
-        value.chains!.where((chain) => chain != walletConnectChainId),
-      ),
+      (key, value) {},
     );
 
-    if (unsupportedChains.isNotEmpty) {
-      await reject(Errors.getSdkError(Errors.UNSUPPORTED_CHAINS));
-      print('rejecting due to unsported chains: $unsupportedChains');
-      return;
-    }
-
-    final unsupportedCommands = <String>[];
-    requiredNamespaces.forEach(
-      (key, value) => unsupportedCommands.addAll(
-        value.methods.where((method) => !supportedCommands.contains(method)),
-      ),
+    commands.addAll(
+      chiaNamespace.methods.where((method) => method.startsWith('chia_')),
     );
 
-    if (unsupportedCommands.isNotEmpty) {
-      await reject(Errors.getSdkError(Errors.UNSUPPORTED_METHODS));
-      print('rejecting due to unsported commands: $unsupportedCommands');
-      return;
-    }
+    final fingerprints = await handleProposal(sessionProposal: sessionProposal);
 
-    final approved = await handleProposal(args: args);
+    if (fingerprints != null) {
+      final accounts = <String>[];
 
-    if (approved) {
-      print('approving session');
-      await approve();
+      for (final fingerprint in fingerprints) {
+        accounts.add('$walletConnectChainId:$fingerprint');
+      }
+
+      await approve(accounts, commands);
     } else {
       await reject(Errors.getSdkError(Errors.USER_REJECTED));
     }
   }
-}
-
-class UnsupportedCommandsException implements Exception {
-  const UnsupportedCommandsException(this.unsupportedCommands);
-
-  final List<String> unsupportedCommands;
-
-  @override
-  String toString() => 'App requesting unsupported commands: $unsupportedCommands';
 }

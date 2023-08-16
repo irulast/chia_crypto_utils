@@ -10,7 +10,7 @@ class UncurriedDidInnerPuzzle {
   });
 
   factory UncurriedDidInnerPuzzle.fromProgram(Program innerPuzzle) {
-    final uncurried = _fromUncurriedFullPuzzle(innerPuzzle.uncurry());
+    final uncurried = maybeFromProgram(innerPuzzle);
     if (uncurried == null) {
       throw InvalidDidException();
     }
@@ -18,7 +18,21 @@ class UncurriedDidInnerPuzzle {
     return uncurried;
   }
 
-  static UncurriedDidInnerPuzzle? _fromUncurriedFullPuzzle(ModAndArguments uncurriedPuzzle) {
+  static UncurriedDidInnerPuzzle? maybeFromProgram(Program innerPuzzle) {
+    final uncurriedPuzzle = innerPuzzle.uncurry();
+    return maybeFromUncurriedProgram(uncurriedPuzzle);
+  }
+
+  static Future<UncurriedDidInnerPuzzle> fromProgramAsync(Program innerPuzzle) async {
+    final uncurried = maybeFromUncurriedProgram(await innerPuzzle.uncurryAsync());
+    if (uncurried == null) {
+      throw InvalidDidException();
+    }
+
+    return uncurried;
+  }
+
+  static UncurriedDidInnerPuzzle? maybeFromUncurriedProgram(ModAndArguments uncurriedPuzzle) {
     if (uncurriedPuzzle.mod != didInnerPuzzleProgram) {
       return null;
     }

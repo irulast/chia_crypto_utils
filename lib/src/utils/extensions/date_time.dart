@@ -1,3 +1,3 @@
-extension UnixTimeStamp on DateTime {
-  int get unixTimeStamp => millisecondsSinceEpoch ~/ 1000;
+extension UnixTimestampX on DateTime {
+  int get unixTimestamp => millisecondsSinceEpoch ~/ 1000;
 }

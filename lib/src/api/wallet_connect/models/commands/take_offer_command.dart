@@ -35,6 +35,7 @@ class TakeOfferResponse
     this.delegate,
     this.takeOfferData,
   );
+
   factory TakeOfferResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
@@ -60,6 +61,7 @@ class TakeOfferData {
     required this.tradeRecord,
     required this.success,
   });
+
   factory TakeOfferData.fromJson(Map<String, dynamic> json) {
     return TakeOfferData(
       tradeRecord: pick(json, 'tradeRecord').letJsonOrThrow(TradeRecord.fromJson),
@@ -92,6 +94,7 @@ class TradeRecord {
     required this.status,
     this.summary,
   });
+
   factory TradeRecord.fromJson(Map<String, dynamic> json) {
     return TradeRecord(
       confirmedAtIndex: pick(json, 'confirmedAtIndex').asIntOrThrow(),
@@ -107,6 +110,7 @@ class TradeRecord {
       summary: pick(json, 'summary').asStringOrNull(),
     );
   }
+
   final int confirmedAtIndex;
   final int? acceptedAtTime;
   final int createdAtTime;

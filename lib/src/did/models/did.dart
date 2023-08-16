@@ -2,7 +2,7 @@
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:meta/meta.dart';
-import 'package:tuple/tuple.dart';
+import 'package:quiver/collection.dart';
 
 /// Decorator on [DidRecord] that has an inner puzzle and can be spent
 @immutable
@@ -43,22 +43,30 @@ class DidInfo implements DidRecord {
     return Bytes.fromHex(serializedDid);
   }
 
-  // conforms to Chia's DidInfo JSON format
-  Map<String, dynamic> toChiaJson(CoinPrototype originCoin) {
-    return <String, dynamic>{
-      'origin_coin': originCoin.toJson(),
-      'backup_ids': backupIds?.map((id) => id.toHex()).toList(),
-      'num_of_backup_ids_needed': backupIds?.length ?? 0,
-      'parent_info': [
-        Tuple2(coin.id.toHex(), lineageProof.toJson()).toList(),
-      ],
-      'current_inner': innerPuzzle.toBytes().toHex(),
-      'temp_coin': null,
-      'temp_puzhash': null,
-      'temp_pubkey': null,
-      'sent_recovery_transaction': false,
-      'metadata': metadata.map.toString(),
-    };
+  Future<DidInfoWithOriginCoin?> fetchOriginCoin(ChiaFullNodeInterface fullNode) async {
+    final originCoin = await fullNode.getCoinById(did);
+
+    if (originCoin != null) {
+      return DidInfoWithOriginCoin(didInfo: this, originCoin: originCoin);
+    }
+
+    return null;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other is! DidInfo) {
+      return false;
+    }
+    return did == other.did &&
+        coin == other.coin &&
+        p2Puzzle == other.p2Puzzle &&
+        innerPuzzle == other.innerPuzzle &&
+        lineageProof == other.lineageProof &&
+        setsEqual(backupIds?.toSet(), other.backupIds?.toSet());
   }
 
   @override
@@ -86,7 +94,7 @@ class DidInfo implements DidRecord {
   Program get singletonStructure => delegate.singletonStructure;
 
   @override
-  List<Bytes>? get backupIds => delegate.backupIds;
+  List<Puzzlehash>? get backupIds => delegate.backupIds;
 
   @override
   CoinSpend get parentSpend => delegate.parentSpend;

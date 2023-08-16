@@ -119,6 +119,9 @@ extension WalletsOfType on Map<int, ChiaWalletInfo> {
     return filteredMap.map((key, value) => MapEntry(key, value as T));
   }
 
+  Map<int, NftWalletInfoWithNftInfos> nftWallets([List<int> walletIds = const []]) =>
+      _getWalletsOfType(ChiaWalletType.nft, walletIds);
+
   Map<int, CatWalletInfo> catWallets([List<int> walletIds = const []]) =>
       _getWalletsOfType(ChiaWalletType.cat, walletIds);
 
@@ -126,10 +129,45 @@ extension WalletsOfType on Map<int, ChiaWalletInfo> {
       _getWalletsOfType(ChiaWalletType.did, walletIds);
 }
 
-extension AssetIds on Map<int, CatWalletInfo> {
-  Map<int, Puzzlehash> get assetIds => map((key, value) => MapEntry(key, value.assetId));
+extension AssetIdsGetterX on Map<int, CatWalletInfo> {
+  Map<int, Puzzlehash> get assetIdMap => map((key, value) => MapEntry(key, value.assetId));
+
+  List<Puzzlehash> get assetIds => assetIdMap.values.toList();
+}
+
+extension NftInfosGetterX on Map<int, NftWalletInfoWithNftInfos> {
+  Map<int, List<NftInfo>> get nftInfosMap => map((key, value) => MapEntry(key, value.nftInfos));
+
+  List<NftInfo> get nftInfos {
+    final nftInfos = <NftInfo>[];
+
+    for (final value in nftInfosMap.values) {
+      nftInfos.addAll(value);
+    }
+
+    return nftInfos;
+  }
+
+  Map<int, List<Bytes>> get launcherIdsMap => map(
+        (key, value) => MapEntry(key, value.nftInfos.map((nftInfo) => nftInfo.launcherId).toList()),
+      );
+}
+
+extension NftInfosListGetterX on List<NftWalletInfoWithNftInfos> {
+  List<NftInfo> get nftInfos {
+    final nftInfos = <NftInfo>[];
+    for (final nftWallet in this) {
+      nftInfos.addAll(nftWallet.nftInfos);
+    }
+
+    return nftInfos;
+  }
+
+  List<Bytes> get launcherIds => nftInfos.map((nftInfo) => nftInfo.launcherId).toList();
 }
 
 extension DIDs on Map<int, DIDWalletInfo> {
-  Map<int, Bytes> get dids => map((key, value) => MapEntry(key, value.didInfo.did));
+  Map<int, Bytes> get didMap => map((key, value) => MapEntry(key, value.didInfoWithOriginCoin.did));
+
+  List<Bytes> get dids => didMap.values.toList();
 }

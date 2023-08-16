@@ -3,7 +3,6 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/clvm/keywords.dart';
 import 'package:chia_crypto_utils/src/core/models/conditions/create_puzzle_announcement_condition.dart';
-import 'package:chia_crypto_utils/src/did/models/uncurried_did_inner_puzzle.dart';
 import 'package:chia_crypto_utils/src/utils/curry_and_tree_hash.dart';
 
 class DIDWalletService extends BaseWalletService {

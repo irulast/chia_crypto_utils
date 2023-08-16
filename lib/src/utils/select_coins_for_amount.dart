@@ -1,18 +1,67 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
-List<CoinPrototype> selectCoinsForAmount(
-  List<CoinPrototype> coinsInput,
+/// throws [InsufficientBalanceException]
+List<T> selectCoinsForAmount<T extends CoinPrototype>(
+  List<T> coinsInput,
   int amount, {
   int? maxNumberOfCoins,
   int minMojos = 50,
   CoinSelectionType selectionType = CoinSelectionType.closestValue,
 }) {
-  return selectionType.selector.select(
+  return selectionType.selector.select<T>(
     coinsInput,
     amount,
     maxNumberOfCoins: maxNumberOfCoins,
     minMojos: minMojos,
   );
+}
+
+/// throws [InsufficientStandardBalanceException]
+List<Coin> selectStandardCoinsForAmount(
+  List<Coin> coinsInput,
+  int amount, {
+  int? maxNumberOfCoins,
+  int minMojos = 50,
+  CoinSelectionType selectionType = CoinSelectionType.closestValue,
+}) {
+  try {
+    return selectionType.selector.select<Coin>(
+      coinsInput,
+      amount,
+      maxNumberOfCoins: maxNumberOfCoins,
+      minMojos: minMojos,
+    );
+  } on InsufficientBalanceException catch (e) {
+    throw InsufficientStandardBalanceException(
+      requiredBalance: amount,
+      currentBalance: e.currentBalance,
+    );
+  }
+}
+
+/// throws [InsufficientCatBalanceException]
+List<CatCoin> selectCatCoinsForAmount(
+  List<CatCoin> coinsInput,
+  int amount, {
+  required Puzzlehash assetId,
+  int? maxNumberOfCoins,
+  int minMojos = 50,
+  CoinSelectionType selectionType = CoinSelectionType.closestValue,
+}) {
+  try {
+    return selectionType.selector.select<CatCoin>(
+      coinsInput,
+      amount,
+      maxNumberOfCoins: maxNumberOfCoins,
+      minMojos: minMojos,
+    );
+  } on InsufficientBalanceException catch (e) {
+    throw InsufficientCatBalanceException(
+      requiredBalance: amount,
+      currentBalance: e.currentBalance,
+      assetId: assetId,
+    );
+  }
 }
 
 enum CoinSelectionType {
@@ -23,8 +72,8 @@ enum CoinSelectionType {
   const CoinSelectionType(this.selector);
   final CoinSelector selector;
 
-  List<CoinPrototype> select(
-    List<CoinPrototype> coins,
+  List<CoinPrototype> select<T extends CoinPrototype>(
+    List<T> coins,
     int amount, {
     int minMojos = 50,
     required int? maxNumberOfCoins,
@@ -38,8 +87,8 @@ enum CoinSelectionType {
 }
 
 abstract class CoinSelector {
-  List<CoinPrototype> select(
-    List<CoinPrototype> coins,
+  List<T> select<T extends CoinPrototype>(
+    List<T> coins,
     int amount, {
     int minMojos = 50,
     required int? maxNumberOfCoins,
@@ -50,13 +99,13 @@ class SmallestFirstCoinSelector implements CoinSelector {
   const SmallestFirstCoinSelector();
 
   @override
-  List<CoinPrototype> select(
-    List<CoinPrototype> coins,
+  List<T> select<T extends CoinPrototype>(
+    List<T> coins,
     int amount, {
     int minMojos = 50,
     required int? maxNumberOfCoins,
   }) {
-    return _selectSortedCoinsForAmount(
+    return _selectSortedCoinsForAmount<T>(
       coins,
       amount,
       comparor: (a, b) => a.amount.compareTo(b.amount),
@@ -70,13 +119,13 @@ class BiggestFirstCoinSelector implements CoinSelector {
   const BiggestFirstCoinSelector();
 
   @override
-  List<CoinPrototype> select(
-    List<CoinPrototype> coins,
+  List<T> select<T extends CoinPrototype>(
+    List<T> coins,
     int amount, {
     int minMojos = 50,
     required int? maxNumberOfCoins,
   }) {
-    return _selectSortedCoinsForAmount(
+    return _selectSortedCoinsForAmount<T>(
       coins,
       amount,
       comparor: (a, b) => b.amount.compareTo(a.amount),
@@ -90,8 +139,8 @@ class ClosestValueCoinSelector implements CoinSelector {
   const ClosestValueCoinSelector();
 
   @override
-  List<CoinPrototype> select(
-    List<CoinPrototype> coins,
+  List<T> select<T extends CoinPrototype>(
+    List<T> coins,
     int amount, {
     int minMojos = 50,
     required int? maxNumberOfCoins,
@@ -99,10 +148,10 @@ class ClosestValueCoinSelector implements CoinSelector {
     final coinsWithDiffs = coins.map((e) => CoinWithDiff(e, (e.amount - amount).abs())).toList()
       ..sort((a, b) => a.diff.compareTo(b.diff));
 
-    final selectedCoins = <CoinPrototype>[];
+    final selectedCoins = <T>[];
     var totalCoinValue = 0;
 
-    void addSelectedCoin(CoinPrototype coin) {
+    void addSelectedCoin(T coin) {
       selectedCoins.add(coin);
       totalCoinValue += coin.amount;
 
@@ -123,36 +172,40 @@ class ClosestValueCoinSelector implements CoinSelector {
       }
     }
 
-    throw InsufficientBalanceException(
-      requiredBalance: amount,
-      currentBalance: totalCoinValue,
-    );
+    if (totalCoinValue < amount) {
+      throw InsufficientBalanceException(
+        requiredBalance: amount,
+        currentBalance: totalCoinValue,
+      );
+    }
+
+    return selectedCoins;
   }
 }
 
-class CoinWithDiff {
+class CoinWithDiff<T extends CoinPrototype> {
   CoinWithDiff(this.coin, this.diff);
-  final CoinPrototype coin;
+  final T coin;
   final int diff;
 }
 
-List<CoinPrototype> _selectSortedCoinsForAmount(
-  List<CoinPrototype> coinsInput,
+List<T> _selectSortedCoinsForAmount<T extends CoinPrototype>(
+  List<T> coinsInput,
   int amount, {
   required int Function(CoinPrototype a, CoinPrototype b) comparor,
   required int minMojos,
   required int? maxNumberOfCoins,
 }) {
-  final coins = List<CoinPrototype>.from(coinsInput)
+  final coins = List<T>.from(coinsInput)
     ..sort(
       comparor,
     );
   var totalCoinValue = 0;
 
-  final selectedCoins = <CoinPrototype>[];
-  final smallCoins = <CoinPrototype>[];
+  final selectedCoins = <T>[];
+  final smallCoins = <T>[];
 
-  void addSelectedCoin(CoinPrototype coin) {
+  void addSelectedCoin(T coin) {
     selectedCoins.add(coin);
     totalCoinValue += coin.amount;
 
