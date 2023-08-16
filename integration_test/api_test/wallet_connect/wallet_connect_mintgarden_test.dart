@@ -33,8 +33,6 @@ Future<void> main() async {
 
   final keychain = WalletKeychain.fromCoreSecret(coreSecret);
 
-  final sessionProposalHandler = TestSessionProposalHandler([coreSecret.fingerprint]);
-
   final requestHandler = FullNodeWalletConnectRequestHandler(
     coreSecret: coreSecret,
     keychain: keychain,
@@ -43,8 +41,11 @@ Future<void> main() async {
 
   final walletClient = WalletConnectWalletClient(
     web3Wallet,
-    sessionProposalHandler,
-  )..registerRequestHandler(requestHandler);
+  )
+    ..registerProposalHandler(
+      (sessionProposal) async => [coreSecret.fingerprint],
+    )
+    ..registerRequestHandler(requestHandler);
 
   test('Should approve session and correctly show DID in MintGarden', () async {
     await walletClient.init();

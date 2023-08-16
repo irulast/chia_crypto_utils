@@ -1,15 +1,18 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 
+typedef WalletConnectSessionProposalHandler = Future<List<int>?> Function(
+  SessionProposalEvent sessionProposal,
+);
+
 /// Used to interface between user wallet and apps. Executes received requests and sends back responses with data.
 class WalletConnectWalletClient {
   WalletConnectWalletClient(
     this.web3Wallet,
-    this.sessionProposalHandler,
   );
 
   final Web3Wallet web3Wallet;
-  final WalletConnectSessionProposalHandler sessionProposalHandler;
+  WalletConnectSessionProposalHandler? handleProposal;
   WalletConnectRequestHandler? requestHandler;
 
   Future<void> init() async {
@@ -20,12 +23,7 @@ class WalletConnectWalletClient {
         return;
       }
 
-      await sessionProposalHandler.processProposal(
-        sessionProposal: sessionProposal,
-        reject: (WalletConnectError reason) => rejectSession(sessionProposal.id, reason),
-        approve: (List<String> accounts, List<String> commands) =>
-            approveSession(sessionProposal.id, accounts, commands),
-      );
+      await processProposal(sessionProposal);
     });
   }
 
@@ -39,11 +37,45 @@ class WalletConnectWalletClient {
     await web3Wallet.core.pairing.disconnect(topic: topic);
   }
 
+  Future<void> processProposal(
+    SessionProposalEvent sessionProposal,
+  ) async {
+    final requiredNamespaces = sessionProposal.params.requiredNamespaces;
+
+    final chiaNamespace = requiredNamespaces['chia'];
+
+    if (chiaNamespace == null) {
+      await rejectSession(sessionProposal.id, Errors.getSdkError(Errors.NON_CONFORMING_NAMESPACES));
+      LoggingContext().info('rejecting due to chia namespace missing');
+      return;
+    }
+
+    final commands = chiaNamespace.methods.where((method) => method.startsWith('chia_')).toList();
+
+    if (handleProposal == null) {
+      throw UnregisteredSessionProposalHandler();
+    }
+
+    final fingerprints = await handleProposal!(sessionProposal);
+
+    if (fingerprints != null) {
+      await approveSession(sessionProposal.id, fingerprints, commands);
+    } else {
+      await rejectSession(sessionProposal.id, Errors.getSdkError(Errors.USER_REJECTED));
+    }
+  }
+
   Future<ApproveResponse> approveSession(
     int id,
-    List<String> accounts,
+    List<int> fingerprints,
     List<String> commands,
   ) async {
+    final accounts = <String>[];
+
+    for (final fingerprint in fingerprints) {
+      accounts.add('$walletConnectChainId:$fingerprint');
+    }
+
     final namespaces = {
       'chia': Namespace(
         accounts: accounts,
@@ -92,4 +124,14 @@ class WalletConnectWalletClient {
 
     this.requestHandler = requestHandler;
   }
+
+  // ignore: use_setters_to_change_properties
+  void registerProposalHandler(WalletConnectSessionProposalHandler proposalHandler) {
+    handleProposal = proposalHandler;
+  }
+}
+
+class UnregisteredSessionProposalHandler implements Exception {
+  @override
+  String toString() => 'Session proposal handler has not been registered';
 }

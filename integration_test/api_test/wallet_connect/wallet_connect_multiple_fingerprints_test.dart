@@ -29,12 +29,11 @@ Future<void> main() async {
       coreSecret3.fingerprint,
     ];
 
-    final sessionProposalHandler = TestSessionProposalHandler(fingerprints);
-
     final walletClient = WalletConnectWalletClient(
       web3Wallet,
-      sessionProposalHandler,
-    );
+    )..registerProposalHandler(
+        (sessionProposal) async => fingerprints,
+      );
 
     await walletClient.init();
 
@@ -44,7 +43,7 @@ Future<void> main() async {
 
     await appClient.init();
 
-    final sessionData = await appClient.pair(requiredCommandTypes: testSupportedCommandTypes);
+    final sessionData = await appClient.pair();
 
     expect(sessionData.fingerprints.length, equals(fingerprints.length));
     expect(sessionData.fingerprints.contains(fingerprints[0]), isTrue);

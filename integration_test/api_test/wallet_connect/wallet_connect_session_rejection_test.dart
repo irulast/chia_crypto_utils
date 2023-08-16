@@ -12,12 +12,8 @@ Future<void> main() async {
   final web3App = Web3App(core: appCore, metadata: defaultPairingMetadata);
 
   test('Should throw exception when session proposal is rejected', () async {
-    final sessionProposalHandler = TestSessionProposalHandler();
-
-    final walletClient = WalletConnectWalletClient(
-      web3Wallet,
-      sessionProposalHandler,
-    );
+    final walletClient = WalletConnectWalletClient(web3Wallet)
+      ..registerProposalHandler((sessionProposal) async => null);
 
     await walletClient.init();
 
@@ -28,7 +24,7 @@ Future<void> main() async {
     await appClient.init();
 
     expect(
-      () async => {await appClient.pair(requiredCommandTypes: testSupportedCommandTypes)},
+      () async => {await appClient.pair()},
       throwsA(isA<RejectedSessionProposalException>()),
     );
   });

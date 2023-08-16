@@ -31,7 +31,6 @@ Future<void> main() async {
   late WalletConnectAppClient appClient;
   late SessionData sessionData;
   late FullNodeWalletConnectRequestHandler requestHandler;
-  late TestSessionProposalHandler sessionProposalHandler;
   late Map<int, ChiaWalletInfo> walletMap;
   setUp(() async {
     // set up wallet with standard coins, cat, did, and nft
@@ -55,8 +54,6 @@ Future<void> main() async {
 
     fingerprint = meera.keychainSecret.fingerprint;
 
-    sessionProposalHandler = TestSessionProposalHandler([fingerprint]);
-
     requestHandler = FullNodeWalletConnectRequestHandler(
       coreSecret: meera.keychainSecret,
       keychain: meera.keychain,
@@ -68,8 +65,11 @@ Future<void> main() async {
 
     walletClient = WalletConnectWalletClient(
       web3Wallet,
-      sessionProposalHandler,
-    )..registerRequestHandler(requestHandler);
+    )
+      ..registerProposalHandler(
+        (sessionProposal) async => [fingerprint],
+      )
+      ..registerRequestHandler(requestHandler);
 
     await walletClient.init();
 
@@ -84,9 +84,7 @@ Future<void> main() async {
     await appClient.init();
 
     // pair with wallet client
-    sessionData = await appClient.pair(
-      requiredCommandTypes: testSupportedCommandTypes,
-    );
+    sessionData = await appClient.pair();
   });
 
   tearDown(() async {
