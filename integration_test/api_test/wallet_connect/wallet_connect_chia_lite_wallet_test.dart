@@ -140,7 +140,11 @@ Future<void> main() async {
       fee: 50,
     );
 
+    // in some cases a second request will not be properly received by Chia if it is sent immediately
+    // after the first request
     print(response.sentTransactionData.toJson());
+
+    await Future<void>.delayed(const Duration(seconds: 1));
 
     final transactionResponse = await appClient.getTransaction(
       fingerprint: fingerprint,
@@ -168,6 +172,8 @@ Future<void> main() async {
     );
 
     print(response.sentTransactionData.toJson());
+
+    await Future<void>.delayed(const Duration(seconds: 1));
 
     final transactionResponse = await appClient.getTransaction(
       fingerprint: fingerprint,
@@ -279,6 +285,8 @@ Future<void> main() async {
     final nftWallets =
         getWalletsResponse.wallets.where((wallet) => wallet.type == ChiaWalletType.nft).toList();
 
+    await Future<void>.delayed(const Duration(seconds: 1));
+
     // the wallet ID needs to be an NFT wallet, but it doesn't need to be the NFT wallet associated
     // with the NFT being transferred
     final response = await appClient.transferNFT(
@@ -315,6 +323,8 @@ Future<void> main() async {
     );
 
     print(getWalletsResponse.wallets.map((wallet) => wallet.toJson()));
+
+    await Future<void>.delayed(const Duration(seconds: 1));
 
     await appClient.requestNewSession(pairingTopic: sessionData.pairingTopic);
 
