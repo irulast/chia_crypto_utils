@@ -9,8 +9,8 @@ abstract class WalletConnectCommandBaseResponse with ToJsonMixin {
     this.endpointName,
     this.requestId,
     this.originalArgs,
-    this.startedTimeStamp,
-    this.fulfilledTimeStamp,
+    this.startedTimestamp,
+    this.fulfilledTimestamp,
     this.isUninitialized,
     this.isLoading,
     this.isSuccess,
@@ -21,8 +21,8 @@ abstract class WalletConnectCommandBaseResponse with ToJsonMixin {
   final WalletConnectCommandType? endpointName;
   final String? requestId;
   final Map<String, dynamic>? originalArgs;
-  final int? startedTimeStamp;
-  final int? fulfilledTimeStamp;
+  final int? startedTimestamp;
+  final int? fulfilledTimestamp;
   final bool? isUninitialized;
   final bool? isLoading;
   final bool? isSuccess;
@@ -37,32 +37,28 @@ class WalletConnectCommandBaseResponseImp
     this.endpointName,
     this.requestId,
     this.originalArgs,
-    this.startedTimeStamp,
-    this.fulfilledTimeStamp,
+    this.startedTimestamp,
+    this.fulfilledTimestamp,
     this.isUninitialized,
     this.isLoading,
     this.isSuccess,
     this.isError,
   });
-
-  factory WalletConnectCommandBaseResponseImp.fromJson(Map<String, dynamic> json) {
-    return WalletConnectCommandBaseResponseImp(
-      status: pick(json, 'status').asStringOrNull(),
-      endpointName: pick(json, 'endpointName').letStringOrNull(WalletConnectCommandType.fromString),
-      requestId: pick(json, 'requestId').asStringOrNull(),
-      originalArgs: pick(json, 'originalArgs').letJsonOrNull((json) => json),
-      startedTimeStamp: pick(json, 'startedTimeStamp').asIntOrNull(),
-      fulfilledTimeStamp: pick(json, 'fulfilledTimeStamp').asIntOrNull(),
-      isUninitialized: pick(json, 'isUninitialized').asBoolOrNull(),
-      isLoading: pick(json, 'isLoading').asBoolOrNull(),
-      isSuccess: pick(json, 'isSuccess').asBoolOrNull(),
-      isError: pick(json, 'isError').asBoolOrNull(),
-    );
-  }
+  WalletConnectCommandBaseResponseImp.error({
+    required this.endpointName,
+    this.requestId,
+    required this.originalArgs,
+    required this.startedTimestamp,
+  })  : status = 'error',
+        fulfilledTimestamp = null,
+        isUninitialized = false,
+        isLoading = false,
+        isSuccess = false,
+        isError = true;
 
   factory WalletConnectCommandBaseResponseImp.success({
     required WalletConnectCommand command,
-    required int startedTimeStamp,
+    required int startedTimestamp,
     String? requestId,
   }) {
     return WalletConnectCommandBaseResponseImp(
@@ -70,8 +66,8 @@ class WalletConnectCommandBaseResponseImp
       endpointName: command.type,
       requestId: requestId,
       originalArgs: command.paramsToJson(),
-      startedTimeStamp: startedTimeStamp,
-      fulfilledTimeStamp: DateTime.now().unixTimeStamp,
+      startedTimestamp: startedTimestamp,
+      fulfilledTimestamp: DateTime.now().unixTimestamp,
       isUninitialized: false,
       isLoading: false,
       isSuccess: true,
@@ -79,17 +75,20 @@ class WalletConnectCommandBaseResponseImp
     );
   }
 
-  WalletConnectCommandBaseResponseImp.error({
-    required this.endpointName,
-    this.requestId,
-    required this.originalArgs,
-    required this.startedTimeStamp,
-  })  : status = 'error',
-        fulfilledTimeStamp = null,
-        isUninitialized = false,
-        isLoading = false,
-        isSuccess = false,
-        isError = true;
+  factory WalletConnectCommandBaseResponseImp.fromJson(Map<String, dynamic> json) {
+    return WalletConnectCommandBaseResponseImp(
+      status: pick(json, 'status').asStringOrNull(),
+      endpointName: pick(json, 'endpointName').letStringOrNull(WalletConnectCommandType.fromString),
+      requestId: pick(json, 'requestId').asStringOrNull(),
+      originalArgs: pick(json, 'originalArgs').letJsonOrNull((json) => json),
+      startedTimestamp: pick(json, 'startedTimestamp').asIntOrNull(),
+      fulfilledTimestamp: pick(json, 'fulfilledTimestamp').asIntOrNull(),
+      isUninitialized: pick(json, 'isUninitialized').asBoolOrNull(),
+      isLoading: pick(json, 'isLoading').asBoolOrNull(),
+      isSuccess: pick(json, 'isSuccess').asBoolOrNull(),
+      isError: pick(json, 'isError').asBoolOrNull(),
+    );
+  }
 
   @override
   final String? status;
@@ -100,9 +99,9 @@ class WalletConnectCommandBaseResponseImp
   @override
   final Map<String, dynamic>? originalArgs;
   @override
-  final int? startedTimeStamp;
+  final int? startedTimestamp;
   @override
-  final int? fulfilledTimeStamp;
+  final int? fulfilledTimestamp;
   @override
   final bool? isUninitialized;
   @override
@@ -116,8 +115,8 @@ class WalletConnectCommandBaseResponseImp
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
 
-    // only adding fields if not null to avoid cluttering the JSON response, which for some wallets
-    // might only include the data field
+    // only add fields if not null to avoid cluttering the JSON response, which for some commands
+    // executed by certain wallets might only include the data field
     if (status != null) {
       json['status'] = status;
     }
@@ -134,12 +133,12 @@ class WalletConnectCommandBaseResponseImp
       json['originalArgs'] = originalArgs;
     }
 
-    if (startedTimeStamp != null) {
-      json['startedTimeStamp'] = startedTimeStamp;
+    if (startedTimestamp != null) {
+      json['startedTimestamp'] = startedTimestamp;
     }
 
-    if (fulfilledTimeStamp != null) {
-      json['fulfilledTimeStamp'] = fulfilledTimeStamp;
+    if (fulfilledTimestamp != null) {
+      json['fulfilledTimestamp'] = fulfilledTimestamp;
     }
 
     if (isUninitialized != null) {
@@ -173,7 +172,7 @@ mixin WalletConnectCommandResponseDecoratorMixin implements WalletConnectCommand
   WalletConnectCommandType? get endpointName => delegate.endpointName;
 
   @override
-  int? get fulfilledTimeStamp => delegate.fulfilledTimeStamp;
+  int? get fulfilledTimestamp => delegate.fulfilledTimestamp;
 
   @override
   bool? get isError => delegate.isError;
@@ -194,7 +193,7 @@ mixin WalletConnectCommandResponseDecoratorMixin implements WalletConnectCommand
   String? get requestId => delegate.requestId;
 
   @override
-  int? get startedTimeStamp => delegate.startedTimeStamp;
+  int? get startedTimestamp => delegate.startedTimestamp;
 
   @override
   String? get status => delegate.status;

@@ -26,12 +26,12 @@ dependencies:
   meta: ^1.7.0
   path: ^1.8.1
   quiver: ^3.0.1+1
-  yaml: ^3.1.1
   tuple: ^2.0.2
   walletconnect_flutter_v2:
     git:
       url: git@github.com:irulast/WalletConnectDartV2.git
-
+  yaml: ^3.1.1
+  
 
 dev_dependencies:
   csv: ^5.0.1

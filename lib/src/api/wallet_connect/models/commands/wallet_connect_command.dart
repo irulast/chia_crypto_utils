@@ -2,7 +2,6 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 abstract class WalletConnectCommand {
   const WalletConnectCommand();
-
   factory WalletConnectCommand.fromParams(
     WalletConnectCommandType type,
     Map<String, dynamic> params,
@@ -44,6 +43,8 @@ abstract class WalletConnectCommand {
         return const GetSyncStatus();
       case WalletConnectCommandType.logIn:
         return LogInCommand.fromParams(params);
+      case WalletConnectCommandType.createOfferForIds:
+        return CreateOfferForIdsCommand.fromParams(params);
     }
   }
 
@@ -70,7 +71,8 @@ enum WalletConnectCommandType {
   getCurrentAddress,
   getNextAddress,
   getSyncStatus,
-  logIn;
+  logIn,
+  createOfferForIds;
 
   factory WalletConnectCommandType.fromString(String commandString) {
     return WalletConnectCommandType.values.where((value) => value.name == commandString).single;

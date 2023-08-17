@@ -4,20 +4,29 @@ import 'package:deep_pick/deep_pick.dart';
 class GetWalletsCommand implements WalletConnectCommand {
   const GetWalletsCommand({
     this.includeData = false,
+    this.walletType,
   });
 
   factory GetWalletsCommand.fromParams(Map<String, dynamic> params) {
-    return GetWalletsCommand(includeData: pick(params, 'includeData').asBoolOrFalse());
+    final typeIndex = pick(params, 'type').asIntOrNull();
+    return GetWalletsCommand(
+      includeData: pick(params, 'includeData').asBoolOrFalse(),
+      walletType: typeIndex != null ? ChiaWalletType.fromIndex(typeIndex) : null,
+    );
   }
 
   @override
   WalletConnectCommandType get type => WalletConnectCommandType.getWallets;
 
   final bool includeData;
+  final ChiaWalletType? walletType;
 
   @override
   Map<String, dynamic> paramsToJson() {
-    return <String, dynamic>{'includeData': includeData};
+    return <String, dynamic>{
+      'includeData': includeData,
+      'type': walletType?.chiaIndex,
+    };
   }
 }
 

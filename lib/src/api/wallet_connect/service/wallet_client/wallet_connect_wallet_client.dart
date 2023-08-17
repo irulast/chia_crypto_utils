@@ -1,44 +1,33 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 
+typedef WalletConnectSessionProposalHandler = Future<List<int>?> Function(
+  SessionProposalEvent sessionProposal,
+);
+
 /// Used to interface between user wallet and apps. Executes received requests and sends back responses with data.
 class WalletConnectWalletClient {
   WalletConnectWalletClient(
     this.web3Wallet,
-    this.fingerprint,
-    this.sessionProposalHandler,
-    this.requestHandler,
   );
 
   final Web3Wallet web3Wallet;
-  final int fingerprint;
-  final WalletConnectSessionProposalHandler sessionProposalHandler;
-  final WalletConnectRequestHandler requestHandler;
+
+  /// Displays session proposal to the user, allowing them to approve or reject. Returns fingerprints
+  /// if approved and null if rejected.
+  WalletConnectSessionProposalHandler? handleProposal;
+  WalletConnectRequestHandler? requestHandler;
 
   Future<void> init() async {
     await web3Wallet.init();
-    await requestHandler.indexWalletMap();
 
-    web3Wallet.onSessionProposal.subscribe((SessionProposalEvent? args) async {
-      if (args == null) {
+    web3Wallet.onSessionProposal.subscribe((SessionProposalEvent? sessionProposal) async {
+      if (sessionProposal == null) {
         return;
       }
 
-      await sessionProposalHandler.processProposal(
-        args: args,
-        reject: (WalletConnectError reason) => rejectSession(args.id, reason),
-        approve: () => approveSession(args.id),
-      );
+      await processProposal(sessionProposal);
     });
-
-    for (final type in WalletConnectCommandType.values) {
-      web3Wallet.registerRequestHandler(
-        chainId: walletConnectChainId,
-        method: type.commandName,
-        handler: (String topic, dynamic params) =>
-            requestHandler.processRequest(type, topic, params),
-      );
-    }
   }
 
   Future<PairingInfo> pair(Uri uri) async {
@@ -51,11 +40,49 @@ class WalletConnectWalletClient {
     await web3Wallet.core.pairing.disconnect(topic: topic);
   }
 
-  Future<ApproveResponse> approveSession(int id) async {
+  Future<void> processProposal(
+    SessionProposalEvent sessionProposal,
+  ) async {
+    final requiredNamespaces = sessionProposal.params.requiredNamespaces;
+
+    final chiaNamespace = requiredNamespaces['chia'];
+
+    if (chiaNamespace == null) {
+      await rejectSession(sessionProposal.id, Errors.getSdkError(Errors.NON_CONFORMING_NAMESPACES));
+      LoggingContext().info('rejecting due to chia namespace missing');
+      return;
+    }
+
+    final commands = chiaNamespace.methods.where((method) => method.startsWith('chia_')).toList();
+
+    if (handleProposal == null) {
+      throw UnregisteredSessionProposalHandler();
+    }
+
+    final fingerprints = await handleProposal!(sessionProposal);
+
+    if (fingerprints != null) {
+      await approveSession(sessionProposal.id, fingerprints, commands);
+    } else {
+      await rejectSession(sessionProposal.id, Errors.getSdkError(Errors.USER_REJECTED));
+    }
+  }
+
+  Future<ApproveResponse> approveSession(
+    int id,
+    List<int> fingerprints,
+    List<String> commands,
+  ) async {
+    final accounts = <String>[];
+
+    for (final fingerprint in fingerprints) {
+      accounts.add('$walletConnectChainId:$fingerprint');
+    }
+
     final namespaces = {
       'chia': Namespace(
-        accounts: ['$walletConnectChainId:$fingerprint'],
-        methods: sessionProposalHandler.supportedCommands,
+        accounts: accounts,
+        methods: commands,
         events: [],
       )
     };
@@ -78,4 +105,36 @@ class WalletConnectWalletClient {
       reason: Errors.getSdkError(Errors.USER_DISCONNECTED),
     );
   }
+
+  void registerRequestHandler(WalletConnectRequestHandler requestHandler) {
+    for (final type in WalletConnectCommandType.values) {
+      web3Wallet.registerRequestHandler(
+        chainId: walletConnectChainId,
+        method: type.commandName,
+        handler: (String topic, dynamic params) {
+          // we know that the session data will not be null because there must be a session with the
+          // session topic on the request in order to receive the request
+          final sessionData = web3Wallet.sessions.get(topic)!;
+
+          return requestHandler.handleRequest(
+            sessionData: sessionData,
+            type: type,
+            params: params,
+          );
+        },
+      );
+    }
+
+    this.requestHandler = requestHandler;
+  }
+
+  // ignore: use_setters_to_change_properties
+  void registerProposalHandler(WalletConnectSessionProposalHandler proposalHandler) {
+    handleProposal = proposalHandler;
+  }
+}
+
+class UnregisteredSessionProposalHandler implements Exception {
+  @override
+  String toString() => 'Session proposal handler has not been registered';
 }

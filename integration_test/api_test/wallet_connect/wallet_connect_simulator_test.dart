@@ -6,7 +6,8 @@ import 'package:walletconnect_flutter_v2/apis/sign_api/models/session_models.dar
 import 'package:walletconnect_flutter_v2/apis/web3app/web3app.dart';
 import 'package:walletconnect_flutter_v2/apis/web3wallet/web3wallet.dart';
 
-// If one of these tests is taking a while or times out, try running it again.
+// If one of these tests is taking a while or times out, try running it again. This could be an issue
+// with the relay.
 Future<void> main() async {
   if (!(await SimulatorUtils.checkIfSimulatorIsRunning())) {
     print(SimulatorUtils.simulatorNotRunningWarning);
@@ -25,19 +26,19 @@ Future<void> main() async {
   late ChiaEnthusiast meera;
   late ChiaEnthusiast nathan;
   late int fingerprint;
+  late Puzzlehash meeraCoinAssetId;
   late WalletConnectWalletClient walletClient;
   late WalletConnectAppClient appClient;
   late SessionData sessionData;
   late FullNodeWalletConnectRequestHandler requestHandler;
-  late TestSessionProposalHandler sessionProposalHandler;
   late Map<int, ChiaWalletInfo> walletMap;
   setUp(() async {
-    // set up wallet with standard coins, cat, and did
+    // set up wallet with standard coins, cat, did, and nft
     meera = ChiaEnthusiast(fullNodeSimulator, walletSize: 5);
 
     await meera.farmCoins(5);
 
-    await meera.issueMultiIssuanceCat();
+    meeraCoinAssetId = await meera.issueMultiIssuanceCat();
 
     await meera.issueDid([Program.fromBool(true).hash()]);
 
@@ -51,8 +52,6 @@ Future<void> main() async {
     final walletCore = Core(projectId: testWalletProjectId);
     final web3Wallet = Web3Wallet(core: walletCore, metadata: defaultPairingMetadata);
 
-    sessionProposalHandler = TestSessionProposalHandler();
-
     fingerprint = meera.keychainSecret.fingerprint;
 
     requestHandler = FullNodeWalletConnectRequestHandler(
@@ -61,16 +60,18 @@ Future<void> main() async {
       fullNode: fullNodeSimulator,
     );
 
+    await requestHandler.initializeWalletMap();
+    walletMap = requestHandler.walletInfoMap!;
+
     walletClient = WalletConnectWalletClient(
       web3Wallet,
-      fingerprint,
-      sessionProposalHandler,
-      requestHandler,
-    );
+    )
+      ..registerProposalHandler(
+        (sessionProposal) async => [fingerprint],
+      )
+      ..registerRequestHandler(requestHandler);
 
     await walletClient.init();
-
-    walletMap = walletClient.requestHandler.walletMap!;
 
     // set up WalletConnect app client
     final appCore = Core(projectId: walletConnectProjectId);
@@ -83,9 +84,7 @@ Future<void> main() async {
     await appClient.init();
 
     // pair with wallet client
-    sessionData = await appClient.pair(
-      requiredCommandTypes: testSupportedCommandTypes,
-    );
+    sessionData = await appClient.pair();
   });
 
   tearDown(() async {
@@ -96,7 +95,6 @@ Future<void> main() async {
     final response = await appClient.getCurrentAddress(fingerprint: fingerprint);
 
     expect(response.address, equals(meera.firstPuzzlehash.toAddressWithContext()));
-    print(response.toJson());
   });
 
   test('Should make request and throw exception when request is rejected', () async {
@@ -151,12 +149,10 @@ Future<void> main() async {
     final standardWallets = walletTypes.where((type) => type == ChiaWalletType.standard);
     final didWallets = walletTypes.where((type) => type == ChiaWalletType.did);
     final catWallets = walletTypes.where((type) => type == ChiaWalletType.cat);
-    final nftWallets = walletTypes.where((type) => type == ChiaWalletType.nft);
 
     expect(standardWallets.length, equals(1));
     expect(didWallets.length, equals(1));
     expect(catWallets.length, equals(1));
-    expect(nftWallets.length, equals(0));
   });
 
   test('Should make transaction request, wait for confirmation, and receive sent transaction data',
@@ -227,8 +223,6 @@ Future<void> main() async {
     final meeraStartingCatBalance = meera.catCoins.totalValue;
     final nathanStartingCatBalance = nathan.catCoins.totalValue;
 
-    final meeraCoinAssetId = meera.catCoinMap.keys.first;
-
     final response = await appClient.sendTransaction(
       walletId: walletMap.catWallets().keys.first,
       fingerprint: fingerprint,
@@ -258,8 +252,6 @@ Future<void> main() async {
   test('Should make request to spend CAT and receive sent transaction data', () async {
     final meeraStartingCatBalance = meera.catCoins.totalValue;
     final nathanStartingCatBalance = nathan.catCoins.totalValue;
-
-    final meeraCoinAssetId = meera.catCoinMap.keys.first;
 
     final response = await appClient.spendCat(
       fingerprint: fingerprint,
@@ -327,7 +319,9 @@ Future<void> main() async {
     expect(verification, isTrue);
   });
 
-  test('Should request and receive verify signature data when signature is valid', () async {
+  test(
+      'Should request and receive verify signature data when signature is valid on UTF-8 encoded message',
+      () async {
     final walletVector = meera.keychain.getWalletVector(meera.puzzlehashes[2]);
 
     final signature =
@@ -344,7 +338,49 @@ Future<void> main() async {
     expect(response.verifySignatureData.isValid, isTrue);
   });
 
-  test('Should request and receive verify signature data when signature is invalid', () async {
+  test(
+      'Should request and receive verify signature data when signature is valid on hex encoded message',
+      () async {
+    final walletVector = meera.keychain.getWalletVector(meera.puzzlehashes[2]);
+
+    final hexMessage = Bytes.encodeFromString(message).toHex();
+
+    final signature = AugSchemeMPL.sign(walletVector!.childPrivateKey, hexMessage.hexToBytes());
+
+    final response = await appClient.verifySignature(
+      fingerprint: fingerprint,
+      publicKey: walletVector.childPublicKey,
+      message: hexMessage,
+      signature: signature,
+      signingMode: SigningMode.blsMessageAugHex,
+    );
+
+    expect(response.verifySignatureData.isValid, isTrue);
+  });
+
+  test(
+      'Should request and receive verify signature data when signature is valid on CHIP-002 encoded message',
+      () async {
+    final walletVector = meera.keychain.getWalletVector(meera.puzzlehashes[2]);
+
+    final chip002Message = constructChip002Message(message);
+
+    final signature = AugSchemeMPL.sign(walletVector!.childPrivateKey, chip002Message);
+
+    final response = await appClient.verifySignature(
+      fingerprint: fingerprint,
+      publicKey: walletVector.childPublicKey,
+      message: message,
+      signature: signature,
+      signingMode: SigningMode.chip0002,
+    );
+
+    expect(response.verifySignatureData.isValid, isTrue);
+  });
+
+  test(
+      'Should request and receive verify signature data when signature is does not match public key',
+      () async {
     final walletVector = meera.keychain.getWalletVector(meera.puzzlehashes[2]);
 
     final signature =

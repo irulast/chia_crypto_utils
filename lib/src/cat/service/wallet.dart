@@ -21,6 +21,18 @@ abstract class CatWalletService extends BaseWalletService {
     }
     throw Exception('invalid cat program');
   }
+
+  factory CatWalletService.fromCatVersion(int version) {
+    switch (version) {
+      case 1:
+        return Cat1WalletService();
+      case 2:
+        return Cat2WalletService();
+      default:
+        throw Exception('unsupported cat version: $version');
+    }
+  }
+
   final StandardWalletService standardWalletService = StandardWalletService();
   final Program catProgram;
   final SpendType spendType;

@@ -1,7 +1,7 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class StandardWalletInfo with WalletInfoDecorator implements ChiaWalletInfo {
-  StandardWalletInfo(this.fingerprint)
+  StandardWalletInfo()
       : delegate = ChiaWalletInfoImp(
           id: 1,
           name: 'Chia Wallet',
@@ -11,5 +11,4 @@ class StandardWalletInfo with WalletInfoDecorator implements ChiaWalletInfo {
 
   @override
   final ChiaWalletInfo delegate;
-  final int fingerprint;
 }

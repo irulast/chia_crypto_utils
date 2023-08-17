@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/wallet_connect/models/commands/wallet_connect_command_error_response.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 
 /// Used for connecting to wallets and requesting data from them via a [WalletConnectCommand].
@@ -11,15 +10,34 @@ class WalletConnectAppClient {
     this.displayUri,
   );
 
+  // factory WalletConnectAppClient.fromProjectId(
+  //   String projectId, {
+  //   required FutureOr<void> Function(Uri uri) displayUri,
+  // }) {
+  //   final web3App = Web3App(core: Core(projectId: projectId), metadata: defaultPairingMetadata);
+  //   return WalletConnectAppClient(web3App, displayUri);
+  // }
+
   final Web3App _web3App;
   final FutureOr<void> Function(Uri uri) displayUri;
   SessionData? _sessionData;
 
-  String get _topic {
+  /// throws [NotConnectedException] if not yet initialized
+  SessionData get sessionData {
     if (_sessionData == null) {
       throw NotConnectedException();
     }
-    return _sessionData!.topic;
+    return _sessionData!;
+  }
+
+  /// throws [NotConnectedException] if not yet initialized
+  String get _topic {
+    return sessionData.topic;
+  }
+
+  /// throws [NotConnectedException] if not yet initialized
+  List<int> get fingerprints {
+    return sessionData.fingerprints;
   }
 
   Future<void> init() => _web3App.init();
@@ -40,6 +58,7 @@ class WalletConnectAppClient {
           events: [],
         ),
       },
+      methods: [],
     );
 
     final uri = connectResponse.uri;
@@ -51,7 +70,7 @@ class WalletConnectAppClient {
     return _waitForSessionApproval(connectResponse);
   }
 
-  /// Request a new session with a wallet that has already been paired
+  /// Request a new session with a wallet that has already been paired. Previous session must still be active.
   Future<SessionData> requestNewSession({
     List<WalletConnectCommandType> requiredCommandTypes = const [],
     required String pairingTopic,
@@ -103,11 +122,11 @@ class WalletConnectAppClient {
 
   Future<GetTransactionResponse> getTransaction({
     required int fingerprint,
-    required Bytes transactionId,
+    required String transactionId,
   }) async {
     return request(
       fingerprint: fingerprint,
-      command: GetTransactionCommand(transactionId: transactionId),
+      command: GetTransactionCommand(transactionId: Bytes.fromHex(transactionId)),
       parseResponse: GetTransactionResponse.fromJson,
     );
   }
@@ -334,11 +353,15 @@ class WalletConnectAppClient {
 
   Future<GetWalletsResponse> getWallets({
     required int fingerprint,
+    ChiaWalletType? type,
     bool includeData = false,
   }) async {
     return request(
       fingerprint: fingerprint,
-      command: GetWalletsCommand(includeData: includeData),
+      command: GetWalletsCommand(
+        includeData: includeData,
+        walletType: type,
+      ),
       parseResponse: GetWalletsResponse.fromJson,
     );
   }
@@ -350,6 +373,25 @@ class WalletConnectAppClient {
       fingerprint: fingerprint,
       command: LogInCommand(fingerprint: fingerprint),
       parseResponse: LogInResponse.fromJson,
+    );
+  }
+
+  Future<CreateOfferForIdsResponse> createOfferForIds({
+    required int fingerprint,
+    required Map<String, int> offer,
+    Map<String, dynamic> driverDict = const {},
+    bool validateOnly = false,
+    bool disableJsonFormatting = true,
+  }) async {
+    return request(
+      fingerprint: fingerprint,
+      command: CreateOfferForIdsCommand(
+        offerMap: offer,
+        driverDict: driverDict,
+        validateOnly: validateOnly,
+        disableJsonFormatting: disableJsonFormatting,
+      ),
+      parseResponse: CreateOfferForIdsResponse.fromJson,
     );
   }
 

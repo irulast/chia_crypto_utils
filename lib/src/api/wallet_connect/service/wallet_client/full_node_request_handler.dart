@@ -1,8 +1,11 @@
 import 'dart:async';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:walletconnect_flutter_v2/apis/sign_api/models/session_models.dart';
 
-class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler {
+class FullNodeWalletConnectRequestHandler
+    with IrulastWalletConnectRequestHandlerMixin
+    implements WalletConnectRequestHandler {
   FullNodeWalletConnectRequestHandler({
     required this.keychain,
     required this.coreSecret,
@@ -10,7 +13,14 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
     this.approveRequest = true,
   });
 
+  @override
+  Wallet get wallet => ColdWallet(fullNode: fullNode, keychain: keychain);
+
+  @override
   final ChiaFullNodeInterface fullNode;
+
+  @override
+  int get fingerprint => coreSecret.fingerprint;
 
   final WalletKeychain keychain;
   final KeychainCoreSecret coreSecret;
@@ -19,54 +29,41 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
   final standardWalletService = StandardWalletService();
   final catWalletService = Cat2WalletService();
 
-  @override
-  Map<int, ChiaWalletInfo>? walletMap;
+  Map<int, ChiaWalletInfo>? walletInfoMap;
 
-  // Note that this implementation does not include NFT wallets in wallet map.
-  @override
-  Future<void> indexWalletMap() async {
-    final catCoins = <CatCoin>[];
-    for (final puzzlehash in keychain.puzzlehashes) {
-      final catCoinsByHint = await fullNode.getCatCoinsByHint(puzzlehash);
-      catCoins.addAll(catCoinsByHint);
-    }
+  Future<void> initializeWalletMap() async {
+    LoggingContext().info('Initializing wallet map');
+    final catCoins = await wallet.getCatCoins();
+    final assetIds = catCoins.map((catCoin) => catCoin.assetId).toSet();
+    final didInfos = await wallet.getDidInfosWithOriginCoin();
 
-    final assetIds = catCoins.map((catCoin) => catCoin.assetId).toSet().toList();
+    final tempWalletMap = <int, ChiaWalletInfo>{1: StandardWalletInfo()};
 
-    final didRecords = await fullNode.getDidRecordsFromHints(keychain.puzzlehashes);
-
-    final tempWalletMap = <int, ChiaWalletInfo>{1: StandardWalletInfo(coreSecret.fingerprint)};
-
-    await _addNewWalletsInfos(
+    await addNewWalletsInfos(
       tempWalletMap: tempWalletMap,
       assetIds: assetIds,
-      didRecords: didRecords,
+      didInfos: didInfos,
     );
   }
 
-  @override
   Future<void> refreshWalletMap() async {
-    if (walletMap == null) {
+    LoggingContext().info('Refreshing wallet map');
+
+    if (walletInfoMap == null) {
       throw WalletsUninitializedException();
     }
 
-    final tempWalletMap = Map<int, ChiaWalletInfo>.from(walletMap!);
+    final tempWalletMap = Map<int, ChiaWalletInfo>.from(walletInfoMap!);
 
-    final catCoins = <CatCoin>[];
-    for (final puzzlehash in keychain.puzzlehashes) {
-      final catCoinsByHint = await fullNode.getCatCoinsByHint(puzzlehash);
-      catCoins.addAll(catCoinsByHint);
-    }
-
+    final catCoins = await wallet.getCatCoins();
     final assetIds = catCoins.map((catCoin) => catCoin.assetId).toSet().toList();
-
-    final didRecords = await fullNode.getDidRecordsFromHints(keychain.puzzlehashes);
-    final dids = didRecords.map((didRecord) => didRecord.did).toList();
+    final didInfos = await wallet.getDidInfosWithOriginCoin();
+    final dids = didInfos.map((didRecord) => didRecord.did).toList();
 
     final walletIdsToRemove = <int>[];
 
     // cat wallets
-    final currentAssetIds = tempWalletMap.catWallets().assetIds;
+    final currentAssetIds = tempWalletMap.catWallets().assetIdMap;
 
     final catWalletIdsToRemove =
         Map.fromEntries(currentAssetIds.entries.where((entry) => !assetIds.contains(entry.value)))
@@ -74,83 +71,124 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
     walletIdsToRemove.addAll(catWalletIdsToRemove);
 
     final assetIdsToAdd =
-        assetIds.where((assetId) => !currentAssetIds.containsValue(assetId)).toList();
+        assetIds.where((assetId) => !currentAssetIds.containsValue(assetId)).toSet();
 
     // did wallets
-    final currentDids = tempWalletMap.didWallets().dids;
+    final currentDids = tempWalletMap.didWallets().didMap;
 
     final didWalletIdsToRemove =
         Map.fromEntries(currentDids.entries.where((entry) => !dids.contains(entry.value))).keys;
     walletIdsToRemove.addAll(didWalletIdsToRemove);
 
-    final didRecordsToAdd = didRecords.where((did) => !currentDids.containsValue(did)).toList();
+    final didInfosToAdd =
+        didInfos.where((didInfo) => !currentDids.containsValue(didInfo.did)).toList();
 
     tempWalletMap.removeWhere((key, value) => walletIdsToRemove.contains(key));
 
-    await _addNewWalletsInfos(
+    await addNewWalletsInfos(
       tempWalletMap: tempWalletMap,
       assetIds: assetIdsToAdd,
-      didRecords: didRecordsToAdd,
+      didInfos: didInfosToAdd,
     );
   }
 
-  Future<void> _addNewWalletsInfos({
+  Future<void> addNewWalletsInfos({
     required Map<int, ChiaWalletInfo> tempWalletMap,
-    required List<Puzzlehash> assetIds,
-    required List<DidRecord> didRecords,
+    required Set<Puzzlehash> assetIds,
+    required List<DidInfoWithOriginCoin> didInfos,
   }) async {
     var id = tempWalletMap.keys.last;
+
+    // Add CAT Wallet for each kind of CAT owned
     for (final assetId in assetIds) {
       id++;
-      tempWalletMap[id] = CatWalletInfo.fromAssetId(assetId: assetId, id: id);
-      keychain.addOuterPuzzleHashesForAssetId(assetId);
+      tempWalletMap[id] = CatWalletInfo(assetId: assetId, id: id);
     }
 
-    for (final didRecord in didRecords) {
-      final didInfo = didRecord.toDidInfo(keychain);
-      if (didInfo != null && didInfo.lineageProof.parentCoinInfo != null) {
-        final originCoin = await fullNode.getCoinById(didInfo.lineageProof.parentCoinInfo!);
+    // Add DID wallet for each DID
+    for (final didInfo in didInfos) {
+      id++;
+      tempWalletMap[id] = DIDWalletInfo(didInfoWithOriginCoin: didInfo, id: id);
+    }
 
-        id++;
-        tempWalletMap[id] = DIDWalletInfo.fromDID(did: didInfo, originCoin: originCoin!, id: id);
-      } else {
-        LoggingContext().error(
-          'Found did ${didRecord.did.toHex()} does not belong to keychain ${coreSecret.fingerprint}',
-        );
+    walletInfoMap = tempWalletMap;
+  }
+
+  Future<void> indexWalletMap() async {
+    if (walletInfoMap == null) {
+      await initializeWalletMap();
+    } else {
+      await refreshWalletMap();
+    }
+  }
+
+  @override
+  ChiaWalletInfo getWalletInfoForId(int walletId) {
+    if (walletInfoMap == null) {
+      throw WalletsUninitializedException();
+    }
+
+    final wallet = walletInfoMap![walletId];
+
+    if (wallet == null) {
+      throw InvalidWalletIdException();
+    }
+
+    return wallet;
+  }
+
+  @override
+  Future<WalletConnectCommandBaseResponse> handleRequest({
+    required SessionData sessionData,
+    required WalletConnectCommandType type,
+    required dynamic params,
+  }) async {
+    try {
+      if (!approveRequest) {
+        throw UserRejectedRequestException();
       }
+
+      final command = parseCommand(type, params);
+
+      return executeCommand(command, sessionData);
+    } catch (e) {
+      return WalletConnectCommandErrorResponse(
+        WalletConnectCommandBaseResponseImp.error(
+          endpointName: type,
+          originalArgs: params as Map<String, dynamic>,
+          startedTimestamp: DateTime.now().unixTimestamp,
+        ),
+        e.toString(),
+      );
     }
-
-    walletMap = tempWalletMap;
   }
 
   @override
-  Future<bool> handleRequest(String topic, WalletConnectCommand command) async {
-    return approveRequest;
-  }
-
-  @override
-  Future<CheckOfferValidityResponse> checkOfferValidity(CheckOfferValidityCommand command) {
+  CheckOfferValidityResponse checkOfferValidity(
+    CheckOfferValidityCommand command,
+    SessionData sessionData,
+  ) {
     throw UnsupportedCommandException(command.type);
   }
 
   @override
-  GetAddressResponse getCurrentAddress(GetCurrentAddressCommand command) {
-    final startedTimeStamp = DateTime.now().unixTimeStamp;
+  GetAddressResponse getCurrentAddress(GetCurrentAddressCommand command, SessionData sessionData) {
+    final startedTimestamp = DateTime.now().unixTimestamp;
 
     final address = Address.fromContext(keychain.puzzlehashes.first);
 
     return GetAddressResponse(
       WalletConnectCommandBaseResponseImp.success(
         command: command,
-        startedTimeStamp: startedTimeStamp,
+        startedTimestamp: startedTimestamp,
       ),
       address,
     );
   }
 
   @override
-  GetAddressResponse getNextAddress(GetNextAddressCommand command) {
-    final startedTimeStamp = DateTime.now().unixTimeStamp;
+  GetAddressResponse getNextAddress(GetNextAddressCommand command, SessionData sessionData) {
+    final startedTimestamp = DateTime.now().unixTimestamp;
 
     final address = Address.fromContext(
       keychain.addPuzzleHashes(coreSecret.masterPrivateKey, 1).unhardened.last,
@@ -159,33 +197,18 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
     return GetAddressResponse(
       WalletConnectCommandBaseResponseImp.success(
         command: command,
-        startedTimeStamp: startedTimeStamp,
+        startedTimestamp: startedTimestamp,
       ),
       address,
     );
   }
 
   @override
-  Future<GetNftInfoResponse> getNftInfo(GetNftInfoCommand command) async {
-    throw UnsupportedCommandException(command.type);
-  }
-
-  @override
-  GetNftsResponse getNfts(GetNftsCommand command) {
-    throw UnsupportedCommandException(command.type);
-  }
-
-  @override
-  GetNftCountResponse getNftsCount(GetNftsCountCommand command) {
-    throw UnsupportedCommandException(command.type);
-  }
-
-  @override
-  GetSyncStatusResponse getSyncStatus() {
+  GetSyncStatusResponse getSyncStatus(SessionData sessionData) {
     return GetSyncStatusResponse(
       WalletConnectCommandBaseResponseImp.success(
         command: const GetSyncStatus(),
-        startedTimeStamp: DateTime.now().unixTimeStamp,
+        startedTimestamp: DateTime.now().unixTimestamp,
       ),
       const SyncStatusData(
         genesisInitialized: true,
@@ -196,40 +219,63 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
   }
 
   @override
-  Future<GetTransactionResponse> getTransaction(GetTransactionCommand command) {
+  Future<GetTransactionResponse> getTransaction(
+    GetTransactionCommand command,
+    SessionData sessionData,
+  ) {
     throw UnsupportedCommandException(command.type);
   }
 
   @override
-  Future<GetWalletBalanceResponse> getWalletBalance(GetWalletBalanceCommand command) async {
-    final startedTimeStamp = DateTime.now().unixTimeStamp;
+  Future<GetWalletBalanceResponse> getWalletBalance(
+    GetWalletBalanceCommand command,
+    SessionData sessionData,
+  ) async {
+    final startedTimestamp = DateTime.now().unixTimestamp;
 
-    if (walletMap == null) {
-      throw WalletsUninitializedException();
-    }
+    await indexWalletMap();
 
-    final wallet = walletMap![command.walletId ?? 1];
-
-    if (wallet == null) {
-      throw InvalidWalletIdException();
-    }
+    final wallet = getWalletInfoForId(command.walletId ?? 1);
 
     final puzzlehashes = keychain.puzzlehashes;
 
     late final int coinCount;
     late final int balance;
-    late final int pendingChange;
-    late final int pendingCoinRemovalCount;
-    late final int spendableBalance;
-    if (wallet.type == ChiaWalletType.did || wallet.type == ChiaWalletType.nft) {
-      coinCount = 1;
-      balance = 1;
+
+    final additions = <CoinPrototype>[];
+    final removals = <CoinPrototype>[];
+    if (wallet.type == ChiaWalletType.did) {
+      coinCount = 0;
+      balance = 0;
+    } else if (wallet.type == ChiaWalletType.nft) {
+      // according to Chia, NFT Wallets don't really have a balance
+      coinCount = 0;
+      balance = 0;
     } else if (wallet.type == ChiaWalletType.cat) {
-      final catCoins = await fullNode.getCatCoinsByOuterPuzzleHashes(
-        keychain.getOuterPuzzleHashesForAssetId((wallet as CatWalletInfo).assetId),
-      );
+      final outerPuzzlehashesForAssetId =
+          keychain.getOuterPuzzleHashesForAssetId((wallet as CatWalletInfo).assetId);
+
+      final catCoins = await fullNode.getCatCoinsByOuterPuzzleHashes(outerPuzzlehashesForAssetId);
       coinCount = catCoins.length;
       balance = catCoins.totalValue;
+
+      final mempoolItemsResponse = await fullNode.getAllMempoolItems();
+
+      final additions = <CoinPrototype>[];
+      final removals = <CoinPrototype>[];
+      for (final mempoolItem in mempoolItemsResponse.mempoolItemMap.values) {
+        for (final addition in mempoolItem.additions) {
+          if (outerPuzzlehashesForAssetId.contains(addition.puzzlehash)) {
+            additions.add(addition);
+          }
+        }
+
+        for (final removal in mempoolItem.additions) {
+          if (outerPuzzlehashesForAssetId.contains(removal.puzzlehash)) {
+            removals.add(removal);
+          }
+        }
+      }
     } else {
       final coins = await fullNode.getCoinsByPuzzleHashes(puzzlehashes);
       coinCount = coins.length;
@@ -252,16 +298,16 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
           }
         }
       }
-
-      pendingChange = (additions.totalValue - removals.totalValue).abs();
-      pendingCoinRemovalCount = removals.length;
-      spendableBalance = balance - removals.totalValue;
     }
+
+    final pendingChange = (additions.totalValue - removals.totalValue).abs();
+    final pendingCoinRemovalCount = removals.length;
+    final spendableBalance = balance - removals.totalValue;
 
     return GetWalletBalanceResponse(
       WalletConnectCommandBaseResponseImp.success(
         command: command,
-        startedTimeStamp: startedTimeStamp,
+        startedTimestamp: startedTimestamp,
       ),
       WalletBalance(
         confirmedWalletBalance: balance,
@@ -279,53 +325,24 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
   }
 
   @override
-  GetWalletsResponse getWallets(GetWalletsCommand command) {
-    final startedTimeStamp = DateTime.now().unixTimeStamp;
-
-    if (walletMap == null) {
-      throw WalletsUninitializedException();
-    }
-
-    late final List<ChiaWalletInfo> walletsData;
-    if (!command.includeData) {
-      walletsData = walletMap!.values.map((wallet) => wallet.stripData()).toList();
-    } else {
-      walletsData = walletMap!.values.toList();
-    }
-
-    return GetWalletsResponse(
-      WalletConnectCommandBaseResponseImp.success(
-        command: command,
-        startedTimeStamp: startedTimeStamp,
-      ),
-      walletsData,
-    );
-  }
-
-  @override
-  Future<SendTransactionResponse> sendTransaction(SendTransactionCommand command) async {
-    final startedTimeStamp = DateTime.now().unixTimeStamp;
+  Future<SendTransactionResponse> sendTransaction(
+    SendTransactionCommand command,
+    SessionData sessionData,
+  ) async {
+    final startedTimestamp = DateTime.now().unixTimestamp;
 
     final walletId = command.walletId ?? 1;
 
-    if (walletMap == null) {
-      throw WalletsUninitializedException();
-    }
+    await indexWalletMap();
 
-    final wallet = walletMap![walletId];
-
-    if (wallet == null) {
-      throw InvalidWalletIdException();
-    }
+    final wallet = getWalletInfoForId(walletId);
 
     final targetPuzzlehash = command.address.toPuzzlehash();
 
-    final memos = command.memos.map((memo) => Memo(Bytes.encodeFromString(memo))).toList();
+    final memos = command.memos.toMemos();
 
     late final SpendBundle spendBundle;
-    if (wallet.type == ChiaWalletType.nft) {
-      throw UnsupportedCommandException(command.type);
-    } else if (wallet.type == ChiaWalletType.cat) {
+    if (wallet.type == ChiaWalletType.cat) {
       spendBundle = await _createCatSpendBundle(
         assetId: (wallet as CatWalletInfo).assetId,
         amount: command.amount,
@@ -333,7 +350,7 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
         targetPuzzlehash: targetPuzzlehash,
         memos: memos,
       );
-    } else {
+    } else if (wallet.type == ChiaWalletType.standard) {
       final allCoins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
 
       final coinsInput = selectCoinsForAmount(allCoins, command.amount);
@@ -345,33 +362,32 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
         changePuzzlehash: keychain.puzzlehashes[2],
         fee: command.fee,
       );
+    } else {
+      throw UnsupportedWalletTypeException(wallet.type);
     }
 
-    final response = await fullNode.pushTransaction(spendBundle);
+    final transactionMemos = makeTransactionMemos(spendBundle, memos);
 
-    final transactionMemos =
-        Map.fromEntries(spendBundle.coins.map((coin) => MapEntry(coin.id, memos)));
+    final transactionId = spendBundle.id.toHex();
 
     if (command.waitForConfirmation) {
-      final coinId = spendBundle.coins.first.id;
-
-      final coin = await _waitForConfirmation(coinId);
+      final coins = await fullNode.pushAndWaitForSpendBundle(spendBundle);
 
       return SendTransactionResponse(
         WalletConnectCommandBaseResponseImp.success(
           command: command,
-          startedTimeStamp: startedTimeStamp,
+          startedTimestamp: startedTimestamp,
         ),
         SentTransactionData(
           transaction: TransactionRecord(
             additions: spendBundle.additions,
             amount: command.amount,
             confirmed: true,
-            confirmedAtHeight: coin.confirmedBlockIndex,
-            createdAtTime: startedTimeStamp,
+            confirmedAtHeight: coins.first.confirmedBlockIndex,
+            createdAtTime: startedTimestamp,
             feeAmount: command.fee,
             memos: transactionMemos,
-            name: spendBundle.id,
+            name: transactionId,
             removals: spendBundle.removals,
             sent: 0,
             toAddress: command.address,
@@ -380,15 +396,17 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
             walletId: walletId,
             spendBundle: spendBundle,
           ),
-          transactionId: spendBundle.id,
-          success: response.success,
+          transactionId: spendBundle.id.toHex(),
+          success: coins.isNotEmpty,
         ),
       );
     } else {
+      final response = await fullNode.pushTransaction(spendBundle);
+
       return SendTransactionResponse(
         WalletConnectCommandBaseResponseImp.success(
           command: command,
-          startedTimeStamp: startedTimeStamp,
+          startedTimestamp: startedTimestamp,
         ),
         SentTransactionData(
           transaction: TransactionRecord(
@@ -396,10 +414,10 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
             amount: command.amount,
             confirmed: false,
             confirmedAtHeight: 0,
-            createdAtTime: startedTimeStamp,
+            createdAtTime: startedTimestamp,
             feeAmount: command.fee,
             memos: transactionMemos,
-            name: spendBundle.id,
+            name: transactionId,
             removals: spendBundle.removals,
             sent: 0,
             toAddress: command.address,
@@ -408,81 +426,11 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
             walletId: walletId,
             spendBundle: spendBundle,
           ),
-          transactionId: spendBundle.id,
+          transactionId: spendBundle.id.toHex(),
           success: response.success,
         ),
       );
     }
-  }
-
-  @override
-  SignMessageByAddressResponse signMessageByAddress(SignMessageByAddressCommand command) {
-    final startedTimeStamp = DateTime.now().unixTimeStamp;
-    final puzzlehash = command.address.toPuzzlehash();
-
-    final walletVector = keychain.getWalletVector(puzzlehash);
-
-    final syntheticSecretKey = calculateSyntheticPrivateKey(walletVector!.childPrivateKey);
-
-    final message = constructChip002Message(command.message);
-
-    final signature = AugSchemeMPL.sign(syntheticSecretKey, message);
-
-    return SignMessageByAddressResponse(
-      WalletConnectCommandBaseResponseImp.success(
-        command: command,
-        startedTimeStamp: startedTimeStamp,
-      ),
-      SignMessageByAddressData(
-        publicKey: syntheticSecretKey.getG1(),
-        signature: signature,
-        signingMode: SigningMode.chip0002,
-        success: true,
-      ),
-    );
-  }
-
-  @override
-  Future<SignMessageByIdResponse> signMessageById(SignMessageByIdCommand command) async {
-    final startedTimeStamp = DateTime.now().unixTimeStamp;
-
-    if (walletMap == null) {
-      throw WalletsUninitializedException();
-    }
-
-    final didWallets = walletMap!.didWallets().values.where(
-          (wallet) => wallet.didInfo.did == command.id,
-        );
-
-    if (didWallets.isEmpty) {
-      throw InvalidDIDException();
-    }
-
-    final didInfo = didWallets.single.didInfo;
-
-    final p2Puzzlehash = didInfo.p2Puzzle.hash();
-
-    final walletVector = keychain.getWalletVector(p2Puzzlehash);
-
-    final syntheticSecretKey = calculateSyntheticPrivateKey(walletVector!.childPrivateKey);
-
-    final message = constructChip002Message(command.message);
-
-    final signature = AugSchemeMPL.sign(syntheticSecretKey, message);
-
-    return SignMessageByIdResponse(
-      WalletConnectCommandBaseResponseImp.success(
-        command: command,
-        startedTimeStamp: startedTimeStamp,
-      ),
-      SignMessageByIdData(
-        latestCoinId: didInfo.coin.id,
-        publicKey: syntheticSecretKey.getG1(),
-        signature: signature,
-        signingMode: SigningMode.chip0002,
-        success: true,
-      ),
-    );
   }
 
   Future<SpendBundle> _createCatSpendBundle({
@@ -492,8 +440,10 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
     required Puzzlehash targetPuzzlehash,
     List<Memo> memos = const [],
   }) async {
-    final catCoins = await fullNode
+    final allCatCoins = await fullNode
         .getCatCoinsByOuterPuzzleHashes(keychain.getOuterPuzzleHashesForAssetId(assetId));
+
+    final catCoins = selectCoinsForAmount(allCatCoins, amount);
 
     final allCoins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
 
@@ -516,18 +466,12 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
   }
 
   @override
-  Future<SendTransactionResponse> spendCat(SpendCatCommand command) async {
-    final startedTimeStamp = DateTime.now().unixTimeStamp;
+  Future<SendTransactionResponse> spendCat(SpendCatCommand command, SessionData sessionData) async {
+    final startedTimestamp = DateTime.now().unixTimestamp;
 
-    if (walletMap == null) {
-      throw WalletsUninitializedException();
-    }
+    await indexWalletMap();
 
-    final wallet = walletMap![command.walletId];
-
-    if (wallet == null) {
-      throw InvalidWalletIdException();
-    }
+    final wallet = getWalletInfoForId(command.walletId);
 
     if (wallet.type != ChiaWalletType.cat) {
       throw const WrongWalletTypeException(ChiaWalletType.cat);
@@ -537,7 +481,7 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
 
     final targetPuzzlehash = command.address.toPuzzlehash();
 
-    final memos = command.memos.map((memo) => Memo(Bytes.encodeFromString(memo))).toList();
+    final memos = command.memos.toMemos();
 
     final spendBundle = await _createCatSpendBundle(
       assetId: catWallet.assetId,
@@ -547,31 +491,28 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
       memos: memos,
     );
 
-    final response = await fullNode.pushTransaction(spendBundle);
+    final transactionMemos = makeTransactionMemos(spendBundle, memos);
 
-    final transactionMemos =
-        Map.fromEntries(spendBundle.coins.map((coin) => MapEntry(coin.id, memos)));
-
-    final coinId = spendBundle.coins.first.id;
+    final transactionId = spendBundle.id.toHex();
 
     if (command.waitForConfirmation) {
-      final coin = await _waitForConfirmation(coinId);
+      final coins = await fullNode.pushAndWaitForSpendBundle(spendBundle);
 
       return SendTransactionResponse(
         WalletConnectCommandBaseResponseImp.success(
           command: command,
-          startedTimeStamp: startedTimeStamp,
+          startedTimestamp: startedTimestamp,
         ),
         SentTransactionData(
           transaction: TransactionRecord(
             additions: spendBundle.additions,
             amount: command.amount,
             confirmed: true,
-            confirmedAtHeight: coin.confirmedBlockIndex,
-            createdAtTime: startedTimeStamp,
+            confirmedAtHeight: coins.first.confirmedBlockIndex,
+            createdAtTime: startedTimestamp,
             feeAmount: command.fee,
             memos: transactionMemos,
-            name: spendBundle.id,
+            name: transactionId,
             removals: spendBundle.removals,
             sent: 0,
             toAddress: command.address,
@@ -580,15 +521,17 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
             walletId: wallet.id,
             spendBundle: spendBundle,
           ),
-          transactionId: spendBundle.id,
-          success: response.success,
+          transactionId: spendBundle.id.toHex(),
+          success: coins.isNotEmpty,
         ),
       );
     } else {
+      final response = await fullNode.pushTransaction(spendBundle);
+
       return SendTransactionResponse(
         WalletConnectCommandBaseResponseImp.success(
           command: command,
-          startedTimeStamp: startedTimeStamp,
+          startedTimestamp: startedTimestamp,
         ),
         SentTransactionData(
           transaction: TransactionRecord(
@@ -596,10 +539,10 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
             amount: command.amount,
             confirmed: false,
             confirmedAtHeight: 0,
-            createdAtTime: startedTimeStamp,
+            createdAtTime: startedTimestamp,
             feeAmount: command.fee,
             memos: transactionMemos,
-            name: spendBundle.id,
+            name: transactionId,
             removals: spendBundle.removals,
             sent: 0,
             toAddress: command.address,
@@ -608,7 +551,7 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
             walletId: wallet.id,
             spendBundle: spendBundle,
           ),
-          transactionId: spendBundle.id,
+          transactionId: spendBundle.id.toHex(),
           success: response.success,
         ),
       );
@@ -616,50 +559,23 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
   }
 
   @override
-  Future<TakeOfferResponse> takeOffer(TakeOfferCommand command) async {
+  Future<TransferNftResponse> transferNft(
+    TransferNftCommand command,
+    SessionData sessionData,
+  ) async {
     throw UnsupportedCommandException(command.type);
   }
 
   @override
-  Future<TransferNftResponse> transferNft(TransferNftCommand command) async {
-    throw UnsupportedCommandException(command.type);
-  }
-
-  @override
-  VerifySignatureResponse verifySignature(VerifySignatureCommand command) {
-    final startedTimeStamp = DateTime.now().unixTimeStamp;
-
-    // default to CHIP-002 because that is how messages are signed with the sign methods on this handler
-    final message = constructMessageForSignature(
-      command.message,
-      command.signingMode ?? SigningMode.chip0002,
-    );
-
-    final verification = AugSchemeMPL.verify(
-      command.publicKey,
-      message,
-      command.signature,
-    );
-
-    return VerifySignatureResponse(
-      WalletConnectCommandBaseResponseImp.success(
-        command: command,
-        startedTimeStamp: startedTimeStamp,
-      ),
-      VerifySignatureData(isValid: verification, success: true),
-    );
-  }
-
-  @override
-  FutureOr<LogInResponse> logIn(LogInCommand command) {
-    final startedTimeStamp = DateTime.now().unixTimeStamp;
+  LogInResponse logIn(LogInCommand command, SessionData sessionData) {
+    final startedTimestamp = DateTime.now().unixTimestamp;
 
     // return true if fingerprint from command matches keychain fingerprint, else return false
     if (command.fingerprint == coreSecret.fingerprint) {
       return LogInResponse(
         WalletConnectCommandBaseResponseImp.success(
           command: command,
-          startedTimeStamp: startedTimeStamp,
+          startedTimestamp: startedTimestamp,
         ),
         LogInData(fingerprint: coreSecret.fingerprint, success: true),
       );
@@ -668,72 +584,136 @@ class FullNodeWalletConnectRequestHandler implements WalletConnectRequestHandler
     return LogInResponse(
       WalletConnectCommandBaseResponseImp.success(
         command: command,
-        startedTimeStamp: startedTimeStamp,
+        startedTimestamp: startedTimestamp,
       ),
       LogInData(fingerprint: coreSecret.fingerprint, success: false),
     );
   }
 
-  Future<Coin> _waitForConfirmation(Bytes coinId) async {
-    var coin = await fullNode.getCoinById(coinId);
+  @override
+  Future<TakeOfferResponse> takeOffer(TakeOfferCommand command, SessionData sessionData) async {
+    throw UnsupportedCommandException(command.type);
+  }
 
-    while (coin!.isNotSpent) {
-      print('waiting for confirmation');
-      await Future<void>.delayed(const Duration(seconds: 10));
+  @override
+  CreateOfferForIdsResponse createOfferForIds(
+    CreateOfferForIdsCommand command,
+    SessionData sessionData,
+  ) {
+    throw UnsupportedCommandException(command.type);
+  }
 
-      coin = await fullNode.getCoinById(coinId);
+  @override
+  Future<GetNftInfoResponse> getNftInfo(GetNftInfoCommand command, SessionData sessionData) async {
+    final startedTimestamp = DateTime.now().unixTimestamp;
+
+    await indexWalletMap();
+
+    final nftInfo = walletInfoMap!
+        .nftWallets()
+        .nftInfos
+        .firstWhere((nftInfo) => nftInfo.nftCoinId == command.coinId);
+
+    return GetNftInfoResponse(
+      WalletConnectCommandBaseResponseImp.success(
+        command: command,
+        startedTimestamp: startedTimestamp,
+      ),
+      nftInfo,
+    );
+  }
+
+  @override
+  GetNftsResponse getNfts(GetNftsCommand command, SessionData sessionData) {
+    throw UnsupportedCommandException(command.type);
+  }
+
+  @override
+  Future<GetNftCountResponse> getNftsCount(
+    GetNftsCountCommand command,
+    SessionData sessionData,
+  ) async {
+    final startedTimestamp = DateTime.now().unixTimestamp;
+
+    await indexWalletMap();
+
+    final countData = walletInfoMap!
+        .nftWallets(command.walletIds)
+        .map((key, value) => MapEntry(key.toString(), value.nftInfos.length));
+
+    countData['total'] = countData.values.reduce((a, b) => a + b);
+
+    return GetNftCountResponse(
+      WalletConnectCommandBaseResponseImp.success(
+        command: command,
+        startedTimestamp: startedTimestamp,
+      ),
+      countData,
+    );
+  }
+
+  @override
+  Future<GetWalletsResponse> getWallets(GetWalletsCommand command, SessionData sessionData) async {
+    final startedTimestamp = DateTime.now().unixTimestamp;
+
+    await indexWalletMap();
+
+    late final List<ChiaWalletInfo> walletsData;
+    if (!command.includeData) {
+      walletsData = walletInfoMap!.values.map((wallet) => wallet.stripData()).toList();
+    } else {
+      walletsData = walletInfoMap!.values.toList();
     }
 
-    return coin;
+    return GetWalletsResponse(
+      WalletConnectCommandBaseResponseImp.success(
+        command: command,
+        startedTimestamp: startedTimestamp,
+      ),
+      walletsData,
+    );
   }
-}
-
-class WalletsUninitializedException implements Exception {
-  @override
-  String toString() {
-    return 'Wallet must be initialized before using this method';
-  }
-}
-
-class InvalidWalletIdException implements Exception {
-  @override
-  String toString() {
-    return 'Invalid wallet ID';
-  }
-}
-
-class WrongWalletTypeException implements Exception {
-  const WrongWalletTypeException(this.type);
-
-  final ChiaWalletType type;
 
   @override
-  String toString() {
-    return 'Wrong wallet type. Excepcted ${type.name}';
-  }
-}
-
-class UnsupportedCommandException implements Exception {
-  UnsupportedCommandException(this.commandType);
-
-  WalletConnectCommandType commandType;
+  Future<SignMessageByAddressResponse> signMessageByAddress(
+    SignMessageByAddressCommand command,
+    SessionData sessionData,
+  ) =>
+      executeSignMessageByAddress(command);
 
   @override
-  String toString() {
-    return "The full node implementation of the WalletConnectWalletClient doesn't support command ${commandType.commandName}";
-  }
-}
+  Future<SignMessageByIdResponse> signMessageById(
+    SignMessageByIdCommand command,
+    SessionData sessionData,
+  ) async {
+    final startedTimestamp = DateTime.now().unixTimestamp;
 
-class InvalidNftCoinIdsException implements Exception {
-  @override
-  String toString() {
-    return 'Invalid NFT coin IDs';
-  }
-}
+    await indexWalletMap();
 
-class InvalidDIDException implements Exception {
-  @override
-  String toString() {
-    return 'Could not find DID on keychain';
+    final didWallets = walletInfoMap!.didWallets().values.where(
+          (wallet) => wallet.didInfoWithOriginCoin.did == command.id,
+        );
+
+    if (didWallets.isEmpty) {
+      throw InvalidDIDException();
+    }
+
+    final didInfo = didWallets.single.didInfoWithOriginCoin;
+
+    final p2Puzzlehash = didInfo.p2Puzzle.hash();
+
+    return completeSignMessageById(
+      command: command,
+      startedTimestamp: startedTimestamp,
+      p2Puzzlehash: p2Puzzlehash,
+      latestCoinId: didInfo.coin.id,
+    );
   }
+
+  @override
+  Future<VerifySignatureResponse> verifySignature(
+    VerifySignatureCommand command,
+    SessionData sessionData,
+  ) =>
+      executeVerifySignature(command);
 }

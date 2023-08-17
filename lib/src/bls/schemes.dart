@@ -4,6 +4,7 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/bls/hd_keys.dart' as hd_keys;
 import 'package:chia_crypto_utils/src/bls/op_swu_g2.dart';
 import 'package:chia_crypto_utils/src/bls/pairing.dart';
+import 'package:deep_pick/deep_pick.dart';
 import 'package:quiver/collection.dart';
 
 final basicSchemeDst = utf8.encode('BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_');
@@ -141,6 +142,28 @@ class AugSchemeMPL {
     return coreVerifyMpl(pk, pk.toBytes() + message, signature, augSchemeDst);
   }
 
+  static Future<bool> verifyAsync(
+    JacobianPoint pk,
+    List<int> message,
+    JacobianPoint signature,
+  ) async {
+    return spawnAndWaitForIsolate(
+      taskArgument: VerifyArguments(pk, message, signature),
+      isolateTask: _verifyTask,
+      handleTaskCompletion: (taskResultJson) => pick(taskResultJson, 'valid').asBoolOrThrow(),
+    );
+  }
+
+  static Map<String, dynamic> _verifyTask(
+    VerifyArguments args,
+  ) {
+    final valid =
+        coreVerifyMpl(args.pk, args.pk.toBytes() + args.message, args.signature, augSchemeDst);
+    return <String, dynamic>{
+      'valid': valid,
+    };
+  }
+
   static JacobianPoint aggregate(List<JacobianPoint> signatures) {
     return coreAggregateMpl(signatures);
   }
@@ -259,4 +282,14 @@ class SignArguments {
 
   final PrivateKey sk;
   final List<int> message;
+}
+
+class VerifyArguments {
+  VerifyArguments(this.pk, this.message, this.signature);
+
+  final JacobianPoint pk;
+
+  final List<int> message;
+
+  final JacobianPoint signature;
 }

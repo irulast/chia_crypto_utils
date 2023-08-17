@@ -1,5 +1,5 @@
-@Skip('These are interactive tests using Chia Lite Wallet')
 @Timeout(Duration(minutes: 5))
+@Skip('These are interactive tests using Chia Lite Wallet')
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:test/test.dart';
 import 'package:walletconnect_flutter_v2/apis/core/core.dart';
@@ -50,7 +50,12 @@ Future<void> main() async {
       includeData: true,
     );
 
-    print(getWalletsResponse.wallets.map((wallet) => wallet.toJson()));
+    final wallets = getWalletsResponse.wallets;
+
+    for (final wallet in wallets) {
+      print(wallet.type.name);
+      print(wallet.data);
+    }
   });
 
   test('Should request wallet balance from Chia Lite Wallet', () async {
@@ -128,17 +133,18 @@ Future<void> main() async {
 
   test('Should request Chia Lite Wallet to send a transaction and then get transaction data',
       () async {
-    // set the destination address below
-    const address = '';
-
     final response = await appClient.sendTransaction(
       fingerprint: fingerprint,
-      address: const Address(address),
+      address: const Address('xch17c3q8nrd88a06rs2kjdacj5w5p3mtnf0cqmpgxseh2xfzp5tgeesn7pwr9'),
       amount: 50,
       fee: 50,
     );
 
+    // in some cases a second request will not be properly received by Chia if it is sent immediately
+    // after the first request
     print(response.sentTransactionData.toJson());
+
+    await Future<void>.delayed(const Duration(seconds: 1));
 
     final transactionResponse = await appClient.getTransaction(
       fingerprint: fingerprint,
@@ -149,9 +155,6 @@ Future<void> main() async {
   });
 
   test('Should request Chia Lite Wallet to spend CAT and then get transaction data', () async {
-    // set the destination address below
-    const address = '';
-
     final getWalletsResponse = await appClient.getWallets(
       fingerprint: fingerprint,
     );
@@ -159,15 +162,19 @@ Future<void> main() async {
     final catWallets =
         getWalletsResponse.wallets.where((wallet) => wallet.type == ChiaWalletType.cat);
 
+    // in order to go through first CAT wallet must have a non-zero balance
     final response = await appClient.spendCat(
       fingerprint: fingerprint,
-      address: const Address(address),
+      address: const Address('xch17c3q8nrd88a06rs2kjdacj5w5p3mtnf0cqmpgxseh2xfzp5tgeesn7pwr9'),
       amount: 1,
       fee: 50,
       walletId: catWallets.first.id,
+      memos: ['CAT test'],
     );
 
     print(response.sentTransactionData.toJson());
+
+    await Future<void>.delayed(const Duration(seconds: 1));
 
     final transactionResponse = await appClient.getTransaction(
       fingerprint: fingerprint,
@@ -190,7 +197,7 @@ Future<void> main() async {
   });
 
   test('Should request Chia Lite Wallet to take offer', () async {
-    // Set offer variable to offer you would like to accept
+    // Paste offer to accept below
     const offer = '';
 
     final response = await appClient.takeOffer(
@@ -207,8 +214,6 @@ Future<void> main() async {
     final addressResponse = await appClient.getCurrentAddress(
       fingerprint: fingerprint,
     );
-
-    const message = 'hello, world';
 
     final signMessageResponse = await appClient.signMessageByAddress(
       fingerprint: fingerprint,
@@ -232,7 +237,7 @@ Future<void> main() async {
 
   test('Should request Chia Lite Wallet to sign message by id and then verify signature', () async {
     // in order to run this test, you must have a did on your current wallet in the Chia Lite Wallet
-    // navigate to Settings > Profiles, hover over the DID and copy the DID ID (Hex)
+    // navigate to Settings > Profiles, hover over DID and copy the DID ID (Hex)
     // manually set it to variable below
 
     const didHex = '';
@@ -245,7 +250,7 @@ Future<void> main() async {
 
     print(signMessageResponse.toJson());
 
-    final response = await appClient.verifySignature(
+    final verifySignatureResponse = await appClient.verifySignature(
       fingerprint: fingerprint,
       publicKey: signMessageResponse.signData.publicKey,
       message: message,
@@ -253,16 +258,15 @@ Future<void> main() async {
       signingMode: signMessageResponse.signData.signingMode,
     );
 
-    print(response.toJson());
+    print(verifySignatureResponse.toJson());
   });
 
   test('Should request offer validity data from Chia Lite Wallet', () async {
-    const offer =
+    const offerBech32 =
         'offer1qqr83wcuu2rykcmqvpsxygqqemhmlaekcenaz02ma6hs5w600dhjlvfjn477nkwz369h88kll73h37fefnwk3qqnz8s0lle0lzwfpjm87m4vx3e3y6chtrhmzv0r720xmq7mxsae767d3ynrrfflfyupftepvf2adffnhckpccftjak9e8zvs8vfh7nlz48nga0w0wdm2m60gmd3lakccr9j6gl33s8kxj08lllfaru7428mhlt4hkm9akajg50nhdhvu4rhjeu5406en5hz3mzadn8thl8ps7y3r7lmuee2t24kk0hwmkh0lk0yn49jl3gu8kkf5u6ecg93xles7t87gedklgadklgadkmgadkmfavxn60yvkm0734mmqgt7uz7d7e7y77xkmf5mcmrwvn2gthfzkxx75q7vu7hqmrw6r8vmfwj8264q42evwl46m3mp366skmk8mmv29fznatzpteynryf8uwpl44r7hqmmerfy7625s9wuzr0xg3ukrq3hdsf7ekalamevt42y2m9el8aknna0ecfndjx37t8m22sva4053llv7mhulmfkva9uwemw2jum0c4w7tlekcpr0qq2xwsqp5mrl2lgz50raalr828yg9vpej23n0lqkwnhcnhyhevc5nvtkg2uahurk04yjlvthje2q233ath7uvu7vajemsx2z2lmlc9z597lwkf7ewkjh4hye3vdg2ln8lxhr30j7v86amj7d3sntj4zdhd03jrjtel7p2w90ztul5c73ltxsyc3e5yl6j9ceamushtve7fwyl5m9gtrnwsnt6jmywwdlut7syf990gfa6amld7n6gzac7wnhj0txhm6wen494lrqurd4e5ae26xe0svkjx4zvl2lcp5xrpd4pjv2xq57h50n3nh3thev7pndetda77hhw679z2222mdnpsfpaq927kn4h28fg2xs8p6rfu75m24ks05sjc54gnr30la2ztdan0dw7veevz3g4xvjlsfqn456zahl4d9gr8auw9vgl6ltm7jwn7cxhnlnkk8maagunk5tfc8z80py7sz06vf7t0xlz7kac2wg009g9lkn069w4c7mdtfan0s2sjkwux275r9cqdadsd4yl2ydqs';
-
     final response = await appClient.checkOfferValidity(
       fingerprint: fingerprint,
-      offer: offer,
+      offer: offerBech32,
     );
 
     print(response.toJson());
@@ -282,6 +286,8 @@ Future<void> main() async {
     final nftWallets =
         getWalletsResponse.wallets.where((wallet) => wallet.type == ChiaWalletType.nft).toList();
 
+    await Future<void>.delayed(const Duration(seconds: 1));
+
     // the wallet ID needs to be an NFT wallet, but it doesn't need to be the NFT wallet associated
     // with the NFT being transferred
     final response = await appClient.transferNFT(
@@ -295,12 +301,31 @@ Future<void> main() async {
     print(response.toJson());
   });
 
+  test('Should request Chia Lite Wallet to create offer for wallet ids', () async {
+    final getWalletsResponse = await appClient.getWallets(
+      fingerprint: fingerprint,
+      includeData: true,
+    );
+
+    final catWalletId =
+        getWalletsResponse.wallets.firstWhere((wallet) => wallet.type == ChiaWalletType.cat).id;
+
+    final response = await appClient.createOfferForIds(
+      fingerprint: fingerprint,
+      offer: {'1': 100000000, catWalletId.toString(): -1},
+    );
+
+    print(response.toJson());
+  });
+
   test('Should request new session using same pairing', () async {
     final getWalletsResponse = await appClient.getWallets(
       fingerprint: fingerprint,
     );
 
     print(getWalletsResponse.wallets.map((wallet) => wallet.toJson()));
+
+    await Future<void>.delayed(const Duration(seconds: 1));
 
     await appClient.requestNewSession(pairingTopic: sessionData.pairingTopic);
 
@@ -315,7 +340,6 @@ Future<void> main() async {
       'Should throw exception when Chia Lite Wallet response with JsonRpcError after user rejection',
       () async {
     // for this test, reject the getWallets request
-
     expect(
       () async => {
         await appClient.getWallets(

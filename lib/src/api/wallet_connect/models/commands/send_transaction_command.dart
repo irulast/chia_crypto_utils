@@ -81,19 +81,19 @@ class SentTransactionData {
   factory SentTransactionData.fromJson(Map<String, dynamic> json) {
     return SentTransactionData(
       transaction: pick(json, 'transaction').letJsonOrThrow(TransactionRecord.fromJson),
-      transactionId: (pick(json, 'transactionId').asStringOrThrow()).hexToBytes(),
+      transactionId: pick(json, 'transactionId').asStringOrThrow(),
       success: pick(json, 'success').asBoolOrThrow(),
     );
   }
 
   final TransactionRecord transaction;
-  final Bytes transactionId;
+  final String transactionId;
   final bool success;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'transaction': transaction.toJson(),
-      'transactionId': transactionId.toHex(),
+      'transactionId': transactionId,
       'success': success,
     };
   }

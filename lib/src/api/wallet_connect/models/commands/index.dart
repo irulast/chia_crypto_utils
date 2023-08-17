@@ -1,4 +1,5 @@
 export './check_offer_validity_command.dart';
+export './create_offer_for_ids_command.dart';
 export './get_current_address_command.dart';
 export './get_next_address_command.dart';
 export './get_nft_info_command.dart';
@@ -17,4 +18,5 @@ export './take_offer_command.dart';
 export './transfer_nft_command.dart';
 export './verify_signature_command.dart';
 export './wallet_connect_command.dart';
+export './wallet_connect_command_error_response.dart';
 export './wallet_connect_command_response.dart';

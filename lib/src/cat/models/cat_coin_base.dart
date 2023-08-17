@@ -152,6 +152,16 @@ extension CatFunctionality on CatCoin {
     throw InvalidCatException();
   }
 
+  int get catVersion {
+    if (catProgram == cat2Program) {
+      return 2;
+    }
+    if (catProgram == cat1Program) {
+      return 1;
+    }
+    throw InvalidCatException();
+  }
+
   Bytes toCatBytes() {
     return parentCoinSpend.toBytes() + toCoinPrototype().toBytes();
   }

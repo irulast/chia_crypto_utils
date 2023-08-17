@@ -1,10 +1,14 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/core/exceptions/keychain_mismatch_exception.dart';
-import 'package:chia_crypto_utils/src/did/models/uncurried_did_inner_puzzle.dart';
+import 'package:deep_pick/deep_pick.dart';
 
 abstract class DidRecord {
   static DidRecord? fromParentCoinSpend(CoinSpend parentSpend, CoinPrototype coin) {
     return _DidRecord.fromParentCoinSpend(parentSpend, coin);
+  }
+
+  static Future<DidRecord?> fromParentCoinSpendAsync(CoinSpend parentSpend, CoinPrototype coin) {
+    return _DidRecord.fromParentCoinSpendAsync(parentSpend, coin);
   }
 
   CoinPrototype get coin;
@@ -15,7 +19,7 @@ abstract class DidRecord {
   CoinSpend get parentSpend;
   int get nVerificationsRequired;
   List<Puzzlehash> get hints;
-  List<Bytes>? get backupIds;
+  List<Puzzlehash>? get backupIds;
   Bytes get did;
 
   /// Tries to convert [DidRecord] into spendable [DidInfo]
@@ -70,18 +74,79 @@ class _DidRecord implements DidRecord {
     }
 
     // inner puzzle is second curried argument of did full puzzle
+    final uncurriedInnerPuzzle = UncurriedDidInnerPuzzle.fromProgram(parentInnerPuzzle);
 
+    return _constructDidRecord(
+      coin: coin,
+      parentSpend: parentSpend,
+      did: did,
+      parentInnerPuzzle: parentInnerPuzzle,
+      innerSolution: innerSolution,
+      uncurriedInnerPuzzle: uncurriedInnerPuzzle,
+    );
+  }
+
+  static Future<DidRecord?> fromParentCoinSpendAsync(
+    CoinSpend parentSpend,
+    CoinPrototype coin,
+  ) async {
+    final uncurriedPuzzle = await parentSpend.puzzleReveal.uncurryAsync();
+    if (uncurriedPuzzle.mod != singletonTopLayerV1Program) {
+      return null;
+    }
+    final arguments = uncurriedPuzzle.arguments;
+
+    final singletonStructure = arguments[0];
+    final parentInnerPuzzle = arguments[1];
+    final did = singletonStructure.rest().first().atom;
+
+    final uncurriedParentInnerPuzzle = await parentInnerPuzzle.uncurryAsync();
+    if (uncurriedParentInnerPuzzle.mod != didInnerPuzzleProgram) {
+      return null;
+    }
+
+    // check for exit spend
+    final innerSolution = parentSpend.solution.rest().rest().first();
+    final didExitConditions = DIDWalletService.extractP2ConditionsFromInnerSolution(
+      innerSolution,
+      DidExitCondition.isThisCondition,
+      DidExitCondition.fromProgram,
+    );
+
+    if (didExitConditions.isNotEmpty) {
+      return null;
+    }
+
+    // inner puzzle is second curried argument of did full puzzle
+    final uncurriedInnerPuzzle = await UncurriedDidInnerPuzzle.fromProgramAsync(parentInnerPuzzle);
+
+    return _constructDidRecord(
+      coin: coin,
+      parentSpend: parentSpend,
+      did: did,
+      parentInnerPuzzle: parentInnerPuzzle,
+      innerSolution: innerSolution,
+      uncurriedInnerPuzzle: uncurriedInnerPuzzle,
+    );
+  }
+
+  static DidRecord _constructDidRecord({
+    required CoinPrototype coin,
+    required CoinSpend parentSpend,
+    required Bytes did,
+    required Program parentInnerPuzzle,
+    required Program innerSolution,
+    required UncurriedDidInnerPuzzle uncurriedInnerPuzzle,
+  }) {
     final lineageProof = LineageProof(
       parentCoinInfo: parentSpend.coin.parentCoinInfo,
       innerPuzzlehash: parentInnerPuzzle.hash(),
       amount: parentSpend.coin.amount,
     );
 
-    final uncurriedInnerPuzzle = UncurriedDidInnerPuzzle.fromProgram(parentInnerPuzzle);
-
     final backupIds = () {
       if (uncurriedInnerPuzzle.backUpIdsHash == Program.list([]).hash()) {
-        return <Bytes>[];
+        return <Puzzlehash>[];
       }
       try {
         return innerSolution
@@ -91,7 +156,7 @@ class _DidRecord implements DidRecord {
             .rest()
             .rest()
             .toList()
-            .map((e) => e.atom)
+            .map((e) => Puzzlehash(e.atom))
             .toList();
       } catch (e) {
         LoggingContext().info(
@@ -139,9 +204,21 @@ class _DidRecord implements DidRecord {
       case SpendMode.runInnerPuzzle:
         return didRecord;
       case SpendMode.recovery:
-        // TODO(nvjoshi2): support recovery
-        LoggingContext().error('Unsuported spend mode for DID $did: $mode');
-        return null;
+        //puzzle has been changed: new pubkey
+        final publicKeyBytes = innerSolution.toList()[4].atom;
+        final uncurriedInnerPuzzle = UncurriedDidInnerPuzzle.fromProgram(parentInnerPuzzle);
+
+        final didInnerPuzzle = DIDWalletService.createInnerPuzzleForPk(
+          publicKey: JacobianPoint.fromBytesG1(publicKeyBytes),
+          backupIdsHash: uncurriedInnerPuzzle.backUpIdsHash,
+          launcherCoinId: did,
+          nVerificationsRequired: uncurriedInnerPuzzle.nVerificationsRequired,
+          metadataProgram: uncurriedInnerPuzzle.metadataProgram,
+        );
+        return DidInfo(
+          delegate: didRecord,
+          innerPuzzle: didInnerPuzzle,
+        );
     }
   }
 
@@ -169,12 +246,12 @@ class _DidRecord implements DidRecord {
   final int nVerificationsRequired;
 
   @override
-  final List<Bytes>? backupIds;
+  final List<Puzzlehash>? backupIds;
 
   DidRecord copyWith({
     required Puzzlehash backUpIdsHash,
   }) {
-    final backupIds = backUpIdsHash == Program.list([]).hash() ? <Bytes>[] : this.backupIds;
+    final backupIds = backUpIdsHash == Program.list([]).hash() ? <Puzzlehash>[] : this.backupIds;
     return _DidRecord(
       did: did,
       coin: coin,
@@ -280,6 +357,30 @@ extension ToSpendableDid on DidRecord {
       }
     }
     return null;
+  }
+
+  Future<DidInfo?> toDidInfoAsync(WalletKeychain keychain) async {
+    return spawnAndWaitForIsolate(
+      taskArgument: keychain,
+      isolateTask: _toDidInfoTask,
+      handleTaskCompletion: (taskResultJson) {
+        final innerPuzzle = pick(taskResultJson, 'inner_puzzle').asStringOrNull();
+
+        if (innerPuzzle == null) {
+          return null;
+        }
+
+        return DidInfo(delegate: this, innerPuzzle: Program.deserialize(innerPuzzle.hexToBytes()));
+      },
+    );
+  }
+
+  Map<String, dynamic> _toDidInfoTask(WalletKeychain keychain) {
+    final did = toDidInfo(keychain);
+
+    return <String, dynamic>{
+      'inner_puzzle': did?.innerPuzzle.serialize().toHex(),
+    };
   }
 
   DidInfo toDidInfoOrThrow(WalletKeychain keychain) {

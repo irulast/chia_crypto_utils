@@ -636,7 +636,7 @@ class ChiaFullNodeInterface {
 
     return didInfos;
   }
-  
+
   /// look for dids by checking for spent launcher coins
   Future<List<DidRecord>> getDidRecordsByPuzzleHashes(List<Puzzlehash> puzzlehashes) async {
     final spentCoins = (await getCoinsByPuzzleHashes(puzzlehashes, includeSpentCoins: true))
@@ -720,9 +720,12 @@ class ChiaFullNodeInterface {
 }
 
 extension PushAndWaitForSpendBundle on ChiaFullNodeInterface {
-  Future<void> pushAndWaitForSpendBundle(SpendBundle spendBundle, {LoggingFunction? log}) async {
+  Future<List<Coin>> pushAndWaitForSpendBundle(
+    SpendBundle spendBundle, {
+    LoggingFunction? log,
+  }) async {
     final blockChainUtils = BlockchainUtils(this, logger: log);
     await pushTransaction(spendBundle);
-    await blockChainUtils.waitForSpendBundle(spendBundle);
+    return blockChainUtils.waitForSpendBundle(spendBundle);
   }
 }

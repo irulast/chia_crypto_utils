@@ -9,7 +9,7 @@ class GetTransactionCommand implements WalletConnectCommand {
 
   factory GetTransactionCommand.fromParams(Map<String, dynamic> params) {
     return GetTransactionCommand(
-      transactionId: pick(params, 'transactionId').letStringOrThrow(Bytes.fromHex),
+      transactionId: Bytes.fromHex(pick(params, 'transactionId').asStringOrThrow()),
     );
   }
 
@@ -109,7 +109,7 @@ class TransactionRecord {
       createdAtTime: pick(json, 'createdAtTime').asIntOrThrow(),
       feeAmount: pick(json, 'feeAmount').asIntOrThrow(),
       memos: memos,
-      name: (pick(json, 'name').asStringOrThrow()).hexToBytes(),
+      name: pick(json, 'name').asStringOrThrow(),
       removals: pick(json, 'removals').letJsonListOrThrow(CoinPrototype.fromCamelJson),
       sent: pick(json, 'sent').asIntOrThrow(),
       sentTo: pick(json, 'sentTo').asListOrEmpty((p0) => p0.asString()),
@@ -129,7 +129,7 @@ class TransactionRecord {
   final int createdAtTime;
   final int feeAmount;
   final Map<Bytes, List<Memo>> memos;
-  final Bytes name;
+  final String name;
   final List<CoinPrototype> removals;
   final int sent;
   final List<String> sentTo;
@@ -150,7 +150,7 @@ class TransactionRecord {
       'feeAmount': feeAmount,
       'memos': memos
           .map((key, value) => MapEntry(key.toHex(), value.map((memo) => memo.toHex()).toList())),
-      'name': name.toHex(),
+      'name': name,
       'removals': removals.map((coin) => coin.toCamelJson()).toList(),
       'sent': sent,
       'sentTo': sentTo,
