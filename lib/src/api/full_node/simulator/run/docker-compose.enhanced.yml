@@ -10,6 +10,6 @@ services:
       dockerfile: Dockerfile.enhanced
     healthcheck:
       test: ["CMD-SHELL", "curl --output /dev/null --silent --fail -d '{}' -H 'Content-Type: application/json' -X POST http://0.0.0.0:80/get_blockchain_state"]
-      start_period: 1m
-      interval: 10s
-      timeout: 5m
+      start_period: 30s
+      interval: 5s
+      timeout: 1m

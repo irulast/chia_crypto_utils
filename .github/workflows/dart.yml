@@ -46,7 +46,7 @@ jobs:
       working-directory: lib/src/api/full_node/simulator/run
 
     - name: Run tests
-      run: dart test integration_test/api_test/full_node_interface_test.dart 
+      run: dart test integration_test/api_test/full_node_interface_test.dart --plain-name "should get standard coins by puzzlehashes"
 
     # - name: Run tests
     #   run: flutter test ./integration_test test --coverage --concurrency=1
