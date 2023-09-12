@@ -46,16 +46,13 @@ jobs:
       working-directory: lib/src/api/full_node/simulator/run
 
     - name: Run tests
-      run: dart test integration_test/api_test/full_node_interface_test.dart --plain-name "should get standard coins by puzzlehashes"
+      run: flutter test ./integration_test test --coverage --concurrency=1
 
-    # - name: Run tests
-    #   run: flutter test ./integration_test test --coverage --concurrency=1
+    - name: Generate coverate report 
+      run: genhtml coverage/lcov.info -o coverage
 
-    # - name: Generate coverate report 
-    #   run: genhtml coverage/lcov.info -o coverage
-
-    # - name: Upload code coverage to GitHub
-    #   uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074
-    #   with:
-    #     name: code-coverage
-    #     path: coverage
+    - name: Upload code coverage to GitHub
+      uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074
+      with:
+        name: code-coverage
+        path: coverage
