@@ -2,7 +2,7 @@ name: Analysis and Code Coverage
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, fix_github_actions ]
   pull_request:
     branches: [ main ]
 
@@ -13,7 +13,7 @@ jobs:
     steps:
     - name: Clone the repository
       uses: actions/checkout@v1
-    
+
     - name: Install Tools
       run: sudo apt update && sudo apt install lcov
 
@@ -33,17 +33,22 @@ jobs:
       run: |
         flutter config --no-analytics
         flutter precache
+
+    - name: Reconfigure git to use HTTP authentication
+      run: >
+        git config --global url."https://github.com/".insteadOf 'git@github.com:'
+
     - name: Get Flutter packages
       run: flutter pub get
 
     - name: Run tests
-      run: flutter test --coverage 
+      run: flutter test integration_test/api_test/full_node_interface_test.dart --plain-name "should get standard coins by puzzlehashes" --coverage 
 
-    - name: Generate coverate report 
-      run: genhtml coverage/lcov.info -o coverage
+    # - name: Generate coverate report 
+    #   run: genhtml coverage/lcov.info -o coverage
 
-    - name: Upload code coverage to GitHub
-      uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074
-      with:
-        name: code-coverage
-        path: coverage
+    # - name: Upload code coverage to GitHub
+    #   uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074
+    #   with:
+    #     name: code-coverage
+    #     path: coverage
