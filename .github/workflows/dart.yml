@@ -42,13 +42,11 @@ jobs:
       run: flutter pub get
     
     - name: Start simulator 
-      run: | 
-        cd lib/src/api/full_node/simulator/run
-        docker build -f Dockerfile.enhanced . -t chia-simulator-enhanced
-        docker run -p 5000:80 chia-simulator-enhanced
+      run: docker compose -f docker-compose.enhanced.yml up --wait -d
+      working-directory: lib/src/api/full_node/simulator/run
 
     - name: Run tests
-      run: dart test integration_test/api_test/full_node_interface_test.dart --plain-name "should get standard coins by puzzlehashes" 
+      run: dart test integration_test/api_test/full_node_interface_test.dart 
 
     # - name: Run tests
     #   run: flutter test ./integration_test test --coverage --concurrency=1

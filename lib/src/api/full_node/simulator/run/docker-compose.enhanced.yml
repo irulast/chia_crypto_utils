@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  simulator:
+    container_name: chia-simulator-enhanced
+    ports:
+      - 5000:80
+    build: 
+      context: .
+      dockerfile: Dockerfile.enhanced
+    healthcheck:
+      test: ["CMD-SHELL", "curl --output /dev/null --silent --fail -d '{}' -H 'Content-Type: application/json' -X POST http://0.0.0.0:80/get_blockchain_state"]
+      start_period: 1m
+      interval: 10s
+      timeout: 5m
