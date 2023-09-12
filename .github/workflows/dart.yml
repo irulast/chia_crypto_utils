@@ -42,7 +42,7 @@ jobs:
       run: flutter pub get
 
     - name: Run tests
-      run: flutter test integration_test/api_test/full_node_interface_test.dart --plain-name "should get standard coins by puzzlehashes" --coverage 
+      run: dart test integration_test/api_test/full_node_interface_test.dart --plain-name "should get standard coins by puzzlehashes" 
 
     # - name: Generate coverate report 
     #   run: genhtml coverage/lcov.info -o coverage
