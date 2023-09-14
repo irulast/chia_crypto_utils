@@ -29,27 +29,32 @@ jobs:
         ls -al "$GITHUB_WORKSPACE/../flutter/bin"
         echo "$GITHUB_WORKSPACE/../flutter/bin" >> $GITHUB_PATH
         echo "$GITHUB_WORKSPACE/../flutter/bin/cache/dart-sdk/bin" >> $GITHUB_PATH
+      
     - name: Populate the Flutter tool's cache of binary artifacts
       run: |
         flutter config --no-analytics
         flutter precache
-
+    
     - name: Reconfigure git to use HTTP authentication
       run: >
         git config --global url."https://github.com/".insteadOf 'git@github.com:'
 
     - name: Get Flutter packages
       run: flutter pub get
-    
-    - name: Start simulator 
-      run: docker compose -f docker-compose.enhanced.yml up --wait -d
-      working-directory: lib/src/api/full_node/simulator/run
 
-    - name: Run tests
-      run: flutter test ./integration_test test --coverage --concurrency=1
+    - name: Run simulator tests 
+      run: bash ./integration_test/run_tests.sh
+
+    -name: Run unit tests
+      run: flutter test test --coverage --coverage-path=coverage/test.info
+
+    -name: Merge coverage reports
+      run: |
+        lcov --add-tracefile coverage/test.info --add-tracefile coverage/integration_test.info --output-file coverage/merged_coverage.info
+        rm -rf coverage/*test.info
 
     - name: Generate coverate report 
-      run: genhtml coverage/lcov.info -o coverage
+      run: genhtml coverage/merged_coverage.info -o coverage
 
     - name: Upload code coverage to GitHub
       uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074

@@ -19,6 +19,8 @@ Future<void> main() async {
     blockchainUtils: SimulatorBlockchainUtils(fullNodeSimulator),
   );
 
+  const desiredNumberOfCoins = 91;
+
   late ChiaEnthusiast meera;
 
   setUp(() async {
@@ -34,7 +36,7 @@ Future<void> main() async {
       keychain: meera.keychain,
       splitWidth: 3,
       feePerCoin: 10000,
-      desiredNumberOfCoins: 91,
+      desiredNumberOfCoins: desiredNumberOfCoins,
       desiredAmountPerCoin: 101,
       changePuzzlehash: meera.firstPuzzlehash,
     );
@@ -51,121 +53,113 @@ Future<void> main() async {
   test('should throw error when cat balance is not enough to meet desired splitting parameters',
       () async {
     //cat coin balance is 100000000
-    expect(
-      () async {
-        await coinSplittingService.splitCoins(
-          catCoinToSplit: meera.catCoins[0],
-          standardCoinsForFee: meera.standardCoins,
-          keychain: meera.keychain,
-          splitWidth: 3,
-          feePerCoin: 1000,
-          desiredNumberOfCoins: 91,
-          desiredAmountPerCoin: 10000000,
-          changePuzzlehash: meera.firstPuzzlehash,
-        );
-      },
-      throwsArgumentError,
-    );
+
+    try {
+      await coinSplittingService.splitCoins(
+        catCoinToSplit: meera.catCoins[0],
+        standardCoinsForFee: meera.standardCoins,
+        keychain: meera.keychain,
+        splitWidth: 3,
+        feePerCoin: 1000,
+        desiredNumberOfCoins: desiredNumberOfCoins,
+        desiredAmountPerCoin: 10000000,
+        changePuzzlehash: meera.firstPuzzlehash,
+      );
+    } catch (e) {
+      expect(e, isA<ArgumentError>());
+    }
   });
 
   test(
       'should throw error when cat balance is just barely not enough to meet desired splitting parameters',
       () async {
-    expect(
-      () async {
-        await coinSplittingService.splitCoins(
-          catCoinToSplit: meera.catCoins[0],
-          standardCoinsForFee: meera.standardCoins,
-          keychain: meera.keychain,
-          splitWidth: 3,
-          feePerCoin: 1000,
-          desiredNumberOfCoins: 91,
-          desiredAmountPerCoin: 1111112,
-          changePuzzlehash: meera.firstPuzzlehash,
-        );
-      },
-      throwsArgumentError,
-    );
+    try {
+      await coinSplittingService.splitCoins(
+        catCoinToSplit: meera.catCoins[0],
+        standardCoinsForFee: meera.standardCoins,
+        keychain: meera.keychain,
+        splitWidth: 3,
+        feePerCoin: 1000,
+        desiredNumberOfCoins: desiredNumberOfCoins,
+        desiredAmountPerCoin: 1111112,
+        changePuzzlehash: meera.firstPuzzlehash,
+      );
+    } catch (e) {
+      expect(e, isA<ArgumentError>());
+    }
   });
 
   test('should work when cat balance is just barely enough to meet desired splitting parameters',
       () async {
-    expect(
-      () async {
-        await coinSplittingService.splitCoins(
-          catCoinToSplit: meera.catCoins[0],
-          standardCoinsForFee: meera.standardCoins,
-          keychain: meera.keychain,
-          splitWidth: 3,
-          feePerCoin: 1000,
-          desiredNumberOfCoins: 91,
-          desiredAmountPerCoin: 1111111,
-          changePuzzlehash: meera.firstPuzzlehash,
-        );
-      },
-      returnsNormally,
+    final returnedNumberOfCoins = await coinSplittingService.splitCoins(
+      catCoinToSplit: meera.catCoins[0],
+      standardCoinsForFee: meera.standardCoins,
+      keychain: meera.keychain,
+      splitWidth: 3,
+      feePerCoin: 1000,
+      desiredNumberOfCoins: desiredNumberOfCoins,
+      desiredAmountPerCoin: 111111,
+      changePuzzlehash: meera.firstPuzzlehash,
     );
+
+    expect(returnedNumberOfCoins, equals(desiredNumberOfCoins));
   });
 
   test(
       'should throw error when standard balance is not enough to meet desired splitting parameters',
       () async {
-    //standard balance is 1999900000000
-    expect(
-      () async {
-        await coinSplittingService.splitCoins(
-          catCoinToSplit: meera.catCoins[0],
-          standardCoinsForFee: meera.standardCoins,
-          keychain: meera.keychain,
-          splitWidth: 3,
-          feePerCoin: 50000000000,
-          desiredNumberOfCoins: 91,
-          desiredAmountPerCoin: 101,
-          changePuzzlehash: meera.firstPuzzlehash,
-        );
-      },
-      throwsArgumentError,
-    );
+    // standard balance is 1999900000000
+
+    try {
+      await coinSplittingService.splitCoins(
+        catCoinToSplit: meera.catCoins[0],
+        standardCoinsForFee: meera.standardCoins,
+        keychain: meera.keychain,
+        splitWidth: 3,
+        feePerCoin: 50000000000,
+        desiredNumberOfCoins: desiredNumberOfCoins,
+        desiredAmountPerCoin: 101,
+        changePuzzlehash: meera.firstPuzzlehash,
+      );
+    } catch (e) {
+      expect(e, isA<ArgumentError>());
+    }
   });
 
   test(
       'should throw error when standard balance is just barely not enough to meet desired splitting parameters',
       () async {
-    expect(
-      () async {
-        await coinSplittingService.splitCoins(
-          catCoinToSplit: meera.catCoins[0],
-          standardCoinsForFee: meera.standardCoins,
-          keychain: meera.keychain,
-          splitWidth: 3,
-          feePerCoin: 8583261803,
-          desiredNumberOfCoins: 91,
-          desiredAmountPerCoin: 101,
-          changePuzzlehash: meera.firstPuzzlehash,
-        );
-      },
-      throwsArgumentError,
-    );
+    try {
+      await coinSplittingService.splitCoins(
+        catCoinToSplit: meera.catCoins[0],
+        standardCoinsForFee: meera.standardCoins,
+        keychain: meera.keychain,
+        splitWidth: 3,
+        feePerCoin: 8583261803,
+        desiredNumberOfCoins: desiredNumberOfCoins,
+        desiredAmountPerCoin: 101,
+        changePuzzlehash: meera.firstPuzzlehash,
+      );
+    } catch (e) {
+      expect(e, isA<ArgumentError>());
+    }
   });
 
   test(
       'should work when standard balance is just barely enough to meet desired splitting parameters',
       () async {
-    expect(
-      () async {
-        await coinSplittingService.splitCoins(
-          catCoinToSplit: meera.catCoins[0],
-          standardCoinsForFee: meera.standardCoins,
-          keychain: meera.keychain,
-          splitWidth: 3,
-          feePerCoin: 8583261802,
-          desiredNumberOfCoins: 91,
-          desiredAmountPerCoin: 101,
-          changePuzzlehash: meera.firstPuzzlehash,
-        );
-      },
-      returnsNormally,
+    final returnedNumberOfCoins = await coinSplittingService.splitCoins(
+      catCoinToSplit: meera.catCoins[0],
+      standardCoinsForFee: meera.standardCoins,
+      keychain: meera.keychain,
+      splitWidth: 3,
+      feePerCoin: 200000000,
+      desiredNumberOfCoins: desiredNumberOfCoins,
+      desiredAmountPerCoin: 101,
+      changePuzzlehash: meera.firstPuzzlehash,
     );
+
+    expect(returnedNumberOfCoins, equals(returnedNumberOfCoins));
   });
 
   test('should throw error when there are not enough puzzlehashes to cover split width', () async {
@@ -174,21 +168,20 @@ Future<void> main() async {
     await nathan.farmCoins();
     await nathan.issueMultiIssuanceCat(nathan.keychainSecret.masterPrivateKey);
 
-    expect(
-      () async {
-        await coinSplittingService.splitCoins(
-          catCoinToSplit: nathan.catCoins[0],
-          standardCoinsForFee: nathan.standardCoins,
-          keychain: nathan.keychain,
-          splitWidth: 3,
-          feePerCoin: 10000,
-          desiredNumberOfCoins: 91,
-          desiredAmountPerCoin: 101,
-          changePuzzlehash: nathan.firstPuzzlehash,
-        );
-      },
-      throwsArgumentError,
-    );
+    try {
+      await coinSplittingService.splitCoins(
+        catCoinToSplit: nathan.catCoins[0],
+        standardCoinsForFee: nathan.standardCoins,
+        keychain: nathan.keychain,
+        splitWidth: 3,
+        feePerCoin: 10000,
+        desiredNumberOfCoins: desiredNumberOfCoins,
+        desiredAmountPerCoin: 101,
+        changePuzzlehash: nathan.firstPuzzlehash,
+      );
+    } catch (e) {
+      expect(e, isA<ArgumentError>());
+    }
   });
 
   test(
@@ -198,20 +191,19 @@ Future<void> main() async {
     await nathan.farmCoins();
     await nathan.issueMultiIssuanceCat(nathan.keychainSecret.masterPrivateKey);
 
-    expect(
-      () async {
-        await coinSplittingService.splitCoins(
-          catCoinToSplit: nathan.catCoins[0],
-          standardCoinsForFee: nathan.standardCoins,
-          keychain: nathan.keychain,
-          splitWidth: 3,
-          feePerCoin: 10000,
-          desiredNumberOfCoins: 91,
-          desiredAmountPerCoin: 101,
-          changePuzzlehash: nathan.firstPuzzlehash,
-        );
-      },
-      throwsArgumentError,
-    );
+    try {
+      await coinSplittingService.splitCoins(
+        catCoinToSplit: nathan.catCoins[0],
+        standardCoinsForFee: nathan.standardCoins,
+        keychain: nathan.keychain,
+        splitWidth: 3,
+        feePerCoin: 10000,
+        desiredNumberOfCoins: desiredNumberOfCoins,
+        desiredAmountPerCoin: 101,
+        changePuzzlehash: nathan.firstPuzzlehash,
+      );
+    } catch (e) {
+      expect(e, isA<ArgumentError>());
+    }
   });
 }

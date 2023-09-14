@@ -2,7 +2,6 @@ version: '3'
 
 services:
   simulator:
-    container_name: chia-simulator-enhanced
     ports:
       - 5000:80
     build: 
