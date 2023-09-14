@@ -45,10 +45,10 @@ jobs:
     - name: Run simulator tests 
       run: bash ./integration_test/run_tests.sh
 
-    -name: Run unit tests
+    - name: Run unit tests
       run: flutter test test --coverage --coverage-path=coverage/test.info
 
-    -name: Merge coverage reports
+    - name: Merge coverage reports
       run: |
         lcov --add-tracefile coverage/test.info --add-tracefile coverage/integration_test.info --output-file coverage/merged_coverage.info
         rm -rf coverage/*test.info
