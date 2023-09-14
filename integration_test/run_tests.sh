@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
-# starts container and waits for healthcheck to pass
 function start_simulator() {
   docker compose -f lib/src/api/full_node/simulator/run/docker-compose.enhanced.yml up --wait -d --force-recreate
+
+  # sometimes the first test will fail if run immediately after the simulator healthcheck passes, so wait 3 seconds
+  sleep 3
 }
 
 
