@@ -104,6 +104,10 @@ class ChiaEnthusiast extends ChiaEnthusiastBase {
     final assetId = Puzzlehash(curriedTail.hash());
     addAssetIdToKeychain(assetId);
 
+    if (standardCoins.isEmpty) {
+      await farmCoins();
+    }
+
     final originCoin = standardCoins[0];
 
     final curriedGenesisByCoinIdPuzzle =

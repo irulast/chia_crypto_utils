@@ -1,5 +1,5 @@
-@Timeout(Duration(minutes: 5))
 @Skip('These are interactive tests using Chia Lite Wallet')
+@Timeout(Duration(minutes: 5))
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:test/test.dart';
 import 'package:walletconnect_flutter_v2/apis/core/core.dart';

@@ -1,3 +1,4 @@
+@Skip('These tests should be run manually, as they depend on the WalletConnect relay server')
 @Timeout(Duration(minutes: 5))
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:test/test.dart';
