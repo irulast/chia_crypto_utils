@@ -2,7 +2,7 @@ name: Analysis and Code Coverage
 
 on:
   push:
-    branches: [ main, fix_github_actions ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -48,12 +48,12 @@ jobs:
     - name: Run unit tests
       run: flutter test test --coverage --coverage-path=coverage/test.info
 
-    - name: Merge coverage reports
+    - name: Merge coverage files
       run: |
         lcov --add-tracefile coverage/test.info --add-tracefile coverage/integration_test.info --output-file coverage/merged_coverage.info
         rm -rf coverage/*test.info
 
-    - name: Generate coverate report 
+    - name: Generate coverage report 
       run: genhtml coverage/merged_coverage.info -o coverage
 
     - name: Upload code coverage to GitHub
