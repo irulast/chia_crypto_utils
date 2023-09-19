@@ -10,17 +10,13 @@ class WalletConnectAppClient {
     this.displayUri,
   );
 
-  // factory WalletConnectAppClient.fromProjectId(
-  //   String projectId, {
-  //   required FutureOr<void> Function(Uri uri) displayUri,
-  // }) {
-  //   final web3App = Web3App(core: Core(projectId: projectId), metadata: defaultPairingMetadata);
-  //   return WalletConnectAppClient(web3App, displayUri);
-  // }
-
   final Web3App _web3App;
   final FutureOr<void> Function(Uri uri) displayUri;
   SessionData? _sessionData;
+
+  bool get isConnected {
+    return _sessionData != null;
+  }
 
   /// throws [NotConnectedException] if not yet initialized
   SessionData get sessionData {
@@ -40,7 +36,15 @@ class WalletConnectAppClient {
     return sessionData.fingerprints;
   }
 
-  Future<void> init() => _web3App.init();
+  Future<void> init() async {
+    await _web3App.init();
+
+    _web3App.sessions.onDelete.subscribe((event) {
+      if (isConnected && event?.value.topic == _topic) {
+        _sessionData = null;
+      }
+    });
+  }
 
   /// Establish a connection with a new wallet
   Future<SessionData> pair({
