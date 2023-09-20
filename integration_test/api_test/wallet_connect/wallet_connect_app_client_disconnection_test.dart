@@ -29,11 +29,13 @@ Future<void> main() async {
   });
 
   test('app should connect and disconnect', () async {
-    await appClient.pair();
+    final sessionData = await appClient.pair();
 
     expect(appClient.isConnected, isTrue);
 
-    await appClient.disconnectSession();
+    await appClient.disconnectPairing(sessionData.pairingTopic);
+
+    await Future<void>.delayed(const Duration(seconds: 1));
 
     expect(appClient.isConnected, isFalse);
   });

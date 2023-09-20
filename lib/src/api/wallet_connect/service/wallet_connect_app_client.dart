@@ -54,8 +54,12 @@ class WalletConnectAppClient {
         ? requiredCommandTypes.commandNames
         : WalletConnectCommandType.values.commandNames;
 
-    // reset session data
-    _sessionData = null;
+    // disconnect from current connection if there is one
+    if (isConnected) {
+      final pairingTopic = sessionData.pairingTopic;
+      await disconnectSession();
+      await disconnectPairing(pairingTopic);
+    }
 
     final connectResponse = await _web3App.connect(
       requiredNamespaces: {
