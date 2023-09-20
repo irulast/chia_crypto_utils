@@ -54,6 +54,9 @@ class WalletConnectAppClient {
         ? requiredCommandTypes.commandNames
         : WalletConnectCommandType.values.commandNames;
 
+    // reset session data
+    _sessionData = null;
+
     final connectResponse = await _web3App.connect(
       requiredNamespaces: {
         'chia': RequiredNamespace(
