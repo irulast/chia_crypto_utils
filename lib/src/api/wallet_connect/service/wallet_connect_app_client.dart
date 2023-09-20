@@ -6,11 +6,11 @@ import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 /// Used for connecting to wallets and requesting data from them via a [WalletConnectCommand].
 class WalletConnectAppClient {
   WalletConnectAppClient(
-    this._web3App,
+    this.web3App,
     this.displayUri,
   );
 
-  final Web3App _web3App;
+  final Web3App web3App;
   final FutureOr<void> Function(Uri uri) displayUri;
   SessionData? _sessionData;
 
@@ -37,9 +37,9 @@ class WalletConnectAppClient {
   }
 
   Future<void> init() async {
-    await _web3App.init();
+    await web3App.init();
 
-    _web3App.sessions.onDelete.subscribe((event) {
+    web3App.sessions.onDelete.subscribe((event) {
       if (isConnected && event?.value.topic == _topic) {
         _sessionData = null;
       }
@@ -61,7 +61,7 @@ class WalletConnectAppClient {
       await disconnectPairing(pairingTopic);
     }
 
-    final connectResponse = await _web3App.connect(
+    final connectResponse = await web3App.connect(
       requiredNamespaces: {
         'chia': RequiredNamespace(
           chains: [walletConnectChainId],
@@ -94,7 +94,7 @@ class WalletConnectAppClient {
         ? requiredCommandTypes.map((type) => type.commandName).toList()
         : WalletConnectCommandType.values.commandNames;
 
-    final connectResponse = await _web3App.connect(
+    final connectResponse = await web3App.connect(
       requiredNamespaces: {
         'chia': RequiredNamespace(
           chains: [walletConnectChainId],
@@ -129,7 +129,7 @@ class WalletConnectAppClient {
     }
   }
 
-  List<PairingInfo> getPairings() => _web3App.pairings.getAll();
+  List<PairingInfo> getPairings() => web3App.pairings.getAll();
 
   Future<GetTransactionResponse> getTransaction({
     required int fingerprint,
@@ -422,7 +422,7 @@ class WalletConnectAppClient {
 
     late final dynamic response;
     try {
-      response = await _web3App.request(
+      response = await web3App.request(
         topic: _topic,
         chainId: walletConnectChainId,
         request: request,
@@ -458,7 +458,7 @@ class WalletConnectAppClient {
 
   Future<void> disconnectSession() async {
     try {
-      await _web3App.disconnectSession(
+      await web3App.disconnectSession(
         topic: _topic,
         reason: Errors.getInternalError(Errors.EXPIRED),
       );
@@ -468,7 +468,7 @@ class WalletConnectAppClient {
   }
 
   Future<void> disconnectPairing(String topic) async {
-    await _web3App.core.pairing.disconnect(topic: topic);
+    await web3App.core.pairing.disconnect(topic: topic);
   }
 }
 
