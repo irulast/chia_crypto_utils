@@ -1,4 +1,4 @@
-// @Skip('uses unpublished enhanced endpoints')
+@Timeout(Duration(minutes: 5))
 
 // ignore_for_file: lines_longer_than_80_chars
 
