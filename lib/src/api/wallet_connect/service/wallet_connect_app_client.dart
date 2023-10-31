@@ -495,11 +495,11 @@ class RejectedSessionProposalException implements Exception {
 class JsonRpcErrorWalletResponseException implements Exception {
   const JsonRpcErrorWalletResponseException(this.message);
 
-  final String message;
+  final String? message;
 
   @override
   String toString() =>
-      'Wallet responded with JsonRpcError: $message. This may be due to user rejection or a request with the incorrect format or parameters';
+      'Wallet responded with JsonRpcError${message != null ? ': $message' : ''}. This may be due to user rejection or a request with the incorrect format or parameters';
 }
 
 class GeneralWalletResponseException implements Exception {
