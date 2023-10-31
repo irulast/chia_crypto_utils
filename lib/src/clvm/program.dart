@@ -152,7 +152,7 @@ class Program with ToBytesMixin, ToProgramMixin {
   bool get isAtom => _atom != null;
   bool get isCons => _cons != null;
   Bytes get atom => _atom!;
-  Bytes? get maybeAtom => _atom?.isNotEmpty == true ? _atom : null;
+  Bytes? get maybeAtom => (_atom?.isNotEmpty ?? false) ? _atom : null;
   List<Program> get cons => _cons!;
   String get positionSuffix => position == null ? '' : ' at $position';
   static Program? maybeFromBytes(List<int>? atom) {

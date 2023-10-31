@@ -88,7 +88,7 @@ Future<void> main() async {
     final response = await dexieApi.inspectOffer(dexieId);
 
     expect(response.success, equals(false));
-    expect(response.errorMessage, equals('Not found'));
+    expect(response.errorMessage, equals('Not Found'));
   });
 
   test('should correctly generate dexie id from serialized offer file', () {
