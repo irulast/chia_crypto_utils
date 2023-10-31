@@ -1,35 +1,36 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:deep_pick/deep_pick.dart';
 
 class TailInfo with ToJsonMixin {
   TailInfo({
-    required this.name,
-    required this.assetId,
-    required this.code,
-    required this.category,
-    required this.supply,
-    required this.description,
-    required this.tailProgram,
-    required this.logoUrl,
-    required this.websiteUrl,
-    required this.clsp,
-    required this.hashgreenInfo,
+    this.name,
+    this.assetId,
+    this.code,
+    this.category,
+    this.supply,
+    this.description,
+    this.tailProgram,
+    this.logoUrl,
+    this.websiteUrl,
+    this.clsp,
+    this.hashgreenInfo,
   });
-  TailInfo.fromJson(Map<String, dynamic> json)
-      : name = json['name'] as String?,
-        clsp = json['chialisp'] as String?,
-        assetId = json['hash'] == null ? null : Puzzlehash.fromHex(json['hash'] as String),
-        code = json['code'] as String?,
-        category = json['category'] as String?,
-        supply = json['supply'] as num?,
-        description = json['description'] as String?,
-        tailProgram =
-            json['tail_reveal'] == null ? null : Program.parse(json['tail_reveal'] as String),
-        hashgreenInfo = json['hashgreen'] == null
-            ? null
-            : HashgreenInfo.fromJson(json['hashgreen'] as Map<String, dynamic>),
-        logoUrl = json['nft_uri'] as String?,
-        websiteUrl = json['website_url'] as String?;
-        
+  factory TailInfo.fromJson(Map<String, dynamic> json) {
+    return TailInfo(
+      name: pick(json, 'name').asStringOrNull(),
+      assetId: pick(json, 'hash').letStringOrNull(Puzzlehash.fromHex),
+      code: pick(json, 'code').asStringOrNull(),
+      category: pick(json, 'category').asStringOrNull(),
+      supply: pick(json, 'supply').asDoubleOrNull(),
+      description: pick(json, 'description').asStringOrNull(),
+      tailProgram: pick(json, 'tail_reveal').letStringOrNull(Program.parse),
+      logoUrl: pick(json, 'nft_uri').asStringOrNull(),
+      websiteUrl: pick(json, 'website_url').asStringOrNull(),
+      clsp: pick(json, 'chialisp').asStringOrNull(),
+      hashgreenInfo: pick(json, 'hashgreen').letJsonOrNull(HashgreenInfo.fromJson),
+    );
+  }
+
   final String? name;
   final String? clsp;
   final Puzzlehash? assetId;
@@ -57,6 +58,29 @@ class TailInfo with ToJsonMixin {
         'website_url': websiteUrl,
       };
 
+  TailInfo maybeWithOverride(TailInfo? override) {
+    if (override == null) {
+      return this;
+    }
+    return withOverride(override);
+  }
+
+  TailInfo withOverride(TailInfo override) {
+    return TailInfo(
+      name: override.name ?? name,
+      assetId: override.assetId ?? assetId,
+      code: override.code ?? code,
+      category: override.category ?? category,
+      supply: override.supply ?? supply,
+      description: override.description ?? description,
+      tailProgram: override.tailProgram ?? tailProgram,
+      logoUrl: override.logoUrl ?? logoUrl,
+      websiteUrl: override.websiteUrl ?? websiteUrl,
+      clsp: override.clsp ?? clsp,
+      hashgreenInfo: override.hashgreenInfo ?? hashgreenInfo,
+    );
+  }
+
   @override
   String toString() => 'TailInfo(name: $name, clsp: $clsp, assetId: $assetId, '
       'code: $code, category: $category, supply: $supply, '
@@ -70,8 +94,8 @@ class HashgreenInfo {
     required this.marketcap,
   });
   HashgreenInfo.fromJson(Map<String, dynamic> json)
-      : price = (json['price'] as String?) == null ? null : double.parse(json['price'] as String),
-        marketcap = json['marketcap'] as num?;
+      : price = pick(json, 'price').asDoubleOrNull(),
+        marketcap = pick(json, 'marketcap').asDoubleOrNull();
   final double? price;
   final num? marketcap;
 

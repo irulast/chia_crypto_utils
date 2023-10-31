@@ -9,6 +9,13 @@ Future<void> main() async {
     expect(TestData.validCat1Coin0.assetId, TestData.cat1AssetId);
   });
 
+  // test('errors when constructing CAT2 using CAT1 coin', () {
+  //   expect(
+  //     () => TestData.invalidCatCoin0,
+  //     throwsA(isA<InvalidCatException>()),
+  //   );
+  // });
+
   test('does not error on valid CAT2', () {
     expect(TestData.validCatCoin0.assetId, TestData.catAssetId);
   });

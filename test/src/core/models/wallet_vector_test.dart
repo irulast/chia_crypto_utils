@@ -35,7 +35,7 @@ void main() {
     'WalletVector serializarion and deserialization to bytes must work',
     () async {
       final keychainSecret = KeychainCoreSecret.fromMnemonic(testMnemonic);
-      final wv = WalletVector.fromPrivateKey(
+      final wv = WalletVector.fromMasterPrivateKey(
         keychainSecret.masterPrivateKey,
         0,
       );

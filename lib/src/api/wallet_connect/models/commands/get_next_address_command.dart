@@ -6,7 +6,6 @@ class GetNextAddressCommand implements WalletConnectCommand {
     this.walletId = 1,
     this.newAddress = true,
   });
-
   factory GetNextAddressCommand.fromParams(Map<String, dynamic> params) {
     return GetNextAddressCommand(
       walletId: pick(params, 'walletId').asIntOrNull(),
@@ -30,7 +29,6 @@ class GetAddressResponse
     with ToJsonMixin, WalletConnectCommandResponseDecoratorMixin
     implements WalletConnectCommandBaseResponse {
   const GetAddressResponse(this.delegate, this.address);
-
   factory GetAddressResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 

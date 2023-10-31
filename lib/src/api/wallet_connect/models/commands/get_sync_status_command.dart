@@ -17,7 +17,6 @@ class GetSyncStatusResponse
     with ToJsonMixin, WalletConnectCommandResponseDecoratorMixin
     implements WalletConnectCommandBaseResponse {
   const GetSyncStatusResponse(this.delegate, this.syncStatusData);
-
   factory GetSyncStatusResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
@@ -46,7 +45,6 @@ class SyncStatusData {
     required this.synced,
     required this.syncing,
   });
-
   factory SyncStatusData.fromJson(Map<String, dynamic> json) {
     return SyncStatusData(
       genesisInitialized: pick(json, 'genesisInitialized').asBoolOrThrow(),

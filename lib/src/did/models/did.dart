@@ -109,5 +109,3 @@ class DidInfo implements DidRecord {
     return this;
   }
 }
-
-const didPrefix = 'did:chia:';

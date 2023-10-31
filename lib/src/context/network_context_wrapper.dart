@@ -8,7 +8,7 @@ import 'package:chia_crypto_utils/src/networks/chia/testnet10/testnet10_blockcha
 class ChiaNetworkContextWrapper extends NetworkContext {
   void registerNetworkContext(
     Network network, {
-    Environment environment = Environment.pureDart,
+    Environment environment = Environment.flutter,
   }) {
     final chiaBlockchainNetworkLoader = ChiaBlockchainNetworkLoader();
 

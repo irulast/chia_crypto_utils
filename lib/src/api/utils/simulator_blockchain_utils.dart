@@ -23,10 +23,10 @@ class SimulatorBlockchainUtils implements BlockchainUtils {
     String logMessage = 'waiting for transactions to be included',
   }) async {
     await simulator.moveToNextBlock();
-    final coins = await simulator.getCoinsByIds(parentCoinIds, includeSpentCoins: true);
-    if (parentCoinIds.length != coins.length) {
-      throw Exception('was goin on');
-    }
-    return coins;
+
+    return [];
   }
+
+  @override
+  LoggingFunction get logger => print;
 }

@@ -1,8 +1,15 @@
+import 'dart:async';
+
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
+// ignore_for_file: use_setters_to_change_properties
 
 typedef WalletConnectSessionProposalHandler = Future<List<int>?> Function(
   SessionProposalEvent sessionProposal,
+);
+
+typedef WalletConnectSessionApprovalHandler = Future<void> Function(
+  ApproveResponse approveResponse,
 );
 
 /// Used to interface between user wallet and apps. Executes received requests and sends back responses with data.
@@ -16,6 +23,9 @@ class WalletConnectWalletClient {
   /// Displays session proposal to the user, allowing them to approve or reject. Returns fingerprints
   /// if approved and null if rejected.
   WalletConnectSessionProposalHandler? handleProposal;
+
+  /// Includes any logic for handling the response returned after a session is approved.
+  WalletConnectSessionApprovalHandler? handleSessionApproval;
   WalletConnectRequestHandler? requestHandler;
 
   Future<void> init() async {
@@ -62,7 +72,9 @@ class WalletConnectWalletClient {
     final fingerprints = await handleProposal!(sessionProposal);
 
     if (fingerprints != null) {
-      await approveSession(sessionProposal.id, fingerprints, commands);
+      final approveResponse = await approveSession(sessionProposal.id, fingerprints, commands);
+
+      await handleSessionApproval?.call(approveResponse);
     } else {
       await rejectSession(sessionProposal.id, Errors.getSdkError(Errors.USER_REJECTED));
     }
@@ -84,7 +96,7 @@ class WalletConnectWalletClient {
         accounts: accounts,
         methods: commands,
         events: [],
-      )
+      ),
     };
 
     final response = await web3Wallet.approveSession(id: id, namespaces: namespaces);
@@ -128,9 +140,12 @@ class WalletConnectWalletClient {
     this.requestHandler = requestHandler;
   }
 
-  // ignore: use_setters_to_change_properties
   void registerProposalHandler(WalletConnectSessionProposalHandler proposalHandler) {
     handleProposal = proposalHandler;
+  }
+
+  void registerSessionApprovalHandler(WalletConnectSessionApprovalHandler approvalHandler) {
+    handleSessionApproval = approvalHandler;
   }
 }
 

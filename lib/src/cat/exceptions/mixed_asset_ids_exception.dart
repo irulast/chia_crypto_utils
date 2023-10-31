@@ -4,7 +4,7 @@ import 'package:chia_crypto_utils/src/clvm/bytes.dart';
 
 class MixedAssetIdsException implements Exception {
   MixedAssetIdsException(this.mixedAssetIds);
-  Iterable<Puzzlehash> mixedAssetIds;
+  final Iterable<Puzzlehash> mixedAssetIds;
 
   @override
   String toString() {

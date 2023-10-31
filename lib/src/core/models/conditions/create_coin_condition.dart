@@ -6,20 +6,6 @@ import 'package:chia_crypto_utils/src/standard/exceptions/invalid_condition_cast
 class CreateCoinCondition implements Condition {
   CreateCoinCondition(this.destinationPuzzlehash, this.amount, {this.memos});
 
-  factory CreateCoinCondition.fromJsonList(List<dynamic> vars) {
-    final puzzlehash = Puzzlehash.fromHex(vars[0] as String);
-    final amount = vars[1] as int;
-
-    // memo only given in list format if its a hint
-    Bytes? hint;
-    if (vars.length > 2 && vars[2] != Bytes.bytesPrefix) {
-      hint = Bytes.fromHex(vars[2] as String);
-    }
-
-    final memos = hint != null ? [hint] : null;
-    return CreateCoinCondition(puzzlehash, amount, memos: memos);
-  }
-
   factory CreateCoinCondition.fromProgram(Program program) {
     final programList = program.toList();
     if (!isThisCondition(program)) {
@@ -33,13 +19,30 @@ class CreateCoinCondition implements Condition {
           : null,
     );
   }
-  static int conditionCode = 51;
+
+  factory CreateCoinCondition.fromJsonList(List<dynamic> vars) {
+    final puzzlehash = Puzzlehash.fromHex(vars[0] as String);
+    final amount = vars[1] as int;
+
+    // memo only given in list format if its a hint
+    Bytes? hint;
+    if (vars.length > 2 && vars[2] != Bytes.bytesPrefix) {
+      hint = Bytes.fromHex(vars[2] as String);
+    }
+
+    final memos = hint != null ? [hint] : null;
+    return CreateCoinCondition(puzzlehash, amount, memos: memos);
+  }
+  static const conditionCode = 51;
   static String conditionCodeHex = '0x33';
   static String opcode = 'CREATE_COIN';
 
-  Puzzlehash destinationPuzzlehash;
-  int amount;
-  List<Bytes>? memos;
+  final Puzzlehash destinationPuzzlehash;
+  final int amount;
+  final List<Bytes>? memos;
+
+  @override
+  int get code => conditionCode;
 
   Payment toPayment() => Payment(amount, destinationPuzzlehash, memos: memos);
 
@@ -47,12 +50,12 @@ class CreateCoinCondition implements Condition {
   Program toProgram() {
     return Program.list([
       Program.fromInt(conditionCode),
-      Program.fromBytes(destinationPuzzlehash),
+      Program.fromAtom(destinationPuzzlehash),
       Program.fromInt(amount),
       if (memos != null)
         Program.list(
-          memos!.map(Program.fromBytes).toList(),
-        )
+          memos!.map(Program.fromAtom).toList(),
+        ),
     ]);
   }
 

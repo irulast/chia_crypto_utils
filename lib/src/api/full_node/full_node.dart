@@ -18,6 +18,8 @@ abstract class FullNode {
 
   Future<CoinRecordsResponse> getCoinsByHint(
     Puzzlehash hint, {
+    int? startHeight,
+    int? endHeight,
     bool includeSpentCoins = false,
   });
 
@@ -45,4 +47,13 @@ abstract class FullNode {
   Future<GetBlockRecordsResponse> getBlockRecords(int start, int end);
 
   Future<MempoolItemsResponse> getAllMempoolItems();
+
+  Future<GetBlocksResponse> getBlocks(
+    int start,
+    int end, {
+    bool excludeHeaderHash = false,
+    bool excludeReorged = false,
+  });
+
+  Future<GetBlockResponse> getBlock(Bytes headerHash);
 }

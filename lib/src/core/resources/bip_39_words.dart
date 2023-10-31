@@ -2046,5 +2046,5 @@ const bip39Words = {
   'zebra',
   'zero',
   'zone',
-  'zoo'
+  'zoo',
 };

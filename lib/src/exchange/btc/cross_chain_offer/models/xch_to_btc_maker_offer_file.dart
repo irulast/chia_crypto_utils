@@ -3,7 +3,7 @@ import 'package:compute/compute.dart';
 
 class XchToBtcMakerOfferFile implements MakerCrossChainOfferFile {
   XchToBtcMakerOfferFile({
-    required this.initializationCoinId,
+    this.initializationCoinId,
     required this.offeredAmount,
     required this.requestedAmount,
     required this.messageAddress,
@@ -11,23 +11,9 @@ class XchToBtcMakerOfferFile implements MakerCrossChainOfferFile {
     required this.publicKey,
     required this.lightningPaymentRequest,
   });
-
-  factory XchToBtcMakerOfferFile._fromSerializedOfferFileTask(String serializedOfferFile) {
-    return XchToBtcMakerOfferFile.fromSerializedOfferFile(serializedOfferFile);
-  }
-
-  factory XchToBtcMakerOfferFile.fromSerializedOfferFile(String serializedOfferFile) {
-    final deserializedOfferFile = maybeFromSerializedOfferFile(serializedOfferFile);
-
-    if (deserializedOfferFile == null) {
-      throw InvalidCrossChainOfferType(CrossChainOfferFileType.xchToBtc.name);
-    }
-    return deserializedOfferFile;
-  }
-
   factory XchToBtcMakerOfferFile.fromJson(Map<String, dynamic> json) {
     return XchToBtcMakerOfferFile(
-      initializationCoinId: (json['initialization_coin_id'] as String).hexToBytes(),
+      initializationCoinId: (json['initialization_coin_id'] as String?)?.hexToBytes(),
       offeredAmount: ExchangeAmount.fromJson(json['offered'] as Map<String, dynamic>),
       requestedAmount: ExchangeAmount.fromJson(json['requested'] as Map<String, dynamic>),
       messageAddress:
@@ -40,8 +26,21 @@ class XchToBtcMakerOfferFile implements MakerCrossChainOfferFile {
     );
   }
 
+  factory XchToBtcMakerOfferFile.fromSerializedOfferFile(String serializedOfferFile) {
+    final deserializedOfferFile = maybeFromSerializedOfferFile(serializedOfferFile);
+
+    if (deserializedOfferFile == null) {
+      throw InvalidCrossChainOfferType(CrossChainOfferFileType.xchToBtc.name);
+    }
+    return deserializedOfferFile;
+  }
+
+  factory XchToBtcMakerOfferFile._fromSerializedOfferFileTask(String serializedOfferFile) {
+    return XchToBtcMakerOfferFile.fromSerializedOfferFile(serializedOfferFile);
+  }
+
   @override
-  final Bytes initializationCoinId;
+  Bytes? initializationCoinId;
   @override
   final ExchangeAmount offeredAmount;
   @override
@@ -61,19 +60,19 @@ class XchToBtcMakerOfferFile implements MakerCrossChainOfferFile {
 
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'initialization_coin_id': initializationCoinId.toHex(),
+        'initialization_coin_id': initializationCoinId?.toHex(),
         'offered': offeredAmount.toJson(),
         'requested': requestedAmount.toJson(),
         'message_address': <String, dynamic>{
           'type': messageAddress.prefix,
-          'address': messageAddress.address
+          'address': messageAddress.address,
         },
         'validity_time': validityTime,
         'public_key': publicKey.toHex(),
         'lightning_payment_request': <String, dynamic>{
           'payment_request': lightningPaymentRequest.paymentRequest,
-          'timeout': lightningPaymentRequest.tags.timeout
-        }
+          'timeout': lightningPaymentRequest.tags.timeout,
+        },
       };
 
   static XchToBtcMakerOfferFile? maybeFromSerializedOfferFile(String serializedOfferFile) {
@@ -96,6 +95,36 @@ class XchToBtcMakerOfferFile implements MakerCrossChainOfferFile {
         await compute(XchToBtcMakerOfferFile._fromSerializedOfferFileTask, serializedOfferFile);
 
     return result;
+  }
+
+  @override
+  CrossChainOfferExchangeInfo getExchangeInfo(
+    CrossChainOfferFile offerAcceptFile,
+    PrivateKey requestorPrivateKey,
+  ) {
+    final btcToXchOfferAcceptFile = offerAcceptFile as BtcToXchTakerOfferFile;
+
+    final amountMojos = offeredAmount.amount;
+    final amountSatoshis = requestedAmount.amount;
+    final validityTime = btcToXchOfferAcceptFile.validityTime;
+    final fulfillerPublicKey = btcToXchOfferAcceptFile.publicKey;
+
+    final escrowPuzzlehash = XchToBtcService.generateEscrowPuzzlehash(
+      requestorPrivateKey: requestorPrivateKey,
+      clawbackDelaySeconds: validityTime,
+      sweepPaymentHash: lightningPaymentRequest.tags.paymentHash!,
+      fulfillerPublicKey: fulfillerPublicKey,
+    );
+
+    return CrossChainOfferExchangeInfo(
+      requestorPublicKey: requestorPrivateKey.getG1(),
+      fulfillerPublicKey: fulfillerPublicKey,
+      amountMojos: amountMojos,
+      amountSatoshis: amountSatoshis,
+      validityTime: validityTime,
+      escrowPuzzlehash: escrowPuzzlehash,
+      paymentRequest: lightningPaymentRequest,
+    );
   }
 
   @override

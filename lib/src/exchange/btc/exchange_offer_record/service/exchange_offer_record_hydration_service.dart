@@ -558,7 +558,7 @@ class ExchangeOfferRecordHydrationService {
 
 Future<bool> getDexieSubmissionStatus(String serializedOfferFile) async {
   final dexieId = generateDexieId(serializedOfferFile);
-  final dexieResponse = await DexieApi().inspectOffer(dexieId);
+  final dexieResponse = await DexieExchangeOfferApi().inspectOffer(dexieId);
   if (dexieResponse.success && dexieResponse.offerJson != null) {
     return true;
   }

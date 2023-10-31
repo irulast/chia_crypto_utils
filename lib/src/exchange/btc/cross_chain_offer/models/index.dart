@@ -1,3 +1,4 @@
+export './cross_chain_offer_exchange_info.dart';
 export './cross_chain_offer_file.dart';
 export './exchange_amount.dart';
 export 'btc_to_xch_maker_offer_file.dart';

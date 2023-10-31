@@ -9,18 +9,19 @@ class SpendableCat {
     required this.coin,
     required this.innerPuzzle,
     required this.innerSolution,
+    this.subtotal,
     this.extraDelta = 0,
   });
-  CatCoin coin;
-  Program innerPuzzle;
-  Program innerSolution;
+  final CatCoin coin;
+  final Program innerPuzzle;
+  final Program innerSolution;
   int? subtotal;
-  int extraDelta;
+  final int extraDelta;
 
   Program makeStandardCoinProgram() {
     return Program.list([
-      Program.fromBytes(coin.parentCoinInfo),
-      Program.fromBytes(innerPuzzle.hash()),
+      Program.fromAtom(coin.parentCoinInfo),
+      Program.fromAtom(innerPuzzle.hash()),
       Program.fromInt(coin.amount),
     ]);
   }

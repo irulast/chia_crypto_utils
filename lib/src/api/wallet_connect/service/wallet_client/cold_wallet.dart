@@ -7,26 +7,18 @@ class ColdWallet implements Wallet {
   });
 
   @override
-  final ChiaFullNodeInterface fullNode;
+  final EnhancedChiaFullNodeInterface fullNode;
   final WalletKeychain keychain;
 
   @override
   WalletKeychain getKeychain() => keychain;
 
   @override
-  Future<List<CatFullCoin>> getCatCoins() async {
-    final catCoins = <CatFullCoin>[];
-    for (final puzzlehash in keychain.puzzlehashes) {
-      final catCoinsByHint = await fullNode.getCatCoinsByHint(puzzlehash);
-      catCoins.addAll(catCoinsByHint);
-    }
-
-    return catCoins;
-  }
+  Future<List<CatFullCoin>> getCatCoins() => fullNode.getCatCoinsByHints(keychain.puzzlehashes);
 
   @override
   Future<List<DidInfoWithOriginCoin>> getDidInfosWithOriginCoin() async {
-    final didRecords = await fullNode.getDidRecordsFromHints(keychain.puzzlehashes);
+    final didRecords = await fullNode.getDidRecordsByHints(keychain.puzzlehashes);
 
     final didInfosWithOriginCoin = <DidInfoWithOriginCoin>[];
     for (final didRecord in didRecords) {
@@ -41,6 +33,23 @@ class ColdWallet implements Wallet {
   }
 
   @override
+  Future<List<NftRecordWithMintInfo>> getNftRecordsWithMintInfo() async {
+    final nftRecords = await fullNode.getNftRecordsByHints(keychain.puzzlehashes);
+
+    final nftRecordsWithMintInfo = <NftRecordWithMintInfo>[];
+
+    for (final nftRecord in nftRecords) {
+      final nftRecordWithMintInfo = await nftRecord.fetchMintInfo(fullNode);
+
+      if (nftRecordWithMintInfo != null) {
+        nftRecordsWithMintInfo.add(nftRecordWithMintInfo);
+      }
+    }
+
+    return nftRecordsWithMintInfo;
+  }
+
+  @override
   Future<List<CatCoin>> getCatCoinsByAssetId(Puzzlehash assetId, {int catVersion = 2}) {
     if (!keychain.hasAssetId(assetId)) {
       switch (catVersion) {
@@ -50,11 +59,13 @@ class ColdWallet implements Wallet {
         case 2:
           keychain.addOuterPuzzleHashesForAssetId(assetId);
           break;
+
         default:
-          throw Exception('Invalid catVersion: $catVersion');
+          throw InvalidCatException(message: 'Invalid cat version: $catVersion');
       }
     }
     final outerPuzzlehashes = keychain.getOuterPuzzleHashesForAssetId(assetId);
+
     return fullNode
         .getCatCoinsByOuterPuzzleHashes(outerPuzzlehashes)
         .then((value) => value.where((element) => element.catVersion == catVersion).toList());
@@ -62,4 +73,7 @@ class ColdWallet implements Wallet {
 
   @override
   Future<List<Coin>> getCoins() => fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
+  @override
+  Future<NftRecord?> getNftRecordByLauncherId(Bytes launcherId) =>
+      fullNode.getNftByLauncherId(launcherId);
 }

@@ -17,7 +17,10 @@ class FullNodeWalletConnectRequestHandler
   Wallet get wallet => ColdWallet(fullNode: fullNode, keychain: keychain);
 
   @override
-  final ChiaFullNodeInterface fullNode;
+  OfferService get offerService => OfferService(wallet, CatOfferWalletService());
+
+  @override
+  final EnhancedChiaFullNodeInterface fullNode;
 
   @override
   int get fingerprint => coreSecret.fingerprint;
@@ -26,15 +29,24 @@ class FullNodeWalletConnectRequestHandler
   final KeychainCoreSecret coreSecret;
   bool approveRequest;
 
+  final nftWalletService = NftWalletService();
   final standardWalletService = StandardWalletService();
   final catWalletService = Cat2WalletService();
 
   Map<int, ChiaWalletInfo>? walletInfoMap;
 
+  @override
+  List<NftInfo> getNftInfosForWalletId(int walletId) {
+    final walletInfo = getWalletInfoForId(walletId);
+
+    return (walletInfo as NftWalletInfoWithNftInfos).nftInfos;
+  }
+
   Future<void> initializeWalletMap() async {
     LoggingContext().info('Initializing wallet map');
     final catCoins = await wallet.getCatCoins();
     final assetIds = catCoins.map((catCoin) => catCoin.assetId).toSet();
+    final nftRecords = await wallet.getNftRecordsWithMintInfo();
     final didInfos = await wallet.getDidInfosWithOriginCoin();
 
     final tempWalletMap = <int, ChiaWalletInfo>{1: StandardWalletInfo()};
@@ -42,6 +54,7 @@ class FullNodeWalletConnectRequestHandler
     await addNewWalletsInfos(
       tempWalletMap: tempWalletMap,
       assetIds: assetIds,
+      nftRecords: nftRecords,
       didInfos: didInfos,
     );
   }
@@ -57,17 +70,26 @@ class FullNodeWalletConnectRequestHandler
 
     final catCoins = await wallet.getCatCoins();
     final assetIds = catCoins.map((catCoin) => catCoin.assetId).toSet().toList();
+    final nftRecords = await wallet.getNftRecordsWithMintInfo();
     final didInfos = await wallet.getDidInfosWithOriginCoin();
     final dids = didInfos.map((didRecord) => didRecord.did).toList();
 
     final walletIdsToRemove = <int>[];
 
     // cat wallets
-    final currentAssetIds = tempWalletMap.catWallets().assetIdMap;
+    final currentCatWallets = tempWalletMap.catWallets();
 
-    final catWalletIdsToRemove =
-        Map.fromEntries(currentAssetIds.entries.where((entry) => !assetIds.contains(entry.value)))
-            .keys;
+    final currentAssetIds = currentCatWallets.assetIdMap;
+
+    // we want to keep CAT wallets that are named, even if they no longer have any coins, since these
+    // are wallets that the user explicitly added
+    final currentAssetIdsOfUnnamedWallets =
+        Map.fromEntries(currentCatWallets.entries.where((element) => element.value.name == null))
+            .assetIdMap;
+
+    final catWalletIdsToRemove = Map.fromEntries(
+      currentAssetIdsOfUnnamedWallets.entries.where((entry) => !assetIds.contains(entry.value)),
+    ).keys;
     walletIdsToRemove.addAll(catWalletIdsToRemove);
 
     final assetIdsToAdd =
@@ -85,17 +107,65 @@ class FullNodeWalletConnectRequestHandler
 
     tempWalletMap.removeWhere((key, value) => walletIdsToRemove.contains(key));
 
+    // nft wallets
+    final currentNftWallets = tempWalletMap.nftWallets();
+
+    final nftWalletsToRemove = <int, NftWalletInfoWithNftInfos>{};
+
+    final nftWalletsWithNullDid = Map.fromEntries(
+      currentNftWallets.entries.where((nftWallet) => nftWallet.value.did == null),
+    );
+
+    final currentNftWalletsWithDid = Map.fromEntries(
+      currentNftWallets.entries
+          .where((nftWallet) => nftWalletsWithNullDid.keys.contains(nftWallet.key)),
+    );
+
+    // remove nft wallets associated with dids that are no longer owned
+    final currentNftWalletIdsWithDid = Map.fromEntries(
+      currentNftWallets.entries
+          .where((nftWallet) => !currentNftWalletsWithDid.keys.contains(nftWallet.key)),
+    );
+
+    final nftWalletsWithDidToRemove = Map.fromEntries(
+      currentNftWalletIdsWithDid.entries.where((entry) => dids.contains(entry.value.meta['did'])),
+    );
+
+    nftWalletsToRemove.addAll(nftWalletsWithDidToRemove);
+
+    // add nft records that are not currently in the map
+    // re-add nft wallets that we're removing but still own (in the case of an nft that was transferred to a different did)
+    // re-add unassigned nfts (these will be added to a single nft wallet that used to manage all unassigned nfts)
+    final nftRecordsToAdd = nftRecords
+        .where(
+          (nftRecord) =>
+              !currentNftWallets.launcherIdsMap.containsValue(nftRecord.launcherId) ||
+              nftWalletsToRemove.launcherIdsMap.containsValue(nftRecord.launcherId) ||
+              (nftWalletsWithNullDid.isNotEmpty &&
+                  nftWalletsWithNullDid.nftInfos
+                      .map((e) => e.launcherId)
+                      .contains(nftRecord.launcherId)),
+        )
+        .toList();
+
+    tempWalletMap.removeWhere((key, value) => walletIdsToRemove.contains(key));
+
     await addNewWalletsInfos(
       tempWalletMap: tempWalletMap,
       assetIds: assetIdsToAdd,
+      nftRecords: nftRecordsToAdd,
       didInfos: didInfosToAdd,
+      unassignedNftWalletId:
+          nftWalletsWithNullDid.isNotEmpty ? nftWalletsWithNullDid.keys.first : null,
     );
   }
 
   Future<void> addNewWalletsInfos({
     required Map<int, ChiaWalletInfo> tempWalletMap,
     required Set<Puzzlehash> assetIds,
+    required List<NftRecordWithMintInfo> nftRecords,
     required List<DidInfoWithOriginCoin> didInfos,
+    int? unassignedNftWalletId,
   }) async {
     var id = tempWalletMap.keys.last;
 
@@ -109,6 +179,37 @@ class FullNodeWalletConnectRequestHandler
     for (final didInfo in didInfos) {
       id++;
       tempWalletMap[id] = DIDWalletInfo(didInfoWithOriginCoin: didInfo, id: id);
+
+      final nftRecordsOwned = nftRecords
+          .where((nftRecord) => nftRecord.ownershipLayerInfo?.currentDid == didInfo.did)
+          .toList();
+
+      final nftInfosOwned = <NftInfo>[];
+      for (final nftRecord in nftRecordsOwned) {
+        nftInfosOwned.add(NftInfo.fromNftRecordWithMintInfo(nftRecord));
+      }
+
+      // Add an NFT wallet for each DID which the NFTs owned by that DID are assigned to, following Chia's pattern
+      id++;
+      tempWalletMap[id] =
+          NftWalletInfoWithNftInfos(id: id, did: didInfo.did, nftInfos: nftInfosOwned);
+    }
+
+    final nftRecordsWithoutDid =
+        nftRecords.where((nftRecord) => nftRecord.ownershipLayerInfo?.currentDid == null);
+
+    // Add remaining unassigned NFTs to a singel NFT wallet
+    if (nftRecordsWithoutDid.isNotEmpty) {
+      if (unassignedNftWalletId != null) {
+        id = unassignedNftWalletId;
+      } else {
+        id++;
+      }
+      tempWalletMap[id] = NftWalletInfoWithNftInfos(
+        id: id,
+        did: null,
+        nftInfos: nftRecordsWithoutDid.map(NftInfo.fromNftRecordWithMintInfo).toList(),
+      );
     }
 
     walletInfoMap = tempWalletMap;
@@ -164,12 +265,11 @@ class FullNodeWalletConnectRequestHandler
   }
 
   @override
-  CheckOfferValidityResponse checkOfferValidity(
+  Future<CheckOfferValidityResponse> checkOfferValidity(
     CheckOfferValidityCommand command,
     SessionData sessionData,
-  ) {
-    throw UnsupportedCommandException(command.type);
-  }
+  ) =>
+      executeCheckOfferValidity(command);
 
   @override
   GetAddressResponse getCurrentAddress(GetCurrentAddressCommand command, SessionData sessionData) {
@@ -245,8 +345,41 @@ class FullNodeWalletConnectRequestHandler
     final additions = <CoinPrototype>[];
     final removals = <CoinPrototype>[];
     if (wallet.type == ChiaWalletType.did) {
-      coinCount = 0;
-      balance = 0;
+      final did = (wallet as DIDWalletInfo).didInfoWithOriginCoin.did;
+
+      final nftCoinIds = Map.fromEntries(
+        walletInfoMap!.nftWallets().entries.where((entry) => entry.value.did == did),
+      ).nftInfos.map((info) => info.nftCoinId).toList();
+
+      coinCount = nftCoinIds.length;
+
+      var balance_ = 0;
+      for (final nftCoinId in nftCoinIds) {
+        final coin = await fullNode.getCoinById(nftCoinId);
+        balance_ += coin?.amount ?? 0;
+      }
+
+      balance = balance_;
+
+      final mempoolItemsResponse = await fullNode.getAllMempoolItems();
+
+      final additions = <CoinPrototype>[];
+      final removals = <CoinPrototype>[];
+      for (final mempoolItem in mempoolItemsResponse.mempoolItemMap.values) {
+        final nftRecords = await NftRecord.nftRecordsFromSpendBundle(mempoolItem.spendBundle);
+
+        for (final nftRecord in nftRecords) {
+          if (nftRecord.ownershipLayerInfo?.currentDid == did) {
+            additions.add(nftRecord.coin);
+          }
+        }
+
+        for (final removal in mempoolItem.removals) {
+          if (nftCoinIds.contains(removal.id)) {
+            removals.add(removal);
+          }
+        }
+      }
     } else if (wallet.type == ChiaWalletType.nft) {
       // according to Chia, NFT Wallets don't really have a balance
       coinCount = 0;
@@ -342,7 +475,19 @@ class FullNodeWalletConnectRequestHandler
     final memos = command.memos.toMemos();
 
     late final SpendBundle spendBundle;
-    if (wallet.type == ChiaWalletType.cat) {
+    if (wallet.type == ChiaWalletType.nft) {
+      final nftRecord = await fullNode
+          .getNftByLauncherId((wallet as NftWalletInfoWithNftInfos).nftInfos.first.launcherId);
+
+      final nftTransferSpendBundle = await _createNftTransferSpendBundle(
+        nftRecord: nftRecord!,
+        targetPuzzlehash: targetPuzzlehash,
+        fee: command.fee,
+        memos: memos,
+      );
+
+      spendBundle = nftTransferSpendBundle;
+    } else if (wallet.type == ChiaWalletType.cat) {
       spendBundle = await _createCatSpendBundle(
         assetId: (wallet as CatWalletInfo).assetId,
         amount: command.amount,
@@ -455,7 +600,7 @@ class FullNodeWalletConnectRequestHandler
           amount,
           targetPuzzlehash,
           memos: memos,
-        )
+        ),
       ],
       catCoinsInput: catCoins,
       keychain: keychain,
@@ -558,13 +703,80 @@ class FullNodeWalletConnectRequestHandler
     }
   }
 
+  Future<SpendBundle> _createNftTransferSpendBundle({
+    required NftRecord nftRecord,
+    required Puzzlehash targetPuzzlehash,
+    required int fee,
+    List<Bytes> memos = const [],
+  }) async {
+    final allCoins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
+
+    final coinsForFee = selectCoinsForAmount(allCoins, fee);
+
+    final nft = nftRecord.toNft(keychain);
+
+    return nftWalletService.createSpendBundle(
+      targetPuzzlehash: targetPuzzlehash,
+      nftCoin: nft,
+      keychain: keychain,
+      fee: fee,
+      coinsForFee: coinsForFee,
+      memos: memos,
+      changePuzzlehash: keychain.puzzlehashes[2],
+    );
+  }
+
   @override
   Future<TransferNftResponse> transferNft(
     TransferNftCommand command,
     SessionData sessionData,
   ) async {
-    throw UnsupportedCommandException(command.type);
+    final startedTimestamp = DateTime.now().unixTimestamp;
+
+    await indexWalletMap();
+
+    final wallet = getWalletInfoForId(command.walletId);
+
+    final targetPuzzlehash = command.targetAddress.toPuzzlehash();
+
+    final nftCoins = await fullNode.getCoinsByIds(command.nftCoinIds);
+
+    final nftRecords = await fullNode.getNftRecordsFromCoins(nftCoins);
+
+    final spendBundles = <SpendBundle>[];
+    try {
+      for (final nftRecord in nftRecords) {
+        final spendBundle = await _createNftTransferSpendBundle(
+          nftRecord: nftRecord,
+          targetPuzzlehash: targetPuzzlehash,
+          fee: command.fee,
+        );
+
+        spendBundles.add(spendBundle);
+      }
+    } catch (e) {
+      throw InvalidNftCoinIdsException();
+    }
+
+    final totalSpendBundle = SpendBundle.aggregate(spendBundles);
+
+    await fullNode.pushTransaction(totalSpendBundle);
+
+    return TransferNftResponse(
+      WalletConnectCommandBaseResponseImp.success(
+        command: command,
+        startedTimestamp: startedTimestamp,
+      ),
+      TransferNftData(spendBundle: totalSpendBundle, walletId: wallet.id, success: true),
+    );
   }
+
+  @override
+  Future<SignSpendBundleResponse> signSpendBundle(
+    SignSpendBundleCommand command,
+    SessionData sessionData,
+  ) =>
+      executeSignSpendBundle(command);
 
   @override
   LogInResponse logIn(LogInCommand command, SessionData sessionData) {
@@ -592,15 +804,76 @@ class FullNodeWalletConnectRequestHandler
 
   @override
   Future<TakeOfferResponse> takeOffer(TakeOfferCommand command, SessionData sessionData) async {
-    throw UnsupportedCommandException(command.type);
+    final startedTimestamp = DateTime.now().unixTimestamp;
+
+    final takeOffer =
+        await offerService.createTakeOffer(Offer.fromBech32(command.offer), fee: command.fee);
+
+    final spendBundle = takeOffer.toSpendBundle();
+
+    final coins = await fullNode.pushAndWaitForSpendBundle(spendBundle);
+
+    return TakeOfferResponse(
+      WalletConnectCommandBaseResponseImp.success(
+        command: command,
+        startedTimestamp: startedTimestamp,
+      ),
+      TakeOfferData(
+        tradeRecord: TradeRecord(
+          confirmedAtIndex: coins.first.confirmedBlockIndex,
+          acceptedAtTime: DateTime.now().unixTimestamp,
+          createdAtTime: startedTimestamp,
+          isMyOffer: false,
+          sent: 0,
+          coinsOfInterest: [...takeOffer.offeredCoins.allCoins],
+          tradeId: spendBundle.id,
+          status: TradeStatus.confirmed,
+          takenOffer: command.offer,
+        ),
+        success: coins.isNotEmpty,
+      ),
+    );
   }
 
   @override
-  CreateOfferForIdsResponse createOfferForIds(
+  Future<CreateOfferForIdsResponse> createOfferForIds(
     CreateOfferForIdsCommand command,
     SessionData sessionData,
-  ) {
-    throw UnsupportedCommandException(command.type);
+  ) async {
+    final startedTimestamp = DateTime.now().unixTimestamp;
+
+    await indexWalletMap();
+
+    final keychain = await wallet.getKeychain();
+
+    final puzzlehash = keychain.puzzlehashes[2];
+
+    final parsedOfferMap = await parseAmountsFromOfferMap(command.offerMap, puzzlehash);
+
+    final offer = await offerService.createOfferAsync(
+      offeredAmounts: parsedOfferMap.offeredAmounts,
+      requestedPayments: parsedOfferMap.requestedPayments,
+      changePuzzlehash: puzzlehash,
+    );
+
+    return CreateOfferForIdsResponse(
+      WalletConnectCommandBaseResponseImp.success(
+        command: command,
+        startedTimestamp: startedTimestamp,
+      ),
+      CreatedOfferData(
+        offer: offer,
+        tradeRecord: TradeRecord(
+          confirmedAtIndex: 0,
+          createdAtTime: DateTime.now().unixTimestamp,
+          isMyOffer: true,
+          sent: 0,
+          coinsOfInterest: offer.offeredCoins.allCoins,
+          tradeId: offer.toSpendBundle(puzzlehash).id,
+          status: TradeStatus.pendingAccept,
+        ),
+      ),
+    );
   }
 
   @override
@@ -624,8 +897,22 @@ class FullNodeWalletConnectRequestHandler
   }
 
   @override
-  GetNftsResponse getNfts(GetNftsCommand command, SessionData sessionData) {
-    throw UnsupportedCommandException(command.type);
+  Future<GetNftsResponse> getNfts(GetNftsCommand command, SessionData sessionData) async {
+    final startedTimestamp = DateTime.now().unixTimestamp;
+
+    await indexWalletMap();
+
+    final nftInfosMapEntries = walletInfoMap!
+        .nftWallets()
+        .map((key, value) => MapEntry(key, value.nftInfos))
+        .entries
+        .toList();
+
+    return completeGetNfts(
+      command: command,
+      nftInfosMapEntries: nftInfosMapEntries,
+      startedTimestamp: startedTimestamp,
+    );
   }
 
   @override
@@ -716,4 +1003,29 @@ class FullNodeWalletConnectRequestHandler
     SessionData sessionData,
   ) =>
       executeVerifySignature(command);
+
+  @override
+  Future<AddCatTokenResponse> addCatToken(
+    AddCatTokenCommand command,
+    SessionData sessionData,
+  ) async {
+    final startedTimestamp = DateTime.now().unixTimestamp;
+
+    await indexWalletMap();
+
+    final walletId = walletInfoMap!.keys.last + 1;
+
+    keychain.addOuterPuzzleHashesForAssetId(command.assetId);
+
+    walletInfoMap![walletId] =
+        CatWalletInfo(assetId: command.assetId, id: walletId, name: command.name);
+
+    return AddCatTokenResponse(
+      WalletConnectCommandBaseResponseImp.success(
+        command: command,
+        startedTimestamp: startedTimestamp,
+      ),
+      walletId,
+    );
+  }
 }

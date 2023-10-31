@@ -185,6 +185,7 @@ class ClosestValueCoinSelector implements CoinSelector {
 
 class CoinWithDiff<T extends CoinPrototype> {
   CoinWithDiff(this.coin, this.diff);
+
   final T coin;
   final int diff;
 }

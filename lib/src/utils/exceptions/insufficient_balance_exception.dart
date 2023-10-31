@@ -37,7 +37,6 @@ class InsufficientCatBalanceException extends InsufficientBalanceException {
 
 class InsufficientNftBalanceException extends InsufficientBalanceException {
   InsufficientNftBalanceException(this.launcherId) : super(currentBalance: 0, requiredBalance: 1);
-
   final Bytes launcherId;
 
   @override

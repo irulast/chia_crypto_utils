@@ -3,7 +3,6 @@ import 'package:deep_pick/deep_pick.dart';
 
 class SignMessageByAddressCommand implements WalletConnectCommand {
   const SignMessageByAddressCommand({required this.address, required this.message});
-
   factory SignMessageByAddressCommand.fromParams(Map<String, dynamic> params) {
     return SignMessageByAddressCommand(
       address: Address(pick(params, 'address').asStringOrThrow()),
@@ -30,7 +29,6 @@ class SignMessageByAddressResponse
     this.delegate,
     this.signData,
   );
-
   factory SignMessageByAddressResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
@@ -60,7 +58,6 @@ class SignMessageByAddressData {
     required this.signingMode,
     required this.success,
   });
-
   factory SignMessageByAddressData.fromJson(Map<String, dynamic> json) {
     return SignMessageByAddressData(
       publicKey: JacobianPoint.fromHexG1(pick(json, 'pubkey').asStringOrThrow()),

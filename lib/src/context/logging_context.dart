@@ -21,6 +21,7 @@ class LoggingContext {
     bool? info,
     bool? error,
     bool? api,
+    bool? debug,
   }) {
     final currentLogTypes = logTypes;
     final newLogTypes = <LogType>{};
@@ -32,6 +33,10 @@ class LoggingContext {
     }
     if ((api != null && api) || (api == null && currentLogTypes.contains(LogType.api))) {
       newLogTypes.add(LogType.api);
+    }
+
+    if ((debug != null && debug) || (debug == null && currentLogTypes.contains(LogType.debug))) {
+      newLogTypes.add(LogType.debug);
     }
 
     getIt
@@ -75,6 +80,16 @@ class LoggingContext {
     String? highLog,
   }) {
     if (logTypes.contains(LogType.error)) {
+      _log(lowLog, mediumLog: mediumLog, highLog: highLog);
+    }
+  }
+
+  void debug(
+    String? lowLog, {
+    String? mediumLog,
+    String? highLog,
+  }) {
+    if (logTypes.contains(LogType.debug)) {
       _log(lowLog, mediumLog: mediumLog, highLog: highLog);
     }
   }
@@ -163,19 +178,26 @@ class LoggingContext {
 typedef LoggingFunction = void Function(String text);
 typedef LogTypes = Set<LogType>;
 
-enum LogType { info, api, error }
+enum LogType {
+  info,
+  api,
+  error,
+  debug,
+}
 
-enum LogLevel { none, low, medium, high }
+enum LogLevel {
+  none,
+  low,
+  medium,
+  high;
 
-LogLevel stringToLogLevel(String logLevelString) {
-  switch (logLevelString) {
-    case 'none':
-      return LogLevel.none;
-    case 'low':
-      return LogLevel.low;
-    case 'high':
-      return LogLevel.high;
-    default:
-      throw ArgumentError('Invalid LogLevel String');
+  factory LogLevel.fromString(String logLevelString) {
+    final lower = logLevelString.toLowerCase();
+    for (final logLevel in values) {
+      if (logLevel.name.toLowerCase() == lower) {
+        return logLevel;
+      }
+    }
+    throw ArgumentError('Invalid LogLevel String');
   }
 }

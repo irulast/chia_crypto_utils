@@ -14,6 +14,21 @@ class PoolState with ToBytesMixin {
     this.poolUrl,
     required this.relativeLockHeight,
   });
+  factory PoolState.fromExtraDataProgram(Program extraDataProgram) {
+    final extraDataConsBoxes = extraDataProgram.toList().where(
+          (p) => String.fromCharCode(p.first().toInt()) == PlotNftExtraData.poolStateIdentifier,
+        );
+    if (extraDataConsBoxes.isEmpty || extraDataConsBoxes.length > 1) {
+      throw InvalidPlotNftException();
+    }
+    final poolStateConsBox = extraDataConsBoxes.single;
+    return PoolState.fromBytes(poolStateConsBox.rest().atom);
+  }
+
+  factory PoolState.fromBytes(Bytes bytes) {
+    final iterator = bytes.iterator;
+    return PoolState.fromStream(iterator);
+  }
 
   factory PoolState.fromStream(Iterator<int> iterator) {
     final versionBytes = iterator.extractBytesAndAdvance(1);
@@ -48,22 +63,6 @@ class PoolState with ToBytesMixin {
       poolUrl: poolUrl,
       relativeLockHeight: relativeLockHeight,
     );
-  }
-
-  factory PoolState.fromBytes(Bytes bytes) {
-    final iterator = bytes.iterator;
-    return PoolState.fromStream(iterator);
-  }
-
-  factory PoolState.fromExtraDataProgram(Program extraDataProgram) {
-    final extraDataConsBoxes = extraDataProgram.toList().where(
-          (p) => String.fromCharCode(p.first().toInt()) == PlotNftExtraData.poolStateIdentifier,
-        );
-    if (extraDataConsBoxes.isEmpty || extraDataConsBoxes.length > 1) {
-      throw InvalidPlotNftException();
-    }
-    final poolStateConsBox = extraDataConsBoxes.single;
-    return PoolState.fromBytes(poolStateConsBox.rest().atom);
   }
 
   final int version;
@@ -123,6 +122,6 @@ PoolSingletonState codeToPoolSingletonState(int code) {
     case 3:
       return PoolSingletonState.farmingToPool;
     default:
-      throw ArgumentError('Invalid PoolSingletonState Code');
+      throw ArgumentError('Invalid PoolSingletonState Code: $code');
   }
 }

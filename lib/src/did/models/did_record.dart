@@ -3,6 +3,18 @@ import 'package:chia_crypto_utils/src/core/exceptions/keychain_mismatch_exceptio
 import 'package:deep_pick/deep_pick.dart';
 
 abstract class DidRecord {
+  factory DidRecord({
+    required Bytes did,
+    required CoinPrototype coin,
+    required LineageProof lineageProof,
+    required DidMetadata metadata,
+    required Program singletonStructure,
+    required Puzzlehash backUpIdsHash,
+    required int nVerificationsRequired,
+    required List<Puzzlehash>? backupIds,
+    required List<Puzzlehash> hints,
+    required CoinSpend parentSpend,
+  }) = _DidRecord;
   static DidRecord? fromParentCoinSpend(CoinSpend parentSpend, CoinPrototype coin) {
     return _DidRecord.fromParentCoinSpend(parentSpend, coin);
   }
@@ -28,6 +40,7 @@ abstract class DidRecord {
   /// returns [DidInfo] if the full puzzle hash calculated by [publicKey] matches [coin].puzzlehash.
   /// return null if it does not.
   DidInfo? toDidInfoForPk(JacobianPoint publicKey);
+
   DidInfo? toDidInfoFromParentInfo();
 }
 
@@ -302,6 +315,7 @@ class _DidRecord implements DidRecord {
         innerPuzzle: emptyBackUpIdsInnerPuzzle,
       );
     }
+
     return null;
   }
 
@@ -351,6 +365,7 @@ extension ToSpendableDid on DidRecord {
       if (walletVector == null) {
         continue;
       }
+
       final did = toDidInfoForPk(walletVector.childPublicKey);
       if (did != null) {
         return did;
@@ -379,7 +394,7 @@ extension ToSpendableDid on DidRecord {
     final did = toDidInfo(keychain);
 
     return <String, dynamic>{
-      'inner_puzzle': did?.innerPuzzle.serialize().toHex(),
+      'inner_puzzle': did?.innerPuzzle.toHex(),
     };
   }
 
@@ -393,5 +408,5 @@ extension ToSpendableDid on DidRecord {
 }
 
 extension HashBytesList on Iterable<Bytes> {
-  Puzzlehash programHash() => Program.list(map(Program.fromBytes).toList()).hash();
+  Puzzlehash programHash() => Program.list(map(Program.fromAtom).toList()).hash();
 }

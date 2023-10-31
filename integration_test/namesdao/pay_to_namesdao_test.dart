@@ -1,5 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/namesdao/exceptions/invalid_namesdao_name.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
@@ -9,7 +8,6 @@ Future<void> main() async {
   }
 
   final fullNodeSimulator = SimulatorFullNodeInterface.withDefaultUrl();
-
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
 
   final meera = ChiaEnthusiast(fullNodeSimulator);

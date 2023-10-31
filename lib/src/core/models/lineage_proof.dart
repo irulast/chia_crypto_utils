@@ -1,4 +1,5 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:deep_pick/deep_pick.dart';
 import 'package:meta/meta.dart';
 
 @immutable
@@ -8,6 +9,13 @@ class LineageProof with ToBytesMixin, ToProgramMixin {
     required this.innerPuzzlehash,
     required this.amount,
   });
+  factory LineageProof.fromJson(Map<String, dynamic> json) {
+    return LineageProof(
+      parentCoinInfo: pick(json, 'parent_name').letStringOrNull(Puzzlehash.fromHex),
+      innerPuzzlehash: pick(json, 'inner_puzzle_hash').letStringOrNull(Puzzlehash.fromHex),
+      amount: pick(json, 'amount').asIntOrNull(),
+    );
+  }
 
   factory LineageProof.fromBytes(Bytes bytes) {
     final iterator = bytes.iterator;
@@ -30,8 +38,8 @@ class LineageProof with ToBytesMixin, ToProgramMixin {
 
   @override
   Program toProgram() => Program.list([
-        if (parentCoinInfo != null) Program.fromBytes(parentCoinInfo!),
-        if (innerPuzzlehash != null) Program.fromBytes(innerPuzzlehash!),
+        if (parentCoinInfo != null) Program.fromAtom(parentCoinInfo!),
+        if (innerPuzzlehash != null) Program.fromAtom(innerPuzzlehash!),
         if (amount != null) Program.fromInt(amount!),
       ]);
 

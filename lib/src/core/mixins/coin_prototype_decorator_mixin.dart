@@ -18,6 +18,9 @@ mixin CoinPrototypeDecoratorMixin implements CoinPrototype {
   Bytes toBytes() => delegate.toBytes();
 
   @override
+  Future<Bytes> toBytesAsync() => delegate.toBytesAsync();
+
+  @override
   String toHex() => delegate.toHex();
 
   @override

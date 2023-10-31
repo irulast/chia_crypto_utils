@@ -10,13 +10,17 @@ class WalletConnectAppClient {
     this.displayUri,
   );
 
+  // factory WalletConnectAppClient.fromProjectId(
+  //   String projectId, {
+  //   required FutureOr<void> Function(Uri uri) displayUri,
+  // }) {
+  //   final web3App = Web3App(core: Core(projectId: projectId), metadata: defaultPairingMetadata);
+  //   return WalletConnectAppClient(web3App, displayUri);
+  // }
+
   final Web3App _web3App;
   final FutureOr<void> Function(Uri uri) displayUri;
   SessionData? _sessionData;
-
-  bool get isConnected {
-    return _sessionData != null;
-  }
 
   /// throws [NotConnectedException] if not yet initialized
   SessionData get sessionData {
@@ -36,15 +40,7 @@ class WalletConnectAppClient {
     return sessionData.fingerprints;
   }
 
-  Future<void> init() async {
-    await _web3App.init();
-
-    _web3App.sessions.onDelete.subscribe((event) {
-      if (isConnected && event?.value.topic == _topic) {
-        _sessionData = null;
-      }
-    });
-  }
+  Future<void> init() => _web3App.init();
 
   /// Establish a connection with a new wallet
   Future<SessionData> pair({
@@ -53,13 +49,6 @@ class WalletConnectAppClient {
     final methods = requiredCommandTypes.isNotEmpty
         ? requiredCommandTypes.commandNames
         : WalletConnectCommandType.values.commandNames;
-
-    // disconnect from current connection if there is one
-    if (isConnected) {
-      final pairingTopic = sessionData.pairingTopic;
-      await disconnectSession();
-      await disconnectPairing(pairingTopic);
-    }
 
     final connectResponse = await _web3App.connect(
       requiredNamespaces: {
@@ -212,6 +201,17 @@ class WalletConnectAppClient {
     );
   }
 
+  Future<SignSpendBundleResponse> signSpendBundle({
+    required int fingerprint,
+    required SpendBundle spendBundle,
+  }) async {
+    return request(
+      fingerprint: fingerprint,
+      command: SignSpendBundleCommand(spendBundle: spendBundle),
+      parseResponse: SignSpendBundleResponse.fromJson,
+    );
+  }
+
   Future<VerifySignatureResponse> verifySignature({
     required int fingerprint,
     required JacobianPoint publicKey,
@@ -235,7 +235,7 @@ class WalletConnectAppClient {
 
   Future<CheckOfferValidityResponse> checkOfferValidity({
     required int fingerprint,
-    required String offer,
+    required Offer offer,
   }) async {
     return request(
       fingerprint: fingerprint,
@@ -406,6 +406,18 @@ class WalletConnectAppClient {
     );
   }
 
+  Future<AddCatTokenResponse> addCatToken({
+    required int fingerprint,
+    required Puzzlehash assetId,
+    required String name,
+  }) async {
+    return request(
+      fingerprint: fingerprint,
+      command: AddCatTokenCommand(assetId: assetId, name: name),
+      parseResponse: AddCatTokenResponse.fromJson,
+    );
+  }
+
   Future<T> request<T>({
     required int fingerprint,
     required WalletConnectCommand command,
@@ -499,7 +511,7 @@ class JsonRpcErrorWalletResponseException implements Exception {
 
   @override
   String toString() =>
-      'Wallet responded with JsonRpcError${message != null ? ': $message' : ''}. This may be due to user rejection or a request with the incorrect format or parameters';
+      'Wallet responded with JsonRpcError: $message. This may be due to user rejection or a request with the incorrect format or parameters';
 }
 
 class GeneralWalletResponseException implements Exception {

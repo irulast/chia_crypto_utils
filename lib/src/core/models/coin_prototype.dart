@@ -13,6 +13,31 @@ class CoinPrototype with ToBytesMixin {
     required this.amount,
   });
 
+  factory CoinPrototype.fromProgram(Program program) {
+    final list = program.toList();
+
+    return CoinPrototype(
+      parentCoinInfo: list[0].atom,
+      puzzlehash: list[1].atom.toPuzzlehash(),
+      amount: list[2].toInt(),
+    );
+  }
+
+  CoinPrototype.fromJson(Map<String, dynamic> json)
+      : parentCoinInfo = Bytes.fromHex(json['parent_coin_info'] as String),
+        puzzlehash = Puzzlehash.fromHex(json['puzzle_hash'] as String),
+        amount = (json['amount'] as num).toInt();
+
+  CoinPrototype.fromCamelJson(Map<String, dynamic> json)
+      : parentCoinInfo = Bytes.fromHex(json['parentCoinInfo'] as String),
+        puzzlehash = Puzzlehash.fromHex(json['puzzleHash'] as String),
+        amount = (json['amount'] as num).toInt();
+
+  factory CoinPrototype.fromBytes(Bytes bytes) {
+    final iterator = bytes.iterator;
+    return CoinPrototype.fromStream(iterator);
+  }
+
   factory CoinPrototype.fromStream(Iterator<int> iterator) {
     final parentCoinInfoBytes = iterator.extractBytesAndAdvance(Puzzlehash.bytesLength);
     final parentCoinInfo = Bytes(parentCoinInfoBytes);
@@ -30,22 +55,6 @@ class CoinPrototype with ToBytesMixin {
       amount: amount,
     );
   }
-
-  factory CoinPrototype.fromBytes(Bytes bytes) {
-    final iterator = bytes.iterator;
-    return CoinPrototype.fromStream(iterator);
-  }
-
-  CoinPrototype.fromJson(Map<String, dynamic> json)
-      : parentCoinInfo = Bytes.fromHex(json['parent_coin_info'] as String),
-        puzzlehash = Puzzlehash.fromHex(json['puzzle_hash'] as String),
-        amount = (json['amount'] as num).toInt();
-
-  CoinPrototype.fromCamelJson(Map<String, dynamic> json)
-      : parentCoinInfo = Bytes.fromHex(json['parentCoinInfo'] as String),
-        puzzlehash = Puzzlehash.fromHex(json['puzzleHash'] as String),
-        amount = (json['amount'] as num).toInt();
-
   final Bytes parentCoinInfo;
   final Puzzlehash puzzlehash;
   final int amount;
@@ -56,8 +65,8 @@ class CoinPrototype with ToBytesMixin {
 
   Program toProgram() {
     return Program.list([
-      Program.fromBytes(parentCoinInfo),
-      Program.fromBytes(puzzlehash),
+      Program.fromAtom(parentCoinInfo),
+      Program.fromAtom(puzzlehash),
       Program.fromInt(amount),
     ]);
   }
@@ -65,13 +74,13 @@ class CoinPrototype with ToBytesMixin {
   Map<String, dynamic> toJson() => <String, dynamic>{
         'parent_coin_info': parentCoinInfo.toHexWithPrefix(),
         'puzzle_hash': puzzlehash.toHexWithPrefix(),
-        'amount': amount
+        'amount': amount,
       };
 
   Map<String, dynamic> toCamelJson() => <String, dynamic>{
-        'parent_coin_info': parentCoinInfo.toHexWithPrefix(),
-        'puzzle_hash': puzzlehash.toHexWithPrefix(),
-        'amount': amount
+        'parentCoinInfo': parentCoinInfo.toHexWithPrefix(),
+        'puzzleHash': puzzlehash.toHexWithPrefix(),
+        'amount': amount,
       };
 
   @override

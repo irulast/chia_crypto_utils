@@ -1,6 +1,6 @@
 class NotRunningException implements Exception {
   NotRunningException(this.url);
-  String url;
+  final String url;
 
   @override
   String toString() {

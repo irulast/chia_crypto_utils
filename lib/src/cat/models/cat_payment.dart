@@ -14,7 +14,7 @@ class CatPayment extends Payment {
             puzzlehash,
             ...memos.map(
               (e) => Bytes.encodeFromString(e.toString()),
-            )
+            ),
           ],
         );
 }

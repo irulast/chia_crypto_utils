@@ -1,5 +1,3 @@
-// ignore_for_file: lines_longer_than_80_chars
-
 import 'dart:math';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
@@ -35,10 +33,7 @@ Future<void> main() async {
     walletService.blockchainNetwork.addressPrefix,
   );
   final receiverPuzzlehash = keychain.unhardenedMap.values.toList()[1].puzzlehash;
-
-  for (var i = 0; i < nTests; i++) {
-    await fullNodeSimulator.farmCoins(senderAddress);
-  }
+  await fullNodeSimulator.farmCoins(senderAddress, blocks: nTests);
   await fullNodeSimulator.moveToNextBlock();
 
   final coins = await fullNodeSimulator.getCoinsByPuzzleHashes([senderPuzzlehash]);
@@ -212,7 +207,7 @@ Future<void> main() async {
 
     final spendBundle = walletService.createSpendBundle(
       payments: [
-        Payment(amountToSend, receiverPuzzlehash, memos: <Bytes>[memo])
+        Payment(amountToSend, receiverPuzzlehash, memos: <Bytes>[memo]),
       ],
       coinsInput: coinsToSend,
       changePuzzlehash: senderPuzzlehash,

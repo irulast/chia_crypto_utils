@@ -103,7 +103,7 @@ Future<void> main() async {
   test('Should request NFT info from Chia Lite Wallet', () async {
     // Navigate to NFTs, click on NFT you want to test, copy the NFT Coin ID and set it manually below
 
-    const coinId = '';
+    const coinId = '5011cdcdcfe38738f855f2ff9a08ef49c6e298761f97dd261173fb9b2a76bac3';
 
     final response = await appClient.getNFTInfo(
       fingerprint: fingerprint,
@@ -140,10 +140,10 @@ Future<void> main() async {
       fee: 50,
     );
 
-    // in some cases a second request will not be properly received by Chia if it is sent immediately
-    // after the first request
     print(response.sentTransactionData.toJson());
 
+    // in some cases a second request will not be properly received by Chia if it is sent immediately
+    // after the first request
     await Future<void>.delayed(const Duration(seconds: 1));
 
     final transactionResponse = await appClient.getTransaction(
@@ -240,7 +240,7 @@ Future<void> main() async {
     // navigate to Settings > Profiles, hover over DID and copy the DID ID (Hex)
     // manually set it to variable below
 
-    const didHex = '';
+    const didHex = '2c3b970e57261a7c77ca395072890c698b0d6e5fdd3447aaa43eea948df95b8c';
 
     final signMessageResponse = await appClient.signMessageById(
       fingerprint: fingerprint,
@@ -264,9 +264,10 @@ Future<void> main() async {
   test('Should request offer validity data from Chia Lite Wallet', () async {
     const offerBech32 =
         'offer1qqr83wcuu2rykcmqvpsxygqqemhmlaekcenaz02ma6hs5w600dhjlvfjn477nkwz369h88kll73h37fefnwk3qqnz8s0lle0lzwfpjm87m4vx3e3y6chtrhmzv0r720xmq7mxsae767d3ynrrfflfyupftepvf2adffnhckpccftjak9e8zvs8vfh7nlz48nga0w0wdm2m60gmd3lakccr9j6gl33s8kxj08lllfaru7428mhlt4hkm9akajg50nhdhvu4rhjeu5406en5hz3mzadn8thl8ps7y3r7lmuee2t24kk0hwmkh0lk0yn49jl3gu8kkf5u6ecg93xles7t87gedklgadklgadkmgadkmfavxn60yvkm0734mmqgt7uz7d7e7y77xkmf5mcmrwvn2gthfzkxx75q7vu7hqmrw6r8vmfwj8264q42evwl46m3mp366skmk8mmv29fznatzpteynryf8uwpl44r7hqmmerfy7625s9wuzr0xg3ukrq3hdsf7ekalamevt42y2m9el8aknna0ecfndjx37t8m22sva4053llv7mhulmfkva9uwemw2jum0c4w7tlekcpr0qq2xwsqp5mrl2lgz50raalr828yg9vpej23n0lqkwnhcnhyhevc5nvtkg2uahurk04yjlvthje2q233ath7uvu7vajemsx2z2lmlc9z597lwkf7ewkjh4hye3vdg2ln8lxhr30j7v86amj7d3sntj4zdhd03jrjtel7p2w90ztul5c73ltxsyc3e5yl6j9ceamushtve7fwyl5m9gtrnwsnt6jmywwdlut7syf990gfa6amld7n6gzac7wnhj0txhm6wen494lrqurd4e5ae26xe0svkjx4zvl2lcp5xrpd4pjv2xq57h50n3nh3thev7pndetda77hhw679z2222mdnpsfpaq927kn4h28fg2xs8p6rfu75m24ks05sjc54gnr30la2ztdan0dw7veevz3g4xvjlsfqn456zahl4d9gr8auw9vgl6ltm7jwn7cxhnlnkk8maagunk5tfc8z80py7sz06vf7t0xlz7kac2wg009g9lkn069w4c7mdtfan0s2sjkwux275r9cqdadsd4yl2ydqs';
+
     final response = await appClient.checkOfferValidity(
       fingerprint: fingerprint,
-      offer: offerBech32,
+      offer: Offer.fromBech32(offerBech32),
     );
 
     print(response.toJson());
@@ -318,6 +319,17 @@ Future<void> main() async {
     print(response.toJson());
   });
 
+  test('Should request Chia Lite Wallet to add new CAT token', () async {
+    final response = await appClient.addCatToken(
+      fingerprint: fingerprint,
+      assetId:
+          Puzzlehash.fromHex('8ebf855de6eb146db5602f0456d2f0cbe750d57f821b6f91a8592ee9f1d4cf31'),
+      name: 'Marmot Coin',
+    );
+
+    print(response.toJson());
+  });
+
   test('Should request new session using same pairing', () async {
     final getWalletsResponse = await appClient.getWallets(
       fingerprint: fingerprint,
@@ -345,7 +357,7 @@ Future<void> main() async {
         await appClient.getWallets(
           fingerprint: fingerprint,
           includeData: true,
-        )
+        ),
       },
       throwsA(isA<JsonRpcErrorWalletResponseException>()),
     );

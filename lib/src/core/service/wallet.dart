@@ -1,12 +1,13 @@
 import 'dart:async';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/command/exchange/cross_chain_offer_exchange.dart';
 
 /// a [Wallet] has access to a keychain and that keychain's coins
 abstract class Wallet {
   ChiaFullNodeInterface get fullNode;
   Future<List<CatCoin>> getCatCoins();
+
+  Future<List<NftRecordWithMintInfo>> getNftRecordsWithMintInfo();
 
   Future<List<DidInfoWithOriginCoin>> getDidInfosWithOriginCoin();
 
@@ -15,6 +16,52 @@ abstract class Wallet {
   Future<List<Coin>> getCoins();
 
   Future<List<CatCoin>> getCatCoinsByAssetId(Puzzlehash assetId, {int catVersion = 2});
+
+  Future<NftRecord?> getNftRecordByLauncherId(Bytes launcherId);
+}
+
+extension MixedCoinsGetterX on Wallet {
+  /// throws
+  /// [InsufficientStandardBalanceException],
+  /// [InsufficientCatBalanceException], or
+  /// [InsufficientNftBalanceException]
+  ///  if there are not enough coins for a requested type
+  Future<MixedCoins> getMixedCoinsForAmounts(MixedAmounts amounts, {int catVersion = 2}) async {
+    // standard
+    final allCoins = await getCoins();
+    final standardCoinsForOffer = selectStandardCoinsForAmount(allCoins, amounts.standard);
+
+    // cat
+    final catCoinsForOffer = <CatCoin>[];
+    for (final requestedCat in amounts.cat.entries) {
+      final catCoins = await getCatCoinsByAssetId(requestedCat.key, catVersion: catVersion);
+      catCoinsForOffer
+          .addAll(selectCatCoinsForAmount(catCoins, requestedCat.value, assetId: requestedCat.key));
+    }
+
+    // nft
+    final nftsForOffer = <Nft>[];
+
+    for (final requestedNft in amounts.nft.entries) {
+      final nftRecord = await getNftRecordByLauncherId(requestedNft.key);
+      if (nftRecord == null) {
+        LoggingContext().error('could not find offer requested nft ${requestedNft.key}');
+        throw InsufficientNftBalanceException(requestedNft.key);
+      }
+      try {
+        final nft = nftRecord.toNft(await getKeychain());
+        nftsForOffer.add(nft);
+      } on KeyMismatchException {
+        throw InsufficientNftBalanceException(requestedNft.key);
+      }
+    }
+
+    return MixedCoins(
+      standardCoins: standardCoinsForOffer,
+      cats: catCoinsForOffer,
+      nfts: nftsForOffer,
+    );
+  }
 }
 
 extension SendCoinsX on Wallet {

@@ -14,7 +14,6 @@ class SpentCoin extends Coin {
   })  : _puzzleReveal = puzzleReveal,
         _solution = solution,
         assert(spentBlockIndex > 0, 'coin must be spent');
-
   factory SpentCoin.fromJson(Map<String, dynamic> json) {
     return SpentCoin(
       confirmedBlockIndex: json['confirmed_block_index'] as int,
@@ -50,7 +49,7 @@ class SpentCoin extends Coin {
   final Program _solution;
 
   CoinSpend get coinSpend => CoinSpend(
-        coin: this,
+        coin: toCoinPrototype(),
         puzzleReveal: _puzzleReveal,
         solution: _solution,
       );
@@ -62,8 +61,8 @@ class SpentCoin extends Coin {
     json['spent_block_index'] = spentBlockIndex;
     json['coinbase'] = coinbase;
     json['timestamp'] = timestamp;
-    json['puzzle_reveal'] = _puzzleReveal.serializeHex();
-    json['solution'] = _solution.serializeHex();
+    json['puzzle_reveal'] = _puzzleReveal.toHex();
+    json['solution'] = _solution.toHex();
     return json;
   }
 }

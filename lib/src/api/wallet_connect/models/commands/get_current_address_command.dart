@@ -5,7 +5,6 @@ class GetCurrentAddressCommand implements WalletConnectCommand {
   const GetCurrentAddressCommand({
     this.walletId = 1,
   });
-
   factory GetCurrentAddressCommand.fromParams(Map<String, dynamic> params) {
     return GetCurrentAddressCommand(walletId: pick(params, 'walletId').asIntOrNull());
   }

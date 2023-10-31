@@ -83,7 +83,11 @@ Future<void> main() async {
   });
 
   test('produces valid CAT1 spendbundle with fee and multiple payments', () async {
-    final payment = CatPayment.withStringMemos(200, cat1TargetPuzzlehash, memos: const <String>['Chia is really cool']);
+    final payment = CatPayment.withStringMemos(
+      200,
+      cat1TargetPuzzlehash,
+      memos: const <String>['Chia is really cool'],
+    );
     final payment1 = CatPayment.withIntMemos(100, cat1TargetPuzzlehash, memos: const <int>[1000]);
     final spendBundle = cat1WalletService.createSpendBundle(
       payments: [payment, payment1],
@@ -98,7 +102,11 @@ Future<void> main() async {
 
   test('throws error when creating CAT2 spendbundle with fee and multiple payments with CAT1 coins',
       () async {
-    final payment = CatPayment.withStringMemos(200, cat1TargetPuzzlehash, memos: const <String>['Chia is really cool']);
+    final payment = CatPayment.withStringMemos(
+      200,
+      cat1TargetPuzzlehash,
+      memos: const <String>['Chia is really cool'],
+    );
     final payment1 = CatPayment.withIntMemos(100, cat1TargetPuzzlehash, memos: const <int>[1000]);
     expect(
       () => catWalletService.createSpendBundle(
@@ -179,5 +187,4 @@ Future<void> main() async {
       throwsArgumentError,
     );
   });
-
 }

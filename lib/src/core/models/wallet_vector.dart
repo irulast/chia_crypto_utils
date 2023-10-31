@@ -11,8 +11,7 @@ class WalletVector with ToBytesMixin {
     required this.puzzlehash,
     required this.derivationIndex,
   });
-
-  factory WalletVector.fromPrivateKey(
+  factory WalletVector.fromMasterPrivateKey(
     PrivateKey masterPrivateKey,
     int derivationIndex,
   ) {
@@ -25,6 +24,22 @@ class WalletVector with ToBytesMixin {
     return WalletVector(
       childPrivateKey: childPrivateKeyHardened,
       puzzlehash: puzzlehashHardened,
+      derivationIndex: derivationIndex,
+    );
+  }
+
+  factory WalletVector.fromChildPrivateKey(
+    PrivateKey childPrivateKey,
+    int derivationIndex,
+  ) {
+    final childPublicKey = childPrivateKey.getG1();
+
+    final puzzle = getPuzzleFromPk(childPublicKey);
+    final puzzlehash = Puzzlehash(puzzle.hash());
+
+    return WalletVector(
+      childPrivateKey: childPrivateKey,
+      puzzlehash: puzzlehash,
       derivationIndex: derivationIndex,
     );
   }
@@ -57,7 +72,7 @@ class WalletVector with ToBytesMixin {
   }
 
   static String _fromPrivateKeyTask(_PrivateKeyWithDerivationIndex arg) {
-    final walletVector = WalletVector.fromPrivateKey(arg.privateKey, arg.derivationIndex);
+    final walletVector = WalletVector.fromMasterPrivateKey(arg.privateKey, arg.derivationIndex);
 
     return walletVector.toHex();
   }
@@ -102,12 +117,6 @@ class UnhardenedWalletVector extends WalletVector {
     required super.derivationIndex,
     Map<Puzzlehash, Puzzlehash>? assetIdtoOuterPuzzlehash,
   }) : assetIdtoOuterPuzzlehash = assetIdtoOuterPuzzlehash ?? <Puzzlehash, Puzzlehash>{};
-
-  factory UnhardenedWalletVector.fromBytes(Bytes bytes, int derivationIndex) {
-    final iterator = bytes.iterator;
-    return UnhardenedWalletVector.fromStream(iterator, derivationIndex);
-  }
-
   factory UnhardenedWalletVector.fromStream(Iterator<int> iterator, int derivationIndex) {
     final childPrivateKey = PrivateKey.fromStream(iterator);
     final puzzlehash = Puzzlehash.fromStream(iterator);
@@ -128,6 +137,11 @@ class UnhardenedWalletVector extends WalletVector {
       assetIdtoOuterPuzzlehash: assetIdToOuterPuzzlehashMap,
       derivationIndex: derivationIndex,
     );
+  }
+
+  factory UnhardenedWalletVector.fromBytes(Bytes bytes, int derivationIndex) {
+    final iterator = bytes.iterator;
+    return UnhardenedWalletVector.fromStream(iterator, derivationIndex);
   }
 
   factory UnhardenedWalletVector.fromPrivateKey(

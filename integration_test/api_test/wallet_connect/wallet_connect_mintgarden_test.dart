@@ -21,9 +21,8 @@ Future<void> main() async {
   const mnemonic = '';
   const mintGardenLink = '';
 
-  const fullNodeHttpRpc = FullNodeHttpRpc(mainnetUrl, timeout: Duration(minutes: 10));
-
-  const fullNodeInterface = ChiaFullNodeInterface(fullNodeHttpRpc);
+  final enhancedFullNodeInterface =
+      EnhancedChiaFullNodeInterface.fromUrl(mainnetUrl, timeout: const Duration(minutes: 10));
 
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
 
@@ -36,7 +35,7 @@ Future<void> main() async {
   final requestHandler = FullNodeWalletConnectRequestHandler(
     coreSecret: coreSecret,
     keychain: keychain,
-    fullNode: fullNodeInterface,
+    fullNode: enhancedFullNodeInterface,
   );
 
   final walletClient = WalletConnectWalletClient(

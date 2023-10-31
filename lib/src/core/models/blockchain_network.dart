@@ -9,13 +9,12 @@ class BlockchainNetwork {
     this.fee,
     this.networkConfig,
   });
-  String name;
-  String? unit;
-  // TODO(nvjoshi2): logo https://pub.dev/packages/image
-  String? ticker;
-  String addressPrefix;
-  String aggSigMeExtraData;
-  int? precision;
-  int? fee;
-  dynamic networkConfig;
+  final String name;
+  final String? unit;
+  final String? ticker;
+  final String addressPrefix;
+  final String aggSigMeExtraData;
+  final int? precision;
+  final int? fee;
+  final dynamic networkConfig;
 }

@@ -43,8 +43,12 @@ abstract class WalletConnectCommand {
         return const GetSyncStatus();
       case WalletConnectCommandType.logIn:
         return LogInCommand.fromParams(params);
+      case WalletConnectCommandType.signSpendBundle:
+        return SignSpendBundleCommand.fromParams(params);
       case WalletConnectCommandType.createOfferForIds:
         return CreateOfferForIdsCommand.fromParams(params);
+      case WalletConnectCommandType.addCATToken:
+        return AddCatTokenCommand.fromParams(params);
     }
   }
 
@@ -72,7 +76,9 @@ enum WalletConnectCommandType {
   getNextAddress,
   getSyncStatus,
   logIn,
-  createOfferForIds;
+  signSpendBundle,
+  createOfferForIds,
+  addCATToken;
 
   factory WalletConnectCommandType.fromString(String commandString) {
     return WalletConnectCommandType.values.where((value) => value.name == commandString).single;

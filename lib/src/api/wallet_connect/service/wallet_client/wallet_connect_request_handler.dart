@@ -81,8 +81,16 @@ abstract class WalletConnectRequestHandler {
 
   FutureOr<LogInResponse> logIn(LogInCommand command, SessionData sessionData);
 
+  FutureOr<SignSpendBundleResponse> signSpendBundle(
+    SignSpendBundleCommand command,
+    SessionData sessionData,
+  );
   FutureOr<CreateOfferForIdsResponse> createOfferForIds(
     CreateOfferForIdsCommand command,
+    SessionData sessionData,
+  );
+  FutureOr<AddCatTokenResponse> addCatToken(
+    AddCatTokenCommand command,
     SessionData sessionData,
   );
 }
@@ -163,6 +171,13 @@ extension CommandMethods on WalletConnectRequestHandler {
           break;
         case WalletConnectCommandType.createOfferForIds:
           response = await createOfferForIds(command as CreateOfferForIdsCommand, sessionData);
+          break;
+
+        case WalletConnectCommandType.signSpendBundle:
+          response = await signSpendBundle(command as SignSpendBundleCommand, sessionData);
+          break;
+        case WalletConnectCommandType.addCATToken:
+          response = await addCatToken(command as AddCatTokenCommand, sessionData);
           break;
       }
 

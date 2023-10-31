@@ -10,7 +10,6 @@ class SpendCatCommand implements WalletConnectCommand {
     this.waitForConfirmation = false,
     this.memos = const [],
   });
-
   factory SpendCatCommand.fromParams(Map<String, dynamic> params) {
     return SpendCatCommand(
       walletId: pick(params, 'walletId').asIntOrThrow(),
@@ -39,7 +38,7 @@ class SpendCatCommand implements WalletConnectCommand {
       'address': address.address,
       'amount': amount,
       'fee': fee,
-      'memos': memos
+      'memos': memos,
     };
   }
 }

@@ -50,7 +50,6 @@ Future<void> main() async {
 
   final tailRunningInfo = issuanceResult.tailRunningInfo;
 
-  keychain.addOuterPuzzleHashesForAssetId(Puzzlehash(tailRunningInfo.assetId));
 
   await fullNodeSimulator.pushTransaction(issuanceResult.spendBundle);
   await fullNodeSimulator.moveToNextBlock();

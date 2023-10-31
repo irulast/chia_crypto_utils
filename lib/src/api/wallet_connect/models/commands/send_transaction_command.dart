@@ -10,7 +10,6 @@ class SendTransactionCommand implements WalletConnectCommand {
     required this.fee,
     this.memos = const [],
   });
-
   factory SendTransactionCommand.fromParams(Map<String, dynamic> params) {
     return SendTransactionCommand(
       walletId: pick(params, 'walletId').asIntOrNull(),
@@ -49,7 +48,6 @@ class SendTransactionResponse
     with ToJsonMixin, WalletConnectCommandResponseDecoratorMixin
     implements WalletConnectCommandBaseResponse {
   const SendTransactionResponse(this.delegate, this.sentTransactionData);
-
   factory SendTransactionResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
@@ -77,7 +75,6 @@ class SentTransactionData {
     required this.transactionId,
     required this.success,
   });
-
   factory SentTransactionData.fromJson(Map<String, dynamic> json) {
     return SentTransactionData(
       transaction: pick(json, 'transaction').letJsonOrThrow(TransactionRecord.fromJson),

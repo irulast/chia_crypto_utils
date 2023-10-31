@@ -70,20 +70,19 @@ class CreatedOfferData {
     required this.offer,
     required this.tradeRecord,
   });
-
   factory CreatedOfferData.fromJson(Map<String, dynamic> json) {
     return CreatedOfferData(
-      offer: pick(json, 'offer').asStringOrThrow(),
+      offer: Offer.fromBech32(pick(json, 'offer').asStringOrThrow()),
       tradeRecord: pick(json, 'tradeRecord').letJsonOrThrow(TradeRecord.fromJson),
     );
   }
 
-  final String offer;
+  final Offer offer;
   final TradeRecord tradeRecord;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'offer': offer,
+      'offer': offer.toBech32(),
       'tradeRecord': tradeRecord.toJson(),
     };
   }

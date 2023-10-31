@@ -35,7 +35,6 @@ class TakeOfferResponse
     this.delegate,
     this.takeOfferData,
   );
-
   factory TakeOfferResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
@@ -61,7 +60,6 @@ class TakeOfferData {
     required this.tradeRecord,
     required this.success,
   });
-
   factory TakeOfferData.fromJson(Map<String, dynamic> json) {
     return TakeOfferData(
       tradeRecord: pick(json, 'tradeRecord').letJsonOrThrow(TradeRecord.fromJson),
@@ -104,13 +102,12 @@ class TradeRecord {
       sent: pick(json, 'sent').asIntOrThrow(),
       sentTo: pick(json, 'sentTo').asListOrEmpty((p0) => p0.asString()),
       coinsOfInterest: pick(json, 'coinsOfInterest').letJsonListOrThrow(CoinPrototype.fromJson),
-      tradeId: (pick(json, 'tradeId').asStringOrThrow()).hexToBytes(),
+      tradeId: pick(json, 'tradeId').asStringOrThrow().hexToBytes(),
       status: TradeStatus.fromString(pick(json, 'status').asStringOrThrow()),
       takenOffer: pick(json, 'takenOffer').asStringOrNull(),
       summary: pick(json, 'summary').asStringOrNull(),
     );
   }
-
   final int confirmedAtIndex;
   final int? acceptedAtTime;
   final int createdAtTime;

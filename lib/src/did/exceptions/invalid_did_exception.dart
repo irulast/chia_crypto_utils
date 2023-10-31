@@ -1,6 +1,5 @@
 class InvalidDidException implements Exception {
   InvalidDidException({this.message});
-
   final String? message;
 
   @override

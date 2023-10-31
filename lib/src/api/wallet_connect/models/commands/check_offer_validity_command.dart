@@ -5,21 +5,20 @@ class CheckOfferValidityCommand implements WalletConnectCommand {
   const CheckOfferValidityCommand({
     required this.offer,
   });
-
   factory CheckOfferValidityCommand.fromParams(Map<String, dynamic> params) {
     return CheckOfferValidityCommand(
-      offer: pick(params, 'offer').asStringOrThrow(),
+      offer: Offer.fromBech32(pick(params, 'offer').asStringOrThrow()),
     );
   }
 
   @override
   WalletConnectCommandType get type => WalletConnectCommandType.checkOfferValidity;
 
-  final String offer;
+  final Offer offer;
 
   @override
   Map<String, dynamic> paramsToJson() {
-    return <String, dynamic>{'offer': offer};
+    return <String, dynamic>{'offer': offer.toBech32()};
   }
 }
 
@@ -27,7 +26,6 @@ class CheckOfferValidityResponse
     with ToJsonMixin, WalletConnectCommandResponseDecoratorMixin
     implements WalletConnectCommandBaseResponse {
   const CheckOfferValidityResponse(this.delegate, this.offerValidityData);
-
   factory CheckOfferValidityResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
@@ -55,7 +53,6 @@ class OfferValidityData {
     required this.valid,
     required this.id,
   });
-
   factory OfferValidityData.fromJson(Map<String, dynamic> json) {
     return OfferValidityData(
       valid: json['valid'] as bool,

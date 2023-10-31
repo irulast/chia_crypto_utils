@@ -44,17 +44,20 @@ class WalletConnectCommandBaseResponseImp
     this.isSuccess,
     this.isError,
   });
-  WalletConnectCommandBaseResponseImp.error({
-    required this.endpointName,
-    this.requestId,
-    required this.originalArgs,
-    required this.startedTimestamp,
-  })  : status = 'error',
-        fulfilledTimestamp = null,
-        isUninitialized = false,
-        isLoading = false,
-        isSuccess = false,
-        isError = true;
+  factory WalletConnectCommandBaseResponseImp.fromJson(Map<String, dynamic> json) {
+    return WalletConnectCommandBaseResponseImp(
+      status: pick(json, 'status').asStringOrNull(),
+      endpointName: pick(json, 'endpointName').letStringOrNull(WalletConnectCommandType.fromString),
+      requestId: pick(json, 'requestId').asStringOrNull(),
+      originalArgs: pick(json, 'originalArgs').letJsonOrNull((json) => json),
+      startedTimestamp: pick(json, 'startedTimestamp').asIntOrNull(),
+      fulfilledTimestamp: pick(json, 'fulfilledTimestamp').asIntOrNull(),
+      isUninitialized: pick(json, 'isUninitialized').asBoolOrNull(),
+      isLoading: pick(json, 'isLoading').asBoolOrNull(),
+      isSuccess: pick(json, 'isSuccess').asBoolOrNull(),
+      isError: pick(json, 'isError').asBoolOrNull(),
+    );
+  }
 
   factory WalletConnectCommandBaseResponseImp.success({
     required WalletConnectCommand command,
@@ -75,20 +78,17 @@ class WalletConnectCommandBaseResponseImp
     );
   }
 
-  factory WalletConnectCommandBaseResponseImp.fromJson(Map<String, dynamic> json) {
-    return WalletConnectCommandBaseResponseImp(
-      status: pick(json, 'status').asStringOrNull(),
-      endpointName: pick(json, 'endpointName').letStringOrNull(WalletConnectCommandType.fromString),
-      requestId: pick(json, 'requestId').asStringOrNull(),
-      originalArgs: pick(json, 'originalArgs').letJsonOrNull((json) => json),
-      startedTimestamp: pick(json, 'startedTimestamp').asIntOrNull(),
-      fulfilledTimestamp: pick(json, 'fulfilledTimestamp').asIntOrNull(),
-      isUninitialized: pick(json, 'isUninitialized').asBoolOrNull(),
-      isLoading: pick(json, 'isLoading').asBoolOrNull(),
-      isSuccess: pick(json, 'isSuccess').asBoolOrNull(),
-      isError: pick(json, 'isError').asBoolOrNull(),
-    );
-  }
+  WalletConnectCommandBaseResponseImp.error({
+    required this.endpointName,
+    this.requestId,
+    required this.originalArgs,
+    required this.startedTimestamp,
+  })  : status = 'error',
+        fulfilledTimestamp = null,
+        isUninitialized = false,
+        isLoading = false,
+        isSuccess = false,
+        isError = true;
 
   @override
   final String? status;

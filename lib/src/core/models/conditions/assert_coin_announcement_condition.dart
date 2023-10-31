@@ -4,13 +4,15 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/standard/exceptions/invalid_condition_cast_exception.dart';
 
 class AssertCoinAnnouncementCondition implements Condition {
-
   AssertCoinAnnouncementCondition(this.coinId, this.message, {this.morphBytes});
-  static int conditionCode = 61;
+  static const conditionCode = 61;
 
-  Bytes coinId;
-  Bytes message;
-  Bytes? morphBytes;
+  final Bytes coinId;
+  final Bytes message;
+  final Bytes? morphBytes;
+
+  @override
+  int get code => conditionCode;
 
   Bytes get announcementId {
     if (morphBytes != null) {
@@ -32,7 +34,7 @@ class AssertCoinAnnouncementCondition implements Condition {
   Program toProgram() {
     return Program.list([
       Program.fromInt(conditionCode),
-      Program.fromBytes(announcementId),
+      Program.fromAtom(announcementId),
     ]);
   }
 
