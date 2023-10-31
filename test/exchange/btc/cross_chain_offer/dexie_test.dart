@@ -1,3 +1,4 @@
+@Skip('Interacts with Dexie API')
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:test/test.dart';
 
