@@ -9,8 +9,7 @@ void main() {
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDUyYjUxMDJmOWI5Y2NBMTREMDBjMjNjY2QwOTE2YTBBQTREMGNmMjQiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTY4OTAwNTQ0OTg3NCwibmFtZSI6ImJ1bGstbWludGluZy10ZXN0In0.5qdP1qwH4_SOoYCRrIdoXK0RDqzweXanzhxUCP8YH-g',
     );
 
-    final response =
-        await storage.uploadFile(File('/Users/nvjoshi/Documents/nft_assets/data_red_icon.jpeg'));
+    final response = await storage.uploadFile(File('./test/assets/vosk_coin.png'));
     print(response.link);
     print(response.toJson());
   });
