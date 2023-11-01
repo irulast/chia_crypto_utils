@@ -38,7 +38,8 @@ class TakeOfferResponse
   factory TakeOfferResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
-    final takeOfferData = pick(json, 'data').letJsonOrThrow(TakeOfferData.fromJson);
+    final takeOfferData =
+        pick(json, 'data').letJsonOrThrow(TakeOfferData.fromJson);
     return TakeOfferResponse(baseResponse, takeOfferData);
   }
 
@@ -62,7 +63,8 @@ class TakeOfferData {
   });
   factory TakeOfferData.fromJson(Map<String, dynamic> json) {
     return TakeOfferData(
-      tradeRecord: pick(json, 'tradeRecord').letJsonOrThrow(TradeRecord.fromJson),
+      tradeRecord:
+          pick(json, 'tradeRecord').letJsonOrThrow(TradeRecord.fromJson),
       success: pick(json, 'success').asBoolOrThrow(),
     );
   }
@@ -101,7 +103,8 @@ class TradeRecord {
       isMyOffer: pick(json, 'isMyOffer').asBoolOrThrow(),
       sent: pick(json, 'sent').asIntOrThrow(),
       sentTo: pick(json, 'sentTo').asListOrEmpty((p0) => p0.asString()),
-      coinsOfInterest: pick(json, 'coinsOfInterest').letJsonListOrThrow(CoinPrototype.fromJson),
+      coinsOfInterest: pick(json, 'coinsOfInterest')
+          .letJsonListOrThrow(CoinPrototype.fromJson),
       tradeId: pick(json, 'tradeId').asStringOrThrow().hexToBytes(),
       status: TradeStatus.fromString(pick(json, 'status').asStringOrThrow()),
       takenOffer: pick(json, 'takenOffer').asStringOrNull(),

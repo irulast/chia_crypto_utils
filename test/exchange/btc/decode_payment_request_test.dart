@@ -109,7 +109,8 @@ void main() {
 
     expect(
       decodedPaymentRequest.tags.paymentSecret!.toHex(),
-      equals('90901954a57e2eb915254293addd8858bb2162c6f7aa4e5df6fcc71bed8302e4'),
+      equals(
+          '90901954a57e2eb915254293addd8858bb2162c6f7aa4e5df6fcc71bed8302e4'),
     );
 
     expect(
@@ -139,7 +140,8 @@ void main() {
     );
   });
 
-  test('should correctly decode lightning payment request fallback address', () {
+  test('should correctly decode lightning payment request fallback address',
+      () {
     const paymentRequest =
         'lntb20m1pvjluezsp5zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zygshp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqspp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqfpp3x9et2e20v6pu37c5d9vax37wxq72un989qrsgqdj545axuxtnfemtpwkc45hx9d2ft7x04mt8q7y6t0k2dge9e7h8kpy9p34ytyslj3yu569aalz2xdk8xkd7ltxqld94u8h2esmsmacgpghe9k8';
     final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
@@ -173,7 +175,8 @@ void main() {
 
     expect(
       decodedPaymentRequest.tags.paymentSecret!.toHex(),
-      equals('1111111111111111111111111111111111111111111111111111111111111111'),
+      equals(
+          '1111111111111111111111111111111111111111111111111111111111111111'),
     );
 
     expect(
@@ -203,7 +206,8 @@ void main() {
     );
   });
 
-  test('should correctly parse lightning payment request with amount of zero', () {
+  test('should correctly parse lightning payment request with amount of zero',
+      () {
     const paymentRequest =
         'lnbc1p3ew0wkpp5wcexslrr63jqvyfs7t5ezmnq3qgs9ccd5p5eraz0q4y7yh6akupsdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdgdwxf5j48jf5qqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldgdwxf5j48jf5qqqqqryqqqqthqqpysp5vr7uvzl0y00elhqp3erw3r0zmf04g96q4vwmq4cmnwl8axr9fx7q9qypqsqarzs9hjd9gm5p84sllx26hpukelfkzujx07dxgzdyffdfsugazq9gk6ds2l8eyr5fa574xyer249hcazcqvyeewr0yjy2r6j3258cfgqrurvr4';
     final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);

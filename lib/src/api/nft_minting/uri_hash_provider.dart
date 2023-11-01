@@ -29,7 +29,8 @@ class _UriHashProvider implements UriHashProvider {
   Future<Bytes> getHashForUri(String uri) async {
     final data = await http.get(Uri.parse(uri));
     if (data.statusCode != 200) {
-      throw HttpException('Error fetching uri $uri (code: ${data.statusCode}, msg: ${data.body})');
+      throw HttpException(
+          'Error fetching uri $uri (code: ${data.statusCode}, msg: ${data.body})');
     }
 
     return Bytes(data.bodyBytes).sha256Hash();

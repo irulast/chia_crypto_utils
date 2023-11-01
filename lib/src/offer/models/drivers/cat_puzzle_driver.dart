@@ -45,10 +45,12 @@ class CatPuzzleDriver implements PuzzleDriver {
   }
 
   @override
-  SpendType get type => catProgram == cat2Program ? SpendType.cat : SpendType.cat1;
+  SpendType get type =>
+      catProgram == cat2Program ? SpendType.cat : SpendType.cat1;
 
   @override
-  OfferedCoin makeOfferedCoinFromParentSpend(CoinPrototype coin, CoinSpend parentSpend) {
+  OfferedCoin makeOfferedCoinFromParentSpend(
+      CoinPrototype coin, CoinSpend parentSpend) {
     if (type == SpendType.cat) {
       return OfferedCat2.fromOfferBundleParentSpend(coin, parentSpend);
     }
@@ -73,7 +75,8 @@ class CatPuzzleDriver implements PuzzleDriver {
   }
 
   @override
-  CoinPrototype getChildCoinForP2Payment(CoinSpend coinSpend, Payment p2Payment) {
+  CoinPrototype getChildCoinForP2Payment(
+      CoinSpend coinSpend, Payment p2Payment) {
     final outerPuzzlehash = WalletKeychain.makeOuterPuzzleHashForCatProgram(
       p2Payment.puzzlehash,
       getAssetId(coinSpend.puzzleReveal),

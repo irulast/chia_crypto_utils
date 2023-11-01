@@ -33,7 +33,8 @@ class StandardPuzzleDriver implements PuzzleDriver {
   SpendType get type => SpendType.standard;
 
   @override
-  OfferedCoin makeOfferedCoinFromParentSpend(CoinPrototype coin, CoinSpend parentSpend) {
+  OfferedCoin makeOfferedCoinFromParentSpend(
+      CoinPrototype coin, CoinSpend parentSpend) {
     return OfferedStandardCoin.fromOfferBundleCoin(coin);
   }
 
@@ -48,7 +49,8 @@ class StandardPuzzleDriver implements PuzzleDriver {
   }
 
   @override
-  bool doesMatchUncurried(ModAndArguments uncurriedFullPuzzle, Program fullPuzzle) {
+  bool doesMatchUncurried(
+      ModAndArguments uncurriedFullPuzzle, Program fullPuzzle) {
     final mod = uncurriedFullPuzzle.mod;
     return mod == p2DelegatedPuzzleOrHiddenPuzzleProgram ||
         // no curried args in settlement programs
@@ -58,7 +60,8 @@ class StandardPuzzleDriver implements PuzzleDriver {
   }
 
   @override
-  CoinPrototype getChildCoinForP2Payment(CoinSpend coinSpend, Payment p2Payment) {
+  CoinPrototype getChildCoinForP2Payment(
+      CoinSpend coinSpend, Payment p2Payment) {
     return CoinPrototype(
       parentCoinInfo: coinSpend.coin.id,
       puzzlehash: p2Payment.puzzlehash,

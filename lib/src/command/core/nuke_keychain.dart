@@ -7,7 +7,6 @@ Future<void> nukeKeychain({
   required int feePerCoin,
   required int burnBundleSize,
 }) async {
-
   return transferKeychain(
     destinationPuzzlehash: burnPuzzlehash,
     keychain: keychain,
@@ -31,11 +30,12 @@ Future<void> transferKeychain({
 
   final catCoins = await fullNode.getCatCoinsByHints(keychain.puzzlehashes);
 
-  final catCoinsGroupedByAssetId =
-      catCoins.where((element) => element.type == SpendType.cat).groupByAssetId();
+  final catCoinsGroupedByAssetId = catCoins
+      .where((element) => element.type == SpendType.cat)
+      .groupByAssetId();
 
-  final batchedCatMap = catCoinsGroupedByAssetId
-      .map((key, value) => MapEntry(key, value.splitIntoBatches(spendBundleSize)));
+  final batchedCatMap = catCoinsGroupedByAssetId.map(
+      (key, value) => MapEntry(key, value.splitIntoBatches(spendBundleSize)));
 
   for (final catMapEntry in batchedCatMap.entries) {
     keychain.addOuterPuzzleHashesForAssetId(catMapEntry.key);
@@ -45,7 +45,8 @@ Future<void> transferKeychain({
     for (final listEntry in batchedCats.asMap().entries) {
       final catBatch = listEntry.value;
       final index = listEntry.key;
-      final standardCoins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
+      final standardCoins =
+          await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
 
       final fee = catBatch.length * feePerCoin;
       final standardCoinsForFee = selectCoinsForAmount(
@@ -64,7 +65,8 @@ Future<void> transferKeychain({
       );
 
       await fullNode.pushTransaction(spendBundle);
-      print('pushed ${catMapEntry.key} cat spend bundle (${index + 1}/${batchedCats.length})');
+      print(
+          'pushed ${catMapEntry.key} cat spend bundle (${index + 1}/${batchedCats.length})');
       await blockchainUtils.waitForSpendBundle(spendBundle);
     }
   }
@@ -78,7 +80,8 @@ Future<void> transferKeychain({
     final nftBatch = listEntry.value;
 
     final index = listEntry.key;
-    final standardCoins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
+    final standardCoins =
+        await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
 
     final fee = nftBatch.length * feePerCoin;
     final standardCoinsForFee = selectCoinsForAmount(
@@ -118,7 +121,8 @@ Future<void> transferKeychain({
     final didBatch = listEntry.value;
 
     final index = listEntry.key;
-    final standardCoins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
+    final standardCoins =
+        await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
 
     final fee = didBatch.length * feePerCoin;
     final standardCoinsForFee = selectCoinsForAmount(
@@ -150,9 +154,11 @@ Future<void> transferKeychain({
     await blockchainUtils.waitForSpendBundle(totalSpendBundle);
   }
 
-  final standardCoinsToNuke = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
+  final standardCoinsToNuke =
+      await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
 
-  final batchedStandardCoins = standardCoinsToNuke.splitIntoBatches(spendBundleSize);
+  final batchedStandardCoins =
+      standardCoinsToNuke.splitIntoBatches(spendBundleSize);
   print('sending standard coins');
   for (final entry in batchedStandardCoins.asMap().entries) {
     final index = entry.key;
@@ -167,7 +173,8 @@ Future<void> transferKeychain({
     );
 
     await fullNode.pushTransaction(spendBundle);
-    print('pushed standard spend bundle (${index + 1}/${batchedStandardCoins.length})');
+    print(
+        'pushed standard spend bundle (${index + 1}/${batchedStandardCoins.length})');
     await blockchainUtils.waitForSpendBundle(spendBundle);
   }
 }

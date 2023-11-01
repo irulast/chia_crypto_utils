@@ -3,7 +3,8 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class PoolInterface {
   const PoolInterface(this.pool);
-  factory PoolInterface.fromURL(String poolUrl, {String? certificateBytesPath}) {
+  factory PoolInterface.fromURL(String poolUrl,
+      {String? certificateBytesPath}) {
     return PoolInterface(
       PoolHttpREST(
         poolUrl,

@@ -59,7 +59,8 @@ Bytes compressObjectWithPuzzlesOptimized(Bytes objectBytes) {
 
   for (var version = 0; version < zDict.length; version++) {
     final compressedBytes = compressObjectWithPuzzles(objectBytes, version);
-    if (smallestCompression == null || compressedBytes.length < smallestCompression.length) {
+    if (smallestCompression == null ||
+        compressedBytes.length < smallestCompression.length) {
       smallestCompression = compressedBytes;
     }
   }

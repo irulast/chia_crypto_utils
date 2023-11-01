@@ -1,13 +1,16 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:deep_pick/deep_pick.dart';
 
-class CoinPrototypeWithParentSpend with CoinPrototypeDecoratorMixin implements CoinPrototype {
+class CoinPrototypeWithParentSpend
+    with CoinPrototypeDecoratorMixin
+    implements CoinPrototype {
   CoinPrototypeWithParentSpend({
     required this.delegate,
     required this.parentSpend,
   });
 
-  factory CoinPrototypeWithParentSpend.fromCoin(CoinPrototype coin, CoinSpend parentSpend) {
+  factory CoinPrototypeWithParentSpend.fromCoin(
+      CoinPrototype coin, CoinSpend parentSpend) {
     return CoinPrototypeWithParentSpend(
       delegate: coin,
       parentSpend: parentSpend,
@@ -35,7 +38,8 @@ class CoinWithParentSpend with CoinPrototypeDecoratorMixin implements Coin {
   factory CoinWithParentSpend.fromJson(Map<String, dynamic> json) {
     final coin = Coin.fromJson(json);
 
-    final parentSpend = pick(json, 'parent_coin_spend').letJsonOrNull(CoinSpend.fromJson);
+    final parentSpend =
+        pick(json, 'parent_coin_spend').letJsonOrNull(CoinSpend.fromJson);
 
     return CoinWithParentSpend.fromCoin(coin, parentSpend);
   }

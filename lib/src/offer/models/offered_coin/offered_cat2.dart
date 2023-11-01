@@ -4,16 +4,22 @@ import 'package:chia_crypto_utils/src/offer/models/offered_coin/offered_coin.dar
 class OfferedCat2 implements OfferedCoin {
   OfferedCat2(this.coin, this.settlementProgram);
 
-  factory OfferedCat2.fromOfferBundleParentSpend(CoinPrototype coin, CoinSpend parentSpend) {
-    final deconstructedCatPuzzle = _catWalletService.matchCatPuzzle(parentSpend.puzzleReveal);
+  factory OfferedCat2.fromOfferBundleParentSpend(
+      CoinPrototype coin, CoinSpend parentSpend) {
+    final deconstructedCatPuzzle =
+        _catWalletService.matchCatPuzzle(parentSpend.puzzleReveal);
     if (deconstructedCatPuzzle == null) {
       throw InvalidCatException(message: 'invalid cat 2');
     }
 
     final matchingSettlementProgram = () {
-      for (final settlementProgram in [settlementPaymentsProgram, settlementPaymentsProgramOld]) {
+      for (final settlementProgram in [
+        settlementPaymentsProgram,
+        settlementPaymentsProgramOld
+      ]) {
         if (_catWalletService
-                .makeCatPuzzle(deconstructedCatPuzzle.assetId, settlementProgram)
+                .makeCatPuzzle(
+                    deconstructedCatPuzzle.assetId, settlementProgram)
                 .hash() ==
             coin.puzzlehash) {
           return settlementProgram;
@@ -49,7 +55,8 @@ class OfferedCat2 implements OfferedCoin {
 
     return CoinSpend(
       coin: coin,
-      puzzleReveal: _catWalletService.makeCatPuzzle(coin.assetId, settlementProgram),
+      puzzleReveal:
+          _catWalletService.makeCatPuzzle(coin.assetId, settlementProgram),
       solution: solution,
     );
   }

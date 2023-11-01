@@ -48,7 +48,8 @@ class DependentCoinWalletService {
     final creationSpendBundle = standardWalletService.createSpendBundle(
       payments: dependentCoins
           .map(
-            (e) => Payment(amountPerCoin, e.puzzlehash, memos: <Bytes>[e.primaryCoinId]),
+            (e) => Payment(amountPerCoin, e.puzzlehash,
+                memos: <Bytes>[e.primaryCoinId]),
           )
           .toList(),
       coinsInput: coins,
@@ -58,7 +59,8 @@ class DependentCoinWalletService {
       fee: fee,
     );
 
-    return DependentCoinsWithCreationBundle(creationSpendBundle, dependentCoins);
+    return DependentCoinsWithCreationBundle(
+        creationSpendBundle, dependentCoins);
   }
 
   SpendBundle createFeeCoinSpendBundle({
@@ -69,7 +71,8 @@ class DependentCoinWalletService {
         CoinSpend(
           coin: dependentCoin,
           puzzleReveal: dependentCoin.fullPuzzle,
-          solution: makeSolutionFromConditions([ReserveFeeCondition(dependentCoin.amount)]),
+          solution: makeSolutionFromConditions(
+              [ReserveFeeCondition(dependentCoin.amount)]),
         ),
       ],
     );
@@ -87,7 +90,8 @@ class DependentCoinWalletService {
           puzzleReveal: dependentCoin.fullPuzzle,
           solution: makeSolutionFromConditions([
             ReserveFeeCondition(fee),
-            CreateCoinCondition(destinationPuzzlehash, dependentCoin.amount - fee),
+            CreateCoinCondition(
+                destinationPuzzlehash, dependentCoin.amount - fee),
           ]),
         ),
       ],
@@ -115,8 +119,10 @@ class PrimaryCoinInfo {
 class DependentCoinsWithCreationBundle {
   DependentCoinsWithCreationBundle(this.creationBundle, this.dependentCoins);
   factory DependentCoinsWithCreationBundle.fromJson(Map<String, dynamic> json) {
-    final dependentCoins = pick(json, 'dependent_coins').letJsonListOrThrow(DependentCoin.fromJson);
-    final creationBundle = pick(json, 'creation_bundle').letJsonOrThrow(SpendBundle.fromJson);
+    final dependentCoins = pick(json, 'dependent_coins')
+        .letJsonListOrThrow(DependentCoin.fromJson);
+    final creationBundle =
+        pick(json, 'creation_bundle').letJsonOrThrow(SpendBundle.fromJson);
 
     return DependentCoinsWithCreationBundle(creationBundle, dependentCoins);
   }
@@ -124,12 +130,14 @@ class DependentCoinsWithCreationBundle {
   final List<DependentCoin> dependentCoins;
 
   Map<Bytes, DependentCoin> get primaryIdToDependantCoinMap {
-    return Map.fromEntries(dependentCoins.map((e) => MapEntry(e.primaryCoinId, e)));
+    return Map.fromEntries(
+        dependentCoins.map((e) => MapEntry(e.primaryCoinId, e)));
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'dependent_coins': dependentCoins.map((e) => e.dependentCoinToJson()).toList(),
+      'dependent_coins':
+          dependentCoins.map((e) => e.dependentCoinToJson()).toList(),
       'creation_bundle': creationBundle.toJson(),
     };
   }

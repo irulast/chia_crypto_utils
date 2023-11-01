@@ -9,7 +9,8 @@ class RequestedMixedPayments {
     this.standard = const [],
     Map<Puzzlehash, List<CatPayment>> this.cat = const {},
     List<NftRequestedPayment> nfts = const [],
-  }) : nft = Map.fromEntries(nfts.map((e) => MapEntry(Puzzlehash(e.nftRecord.launcherId), [e])));
+  }) : nft = Map.fromEntries(
+            nfts.map((e) => MapEntry(Puzzlehash(e.nftRecord.launcherId), [e])));
 
   final List<Payment> standard;
 
@@ -23,7 +24,8 @@ class RequestedMixedPayments {
         GeneralCoinType.standard: {null: standard},
         GeneralCoinType.cat: cat,
         GeneralCoinType.nft: Map.fromEntries(
-          nft.entries.map((e) => MapEntry(e.key, [NftPayment(e.value.single.puzzlehash)])),
+          nft.entries.map(
+              (e) => MapEntry(e.key, [NftPayment(e.value.single.puzzlehash)])),
         ),
       });
 
@@ -56,7 +58,8 @@ class MixedPayments with MixedTypeMixin<List<Payment>, MixedPayments> {
   }
 
   @override
-  MixedPayments clone(Map<GeneralCoinType, Map<Puzzlehash?, List<Payment>>> map) {
+  MixedPayments clone(
+      Map<GeneralCoinType, Map<Puzzlehash?, List<Payment>>> map) {
     return MixedPayments(map);
   }
 
@@ -76,8 +79,8 @@ extension Notarize on MixedPayments {
     return MixedNotarizedPayments({
       for (final entry in map.entries)
         entry.key: entry.value.map(
-          (assetId, payments) =>
-              MapEntry(assetId, payments.map((p) => p.toNotarizedPayment(nonce)).toList()),
+          (assetId, payments) => MapEntry(assetId,
+              payments.map((p) => p.toNotarizedPayment(nonce)).toList()),
         ),
     });
   }

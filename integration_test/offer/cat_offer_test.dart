@@ -15,22 +15,23 @@ Future<void> main() async {
     CatOfferWalletService(),
     Cat1OfferWalletService(),
   ]) {
-    final nathan =
-        ChiaEnthusiast(fullNodeSimulator, catWalletService: catOfferService.catWalletService);
+    final nathan = ChiaEnthusiast(fullNodeSimulator,
+        catWalletService: catOfferService.catWalletService);
     await nathan.farmCoins();
     await nathan.issueMultiIssuanceCat();
 
-    final grant =
-        ChiaEnthusiast(fullNodeSimulator, catWalletService: catOfferService.catWalletService);
+    final grant = ChiaEnthusiast(fullNodeSimulator,
+        catWalletService: catOfferService.catWalletService);
     await grant.farmCoins();
     await grant.issueMultiIssuanceCat();
 
-    final ian =
-        ChiaEnthusiast(fullNodeSimulator, catWalletService: catOfferService.catWalletService);
+    final ian = ChiaEnthusiast(fullNodeSimulator,
+        catWalletService: catOfferService.catWalletService);
     await ian.farmCoins();
     await ian.issueMultiIssuanceCat();
 
-    final catType = catOfferService.catWalletService.spendType.name.toUpperCase();
+    final catType =
+        catOfferService.catWalletService.spendType.name.toUpperCase();
 
     final nathanCoinAssetId = nathan.catCoinMap.keys.first;
     final grantCoinAssetId = grant.catCoinMap.keys.first;
@@ -42,8 +43,8 @@ Future<void> main() async {
       final grantStartingCatBalance = grant.catCoins.totalValue;
 
       final offeredAmounts = MixedAmounts(cat: {nathanCoinAssetId: 1000});
-      final requestedPayments =
-          RequestedMixedPayments(standard: [Payment(1000, nathan.firstPuzzlehash)]);
+      final requestedPayments = RequestedMixedPayments(
+          standard: [Payment(1000, nathan.firstPuzzlehash)]);
 
       // sell cat
       final offer = await nathan.offerService.createOffer(
@@ -60,11 +61,13 @@ Future<void> main() async {
 
       expect(offer.isComplete, false);
 
-      final acceptedOffer = await grant.offerService.createTakeOfferAsync(deserialized, fee: 0);
+      final acceptedOffer =
+          await grant.offerService.createTakeOfferAsync(deserialized, fee: 0);
 
       expect(acceptedOffer.isComplete, true);
 
-      await fullNodeSimulator.pushTransaction(await acceptedOffer.toSpendBundleAsync());
+      await fullNodeSimulator
+          .pushTransaction(await acceptedOffer.toSpendBundleAsync());
       await fullNodeSimulator.moveToNextBlock();
 
       await grant.refreshCoins();
@@ -81,11 +84,13 @@ Future<void> main() async {
       );
       expect(nathanEndingCatBalance, equals(nathanStartingCatBalance - 1000));
 
-      expect(grantEndingStandardBalance, equals(grantStartingStandardBalance - 1000));
+      expect(grantEndingStandardBalance,
+          equals(grantStartingStandardBalance - 1000));
       expect(grantEndingCatBalance, equals(grantStartingCatBalance + 1000));
     });
 
-    test('should complete and submit a $catType offer with left over value', () async {
+    test('should complete and submit a $catType offer with left over value',
+        () async {
       final nathanStartingStandardBalance = nathan.standardCoins.totalValue;
       final nathanStartingCatBalance = nathan.catCoins.totalValue;
       final grantStartingStandardBalance = grant.standardCoins.totalValue;
@@ -99,8 +104,8 @@ Future<void> main() async {
       final askOffer = await nathan.offerService.createOffer(
         offeredAmounts: MixedAmounts(cat: {nathanCoinAssetId: 1000}),
         changePuzzlehash: nathan.firstPuzzlehash,
-        requestedPayments:
-            RequestedMixedPayments(standard: [Payment(1000, nathan.firstPuzzlehash)]),
+        requestedPayments: RequestedMixedPayments(
+            standard: [Payment(1000, nathan.firstPuzzlehash)]),
       );
       expect(askOffer.isComplete, false);
 
@@ -122,7 +127,8 @@ Future<void> main() async {
       final completedOffer = askOffer + bidOffer;
       expect(completedOffer.isComplete, true);
 
-      await fullNodeSimulator.pushTransaction(completedOffer.toSpendBundle(ian.firstPuzzlehash));
+      await fullNodeSimulator
+          .pushTransaction(completedOffer.toSpendBundle(ian.firstPuzzlehash));
       await fullNodeSimulator.moveToNextBlock();
 
       await grant.refreshCoins();
@@ -142,10 +148,12 @@ Future<void> main() async {
       );
       expect(nathanEndingCatBalance, equals(nathanStartingCatBalance - 1000));
 
-      expect(grantEndingStandardBalance, equals(grantStartingStandardBalance - 1100));
+      expect(grantEndingStandardBalance,
+          equals(grantStartingStandardBalance - 1100));
       expect(grantEndingCatBalance, equals(grantStartingCatBalance + 900));
 
-      expect(ianEndingStandardBalance, equals(ianStartingStandardBalance + 100));
+      expect(
+          ianEndingStandardBalance, equals(ianStartingStandardBalance + 100));
       expect(ianEndingCatBalance, equals(ianStartingCatBalance + 100));
     });
 
@@ -156,7 +164,8 @@ Future<void> main() async {
       final ianStartingCatBalance = ian.catCoins.totalValue;
 
       final checkOffer = await grant.offerService.createOffer(
-        offeredAmounts: MixedAmounts(cat: {grantCoinAssetId: 1000}, standard: 500),
+        offeredAmounts:
+            MixedAmounts(cat: {grantCoinAssetId: 1000}, standard: 500),
         requestedPayments: null,
         changePuzzlehash: grant.firstPuzzlehash,
       );
@@ -169,7 +178,8 @@ Future<void> main() async {
       );
       expect(checkCashingOffer.isComplete, true);
 
-      await fullNodeSimulator.pushTransaction(checkCashingOffer.toSpendBundle());
+      await fullNodeSimulator
+          .pushTransaction(checkCashingOffer.toSpendBundle());
       await fullNodeSimulator.moveToNextBlock();
 
       await grant.refreshCoins();
@@ -180,10 +190,12 @@ Future<void> main() async {
       final ianEndingStandardBalance = ian.standardCoins.totalValue;
       final ianEndingCatBalance = ian.catCoins.totalValue;
 
-      expect(grantEndingStandardBalance, equals(grantStartingStandardBalance - 500));
+      expect(grantEndingStandardBalance,
+          equals(grantStartingStandardBalance - 500));
       expect(grantEndingCatBalance, equals(grantStartingCatBalance - 1000));
 
-      expect(ianEndingStandardBalance, equals(ianStartingStandardBalance + 500 - 50));
+      expect(ianEndingStandardBalance,
+          equals(ianStartingStandardBalance + 500 - 50));
       expect(ianEndingCatBalance, equals(ianStartingCatBalance + 1000));
     });
 
@@ -211,7 +223,8 @@ Future<void> main() async {
       );
       expect(invoicePaymentOffer.isComplete, true);
 
-      await fullNodeSimulator.pushTransaction(invoicePaymentOffer.toSpendBundle());
+      await fullNodeSimulator
+          .pushTransaction(invoicePaymentOffer.toSpendBundle());
       await fullNodeSimulator.moveToNextBlock();
 
       await grant.refreshCoins();
@@ -222,14 +235,17 @@ Future<void> main() async {
       final ianEndingStandardBalance = ian.standardCoins.totalValue;
       final ianEndingCatBalance = ian.catCoins.totalValue;
 
-      expect(grantEndingStandardBalance, equals(grantStartingStandardBalance + 500));
+      expect(grantEndingStandardBalance,
+          equals(grantStartingStandardBalance + 500));
       expect(grantEndingCatBalance, equals(grantStartingCatBalance + 1000));
 
-      expect(ianEndingStandardBalance, equals(ianStartingStandardBalance - 500 - fee));
+      expect(ianEndingStandardBalance,
+          equals(ianStartingStandardBalance - 500 - fee));
       expect(ianEndingCatBalance, equals(ianStartingCatBalance - 1000));
     });
 
-    test('should complete and submit a $catType offer with three parties', () async {
+    test('should complete and submit a $catType offer with three parties',
+        () async {
       final nathanStartingStandardBalance = nathan.standardCoins.totalValue;
       final nathanStartingCatBalance = nathan.catCoins.totalValue;
       final grantStartingStandardBalance = grant.standardCoins.totalValue;
@@ -241,8 +257,8 @@ Future<void> main() async {
         coinsForOffer: MixedCoins(cats: nathan.catCoins),
         offeredAmounts: OfferedMixedAmounts(cat: {nathanCoinAssetId: 1000}),
         changePuzzlehash: nathan.firstPuzzlehash,
-        requestedPayments:
-            RequestedMixedPayments(standard: [Payment(1000, nathan.firstPuzzlehash)]),
+        requestedPayments: RequestedMixedPayments(
+            standard: [Payment(1000, nathan.firstPuzzlehash)]),
         keychain: nathan.keychain,
       );
       expect(askOffer.isComplete, false);
@@ -298,10 +314,12 @@ Future<void> main() async {
       );
       expect(nathanEndingCatBalance, equals(nathanStartingCatBalance - 1000));
 
-      expect(grantEndingStandardBalance, equals(grantStartingStandardBalance - 250));
+      expect(grantEndingStandardBalance,
+          equals(grantStartingStandardBalance - 250));
       expect(grantEndingCatBalance, equals(grantStartingCatBalance + 500));
 
-      expect(ianEndingStandardBalance, equals(ianStartingStandardBalance - 750));
+      expect(
+          ianEndingStandardBalance, equals(ianStartingStandardBalance - 750));
       expect(ianEndingCatBalance, equals(ianStartingCatBalance + 500));
     });
 
@@ -310,15 +328,16 @@ Future<void> main() async {
         coinsForOffer: MixedCoins(cats: nathan.catCoins),
         offeredAmounts: OfferedMixedAmounts(cat: {nathanCoinAssetId: 1000}),
         changePuzzlehash: nathan.firstPuzzlehash,
-        requestedPayments:
-            RequestedMixedPayments(standard: [Payment(1000, nathan.firstPuzzlehash)]),
+        requestedPayments: RequestedMixedPayments(
+            standard: [Payment(1000, nathan.firstPuzzlehash)]),
         keychain: nathan.keychain,
       );
       expect(askOffer.isComplete, false);
 
       final bidOfferRequestedAmounts = askOffer.offeredAmounts;
 
-      final payments = bidOfferRequestedAmounts.toPayments(grant.firstPuzzlehash);
+      final payments =
+          bidOfferRequestedAmounts.toPayments(grant.firstPuzzlehash);
 
       final bidOffer = catOfferService.makeOffer(
         coinsForOffer: MixedCoins(
@@ -326,8 +345,8 @@ Future<void> main() async {
         ),
         requestedPayments: RequestedMixedPayments(
           cat: payments.cat.map(
-            (key, value) =>
-                MapEntry(key, value.map((e) => CatPayment(e.amount, e.puzzlehash)).toList()),
+            (key, value) => MapEntry(key,
+                value.map((e) => CatPayment(e.amount, e.puzzlehash)).toList()),
           ),
           standard: payments.standard,
         ),
@@ -340,7 +359,8 @@ Future<void> main() async {
 
       expect(
         () async {
-          await fullNodeSimulator.pushTransaction(acceptedOffer.toSpendBundle(ian.firstPuzzlehash));
+          await fullNodeSimulator.pushTransaction(
+              acceptedOffer.toSpendBundle(ian.firstPuzzlehash));
         },
         throwsA(isA<AssertAnnouncementConsumeFailedException>()),
       );

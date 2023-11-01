@@ -17,7 +17,8 @@ class ChiaDidInfo with ToJsonMixin {
   });
   factory ChiaDidInfo.fromJson(Map<String, dynamic> json) {
     return ChiaDidInfo(
-      originCoin: pick(json, 'origin_coin').letJsonOrThrow(CoinPrototype.fromJson),
+      originCoin:
+          pick(json, 'origin_coin').letJsonOrThrow(CoinPrototype.fromJson),
       backupIds: pick(json, 'backup_ids').letStringListOrNull(Bytes.fromHex),
       requiredBackupIds: pick(json, 'num_of_backup_ids_needed').asIntOrNull(),
       parentInfo: pick(json, 'parent_info').letListOrNull((listItem) {
@@ -27,13 +28,17 @@ class ChiaDidInfo with ToJsonMixin {
           LineageProof.fromJson(typed[1] as Map<String, dynamic>),
         );
       }),
-      currentInnerPuzzle: pick(json, 'current_inner').letStringOrThrow(Program.deserializeHex),
-      metadata: pick(json, 'metadata')
-          .letJsonOrNull((json) => json.map((key, value) => MapEntry(key, value.toString()))),
+      currentInnerPuzzle:
+          pick(json, 'current_inner').letStringOrThrow(Program.deserializeHex),
+      metadata: pick(json, 'metadata').letJsonOrNull(
+          (json) => json.map((key, value) => MapEntry(key, value.toString()))),
       tempCoin: pick(json, 'temp_coin').letJsonOrNull(CoinPrototype.fromJson),
-      tempPuzzlehash: pick(json, 'temp_puzhash').letStringOrNull(Puzzlehash.fromHex),
-      tempPubkey: pick(json, 'temp_pubkey').letStringOrNull(JacobianPoint.fromHexG1),
-      sentRecoveryTransaction: pick(json, 'sent_recovery_transaction').asBoolOrNull(),
+      tempPuzzlehash:
+          pick(json, 'temp_puzhash').letStringOrNull(Puzzlehash.fromHex),
+      tempPubkey:
+          pick(json, 'temp_pubkey').letStringOrNull(JacobianPoint.fromHexG1),
+      sentRecoveryTransaction:
+          pick(json, 'sent_recovery_transaction').asBoolOrNull(),
     );
   }
 
@@ -57,7 +62,8 @@ class ChiaDidInfo with ToJsonMixin {
       'origin_coin': originCoin.toJson(),
       'backup_ids': backupIds?.map((id) => id.toHex()).toList(),
       'num_of_backup_ids_needed': requiredBackupIds,
-      'parent_info': parentInfo?.map((e) => [e.item1.toHex(), e.item2.toJson()]).toList(),
+      'parent_info':
+          parentInfo?.map((e) => [e.item1.toHex(), e.item2.toJson()]).toList(),
       'current_inner': currentInnerPuzzle.toHex(),
       'temp_coin': null,
       'temp_puzhash': null,

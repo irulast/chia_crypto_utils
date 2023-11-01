@@ -13,8 +13,10 @@ class LineageProof with ToBytesMixin, ToProgramMixin {
   });
   factory LineageProof.fromJson(Map<String, dynamic> json) {
     return LineageProof(
-      parentCoinInfo: pick(json, 'parent_name').letStringOrNull(Puzzlehash.fromHex),
-      innerPuzzlehash: pick(json, 'inner_puzzle_hash').letStringOrNull(Puzzlehash.fromHex),
+      parentCoinInfo:
+          pick(json, 'parent_name').letStringOrNull(Puzzlehash.fromHex),
+      innerPuzzlehash:
+          pick(json, 'inner_puzzle_hash').letStringOrNull(Puzzlehash.fromHex),
       amount: pick(json, 'amount').asIntOrNull(),
     );
   }
@@ -35,10 +37,12 @@ class LineageProof with ToBytesMixin, ToProgramMixin {
   }
 
   factory LineageProof.fromStream(Iterator<int> iterator) {
-    final parentCoinInfoBytes = iterator.extractBytesAndAdvance(Puzzlehash.bytesLength);
+    final parentCoinInfoBytes =
+        iterator.extractBytesAndAdvance(Puzzlehash.bytesLength);
     final parentCoinInfo = Bytes(parentCoinInfoBytes);
 
-    final innerPuzzlehashBytes = iterator.extractBytesAndAdvance(Puzzlehash.bytesLength);
+    final innerPuzzlehashBytes =
+        iterator.extractBytesAndAdvance(Puzzlehash.bytesLength);
     final innerPuzzlehash = Puzzlehash(innerPuzzlehashBytes);
 
     // coin amount is encoded with 64 bits

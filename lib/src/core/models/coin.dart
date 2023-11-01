@@ -17,7 +17,8 @@ class Coin extends CoinPrototype with ToBytesMixin {
   });
 
   factory Coin.fromChiaCoinRecordJson(Map<String, dynamic> json) {
-    final coinPrototype = CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>);
+    final coinPrototype =
+        CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>);
     return Coin(
       confirmedBlockIndex: json['confirmed_block_index'] as int,
       spentBlockIndex: json['spent_block_index'] as int,
@@ -105,7 +106,8 @@ class Coin extends CoinPrototype with ToBytesMixin {
 }
 
 extension CoinFunctionality on Coin {
-  DateTime get dateConfirmed => DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
+  DateTime get dateConfirmed =>
+      DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
 
   SpendSafety getSpendSafety(int currentBlockHeight) {
     if (isSpent) {

@@ -20,19 +20,22 @@ class NftStorageUploadApiCached implements NftStorageUploadApi {
     NftStorageUploadApi delegate, {
     required NftStorageUploadCache cache,
   }) {
-    final localStorageCachedApi = NftStorageUploadApiCached._(delegate, cache: cache);
+    final localStorageCachedApi =
+        NftStorageUploadApiCached._(delegate, cache: cache);
     return _SynchronizedRequestUploadApi(localStorageCachedApi);
   }
 
   @override
-  Future<NftStorageUploadResponse> uploadBytes(Bytes bytes, {ContentType? contentType}) async {
+  Future<NftStorageUploadResponse> uploadBytes(Bytes bytes,
+      {ContentType? contentType}) async {
     final request = RemoteUploadRequest(bytes, contentType);
     final cachedResponse = cache.get(request);
     if (cachedResponse != null) {
       return cachedResponse;
     }
 
-    final response = await delegate.uploadBytes(bytes, contentType: contentType);
+    final response =
+        await delegate.uploadBytes(bytes, contentType: contentType);
 
     await cache.add(request, response);
 
@@ -48,7 +51,8 @@ class _SynchronizedRequestUploadApi implements NftStorageUploadApi {
   final _inProgressRequestMap = <String, Completer<NftStorageUploadResponse>>{};
 
   @override
-  Future<NftStorageUploadResponse> uploadBytes(Bytes bytes, {ContentType? contentType}) async {
+  Future<NftStorageUploadResponse> uploadBytes(Bytes bytes,
+      {ContentType? contentType}) async {
     final request = RemoteUploadRequest(bytes, contentType);
     final cacheKey = request.cacheKey;
     if (_inProgressRequestMap.containsKey(cacheKey)) {
@@ -58,7 +62,8 @@ class _SynchronizedRequestUploadApi implements NftStorageUploadApi {
     _inProgressRequestMap[cacheKey] = completer;
 
     try {
-      final result = await delegate.uploadBytes(bytes, contentType: contentType);
+      final result =
+          await delegate.uploadBytes(bytes, contentType: contentType);
       completer.complete(result);
       return result;
     } catch (e, st) {

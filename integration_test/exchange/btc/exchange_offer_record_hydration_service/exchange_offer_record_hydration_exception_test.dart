@@ -23,10 +23,13 @@ Future<void> main() async {
     await nathan.refreshCoins();
   });
 
-  test('should throw exception when trying to hydrate invalid initialization coin', () async {
+  test(
+      'should throw exception when trying to hydrate invalid initialization coin',
+      () async {
     expect(
       () async {
-        await exchangeOfferRecordHydrationService.hydrateExchangeInitializationCoin(
+        await exchangeOfferRecordHydrationService
+            .hydrateExchangeInitializationCoin(
           nathan.standardCoins.first,
           nathan.keychainSecret.masterPrivateKey,
           nathan.keychain,
@@ -36,13 +39,15 @@ Future<void> main() async {
     );
   });
 
-  test('should throw exception when trying to hydrate invalid message coin', () async {
+  test('should throw exception when trying to hydrate invalid message coin',
+      () async {
     // creating notification coin that isn't an exchange message coin
     final notificationService = NotificationWalletService();
 
     final targetPuzzlehash = nathan.puzzlehashes[1];
 
-    final notificationSpendBundle = notificationService.createNotificationSpendBundle(
+    final notificationSpendBundle =
+        notificationService.createNotificationSpendBundle(
       targetPuzzlehash: targetPuzzlehash,
       message: [Memo(encodeInt(1000))],
       amount: minimumNotificationCoinAmount,
@@ -54,8 +59,9 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(notificationSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final notificationCoin =
-        (await fullNodeSimulator.scroungeForReceivedNotificationCoins([targetPuzzlehash])).single;
+    final notificationCoin = (await fullNodeSimulator
+            .scroungeForReceivedNotificationCoins([targetPuzzlehash]))
+        .single;
 
     expect(
       () async {

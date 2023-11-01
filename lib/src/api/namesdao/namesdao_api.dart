@@ -36,8 +36,10 @@ class _NamesdaoApi implements NamesdaoApi {
 
   @override
   Future<NameRegistrationInfo> getRegistrationInfo() async {
-    final response = await Client('https://api.namesdao.org/v1').get(Uri.parse('info'));
+    final response =
+        await Client('https://api.namesdao.org/v1').get(Uri.parse('info'));
 
-    return NameRegistrationInfo.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return NameRegistrationInfo.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>);
   }
 }

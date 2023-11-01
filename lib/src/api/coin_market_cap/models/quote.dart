@@ -26,7 +26,8 @@ class Quote {
   final String lastUpdated;
 
   @override
-  String toString() => 'Quote(symbol: $symbol, price: $price, volume24h: $volume24h, '
+  String toString() =>
+      'Quote(symbol: $symbol, price: $price, volume24h: $volume24h, '
       'volumeChange24h: $volumeChange24h, marketCap: $marketCap, '
       'marketCapDominance: $marketCapDominance, fullyDilutedMarketCap: $fullyDilutedMarketCap, '
       'percentChange1h: $percentChange1h, percentChange24h: $percentChange24h, '

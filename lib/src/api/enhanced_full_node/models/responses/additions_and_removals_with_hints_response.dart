@@ -8,14 +8,16 @@ class GetAdditionsAndRemovalsWithHintsResponse extends ChiaBaseResponse {
     required super.error,
   });
 
-  factory GetAdditionsAndRemovalsWithHintsResponse.fromJson(Map<String, dynamic> json) {
+  factory GetAdditionsAndRemovalsWithHintsResponse.fromJson(
+      Map<String, dynamic> json) {
     final chiaBaseResponse = ChiaBaseResponse.fromJson(json);
 
     if (chiaBaseResponse.success) {
       return GetAdditionsAndRemovalsWithHintsResponse(
-        additions:
-            _coinListFromJson(List<Map<String, dynamic>>.from(json['additions'] as Iterable)),
-        removals: _coinListFromJson(List<Map<String, dynamic>>.from(json['removals'] as Iterable)),
+        additions: _coinListFromJson(
+            List<Map<String, dynamic>>.from(json['additions'] as Iterable)),
+        removals: _coinListFromJson(
+            List<Map<String, dynamic>>.from(json['removals'] as Iterable)),
         success: chiaBaseResponse.success,
         error: chiaBaseResponse.error,
       );

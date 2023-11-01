@@ -5,8 +5,8 @@ import 'package:test/scaffolding.dart';
 
 void main() {
   test('should return the desired string form', () {
-    final runTailCondition =
-        RunTailCondition(Program.fromInt(1234567890), Program.fromInt(1234567890));
+    final runTailCondition = RunTailCondition(
+        Program.fromInt(1234567890), Program.fromInt(1234567890));
     expect(
       runTailCondition.toString(),
       'RunTailCondition(code: ${RunTailCondition.conditionCode}, '

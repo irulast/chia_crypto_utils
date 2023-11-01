@@ -145,7 +145,9 @@ class ClosestValueCoinSelector implements CoinSelector {
     int minMojos = 50,
     required int? maxNumberOfCoins,
   }) {
-    final coinsWithDiffs = coins.map((e) => CoinWithDiff(e, (e.amount - amount).abs())).toList()
+    final coinsWithDiffs = coins
+        .map((e) => CoinWithDiff(e, (e.amount - amount).abs()))
+        .toList()
       ..sort((a, b) => a.diff.compareTo(b.diff));
 
     final selectedCoins = <T>[];
@@ -240,7 +242,8 @@ List<T> _selectSortedCoinsForAmount<T extends CoinPrototype>(
   }
 
   if (totalCoinValue < amount) {
-    throw InsufficientBalanceException(requiredBalance: amount, currentBalance: totalCoinValue);
+    throw InsufficientBalanceException(
+        requiredBalance: amount, currentBalance: totalCoinValue);
   }
 
   return selectedCoins;

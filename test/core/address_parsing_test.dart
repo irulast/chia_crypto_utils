@@ -3,7 +3,8 @@ import 'package:test/test.dart';
 
 void main() {
   final mainnetAddresses = _CryptoAddresses(
-    xchAddress: 'xch1076qvs03vfdj8kyzzs9uulg3pzj5d8y9k0tzxp5ph06svu6wx0us6vltu9',
+    xchAddress:
+        'xch1076qvs03vfdj8kyzzs9uulg3pzj5d8y9k0tzxp5ph06svu6wx0us6vltu9',
     btcAddresses: [
       '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2', //P2PKH
       '3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy', //P2SH

@@ -11,12 +11,16 @@ class VerifySignatureCommand implements WalletConnectCommand {
   });
   factory VerifySignatureCommand.fromParams(Map<String, dynamic> params) {
     return VerifySignatureCommand(
-      publicKey: JacobianPoint.fromHexG1(pick(params, 'pubkey').asStringOrThrow()),
+      publicKey:
+          JacobianPoint.fromHexG1(pick(params, 'pubkey').asStringOrThrow()),
       message: pick(params, 'message').asStringOrThrow(),
-      signature: JacobianPoint.fromHexG2(pick(params, 'signature').asStringOrThrow()),
-      address:
-          params['address'] != null ? Address(pick(params, 'address').asStringOrThrow()) : null,
-      signingMode: SigningMode.maybeFromString(pick(params, 'signingMode').asStringOrNull()),
+      signature:
+          JacobianPoint.fromHexG2(pick(params, 'signature').asStringOrThrow()),
+      address: params['address'] != null
+          ? Address(pick(params, 'address').asStringOrThrow())
+          : null,
+      signingMode: SigningMode.maybeFromString(
+          pick(params, 'signingMode').asStringOrNull()),
     );
   }
 
@@ -109,7 +113,9 @@ enum SigningMode {
 
   const SigningMode(this.fullName);
   factory SigningMode.fromString(String modeString) {
-    return SigningMode.values.where((value) => value.fullName == modeString).single;
+    return SigningMode.values
+        .where((value) => value.fullName == modeString)
+        .single;
   }
 
   final String fullName;

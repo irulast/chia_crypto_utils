@@ -24,7 +24,8 @@ class PuzzleInfo {
 
   SpendType get type => driver.type;
 
-  OfferedCoin? makeOfferedCoinFromParentSpend(CoinPrototype coin, CoinSpend parentSpend) {
+  OfferedCoin? makeOfferedCoinFromParentSpend(
+      CoinPrototype coin, CoinSpend parentSpend) {
     try {
       return driver.makeOfferedCoinFromParentSpend(
         coin,

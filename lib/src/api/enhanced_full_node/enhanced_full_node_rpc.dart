@@ -32,7 +32,8 @@ class EnhancedFullNodeHttpRpc implements EnhancedFullNode {
   Client get client => _delegate.client;
 
   @override
-  Future<CoinRecordsWithCoinSpendsResponse> getCoinRecordsByPuzzleHashesPaginated(
+  Future<CoinRecordsWithCoinSpendsResponse>
+      getCoinRecordsByPuzzleHashesPaginated(
     List<Puzzlehash> puzzlehashes,
     int maxNumberOfCoins, {
     int? startHeight,
@@ -131,7 +132,8 @@ class EnhancedFullNodeHttpRpc implements EnhancedFullNode {
   }
 
   @override
-  Future<GetAdditionsAndRemovalsWithHintsResponse> getAdditionsAndRemovalsWithHints(
+  Future<GetAdditionsAndRemovalsWithHintsResponse>
+      getAdditionsAndRemovalsWithHints(
     Bytes headerHash,
   ) async {
     final response = await client.post(
@@ -146,7 +148,8 @@ class EnhancedFullNodeHttpRpc implements EnhancedFullNode {
   }
 
   @override
-  Future<GetAdditionsAndRemovalsResponse> getAdditionsAndRemovals(Bytes headerHash) {
+  Future<GetAdditionsAndRemovalsResponse> getAdditionsAndRemovals(
+      Bytes headerHash) {
     return _delegate.getAdditionsAndRemovals(headerHash);
   }
 
@@ -220,7 +223,8 @@ class EnhancedFullNodeHttpRpc implements EnhancedFullNode {
     if (endHeight != null) {
       body['end_height'] = endHeight;
     }
-    final response = await client.post(Uri.parse('get_puzzles_and_solutions_by_names'), body);
+    final response = await client.post(
+        Uri.parse('get_puzzles_and_solutions_by_names'), body);
     FullNodeHttpRpc.mapResponseToError(response);
 
     return GetCoinSpendsByIdsResponse.fromJson(

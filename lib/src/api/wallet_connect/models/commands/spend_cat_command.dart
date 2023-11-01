@@ -17,7 +17,8 @@ class SpendCatCommand implements WalletConnectCommand {
       amount: pick(params, 'amount').asIntOrThrow(),
       fee: pick(params, 'fee').asIntOrThrow(),
       waitForConfirmation: pick(params, 'waitForConfirmation').asBoolOrFalse(),
-      memos: pick(params, 'memos').letStringListOrNull((string) => string) ?? [],
+      memos:
+          pick(params, 'memos').letStringListOrNull((string) => string) ?? [],
     );
   }
 

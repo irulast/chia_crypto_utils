@@ -1,7 +1,8 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 abstract class BlockchainUtils {
-  factory BlockchainUtils(ChiaFullNodeInterface fullNode, {LoggingFunction? logger}) =>
+  factory BlockchainUtils(ChiaFullNodeInterface fullNode,
+          {LoggingFunction? logger}) =>
       _BlockchainUtils(fullNode, logger: logger);
 
   factory BlockchainUtils.fromContext({LoggingFunction? logger}) =>
@@ -44,7 +45,8 @@ class _BlockchainUtils implements BlockchainUtils {
     while (unspentIds.isNotEmpty) {
       logger(logMessage);
 
-      final coins = await fullNode.getCoinsByIds(unspentIds.toList(), includeSpentCoins: true);
+      final coins = await fullNode.getCoinsByIds(unspentIds.toList(),
+          includeSpentCoins: true);
 
       final spentCoins = coins.where((coin) => coin.isSpent);
 

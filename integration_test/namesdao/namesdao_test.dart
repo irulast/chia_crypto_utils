@@ -11,7 +11,8 @@ Future<void> main() async {
     expect(nameInfo?.address.address, equals(null));
   });
 
-  test('should get name info for valid name ___CloakedRegistration.xch', () async {
+  test('should get name info for valid name ___CloakedRegistration.xch',
+      () async {
     const name = '___CloakedRegistration.xch';
     final nameInfo = await namesdaoInterface.getNameInfo(name);
     expect(

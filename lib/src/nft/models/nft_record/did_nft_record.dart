@@ -56,7 +56,8 @@ class DidNftRecord implements NftRecord {
   /// convert to [Nft] with keychain
   @override
   Nft toNft(WalletKeychain keychain) {
-    final publicKey = keychain.getWalletVectorOrThrow(p2Puzzlehash).childPublicKey;
+    final publicKey =
+        keychain.getWalletVectorOrThrow(p2Puzzlehash).childPublicKey;
     final p2Puzzle = getPuzzleFromPk(publicKey);
     final innerPuzzle = NftWalletService.constructOwnershipLayer(
       currentOwnerDid: ownershipLayerInfo.currentDid,

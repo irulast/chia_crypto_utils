@@ -8,19 +8,20 @@ Future<void> main() async {
   LoggingContext().setLogTypes(api: true);
 
   test('should get tail info for asset ids', () async {
-    final stablyUsdAssetId =
-        Puzzlehash.fromHex('6d95dae356e32a71db5ddcb42224754a02524c615c5fc35f568c2af04774e589');
-    final stablyUsdTailInfo = await tailDatabaseApi.getTailInfo(stablyUsdAssetId);
+    final stablyUsdAssetId = Puzzlehash.fromHex(
+        '6d95dae356e32a71db5ddcb42224754a02524c615c5fc35f568c2af04774e589');
+    final stablyUsdTailInfo =
+        await tailDatabaseApi.getTailInfo(stablyUsdAssetId);
     expect(stablyUsdTailInfo.name, 'Stably USD');
 
-    final catkchiAssetId =
-        Puzzlehash.fromHex('482b49902d310c53065c3531d398d41808f1390590d566815d67040f6a32d124');
+    final catkchiAssetId = Puzzlehash.fromHex(
+        '482b49902d310c53065c3531d398d41808f1390590d566815d67040f6a32d124');
     final catkchiTailInfo = await tailDatabaseApi.getTailInfo(catkchiAssetId);
     expect(catkchiTailInfo.name, 'Catkchi');
 
-   // Chess is no longer listed on tail database after the CAT2 release.
-    final chessAssetId =
-        Puzzlehash.fromHex('a26bb00329235a4b46d0e402f9c1124279dcb1a30c3236679e1a7f1709a8d7c0');
+    // Chess is no longer listed on tail database after the CAT2 release.
+    final chessAssetId = Puzzlehash.fromHex(
+        'a26bb00329235a4b46d0e402f9c1124279dcb1a30c3236679e1a7f1709a8d7c0');
     final chessTailInfo = await tailDatabaseApi.getTailInfo(chessAssetId);
     expect(chessTailInfo.name, isNull);
   });

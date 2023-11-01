@@ -6,9 +6,11 @@ class CatPayment extends Payment {
           memos: <Bytes>[puzzlehash, ...memos],
         );
 
-  CatPayment.withStringMemos(super.amount, super.puzzlehash, {List<String> memos = const []})
+  CatPayment.withStringMemos(super.amount, super.puzzlehash,
+      {List<String> memos = const []})
       : super(memos: <Bytes>[puzzlehash, ...memos.map(Bytes.encodeFromString)]);
-  CatPayment.withIntMemos(super.amount, super.puzzlehash, {List<int> memos = const []})
+  CatPayment.withIntMemos(super.amount, super.puzzlehash,
+      {List<int> memos = const []})
       : super(
           memos: <Bytes>[
             puzzlehash,

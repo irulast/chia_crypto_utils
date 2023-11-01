@@ -8,7 +8,8 @@ class SimulatorFullNodeInterface extends ChiaFullNodeInterface {
   SimulatorFullNodeInterface(this.fullNode) : super(fullNode);
 
   factory SimulatorFullNodeInterface.withDefaultUrl() {
-    return SimulatorFullNodeInterface(SimulatorHttpRpc(SimulatorUtils.defaultUrl));
+    return SimulatorFullNodeInterface(
+        SimulatorHttpRpc(SimulatorUtils.defaultUrl));
   }
 
   @override
@@ -19,7 +20,8 @@ class SimulatorFullNodeInterface extends ChiaFullNodeInterface {
   static const utilAddress =
       Address('xch1ye5dzd44kkatnxx2je4s2agpwtqds5lsm5mlyef7plum5danxalq2dnqap');
 
-  Future<void> moveToNextBlock({int blocks = 1, bool makeCallForEachBlock = true}) async {
+  Future<void> moveToNextBlock(
+      {int blocks = 1, bool makeCallForEachBlock = true}) async {
     if (makeCallForEachBlock) {
       for (var i = 0; i < blocks; i++) {
         await fullNode.farmTransactionBlocks(utilAddress);

@@ -5,7 +5,8 @@ import 'package:get_it/get_it.dart';
 class FullNodeContext {
   GetIt get getIt => GetIt.I;
   static const urlInstanceName = 'FullNodeContext.url';
-  static const certificateBytesInstanceName = 'FullNodeContext.certificateBytes';
+  static const certificateBytesInstanceName =
+      'FullNodeContext.certificateBytes';
   static const keyBytesInstanceName = 'FullNodeContext.keyBytes';
 
   String get url {
@@ -22,7 +23,8 @@ class FullNodeContext {
   }
 
   Bytes? get certificateBytes {
-    if (!getIt.isRegistered<Bytes>(instanceName: certificateBytesInstanceName)) {
+    if (!getIt.isRegistered<Bytes>(
+        instanceName: certificateBytesInstanceName)) {
       return null;
     }
     return getIt.get<Bytes>(instanceName: certificateBytesInstanceName);
@@ -30,7 +32,8 @@ class FullNodeContext {
 
   void setCertificateBytes(Bytes certificateBytes) {
     getIt
-      ..registerSingleton<Bytes>(certificateBytes, instanceName: certificateBytesInstanceName)
+      ..registerSingleton<Bytes>(certificateBytes,
+          instanceName: certificateBytesInstanceName)
       ..allowReassignment = true;
   }
 

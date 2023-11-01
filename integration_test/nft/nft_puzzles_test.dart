@@ -46,7 +46,8 @@ void main() {
   // solution
 
   final standardInnerSolution = BaseWalletService.makeSolutionFromConditions([
-    CreateCoinCondition(receiverWalletVector.puzzlehash, 1, memos: [senderWalletVector.puzzlehash]),
+    CreateCoinCondition(receiverWalletVector.puzzlehash, 1,
+        memos: [senderWalletVector.puzzlehash]),
   ]);
 
   final magicCondition = NftDidMagicConditionCondition();
@@ -56,7 +57,8 @@ void main() {
       Program.list([]),
       Program.cons(
         Program.fromInt(1),
-        Program.cons(magicCondition.toProgram(), standardInnerSolution.rest().first().rest()),
+        Program.cons(magicCondition.toProgram(),
+            standardInnerSolution.rest().first().rest()),
       ),
       Program.list([]),
     ]),
@@ -85,7 +87,10 @@ void main() {
   );
 
   final nftOutputConditions = createCoinConditions.where(
-    (element) => element.amount == 1 && element.memos != null && element.memos!.isNotEmpty,
+    (element) =>
+        element.amount == 1 &&
+        element.memos != null &&
+        element.memos!.isNotEmpty,
   );
 
   if (nftOutputConditions.isEmpty) {

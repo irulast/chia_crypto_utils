@@ -6,7 +6,8 @@ class ExchangeOfferRecordHydrationService {
   ExchangeOfferRecordHydrationService(this.fullNode);
 
   final ChiaFullNodeInterface fullNode;
-  late ExchangeOfferService exchangeOfferService = ExchangeOfferService(fullNode);
+  late ExchangeOfferService exchangeOfferService =
+      ExchangeOfferService(fullNode);
 
   Future<ExchangeOfferRecord> hydrateExchangeInitializationCoin(
     Coin initializationCoin,
@@ -15,8 +16,9 @@ class ExchangeOfferRecordHydrationService {
   ) async {
     final initializationCoinId = initializationCoin.id;
 
-    final exchangeCoins =
-        await fullNode.getCoinsByHint(Puzzlehash(initializationCoinId), includeSpentCoins: true);
+    final exchangeCoins = await fullNode.getCoinsByHint(
+        Puzzlehash(initializationCoinId),
+        includeSpentCoins: true);
 
     late final CoinSpend? initializationCoinSpend;
     late final DateTime? initializedTime;
@@ -26,14 +28,14 @@ class ExchangeOfferRecordHydrationService {
     late final MakerCrossChainOfferFile? offerFile;
     try {
       initializationCoinSpend = await fullNode.getCoinSpend(initializationCoin);
-      initializedTime =
-          await fullNode.getDateTimeFromBlockIndex(initializationCoin.spentBlockIndex);
+      initializedTime = await fullNode
+          .getDateTimeFromBlockIndex(initializationCoin.spentBlockIndex);
 
       final memos = await initializationCoinSpend!.memos;
       derivationIndex = decodeInt(memos.first);
 
-      final wallectVector =
-          await WalletVector.fromPrivateKeyAsync(masterPrivateKey, derivationIndex);
+      final wallectVector = await WalletVector.fromPrivateKeyAsync(
+          masterPrivateKey, derivationIndex);
       requestorPrivateKey = wallectVector.childPrivateKey;
 
       serializedOfferFile = memos[1].decodedString;
@@ -55,14 +57,16 @@ class ExchangeOfferRecordHydrationService {
     final requestorPublicKey = offerFile.publicKey;
     final requestorLightningPaymentRequest = offerFile.lightningPaymentRequest;
 
-    final submittedToDexie = await getDexieSubmissionStatus(serializedOfferFile);
+    final submittedToDexie =
+        await getDexieSubmissionStatus(serializedOfferFile);
 
     // check whether the 3 mojo addition from the initialization coin spend was spent, indicating cancelation
-    final cancelCoin =
-        await exchangeOfferService.getCancelCoin(initializationCoin, messagePuzzlehash);
+    final cancelCoin = await exchangeOfferService.getCancelCoin(
+        initializationCoin, messagePuzzlehash);
     late final DateTime? canceledTime;
     if (cancelCoin.isSpent) {
-      canceledTime = await fullNode.getDateTimeFromBlockIndex(cancelCoin.spentBlockIndex);
+      canceledTime =
+          await fullNode.getDateTimeFromBlockIndex(cancelCoin.spentBlockIndex);
     } else {
       canceledTime = null;
     }
@@ -85,7 +89,8 @@ class ExchangeOfferRecordHydrationService {
     );
 
     // look for message coins
-    final messageCoins = await fullNode.scroungeForReceivedNotificationCoins([messagePuzzlehash]);
+    final messageCoins = await fullNode
+        .scroungeForReceivedNotificationCoins([messagePuzzlehash]);
 
     if (messageCoins.isEmpty) {
       // still waiting for taker
@@ -94,7 +99,8 @@ class ExchangeOfferRecordHydrationService {
 
     final messageCoinInfos = <MessageCoinInfo>[];
     for (final messageCoin in messageCoins) {
-      final messageCoinInfo = await exchangeOfferService.parseAndValidateReceivedMessageCoin(
+      final messageCoinInfo =
+          await exchangeOfferService.parseAndValidateReceivedMessageCoin(
         messageCoin: messageCoin,
         initializationCoinId: initializationCoinId,
         serializedOfferFile: serializedOfferFile,
@@ -123,8 +129,8 @@ class ExchangeOfferRecordHydrationService {
     final serializedOfferAcceptFile = messageCoinInfo.serializedOfferAcceptFile;
     final fulfillerPublicKey = messageCoinInfo.fulfillerPublicKey;
     final exchangeValidityTime = messageCoinInfo.exchangeValidityTime;
-    final lightningPaymentRequest =
-        requestorLightningPaymentRequest ?? messageCoinInfo.lightningPaymentRequest!;
+    final lightningPaymentRequest = requestorLightningPaymentRequest ??
+        messageCoinInfo.lightningPaymentRequest!;
 
     final messageCoinReceivedTime = messageCoinInfo.messageCoinReceivedTime;
 
@@ -152,7 +158,9 @@ class ExchangeOfferRecordHydrationService {
       return exchangeOfferRecordWithMessageCoin;
     }
 
-    final escrowCoins = exchangeCoins.where((coin) => coin.puzzlehash == escrowPuzzlehash).toList();
+    final escrowCoins = exchangeCoins
+        .where((coin) => coin.puzzlehash == escrowPuzzlehash)
+        .toList();
 
     final toRemove = <Coin>[];
     for (final escrowCoin in escrowCoins) {
@@ -176,16 +184,19 @@ class ExchangeOfferRecordHydrationService {
 
     // escrow transfer has been completed
     final escrowCoinId = escrowCoins.first.id;
-    final parentCoin = await fullNode.getCoinById(escrowCoins.first.parentCoinInfo);
+    final parentCoin =
+        await fullNode.getCoinById(escrowCoins.first.parentCoinInfo);
     final escrowTransferCompletedBlockIndex = parentCoin!.spentBlockIndex;
-    final escrowTransferCompletedTime =
-        await fullNode.getDateTimeFromBlockIndex(escrowTransferCompletedBlockIndex);
+    final escrowTransferCompletedTime = await fullNode
+        .getDateTimeFromBlockIndex(escrowTransferCompletedBlockIndex);
 
     final escrowTransferConfirmedBlockIndex =
         escrowTransferCompletedBlockIndex + blocksForSufficientConfirmation;
-    final escrowTransferConfirmedTime = await getConfirmedTime(escrowTransferCompletedBlockIndex);
+    final escrowTransferConfirmedTime =
+        await getConfirmedTime(escrowTransferCompletedBlockIndex);
 
-    final exchangeOfferRecordAfterEscrowTransfer = exchangeOfferRecordWithMessageCoin.copyWith(
+    final exchangeOfferRecordAfterEscrowTransfer =
+        exchangeOfferRecordWithMessageCoin.copyWith(
       escrowCoinId: escrowCoinId,
       escrowTransferCompletedTime: escrowTransferCompletedTime,
       escrowTransferConfirmedBlockIndex: escrowTransferConfirmedBlockIndex,
@@ -202,7 +213,8 @@ class ExchangeOfferRecordHydrationService {
     // escrow coins have been swept or clawed back
     final completedBlockIndex = spentEscrowCoins.first.spentBlockIndex;
 
-    final completedTime = await fullNode.getDateTimeFromBlockIndex(completedBlockIndex);
+    final completedTime =
+        await fullNode.getDateTimeFromBlockIndex(completedBlockIndex);
 
     final requestorSpentEscrowCoins = await didRequestorSpendEscrowCoins(
       spentEscrowCoin: spentEscrowCoins.first,
@@ -251,8 +263,8 @@ class ExchangeOfferRecordHydrationService {
     NotificationCoin sentMessageCoin,
     WalletKeychain keychain,
   ) async {
-    final messageCoinReceivedTime =
-        await fullNode.getDateTimeFromBlockIndex(sentMessageCoin.spentBlockIndex);
+    final messageCoinReceivedTime = await fullNode
+        .getDateTimeFromBlockIndex(sentMessageCoin.spentBlockIndex);
     final messagePuzzlehash = sentMessageCoin.targetPuzzlehash;
 
     late final Bytes? initializationCoinId;
@@ -260,10 +272,12 @@ class ExchangeOfferRecordHydrationService {
     late final TakerCrossChainOfferFile? offerAcceptFile;
     try {
       initializationCoinId = sentMessageCoin.message.first;
-      serializedOfferAcceptFile = decodeStringFromBytes(sentMessageCoin.message[1]);
+      serializedOfferAcceptFile =
+          decodeStringFromBytes(sentMessageCoin.message[1]);
 
       offerAcceptFile =
-          await TakerCrossChainOfferFile.fromSerializedOfferFileAsync(serializedOfferAcceptFile!);
+          await TakerCrossChainOfferFile.fromSerializedOfferFileAsync(
+              serializedOfferAcceptFile!);
     } catch (e) {
       LoggingContext().error(e.toString());
       throw InvalidMessageCoinException();
@@ -272,7 +286,8 @@ class ExchangeOfferRecordHydrationService {
     final requestorPublicKey = offerAcceptFile.publicKey;
     final exchangeValidityTime = offerAcceptFile.validityTime;
     final exchangeType = offerAcceptFile.exchangeType;
-    final requestorLightningPaymentRequest = offerAcceptFile.lightningPaymentRequest;
+    final requestorLightningPaymentRequest =
+        offerAcceptFile.lightningPaymentRequest;
     const exchangeRole = ExchangeRole.taker;
 
     // find private key matching public key in offer accept file in keychain
@@ -291,13 +306,15 @@ class ExchangeOfferRecordHydrationService {
 
     // get serialized offer file
     final initializationCoin = await fullNode.getCoinById(initializationCoinId);
-    final initializationCoinSpend = await fullNode.getCoinSpend(initializationCoin!);
+    final initializationCoinSpend =
+        await fullNode.getCoinSpend(initializationCoin!);
     final initializationCoinMemos = await initializationCoinSpend!.memos;
     final serializedOfferFile = initializationCoinMemos.last.decodedString!;
 
     late final MakerCrossChainOfferFile offerFile;
     try {
-      offerFile = await MakerCrossChainOfferFile.fromSerializedOfferFileAsync(serializedOfferFile);
+      offerFile = await MakerCrossChainOfferFile.fromSerializedOfferFileAsync(
+          serializedOfferFile);
     } catch (e) {
       LoggingContext().error(e.toString());
       throw InvalidInitializationCoinException();
@@ -320,19 +337,22 @@ class ExchangeOfferRecordHydrationService {
       fulfillerPublicKey: fulfillerPublicKey,
     );
 
-    final submittedToDexie = await getDexieSubmissionStatus(serializedOfferFile);
+    final submittedToDexie =
+        await getDexieSubmissionStatus(serializedOfferFile);
 
     // check whether the 3 mojo addition from the initialization coin spend was spent, indicating cancelation
-    final cancelCoin =
-        await exchangeOfferService.getCancelCoin(initializationCoin, messagePuzzlehash);
+    final cancelCoin = await exchangeOfferService.getCancelCoin(
+        initializationCoin, messagePuzzlehash);
     late final DateTime? canceledTime;
     if (cancelCoin.isSpent) {
-      canceledTime = await fullNode.getDateTimeFromBlockIndex(cancelCoin.spentBlockIndex);
+      canceledTime =
+          await fullNode.getDateTimeFromBlockIndex(cancelCoin.spentBlockIndex);
     } else {
       canceledTime = null;
     }
 
-    final messageCoinChild = await fullNode.getSingleChildCoinFromCoin(sentMessageCoin);
+    final messageCoinChild =
+        await fullNode.getSingleChildCoinFromCoin(sentMessageCoin);
 
     if (messageCoinChild == null) {
       throw MissingMessageCoinChildException();
@@ -367,8 +387,8 @@ class ExchangeOfferRecordHydrationService {
 
     final makerMessageCoinSpend = await fullNode.getCoinSpend(messageCoinChild);
     final memos = await makerMessageCoinSpend!.memos;
-    final messageCoinChildSpentTime =
-        await fullNode.getDateTimeFromBlockIndex(messageCoinChild.spentBlockIndex);
+    final messageCoinChildSpentTime = await fullNode
+        .getDateTimeFromBlockIndex(messageCoinChild.spentBlockIndex);
 
     if (!memos.contains(initializationCoinId)) {
       // message coin was declined
@@ -378,8 +398,8 @@ class ExchangeOfferRecordHydrationService {
     }
 
     // message coin was accepted, check for escrow transfer
-    final escrowCoins =
-        await fullNode.getCoinsByPuzzleHashes([escrowPuzzlehash], includeSpentCoins: true);
+    final escrowCoins = await fullNode
+        .getCoinsByPuzzleHashes([escrowPuzzlehash], includeSpentCoins: true);
 
     final toRemove = <Coin>[];
     for (final escrowCoin in escrowCoins) {
@@ -396,7 +416,8 @@ class ExchangeOfferRecordHydrationService {
 
     escrowCoins.removeWhere(toRemove.contains);
 
-    final exchangeOfferRecordAfterMessageCoinAcceptance = exchangeOfferRecord.copyWith(
+    final exchangeOfferRecordAfterMessageCoinAcceptance =
+        exchangeOfferRecord.copyWith(
       messageCoinAcceptedTime: messageCoinChildSpentTime,
     );
 
@@ -407,14 +428,16 @@ class ExchangeOfferRecordHydrationService {
 
     // funds were transfered to escrow address
     final escrowCoinId = escrowCoins.first.id;
-    final parentCoin = await fullNode.getCoinById(escrowCoins.first.parentCoinInfo);
+    final parentCoin =
+        await fullNode.getCoinById(escrowCoins.first.parentCoinInfo);
     final escrowTransferCompletedBlockIndex = parentCoin!.spentBlockIndex;
-    final escrowTransferCompletedTime =
-        await fullNode.getDateTimeFromBlockIndex(escrowTransferCompletedBlockIndex);
+    final escrowTransferCompletedTime = await fullNode
+        .getDateTimeFromBlockIndex(escrowTransferCompletedBlockIndex);
 
     final escrowTransferConfirmedBlockIndex =
         escrowTransferCompletedBlockIndex + blocksForSufficientConfirmation;
-    final escrowTransferConfirmedTime = await getConfirmedTime(escrowTransferCompletedBlockIndex);
+    final escrowTransferConfirmedTime =
+        await getConfirmedTime(escrowTransferCompletedBlockIndex);
 
     final exchangeOfferRecordAfterEscrowTransfer =
         exchangeOfferRecordAfterMessageCoinAcceptance.copyWith(
@@ -434,7 +457,8 @@ class ExchangeOfferRecordHydrationService {
     // escrow coins have been swept or clawed back
     final completedBlockIndex = spentEscrowCoins.first.spentBlockIndex;
 
-    final completedTime = await fullNode.getDateTimeFromBlockIndex(completedBlockIndex);
+    final completedTime =
+        await fullNode.getDateTimeFromBlockIndex(completedBlockIndex);
 
     final requestorSpentEscrowCoins = await didRequestorSpendEscrowCoins(
       spentEscrowCoin: spentEscrowCoins.first,
@@ -480,7 +504,8 @@ class ExchangeOfferRecordHydrationService {
   }
 
   Future<DateTime?> getConfirmedTime(int completedBlockIndex) async {
-    final expectedConfirmedBlockIndex = completedBlockIndex + blocksForSufficientConfirmation;
+    final expectedConfirmedBlockIndex =
+        completedBlockIndex + blocksForSufficientConfirmation;
     final currentBlockIndex = await fullNode.getCurrentBlockIndex();
 
     if (currentBlockIndex != null) {
@@ -488,8 +513,8 @@ class ExchangeOfferRecordHydrationService {
         // if we are 32 blocks past the completed block index, then check the next 20 blocks for the
         // closest block with a peak and therefore a date time
         for (var i = 0; i < 20; i++) {
-          final confirmedTime =
-              await fullNode.getDateTimeFromBlockIndex(expectedConfirmedBlockIndex + i);
+          final confirmedTime = await fullNode
+              .getDateTimeFromBlockIndex(expectedConfirmedBlockIndex + i);
 
           if (confirmedTime != null) return confirmedTime;
         }
@@ -534,9 +559,11 @@ class ExchangeOfferRecordHydrationService {
         .then((value) => ExchangeCoinMemos.maybeFromMemos(value.memos));
 
     // determine who spent the escrow coins by checking the key that was used to sign the memo
-    if (completionSpendMemos != null && completionSpendMemos.verify(requestorPublicKey)) {
+    if (completionSpendMemos != null &&
+        completionSpendMemos.verify(requestorPublicKey)) {
       return true;
-    } else if (completionSpendMemos != null && completionSpendMemos.verify(fulfillerPublicKey)) {
+    } else if (completionSpendMemos != null &&
+        completionSpendMemos.verify(fulfillerPublicKey)) {
       return false;
     } else {
       // if memos are incorrect, try to determine who spent the coins by checking whether the additions
@@ -544,8 +571,8 @@ class ExchangeOfferRecordHydrationService {
       // if so, then the requestor was the one who spent the escrow coins, if not then it was the fulfilelr
       final additionPuzzlehashes =
           completionCoinSpend.additions.map((addition) => addition.puzzlehash);
-      final requestorPuzzlehashesInAdditions =
-          additionPuzzlehashes.where((ph) => requestorPuzzlehashes.contains(ph));
+      final requestorPuzzlehashesInAdditions = additionPuzzlehashes
+          .where((ph) => requestorPuzzlehashes.contains(ph));
 
       if (requestorPuzzlehashesInAdditions.isNotEmpty) {
         return true;

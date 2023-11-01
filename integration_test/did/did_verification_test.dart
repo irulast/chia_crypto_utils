@@ -31,7 +31,8 @@ Future<void> main() async {
   await fullNodeSimulator.farmCoins(address);
   await fullNodeSimulator.moveToNextBlock();
 
-  final standardCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([puzzlehash]);
+  final standardCoins =
+      await fullNodeSimulator.getCoinsByPuzzleHashes([puzzlehash]);
 
   final didSpendBundle = didWalletService.createGenerateDIDSpendBundle(
     standardCoins: [standardCoins[0]],
@@ -43,7 +44,8 @@ Future<void> main() async {
   await fullNodeSimulator.pushTransaction(didSpendBundle);
   await fullNodeSimulator.moveToNextBlock();
 
-  final didInfos = await fullNodeSimulator.getDidRecordsByPuzzleHashes([walletVector.puzzlehash]);
+  final didInfos = await fullNodeSimulator
+      .getDidRecordsByPuzzleHashes([walletVector.puzzlehash]);
   assert(didInfos.length == 1, 'should creste one did');
   final did = didInfos[0].did;
 

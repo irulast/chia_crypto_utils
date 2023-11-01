@@ -12,7 +12,8 @@ Future<void> main() async {
 
   final meera = ChiaEnthusiast(fullNodeSimulator);
 
-  final xchService = XchService(fullNode: fullNodeSimulator, keychain: meera.keychain);
+  final xchService =
+      XchService(fullNode: fullNodeSimulator, keychain: meera.keychain);
   final namesdaoApi = NamesdaoApi();
 
   const ccuNamesdao = 'ChiaCryptoUtils.xch';
@@ -24,7 +25,8 @@ Future<void> main() async {
   await meera.refreshCoins();
 
   test('should send XCH to Namesdao name', () async {
-    final startingBalance = await fullNodeSimulator.getBalance([ccuNamesdaoPuzzlehash]);
+    final startingBalance =
+        await fullNodeSimulator.getBalance([ccuNamesdaoPuzzlehash]);
 
     final coinToSend = meera.standardCoins[0];
 
@@ -38,12 +40,14 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await meera.refreshCoins();
 
-    final endingBalance = await fullNodeSimulator.getBalance([ccuNamesdaoPuzzlehash]);
+    final endingBalance =
+        await fullNodeSimulator.getBalance([ccuNamesdaoPuzzlehash]);
 
     expect(endingBalance - startingBalance, equals(coinToSend.amount));
   });
 
-  test('should throw exception when sending XCH to invalid Namesdao name', () async {
+  test('should throw exception when sending XCH to invalid Namesdao name',
+      () async {
     expect(
       () async {
         await xchService.sendXchToNamesdao(

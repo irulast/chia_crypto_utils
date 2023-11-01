@@ -2,7 +2,8 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/api/full_node/full_node_cache.dart';
 
 class CachedChiaFullNodeInterface extends ChiaFullNodeInterface {
-  factory CachedChiaFullNodeInterface(ChiaFullNodeInterface delegate, FullNodeCache cache) {
+  factory CachedChiaFullNodeInterface(
+      ChiaFullNodeInterface delegate, FullNodeCache cache) {
     return CachedChiaFullNodeInterface._(delegate.fullNode, delegate, cache);
   }
   CachedChiaFullNodeInterface._(super.fullNode, this.delegate, this.cache);

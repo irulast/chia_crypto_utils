@@ -13,10 +13,14 @@ class NftMintInfo with ToBytesMixin {
 
     final minterDid = Puzzlehash.maybeFromStream(iterator);
 
-    return NftMintInfo(mintHeight: mintHeight, mintTimestamp: mintTimestamp, minterDid: minterDid);
+    return NftMintInfo(
+        mintHeight: mintHeight,
+        mintTimestamp: mintTimestamp,
+        minterDid: minterDid);
   }
 
-  static Future<NftMintInfo?> maybeFromEveSpend(CoinSpend eveSpend, Coin eveCoin) async {
+  static Future<NftMintInfo?> maybeFromEveSpend(
+      CoinSpend eveSpend, Coin eveCoin) async {
     try {
       final nftMintInfo = await fromEveSpend(eveSpend, eveCoin);
       return nftMintInfo;
@@ -26,8 +30,10 @@ class NftMintInfo with ToBytesMixin {
   }
 
   /// throws [InvalidMintInfoException]
-  static Future<NftMintInfo?> fromEveSpend(CoinSpend eveSpend, Coin eveCoin) async {
-    final uncurriedNft = await UncurriedNftPuzzle.fromProgram(eveSpend.puzzleReveal);
+  static Future<NftMintInfo?> fromEveSpend(
+      CoinSpend eveSpend, Coin eveCoin) async {
+    final uncurriedNft =
+        await UncurriedNftPuzzle.fromProgram(eveSpend.puzzleReveal);
     if (uncurriedNft == null) {
       return null;
     }
@@ -54,10 +60,12 @@ class NftMintInfo with ToBytesMixin {
     );
 
     if (didMagicConditions.length > 1) {
-      throw InvalidMintInfoException('More than one nft didMagicConditions condition');
+      throw InvalidMintInfoException(
+          'More than one nft didMagicConditions condition');
     }
     if (didMagicConditions.isEmpty) {
-      throw InvalidMintInfoException('Expected did magic condition but found none');
+      throw InvalidMintInfoException(
+          'Expected did magic condition but found none');
     }
 
     return NftMintInfo(
@@ -69,7 +77,8 @@ class NftMintInfo with ToBytesMixin {
 
   final int mintHeight;
   final int mintTimestamp;
-  DateTime get dateMinted => DateTime.fromMillisecondsSinceEpoch(mintTimestamp * 1000);
+  DateTime get dateMinted =>
+      DateTime.fromMillisecondsSinceEpoch(mintTimestamp * 1000);
 
   final Bytes? minterDid;
 

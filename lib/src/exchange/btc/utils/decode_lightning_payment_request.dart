@@ -42,7 +42,8 @@ LightningPaymentRequest decodeLightningPaymentRequest(String paymentRequest) {
     final amountData = hrp.substring(prefix.length, hrp.length);
     if (multiplierMap.containsKey(amountData[amountData.length - 1])) {
       final multiplier = amountData.substring(amountData.length - 1);
-      final digits = double.parse(amountData.substring(0, amountData.length - 1));
+      final digits =
+          double.parse(amountData.substring(0, amountData.length - 1));
       amount = digits * multiplierMap[multiplier]!;
     } else {
       amount = double.parse(amountData);
@@ -84,7 +85,8 @@ LightningPaymentRequest decodeLightningPaymentRequest(String paymentRequest) {
     }
 
     if (size > 10) {
-      taggedFieldData = bigIntToBytes(taggedFieldData as BigInt, (bitSize + 7) >> 3, Endian.big);
+      taggedFieldData = bigIntToBytes(
+          taggedFieldData as BigInt, (bitSize + 7) >> 3, Endian.big);
     }
 
     if (type == 3) {
@@ -102,7 +104,8 @@ LightningPaymentRequest decodeLightningPaymentRequest(String paymentRequest) {
   final decodedTags = decodeTags(encodedTags);
 
   // signature
-  final signatureData = convertBitsBigInt(taggedFields, 5, 520, pad: true)[0].toRadixString(16);
+  final signatureData =
+      convertBitsBigInt(taggedFields, 5, 520, pad: true)[0].toRadixString(16);
   final fullSignature = signatureData.substring(0, signatureData.length - 2);
   final rValue = fullSignature.substring(0, 64);
   final sValue = fullSignature.substring(64);
@@ -166,7 +169,8 @@ PaymentRequestTags decodeTags(Map<int, dynamic> encodedTags) {
           final fallbackAddressData = data as Bytes;
           final version = fallbackAddressData[0];
           final addressHash = fallbackAddressData.sublist(1).toHex();
-          fallbackAddress = FallbackAddress(version: version, addressHash: addressHash);
+          fallbackAddress =
+              FallbackAddress(version: version, addressHash: addressHash);
         }
         break;
       case 13:
@@ -212,14 +216,19 @@ PaymentRequestTags decodeTags(Map<int, dynamic> encodedTags) {
 RouteInfo decodeRouteInfo(List<int> data) {
   final routeData = convertBits(data, 5, 8, pad: true);
 
-  final publicKey = convertBitsBigInt(routeData.sublist(0, 33), 8, 264, pad: true)[0]
-      .toRadixString(16)
-      .padLeft(66, '0');
+  final publicKey =
+      convertBitsBigInt(routeData.sublist(0, 33), 8, 264, pad: true)[0]
+          .toRadixString(16)
+          .padLeft(66, '0');
   final shortChannelId =
-      convertBitsBigInt(routeData.sublist(33, 41), 8, 64, pad: true)[0].toRadixString(16);
-  final feeBaseMsats = convertBits(routeData.sublist(41, 45), 8, 32, pad: true)[0];
-  final feeProportionalMillionths = convertBits(routeData.sublist(45, 49), 8, 32, pad: true)[0];
-  final cltvExpiryDelta = convertBits(routeData.sublist(49, 51), 8, 16, pad: true)[0];
+      convertBitsBigInt(routeData.sublist(33, 41), 8, 64, pad: true)[0]
+          .toRadixString(16);
+  final feeBaseMsats =
+      convertBits(routeData.sublist(41, 45), 8, 32, pad: true)[0];
+  final feeProportionalMillionths =
+      convertBits(routeData.sublist(45, 49), 8, 32, pad: true)[0];
+  final cltvExpiryDelta =
+      convertBits(routeData.sublist(49, 51), 8, 16, pad: true)[0];
 
   return RouteInfo(
     publicKey: publicKey,

@@ -23,7 +23,8 @@ void main(List<String> args) {
 
   parseHelp(results, runner);
 
-  LoggingContext().setLogLevel(LogLevel.fromString(results['log-level'] as String));
+  LoggingContext()
+      .setLogLevel(LogLevel.fromString(results['log-level'] as String));
 
   runner.run(args);
 }

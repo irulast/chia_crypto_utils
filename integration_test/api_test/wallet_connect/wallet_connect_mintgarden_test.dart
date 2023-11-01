@@ -21,8 +21,9 @@ Future<void> main() async {
   const mnemonic = '';
   const mintGardenLink = '';
 
-  final enhancedFullNodeInterface =
-      EnhancedChiaFullNodeInterface.fromUrl(mainnetUrl, timeout: const Duration(minutes: 10));
+  final enhancedFullNodeInterface = EnhancedChiaFullNodeInterface.fromUrl(
+      mainnetUrl,
+      timeout: const Duration(minutes: 10));
 
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
 

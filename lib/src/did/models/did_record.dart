@@ -15,11 +15,13 @@ abstract class DidRecord {
     required List<Puzzlehash> hints,
     required CoinSpend parentSpend,
   }) = _DidRecord;
-  static DidRecord? fromParentCoinSpend(CoinSpend parentSpend, CoinPrototype coin) {
+  static DidRecord? fromParentCoinSpend(
+      CoinSpend parentSpend, CoinPrototype coin) {
     return _DidRecord.fromParentCoinSpend(parentSpend, coin);
   }
 
-  static Future<DidRecord?> fromParentCoinSpendAsync(CoinSpend parentSpend, CoinPrototype coin) {
+  static Future<DidRecord?> fromParentCoinSpendAsync(
+      CoinSpend parentSpend, CoinPrototype coin) {
     return _DidRecord.fromParentCoinSpendAsync(parentSpend, coin);
   }
 
@@ -58,7 +60,8 @@ class _DidRecord implements DidRecord {
     required this.parentSpend,
   });
 
-  static DidRecord? fromParentCoinSpend(CoinSpend parentSpend, CoinPrototype coin) {
+  static DidRecord? fromParentCoinSpend(
+      CoinSpend parentSpend, CoinPrototype coin) {
     final uncurriedPuzzle = parentSpend.puzzleReveal.uncurry();
     if (uncurriedPuzzle.mod != singletonTopLayerV1Program) {
       return null;
@@ -76,7 +79,8 @@ class _DidRecord implements DidRecord {
 
     // check for exit spend
     final innerSolution = parentSpend.solution.rest().rest().first();
-    final didExitConditions = DIDWalletService.extractP2ConditionsFromInnerSolution(
+    final didExitConditions =
+        DIDWalletService.extractP2ConditionsFromInnerSolution(
       innerSolution,
       DidExitCondition.isThisCondition,
       DidExitCondition.fromProgram,
@@ -87,7 +91,8 @@ class _DidRecord implements DidRecord {
     }
 
     // inner puzzle is second curried argument of did full puzzle
-    final uncurriedInnerPuzzle = UncurriedDidInnerPuzzle.fromProgram(parentInnerPuzzle);
+    final uncurriedInnerPuzzle =
+        UncurriedDidInnerPuzzle.fromProgram(parentInnerPuzzle);
 
     return _constructDidRecord(
       coin: coin,
@@ -120,7 +125,8 @@ class _DidRecord implements DidRecord {
 
     // check for exit spend
     final innerSolution = parentSpend.solution.rest().rest().first();
-    final didExitConditions = DIDWalletService.extractP2ConditionsFromInnerSolution(
+    final didExitConditions =
+        DIDWalletService.extractP2ConditionsFromInnerSolution(
       innerSolution,
       DidExitCondition.isThisCondition,
       DidExitCondition.fromProgram,
@@ -131,7 +137,8 @@ class _DidRecord implements DidRecord {
     }
 
     // inner puzzle is second curried argument of did full puzzle
-    final uncurriedInnerPuzzle = await UncurriedDidInnerPuzzle.fromProgramAsync(parentInnerPuzzle);
+    final uncurriedInnerPuzzle =
+        await UncurriedDidInnerPuzzle.fromProgramAsync(parentInnerPuzzle);
 
     return _constructDidRecord(
       coin: coin,
@@ -179,7 +186,8 @@ class _DidRecord implements DidRecord {
       }
     }();
 
-    final createCoinConditions = BaseWalletService.extractConditionsFromProgramList(
+    final createCoinConditions =
+        BaseWalletService.extractConditionsFromProgramList(
       parentSpend.outputProgram.toList(),
       CreateCoinCondition.isThisCondition,
       CreateCoinCondition.fromProgram,
@@ -219,7 +227,8 @@ class _DidRecord implements DidRecord {
       case SpendMode.recovery:
         //puzzle has been changed: new pubkey
         final publicKeyBytes = innerSolution.toList()[4].atom;
-        final uncurriedInnerPuzzle = UncurriedDidInnerPuzzle.fromProgram(parentInnerPuzzle);
+        final uncurriedInnerPuzzle =
+            UncurriedDidInnerPuzzle.fromProgram(parentInnerPuzzle);
 
         final didInnerPuzzle = DIDWalletService.createInnerPuzzleForPk(
           publicKey: JacobianPoint.fromBytesG1(publicKeyBytes),
@@ -264,7 +273,9 @@ class _DidRecord implements DidRecord {
   DidRecord copyWith({
     required Puzzlehash backUpIdsHash,
   }) {
-    final backupIds = backUpIdsHash == Program.list([]).hash() ? <Puzzlehash>[] : this.backupIds;
+    final backupIds = backUpIdsHash == Program.list([]).hash()
+        ? <Puzzlehash>[]
+        : this.backupIds;
     return _DidRecord(
       did: did,
       coin: coin,
@@ -379,13 +390,16 @@ extension ToSpendableDid on DidRecord {
       taskArgument: keychain,
       isolateTask: _toDidInfoTask,
       handleTaskCompletion: (taskResultJson) {
-        final innerPuzzle = pick(taskResultJson, 'inner_puzzle').asStringOrNull();
+        final innerPuzzle =
+            pick(taskResultJson, 'inner_puzzle').asStringOrNull();
 
         if (innerPuzzle == null) {
           return null;
         }
 
-        return DidInfo(delegate: this, innerPuzzle: Program.deserialize(innerPuzzle.hexToBytes()));
+        return DidInfo(
+            delegate: this,
+            innerPuzzle: Program.deserialize(innerPuzzle.hexToBytes()));
       },
     );
   }
@@ -408,5 +422,6 @@ extension ToSpendableDid on DidRecord {
 }
 
 extension HashBytesList on Iterable<Bytes> {
-  Puzzlehash programHash() => Program.list(map(Program.fromAtom).toList()).hash();
+  Puzzlehash programHash() =>
+      Program.list(map(Program.fromAtom).toList()).hash();
 }

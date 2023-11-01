@@ -11,7 +11,8 @@ void main() {
   }
 
   test('should get random puzzlehash', () {
-    expect(() => getNPuzzlehashes(0).random, throwsA(const TypeMatcher<StateError>()));
+    expect(() => getNPuzzlehashes(0).random,
+        throwsA(const TypeMatcher<StateError>()));
     for (var i = 1; i < 50; i++) {
       getNPuzzlehashes(i).random;
     }

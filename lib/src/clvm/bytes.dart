@@ -80,7 +80,9 @@ extension SerializePuzzlehashes on Iterable<Puzzlehash> {
   }
 }
 
-class Bytes extends Comparable<Bytes> with ToBytesMixin, ToProgramMixin implements List<int> {
+class Bytes extends Comparable<Bytes>
+    with ToBytesMixin, ToProgramMixin
+    implements List<int> {
   Bytes(List<int> bytesList) : _byteList = Uint8List.fromList(bytesList);
 
   factory Bytes.zeros(int size) {
@@ -98,7 +100,8 @@ class Bytes extends Comparable<Bytes> with ToBytesMixin, ToProgramMixin implemen
     return iterator.extractBytesAndAdvance(length);
   }
 
-  Bytes.encodeFromString(String text) : _byteList = Uint8List.fromList(utf8.encode(text));
+  Bytes.encodeFromString(String text)
+      : _byteList = Uint8List.fromList(utf8.encode(text));
 
   factory Bytes.fromHex(String hex) {
     if (hex.startsWith(bytesPrefix)) {

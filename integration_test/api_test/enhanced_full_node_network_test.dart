@@ -8,8 +8,10 @@ import 'test_wallets.dart';
 void main() {
   const url = 'FULL_NODE_URL';
 
-  const enhancedFullNodeHttpRpc = EnhancedFullNodeHttpRpc(url, timeout: Duration(seconds: 30));
-  const enhancedFullNode = EnhancedChiaFullNodeInterface(enhancedFullNodeHttpRpc);
+  const enhancedFullNodeHttpRpc =
+      EnhancedFullNodeHttpRpc(url, timeout: Duration(seconds: 30));
+  const enhancedFullNode =
+      EnhancedChiaFullNodeInterface(enhancedFullNodeHttpRpc);
 
   const fullNodeRpc = FullNodeHttpRpc(
     url,
@@ -50,10 +52,12 @@ void main() {
 
         final expectedSpendCoins = <SpentCoin>[];
 
-        for (final spentCoin in expectedCoins.where((element) => element.isSpent)) {
+        for (final spentCoin
+            in expectedCoins.where((element) => element.isSpent)) {
           final coinSpend = await enhancedFullNode.getCoinSpend(spentCoin);
 
-          expectedSpendCoins.add(SpentCoin.fromCoinSpend(spentCoin, coinSpend!));
+          expectedSpendCoins
+              .add(SpentCoin.fromCoinSpend(spentCoin, coinSpend!));
         }
 
         final paginatedUnspentCoins = <CoinWithParentSpend>[];
@@ -61,7 +65,8 @@ void main() {
         PaginatedCoins? paginatedResponse;
         Bytes? lastId;
         do {
-          paginatedResponse = await enhancedFullNode.getCoinsByPuzzleHashesPaginated(
+          paginatedResponse =
+              await enhancedFullNode.getCoinsByPuzzleHashesPaginated(
             puzzlehashes,
             pageSize,
             startHeight: startHeight,
@@ -79,7 +84,8 @@ void main() {
         expectListEquality(
           expectedUnspentCoins,
           paginatedUnspentCoins,
-          (item) => item.toCoinBytes() + (item.parentSpend?.toBytes() ?? Bytes.empty),
+          (item) =>
+              item.toCoinBytes() + (item.parentSpend?.toBytes() ?? Bytes.empty),
         );
 
         expectListEquality(
@@ -117,10 +123,12 @@ void main() {
 
         final expectedSpendCoins = <SpentCoin>[];
 
-        for (final spentCoin in expectedCoins.where((element) => element.isSpent)) {
+        for (final spentCoin
+            in expectedCoins.where((element) => element.isSpent)) {
           final coinSpend = await enhancedFullNode.getCoinSpend(spentCoin);
 
-          expectedSpendCoins.add(SpentCoin.fromCoinSpend(spentCoin, coinSpend!));
+          expectedSpendCoins
+              .add(SpentCoin.fromCoinSpend(spentCoin, coinSpend!));
         }
 
         final paginatedUnspentCoins = <CoinWithParentSpend>[];
@@ -145,7 +153,8 @@ void main() {
         expectListEquality(
           expectedUnspentCoins,
           paginatedUnspentCoins,
-          (item) => item.toCoinBytes() + (item.parentSpend?.toBytes() ?? Bytes.empty),
+          (item) =>
+              item.toCoinBytes() + (item.parentSpend?.toBytes() ?? Bytes.empty),
         );
 
         expectListEquality(
@@ -162,19 +171,21 @@ void main() {
       test('at block height $blockHeight', () async {
         // print('testing block at height $blockHeight');
         final block = await fullNode.getBlockRecordByHeight(blockHeight);
-        final additionsAndRemovals =
-            await fullNode.getAdditionsAndRemovals(block.blockRecord!.headerHash);
+        final additionsAndRemovals = await fullNode
+            .getAdditionsAndRemovals(block.blockRecord!.headerHash);
 
         print(
           '$blockHeight: ${additionsAndRemovals.additions.length + additionsAndRemovals.removals.length}',
         );
 
-        final additionsAndRemovalsWithHints =
-            await enhancedFullNode.getAdditionsAndRemovalsWithHints(block.blockRecord!.headerHash);
+        final additionsAndRemovalsWithHints = await enhancedFullNode
+            .getAdditionsAndRemovalsWithHints(block.blockRecord!.headerHash);
         var progress = 0;
 
-        for (final expectedItem in additionsAndRemovals.removals + additionsAndRemovals.additions) {
-          final matchingItemWithHint = (additionsAndRemovalsWithHints.removals).singleWhere(
+        for (final expectedItem
+            in additionsAndRemovals.removals + additionsAndRemovals.additions) {
+          final matchingItemWithHint =
+              (additionsAndRemovalsWithHints.removals).singleWhere(
             (element) => element.id == expectedItem.id,
             orElse: () => additionsAndRemovalsWithHints.additions.singleWhere(
               (element) => element.id == expectedItem.id,
@@ -187,7 +198,8 @@ void main() {
               continue;
             }
             expect(
-              spend.memosSync.where((element) => element.length == Puzzlehash.bytesLength),
+              spend.memosSync
+                  .where((element) => element.length == Puzzlehash.bytesLength),
               isEmpty,
             );
           } else if (hint.length < Puzzlehash.bytesLength) {
@@ -223,12 +235,12 @@ void main() {
   });
 
   test('should correctly get coin spends', () async {
-    final spentCoins =
-        (await fullNode.getCoinsByPuzzleHashes(puzzlehashes, includeSpentCoins: true))
-            .where((element) => element.isSpent);
+    final spentCoins = (await fullNode.getCoinsByPuzzleHashes(puzzlehashes,
+            includeSpentCoins: true))
+        .where((element) => element.isSpent);
 
-    final coinSpends = await enhancedFullNode
-        .getCoinSpendsByIds(spentCoins.map((e) => e.id).toList() + [Puzzlehash.zeros()]);
+    final coinSpends = await enhancedFullNode.getCoinSpendsByIds(
+        spentCoins.map((e) => e.id).toList() + [Puzzlehash.zeros()]);
 
     for (final spentCoin in spentCoins) {
       final fetchedCoinSpend = await fullNode.getCoinSpend(spentCoin);
@@ -237,8 +249,9 @@ void main() {
   });
 
   test('should correctly get coins by ids', () async {
-    final coins =
-        (await fullNode.getCoinsByPuzzleHashes(puzzlehashes, includeSpentCoins: true)).toList();
+    final coins = (await fullNode.getCoinsByPuzzleHashes(puzzlehashes,
+            includeSpentCoins: true))
+        .toList();
 
     final then = DateTime.now();
 
@@ -267,7 +280,9 @@ void expectListEquality<T>(
 
   for (final expectedItem in expectedList) {
     if (!actualList.any(
-      (actualItem) => getAttributeToCompare(expectedItem) == getAttributeToCompare(actualItem),
+      (actualItem) =>
+          getAttributeToCompare(expectedItem) ==
+          getAttributeToCompare(actualItem),
     )) {
       throw Exception(
         'could not find expected item ${getAttributeToCompare(expectedItem)} in ${actualList.map(getAttributeToCompare).toList()}',
@@ -275,7 +290,9 @@ void expectListEquality<T>(
     }
     expect(
       actualList.any(
-        (actualItem) => getAttributeToCompare(expectedItem) == getAttributeToCompare(actualItem),
+        (actualItem) =>
+            getAttributeToCompare(expectedItem) ==
+            getAttributeToCompare(actualItem),
       ),
       true,
     );

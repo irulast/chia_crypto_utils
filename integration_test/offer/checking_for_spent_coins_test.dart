@@ -23,12 +23,13 @@ Future<void> main() async {
       coinsForOffer: MixedCoins(standardCoins: adam.standardCoins),
       offeredAmounts: const OfferedMixedAmounts(standard: 5000),
       changePuzzlehash: adam.firstPuzzlehash,
-      requestedPayments: RequestedMixedPayments(standard: [Payment(1000, adam.firstPuzzlehash)]),
+      requestedPayments: RequestedMixedPayments(
+          standard: [Payment(1000, adam.firstPuzzlehash)]),
       keychain: adam.keychain,
     );
 
-    var offerContainsSpentCoins =
-        await fullNodeSimulator.checkForSpentCoins(offer.offeredSpendBundle.coins);
+    var offerContainsSpentCoins = await fullNodeSimulator
+        .checkForSpentCoins(offer.offeredSpendBundle.coins);
     expect(offerContainsSpentCoins, false);
 
     final spendBundle = walletService.createSpendBundle(
@@ -41,8 +42,8 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    offerContainsSpentCoins =
-        await fullNodeSimulator.checkForSpentCoins(offer.offeredSpendBundle.coins);
+    offerContainsSpentCoins = await fullNodeSimulator
+        .checkForSpentCoins(offer.offeredSpendBundle.coins);
     expect(offerContainsSpentCoins, true);
   });
 
@@ -54,12 +55,13 @@ Future<void> main() async {
       coinsForOffer: MixedCoins(standardCoins: isaac.standardCoins),
       offeredAmounts: const OfferedMixedAmounts(standard: 5000),
       changePuzzlehash: isaac.firstPuzzlehash,
-      requestedPayments: RequestedMixedPayments(standard: [Payment(1000, isaac.firstPuzzlehash)]),
+      requestedPayments: RequestedMixedPayments(
+          standard: [Payment(1000, isaac.firstPuzzlehash)]),
       keychain: isaac.keychain,
     );
 
-    var offerContainsSpentCoins =
-        await fullNodeSimulator.checkForSpentCoins(offer.offeredSpendBundle.coins);
+    var offerContainsSpentCoins = await fullNodeSimulator
+        .checkForSpentCoins(offer.offeredSpendBundle.coins);
     expect(offerContainsSpentCoins, false);
 
     final spendBundle = walletService.createSpendBundle(
@@ -72,8 +74,8 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    offerContainsSpentCoins =
-        await fullNodeSimulator.checkForSpentCoins(offer.offeredSpendBundle.coins);
+    offerContainsSpentCoins = await fullNodeSimulator
+        .checkForSpentCoins(offer.offeredSpendBundle.coins);
     expect(offerContainsSpentCoins, true);
   });
 
@@ -94,11 +96,13 @@ Future<void> main() async {
     final offer = Offer.fromBech32(offerBinOfferFile);
 
     try {
-      final parsedOffer =
-          await OfferWalletService.parseOffer(offer, tailDatabaseApi: TailDatabaseApi());
+      final parsedOffer = await OfferWalletService.parseOffer(offer,
+          tailDatabaseApi: TailDatabaseApi());
 
       expect(
-        parsedOffer.requestedAmounts.cats.firstWhere((cat) => cat.name == 'Spacebucks').amount,
+        parsedOffer.requestedAmounts.cats
+            .firstWhere((cat) => cat.name == 'Spacebucks')
+            .amount,
         equals(50000.0),
       );
       expect(parsedOffer.offeredAmounts.xch, equals(0.51));

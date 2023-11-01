@@ -21,7 +21,8 @@ class NotificationCoin with CoinPrototypeDecoratorMixin implements Coin {
     final targetPuzzlehash = Puzzlehash(memos.first);
     final message = memos.sublist(1);
 
-    return NotificationCoin(delegate: coin, targetPuzzlehash: targetPuzzlehash, message: message);
+    return NotificationCoin(
+        delegate: coin, targetPuzzlehash: targetPuzzlehash, message: message);
   }
 
   static Future<NotificationCoin> fromParentSpend({

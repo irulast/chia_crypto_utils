@@ -25,8 +25,8 @@ Future<void> main() async {
   await fullNodeSimulator.farmCoins(recoveryDidAddress);
   await fullNodeSimulator.moveToNextBlock();
 
-  final recoveryDidStandardCoins =
-      await fullNodeSimulator.getCoinsByPuzzleHashes([recoveryDidWv.puzzlehash]);
+  final recoveryDidStandardCoins = await fullNodeSimulator
+      .getCoinsByPuzzleHashes([recoveryDidWv.puzzlehash]);
 
   final didRecoverySpendBundle = didWalletService.createGenerateDIDSpendBundle(
     standardCoins: [recoveryDidStandardCoins[0]],
@@ -39,7 +39,8 @@ Future<void> main() async {
 
   await fullNodeSimulator.moveToNextBlock();
 
-  final recoveryDidInfos = await fullNodeSimulator.getDidRecordsFromHint(recoveryDidWv.puzzlehash);
+  final recoveryDidInfos =
+      await fullNodeSimulator.getDidRecordsFromHint(recoveryDidWv.puzzlehash);
   var recoveryDidWallet = DidWallet(
     recoveryDidWv,
     recoveryDidInfos[0].toDidInfoForPkOrThrow(recoveryDidWv.childPublicKey),
@@ -53,10 +54,11 @@ Future<void> main() async {
   await fullNodeSimulator.farmCoins(recoverableDidAddress);
   await fullNodeSimulator.moveToNextBlock();
 
-  final recoverableDidStandardCoins =
-      await fullNodeSimulator.getCoinsByPuzzleHashes([recoverableDidWv.puzzlehash]);
+  final recoverableDidStandardCoins = await fullNodeSimulator
+      .getCoinsByPuzzleHashes([recoverableDidWv.puzzlehash]);
 
-  final recoverableDidSpendBundle = didWalletService.createGenerateDIDSpendBundle(
+  final recoverableDidSpendBundle =
+      didWalletService.createGenerateDIDSpendBundle(
     standardCoins: [recoverableDidStandardCoins[0]],
     targetPuzzleHash: recoverableDidWv.puzzlehash,
     keychain: keychain,
@@ -67,8 +69,8 @@ Future<void> main() async {
   await fullNodeSimulator.pushTransaction(recoverableDidSpendBundle);
   await fullNodeSimulator.moveToNextBlock();
 
-  final didInfos =
-      await fullNodeSimulator.getDidRecordsByPuzzleHashes([recoverableDidWv.puzzlehash]);
+  final didInfos = await fullNodeSimulator
+      .getDidRecordsByPuzzleHashes([recoverableDidWv.puzzlehash]);
   var recoverableDidInfo = didInfos[0];
 
   test('should recover did with single backup id', () async {
@@ -117,14 +119,17 @@ Future<void> main() async {
 
     recoveryDidWallet = DidWallet(
       recoveryDidWallet.walletVector,
-      (await fullNodeSimulator.getDidRecordForDid(recoveryDidWallet.didInfo.did))!
+      (await fullNodeSimulator
+              .getDidRecordForDid(recoveryDidWallet.didInfo.did))!
           .toDidInfoForPkOrThrow(recoveryDidWallet.walletVector.childPublicKey),
     );
 
-    recoverableDidInfo = (await fullNodeSimulator.getDidRecordForDid(recoverableDidInfo.did))!
-        .toDidInfoForPkOrThrow(newPublicKey);
+    recoverableDidInfo =
+        (await fullNodeSimulator.getDidRecordForDid(recoverableDidInfo.did))!
+            .toDidInfoForPkOrThrow(newPublicKey);
 
-    expect((recoverableDidInfo as DidInfo).p2Puzzle, equals(getPuzzleFromPk(newPublicKey)));
+    expect((recoverableDidInfo as DidInfo).p2Puzzle,
+        equals(getPuzzleFromPk(newPublicKey)));
 
     final newerWalletVector = keychain.unhardenedMap.values.toList()[1];
     newPublicKey = newerWalletVector.childPublicKey;
@@ -163,9 +168,11 @@ Future<void> main() async {
 
     print('finished second recovery');
 
-    recoverableDidInfo = (await fullNodeSimulator.getDidRecordForDid(recoverableDidInfo.did))!
-        .toDidInfoForPkOrThrow(newPublicKey);
-    expect((recoverableDidInfo as DidInfo).p2Puzzle, equals(getPuzzleFromPk(newPublicKey)));
+    recoverableDidInfo =
+        (await fullNodeSimulator.getDidRecordForDid(recoverableDidInfo.did))!
+            .toDidInfoForPkOrThrow(newPublicKey);
+    expect((recoverableDidInfo as DidInfo).p2Puzzle,
+        equals(getPuzzleFromPk(newPublicKey)));
   });
 }
 

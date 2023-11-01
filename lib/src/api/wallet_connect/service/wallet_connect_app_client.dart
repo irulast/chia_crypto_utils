@@ -97,7 +97,8 @@ class WalletConnectAppClient {
     return _waitForSessionApproval(connectResponse);
   }
 
-  Future<SessionData> _waitForSessionApproval(ConnectResponse connectResponse) async {
+  Future<SessionData> _waitForSessionApproval(
+      ConnectResponse connectResponse) async {
     print('waiting for session to be approved');
     try {
       final sessionData = await connectResponse.session.future;
@@ -126,7 +127,8 @@ class WalletConnectAppClient {
   }) async {
     return request(
       fingerprint: fingerprint,
-      command: GetTransactionCommand(transactionId: Bytes.fromHex(transactionId)),
+      command:
+          GetTransactionCommand(transactionId: Bytes.fromHex(transactionId)),
       parseResponse: GetTransactionResponse.fromJson,
     );
   }
@@ -150,7 +152,8 @@ class WalletConnectAppClient {
   }) async {
     return request(
       fingerprint: fingerprint,
-      command: GetNftsCommand(walletIds: walletIds, startIndex: startIndex, num: num),
+      command: GetNftsCommand(
+          walletIds: walletIds, startIndex: startIndex, num: num),
       parseResponse: GetNftsResponse.fromJson,
     );
   }
@@ -485,8 +488,10 @@ class WalletConnectAppClient {
 }
 
 extension Fingerprints on SessionData {
-  List<int> get fingerprints =>
-      namespaces['chia']!.accounts.map((account) => int.parse(account.split(':').last)).toList();
+  List<int> get fingerprints => namespaces['chia']!
+      .accounts
+      .map((account) => int.parse(account.split(':').last))
+      .toList();
 }
 
 class NotConnectedException implements Exception {

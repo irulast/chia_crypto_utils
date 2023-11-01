@@ -64,7 +64,8 @@ class Program with ToBytesMixin, ToProgramMixin {
     if (atom == null) return Program.nil;
     return Program.fromAtom(atom);
   }
-  Program.fromAtomHex(String hex) : _atom = Bytes(const HexDecoder().convert(hex));
+  Program.fromAtomHex(String hex)
+      : _atom = Bytes(const HexDecoder().convert(hex));
   // ignore: avoid_positional_boolean_parameters
   Program.fromBool(bool value) : _atom = Bytes(value ? [1] : []);
   Program.fromInt(int number) : _atom = encodeInt(number);
@@ -146,7 +147,8 @@ class Program with ToBytesMixin, ToProgramMixin {
           : toBigInt() == other.toBigInt());
 
   @override
-  int get hashCode => isCons ? hash2(first().hashCode, rest().hashCode) : toBigInt().hashCode;
+  int get hashCode =>
+      isCons ? hash2(first().hashCode, rest().hashCode) : toBigInt().hashCode;
 
   bool get isNull => isAtom && atom.isEmpty;
   bool get isAtom => _atom != null;
@@ -210,8 +212,10 @@ class Program with ToBytesMixin, ToProgramMixin {
     return Program.parse('(a (q . ${toString()}) $current)');
   }
 
-  static Map<String, dynamic> _curryIsolateTask(CurryIsolateArguments arguments) {
-    final curriedProgram = arguments.programToCurryTo.curry(arguments.programsToCurryIn);
+  static Map<String, dynamic> _curryIsolateTask(
+      CurryIsolateArguments arguments) {
+    final curriedProgram =
+        arguments.programToCurryTo.curry(arguments.programsToCurryIn);
     return <String, dynamic>{
       'program': curriedProgram.toHex(),
     };
@@ -324,7 +328,9 @@ class Program with ToBytesMixin, ToProgramMixin {
       return Puzzlehash(sha256.convert([1] + atom.toList()).bytes);
     } else {
       return Puzzlehash(
-        sha256.convert([2] + cons[0].hash().toList() + cons[1].hash().toList()).bytes,
+        sha256
+            .convert([2] + cons[0].hash().toList() + cons[1].hash().toList())
+            .bytes,
       );
     }
   }
@@ -552,7 +558,8 @@ class Program with ToBytesMixin, ToProgramMixin {
       if (showKeywords) {
         try {
           final value = cons[0].toBigInt();
-          buffer.write(keywords.keys.firstWhere((key) => keywords[key] == value));
+          buffer
+              .write(keywords.keys.firstWhere((key) => keywords[key] == value));
         } catch (e) {
           buffer.write(cons[0].toSource(showKeywords: showKeywords));
         }
@@ -561,7 +568,8 @@ class Program with ToBytesMixin, ToProgramMixin {
       }
       var current = cons[1];
       while (current.isCons) {
-        buffer.write(' ${current.cons[0].toSource(showKeywords: showKeywords)}');
+        buffer
+            .write(' ${current.cons[0].toSource(showKeywords: showKeywords)}');
         current = current.cons[1];
       }
       if (!current.isNull) {
@@ -579,7 +587,8 @@ class Program with ToBytesMixin, ToProgramMixin {
 class ModAndArguments {
   ModAndArguments(this.arguments, this.mod);
 
-  factory ModAndArguments.fromJson(Map<String, dynamic> json) => ModAndArguments(
+  factory ModAndArguments.fromJson(Map<String, dynamic> json) =>
+      ModAndArguments(
         List<String>.from(json['arguments'] as Iterable<dynamic>)
             .map(Program.deserializeHex)
             .toList(),
@@ -589,8 +598,10 @@ class ModAndArguments {
   List<Program> arguments;
   Program mod;
 
-  Map<String, dynamic> toJson() =>
-      <String, dynamic>{'mod': mod, 'arguments': arguments.map((e) => e.toHex()).toList()};
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'mod': mod,
+        'arguments': arguments.map((e) => e.toHex()).toList()
+      };
 }
 
 class PuzzleAndSolution {

@@ -33,11 +33,14 @@ abstract class WalletConnectRequestHandler {
     SessionData sessionData,
   );
 
-  FutureOr<GetNftCountResponse> getNftsCount(GetNftsCountCommand command, SessionData sessionData);
+  FutureOr<GetNftCountResponse> getNftsCount(
+      GetNftsCountCommand command, SessionData sessionData);
 
-  FutureOr<GetNftInfoResponse> getNftInfo(GetNftInfoCommand command, SessionData sessionData);
+  FutureOr<GetNftInfoResponse> getNftInfo(
+      GetNftInfoCommand command, SessionData sessionData);
 
-  FutureOr<GetNftsResponse> getNfts(GetNftsCommand command, SessionData sessionData);
+  FutureOr<GetNftsResponse> getNfts(
+      GetNftsCommand command, SessionData sessionData);
 
   FutureOr<GetSyncStatusResponse> getSyncStatus(SessionData sessionData);
 
@@ -51,7 +54,8 @@ abstract class WalletConnectRequestHandler {
     SessionData sessionData,
   );
 
-  FutureOr<GetWalletsResponse> getWallets(GetWalletsCommand command, SessionData sessionData);
+  FutureOr<GetWalletsResponse> getWallets(
+      GetWalletsCommand command, SessionData sessionData);
 
   FutureOr<SendTransactionResponse> sendTransaction(
     SendTransactionCommand command,
@@ -68,11 +72,14 @@ abstract class WalletConnectRequestHandler {
     SessionData sessionData,
   );
 
-  FutureOr<SendTransactionResponse> spendCat(SpendCatCommand command, SessionData sessionData);
+  FutureOr<SendTransactionResponse> spendCat(
+      SpendCatCommand command, SessionData sessionData);
 
-  FutureOr<TakeOfferResponse> takeOffer(TakeOfferCommand command, SessionData sessionData);
+  FutureOr<TakeOfferResponse> takeOffer(
+      TakeOfferCommand command, SessionData sessionData);
 
-  FutureOr<TransferNftResponse> transferNft(TransferNftCommand command, SessionData sessionData);
+  FutureOr<TransferNftResponse> transferNft(
+      TransferNftCommand command, SessionData sessionData);
 
   FutureOr<VerifySignatureResponse> verifySignature(
     VerifySignatureCommand command,
@@ -101,7 +108,8 @@ extension CommandMethods on WalletConnectRequestHandler {
     dynamic params,
   ) {
     try {
-      return WalletConnectCommand.fromParams(type, params as Map<String, dynamic>);
+      return WalletConnectCommand.fromParams(
+          type, params as Map<String, dynamic>);
     } catch (e) {
       throw ErrorParsingWalletConnectCommand();
     }
@@ -115,53 +123,65 @@ extension CommandMethods on WalletConnectRequestHandler {
       late final WalletConnectCommandBaseResponse response;
       switch (command.type) {
         case WalletConnectCommandType.getTransaction:
-          response = await getTransaction(command as GetTransactionCommand, sessionData);
+          response = await getTransaction(
+              command as GetTransactionCommand, sessionData);
           break;
         case WalletConnectCommandType.getWalletBalance:
-          response = await getWalletBalance(command as GetWalletBalanceCommand, sessionData);
+          response = await getWalletBalance(
+              command as GetWalletBalanceCommand, sessionData);
           break;
         case WalletConnectCommandType.getNFTs:
           response = await getNfts(command as GetNftsCommand, sessionData);
           break;
         case WalletConnectCommandType.getNFTInfo:
-          response = await getNftInfo(command as GetNftInfoCommand, sessionData);
+          response =
+              await getNftInfo(command as GetNftInfoCommand, sessionData);
           break;
         case WalletConnectCommandType.getNFTsCount:
-          response = await getNftsCount(command as GetNftsCountCommand, sessionData);
+          response =
+              await getNftsCount(command as GetNftsCountCommand, sessionData);
           break;
         case WalletConnectCommandType.signMessageById:
-          response = await signMessageById(command as SignMessageByIdCommand, sessionData);
+          response = await signMessageById(
+              command as SignMessageByIdCommand, sessionData);
           break;
         case WalletConnectCommandType.signMessageByAddress:
-          response =
-              await signMessageByAddress(command as SignMessageByAddressCommand, sessionData);
+          response = await signMessageByAddress(
+              command as SignMessageByAddressCommand, sessionData);
           break;
         case WalletConnectCommandType.verifySignature:
-          response = await verifySignature(command as VerifySignatureCommand, sessionData);
+          response = await verifySignature(
+              command as VerifySignatureCommand, sessionData);
           break;
         case WalletConnectCommandType.checkOfferValidity:
-          response = await checkOfferValidity(command as CheckOfferValidityCommand, sessionData);
+          response = await checkOfferValidity(
+              command as CheckOfferValidityCommand, sessionData);
           break;
         case WalletConnectCommandType.transferNFT:
-          response = await transferNft(command as TransferNftCommand, sessionData);
+          response =
+              await transferNft(command as TransferNftCommand, sessionData);
           break;
         case WalletConnectCommandType.sendTransaction:
-          response = await sendTransaction(command as SendTransactionCommand, sessionData);
+          response = await sendTransaction(
+              command as SendTransactionCommand, sessionData);
           break;
         case WalletConnectCommandType.takeOffer:
           response = await takeOffer(command as TakeOfferCommand, sessionData);
           break;
         case WalletConnectCommandType.getWallets:
-          response = await getWallets(command as GetWalletsCommand, sessionData);
+          response =
+              await getWallets(command as GetWalletsCommand, sessionData);
           break;
         case WalletConnectCommandType.spendCAT:
           response = await spendCat(command as SpendCatCommand, sessionData);
           break;
         case WalletConnectCommandType.getCurrentAddress:
-          response = await getCurrentAddress(command as GetCurrentAddressCommand, sessionData);
+          response = await getCurrentAddress(
+              command as GetCurrentAddressCommand, sessionData);
           break;
         case WalletConnectCommandType.getNextAddress:
-          response = await getNextAddress(command as GetNextAddressCommand, sessionData);
+          response = await getNextAddress(
+              command as GetNextAddressCommand, sessionData);
           break;
         case WalletConnectCommandType.getSyncStatus:
           response = await getSyncStatus(sessionData);
@@ -170,14 +190,17 @@ extension CommandMethods on WalletConnectRequestHandler {
           response = await logIn(command as LogInCommand, sessionData);
           break;
         case WalletConnectCommandType.createOfferForIds:
-          response = await createOfferForIds(command as CreateOfferForIdsCommand, sessionData);
+          response = await createOfferForIds(
+              command as CreateOfferForIdsCommand, sessionData);
           break;
 
         case WalletConnectCommandType.signSpendBundle:
-          response = await signSpendBundle(command as SignSpendBundleCommand, sessionData);
+          response = await signSpendBundle(
+              command as SignSpendBundleCommand, sessionData);
           break;
         case WalletConnectCommandType.addCATToken:
-          response = await addCatToken(command as AddCatTokenCommand, sessionData);
+          response =
+              await addCatToken(command as AddCatTokenCommand, sessionData);
           break;
       }
 

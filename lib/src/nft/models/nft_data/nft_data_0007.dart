@@ -24,7 +24,9 @@ class NftData0007 with ToJsonMixin {
       description: pick(json, 'description').asStringOrThrow(),
       sensitiveContent: pick(json, 'sensitive_content').asBoolOrFalse(),
       collection: pick(json, 'collection').letJsonOrThrow(Collection.fromJson),
-      attributes: pick(json, 'attributes').letJsonListOrNull(NftAttribute.fromJson) ?? [],
+      attributes:
+          pick(json, 'attributes').letJsonListOrNull(NftAttribute.fromJson) ??
+              [],
       seriesNumber: pick(json, 'series_number').asIntOrNull(),
       seriesTotal: pick(json, 'series_total').asIntOrNull(),
       json: json,
@@ -51,7 +53,8 @@ class NftData0007 with ToJsonMixin {
 
     final attributesWithOverrides =
         Map.fromEntries(collectionAttributes.map((e) => MapEntry(e.type, e)));
-    for (final attributeOverride in collectionOverride.attributes ?? <CollectionAttribute>[]) {
+    for (final attributeOverride
+        in collectionOverride.attributes ?? <CollectionAttribute>[]) {
       attributesWithOverrides[attributeOverride.type] = attributeOverride;
     }
     return NftData0007(

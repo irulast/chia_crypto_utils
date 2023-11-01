@@ -44,10 +44,12 @@ class WalletConnectCommandBaseResponseImp
     this.isSuccess,
     this.isError,
   });
-  factory WalletConnectCommandBaseResponseImp.fromJson(Map<String, dynamic> json) {
+  factory WalletConnectCommandBaseResponseImp.fromJson(
+      Map<String, dynamic> json) {
     return WalletConnectCommandBaseResponseImp(
       status: pick(json, 'status').asStringOrNull(),
-      endpointName: pick(json, 'endpointName').letStringOrNull(WalletConnectCommandType.fromString),
+      endpointName: pick(json, 'endpointName')
+          .letStringOrNull(WalletConnectCommandType.fromString),
       requestId: pick(json, 'requestId').asStringOrNull(),
       originalArgs: pick(json, 'originalArgs').letJsonOrNull((json) => json),
       startedTimestamp: pick(json, 'startedTimestamp').asIntOrNull(),
@@ -165,7 +167,8 @@ class WalletConnectCommandBaseResponseImp
   }
 }
 
-mixin WalletConnectCommandResponseDecoratorMixin implements WalletConnectCommandBaseResponse {
+mixin WalletConnectCommandResponseDecoratorMixin
+    implements WalletConnectCommandBaseResponse {
   WalletConnectCommandBaseResponse get delegate;
 
   @override

@@ -15,7 +15,8 @@ abstract class Wallet {
 
   Future<List<Coin>> getCoins();
 
-  Future<List<CatCoin>> getCatCoinsByAssetId(Puzzlehash assetId, {int catVersion = 2});
+  Future<List<CatCoin>> getCatCoinsByAssetId(Puzzlehash assetId,
+      {int catVersion = 2});
 
   Future<NftRecord?> getNftRecordByLauncherId(Bytes launcherId);
 }
@@ -26,17 +27,21 @@ extension MixedCoinsGetterX on Wallet {
   /// [InsufficientCatBalanceException], or
   /// [InsufficientNftBalanceException]
   ///  if there are not enough coins for a requested type
-  Future<MixedCoins> getMixedCoinsForAmounts(MixedAmounts amounts, {int catVersion = 2}) async {
+  Future<MixedCoins> getMixedCoinsForAmounts(MixedAmounts amounts,
+      {int catVersion = 2}) async {
     // standard
     final allCoins = await getCoins();
-    final standardCoinsForOffer = selectStandardCoinsForAmount(allCoins, amounts.standard);
+    final standardCoinsForOffer =
+        selectStandardCoinsForAmount(allCoins, amounts.standard);
 
     // cat
     final catCoinsForOffer = <CatCoin>[];
     for (final requestedCat in amounts.cat.entries) {
-      final catCoins = await getCatCoinsByAssetId(requestedCat.key, catVersion: catVersion);
-      catCoinsForOffer
-          .addAll(selectCatCoinsForAmount(catCoins, requestedCat.value, assetId: requestedCat.key));
+      final catCoins =
+          await getCatCoinsByAssetId(requestedCat.key, catVersion: catVersion);
+      catCoinsForOffer.addAll(selectCatCoinsForAmount(
+          catCoins, requestedCat.value,
+          assetId: requestedCat.key));
     }
 
     // nft
@@ -45,7 +50,8 @@ extension MixedCoinsGetterX on Wallet {
     for (final requestedNft in amounts.nft.entries) {
       final nftRecord = await getNftRecordByLauncherId(requestedNft.key);
       if (nftRecord == null) {
-        LoggingContext().error('could not find offer requested nft ${requestedNft.key}');
+        LoggingContext()
+            .error('could not find offer requested nft ${requestedNft.key}');
         throw InsufficientNftBalanceException(requestedNft.key);
       }
       try {
@@ -90,7 +96,8 @@ extension SendCoinsX on Wallet {
     int catVersion = 2,
   }) async {
     final coins = await getCatCoinsByAssetId(assetId, catVersion: catVersion);
-    final coinsForAmount = selectCatCoinsForAmount(coins, payments.totalValue, assetId: assetId);
+    final coinsForAmount =
+        selectCatCoinsForAmount(coins, payments.totalValue, assetId: assetId);
 
     final standardCoins = await getCoins();
 
@@ -131,7 +138,8 @@ extension SendCoinsX on Wallet {
     int fee = 50,
   }) async {
     final coins = await getCoins();
-    final coinsForAmount = selectStandardCoinsForAmount(coins, payments.totalValue);
+    final coinsForAmount =
+        selectStandardCoinsForAmount(coins, payments.totalValue);
 
     final walletService = StandardWalletService();
 

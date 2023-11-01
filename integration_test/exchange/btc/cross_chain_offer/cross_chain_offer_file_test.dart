@@ -26,7 +26,9 @@ Future<void> main() async {
       'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
   final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
   final paymentHash = decodedPaymentRequest.paymentHash!;
-  final preimage = '5c1f10653dc3ff0531b77351dc6676de2e1f5f53c9f0a8867bcb054648f46a32'.hexToBytes();
+  final preimage =
+      '5c1f10653dc3ff0531b77351dc6676de2e1f5f53c9f0a8867bcb054648f46a32'
+          .hexToBytes();
 
   test(
       'should make and take XCH to BTC offer and complete exchange by sweeping XCH to BTC holder with preimage',
@@ -39,7 +41,8 @@ Future<void> main() async {
     await maker.refreshCoins();
 
     final makerMasterPrivateKey = maker.keychainSecret.masterPrivateKey;
-    final makerDerivationIndex = ExchangeOfferService.randomDerivationIndexForExchange();
+    final makerDerivationIndex =
+        ExchangeOfferService.randomDerivationIndexForExchange();
 
     final makerWalletVector = await WalletVector.fromPrivateKeyAsync(
       makerMasterPrivateKey,
@@ -55,7 +58,8 @@ Future<void> main() async {
 
     const offerValidityTimeHours = 1;
     final currentUnixTimeStamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final offerValidityTime = currentUnixTimeStamp + (offerValidityTimeHours * 60 * 60);
+    final offerValidityTime =
+        currentUnixTimeStamp + (offerValidityTimeHours * 60 * 60);
 
     final unspentInitializationCoin = maker.standardCoins.first;
     final initializationCoinId = unspentInitializationCoin.id;
@@ -101,14 +105,16 @@ Future<void> main() async {
     final takerPrivateKey = takerWalletVector.childPrivateKey;
     final takerPublicKey = takerWalletVector.childPublicKey;
 
-    final takerOfferFile = crossChainOfferFileService.createBtcToXchTakerOfferFile(
+    final takerOfferFile =
+        crossChainOfferFileService.createBtcToXchTakerOfferFile(
       initializationCoinId: initializationCoinId,
       serializedMakerOfferFile: serializedOfferFile,
       validityTime: exchangeValidityTime,
       requestorPublicKey: takerPublicKey,
     );
 
-    final serializedTakerOfferFile = await takerOfferFile.serializeAsync(takerPrivateKey);
+    final serializedTakerOfferFile =
+        await takerOfferFile.serializeAsync(takerPrivateKey);
 
     final escrowPuzzlehash = BtcToXchService.generateEscrowPuzzlehash(
       requestorPrivateKey: takerPrivateKey,
@@ -151,8 +157,8 @@ Future<void> main() async {
 
     await fullNodeSimulator.moveToNextBlock();
 
-    final spentMessageCoinChild =
-        await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoinInfo.messageCoin);
+    final spentMessageCoinChild = await fullNodeSimulator
+        .getSingleChildCoinFromCoin(messageCoinInfo.messageCoin);
 
     expect(spentMessageCoinChild, isNotNull);
 
@@ -169,7 +175,8 @@ Future<void> main() async {
     final startingMakerBalance = maker.standardCoins.totalValue;
     final startingTakerBalance = taker.standardCoins.totalValue;
 
-    var escrowPuzzlehashCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash]);
+    var escrowPuzzlehashCoins =
+        await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash]);
     expect(escrowPuzzlehashCoins.totalValue, equals(0));
 
     await exchangeOfferService.transferFundsToEscrowPuzzlehash(
@@ -184,7 +191,8 @@ Future<void> main() async {
 
     await fullNodeSimulator.moveToNextBlock();
 
-    escrowPuzzlehashCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash]);
+    escrowPuzzlehashCoins =
+        await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash]);
     expect(escrowPuzzlehashCoins.totalValue, equals(mojos));
 
     // wait for sufficient confirmations
@@ -223,7 +231,8 @@ Future<void> main() async {
     await maker.refreshCoins();
 
     final makerMasterPrivateKey = maker.keychainSecret.masterPrivateKey;
-    final makerDerivationIndex = ExchangeOfferService.randomDerivationIndexForExchange();
+    final makerDerivationIndex =
+        ExchangeOfferService.randomDerivationIndexForExchange();
 
     final makerWalletVector = await WalletVector.fromPrivateKeyAsync(
       makerMasterPrivateKey,
@@ -239,7 +248,8 @@ Future<void> main() async {
 
     const offerValidityTimeHours = 1;
     final currentUnixTimeStamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final offerValidityTime = currentUnixTimeStamp + (offerValidityTimeHours * 60 * 60);
+    final offerValidityTime =
+        currentUnixTimeStamp + (offerValidityTimeHours * 60 * 60);
 
     final unspentInitializationCoin = maker.standardCoins.first;
     final initializationCoinId = unspentInitializationCoin.id;
@@ -286,7 +296,8 @@ Future<void> main() async {
     final takerPrivateKey = takerWalletVector.childPrivateKey;
     final takerPublicKey = takerWalletVector.childPublicKey;
 
-    final takerOfferFile = crossChainOfferFileService.createXchToBtcTakerOfferFile(
+    final takerOfferFile =
+        crossChainOfferFileService.createXchToBtcTakerOfferFile(
       initializationCoinId: initializationCoinId,
       serializedMakerOfferFile: serializedOfferFile,
       validityTime: exchangeValidityTime,
@@ -294,7 +305,8 @@ Future<void> main() async {
       paymentRequest: decodedPaymentRequest,
     );
 
-    final serializedTakerOfferFile = await takerOfferFile.serializeAsync(takerPrivateKey);
+    final serializedTakerOfferFile =
+        await takerOfferFile.serializeAsync(takerPrivateKey);
 
     final escrowPuzzlehash = XchToBtcService.generateEscrowPuzzlehash(
       requestorPrivateKey: takerPrivateKey,
@@ -338,8 +350,8 @@ Future<void> main() async {
 
     await fullNodeSimulator.moveToNextBlock();
 
-    final spentMessageCoinChild =
-        await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoinInfo.messageCoin);
+    final spentMessageCoinChild = await fullNodeSimulator
+        .getSingleChildCoinFromCoin(messageCoinInfo.messageCoin);
 
     expect(spentMessageCoinChild, isNotNull);
 
@@ -348,7 +360,8 @@ Future<void> main() async {
     final startingMakerBalance = maker.standardCoins.totalValue;
     final startingTakerBalance = taker.standardCoins.totalValue;
 
-    var escrowPuzzlehashCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash]);
+    var escrowPuzzlehashCoins =
+        await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash]);
     expect(escrowPuzzlehashCoins.totalValue, equals(0));
 
     // taker transfers funds to escrow puzzlehash
@@ -364,11 +377,13 @@ Future<void> main() async {
 
     await fullNodeSimulator.moveToNextBlock();
 
-    escrowPuzzlehashCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash]);
+    escrowPuzzlehashCoins =
+        await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash]);
     expect(escrowPuzzlehashCoins.totalValue, equals(mojos));
 
     // wait for sufficient confirmations
-    await fullNodeSimulator.moveToNextBlock(blocks: blocksForSufficientConfirmation);
+    await fullNodeSimulator.moveToNextBlock(
+        blocks: blocksForSufficientConfirmation);
 
     // maker sweeps escrow puzzlehash
     final makerEscrowPuzzlehash = BtcToXchService.generateEscrowPuzzlehash(

@@ -28,7 +28,9 @@ Future<void> main() async {
       'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
   final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
   final paymentHash = decodedPaymentRequest.paymentHash!;
-  final preimage = '5c1f10653dc3ff0531b77351dc6676de2e1f5f53c9f0a8867bcb054648f46a32'.hexToBytes();
+  final preimage =
+      '5c1f10653dc3ff0531b77351dc6676de2e1f5f53c9f0a8867bcb054648f46a32'
+          .hexToBytes();
   const fee = 50;
 
   late ChiaEnthusiast maker;
@@ -58,7 +60,8 @@ Future<void> main() async {
     await maker.refreshCoins();
 
     makerMasterPrivateKey = maker.keychainSecret.masterPrivateKey;
-    makerDerivationIndex = ExchangeOfferService.randomDerivationIndexForExchange();
+    makerDerivationIndex =
+        ExchangeOfferService.randomDerivationIndexForExchange();
 
     final makerWalletVector = await WalletVector.fromPrivateKeyAsync(
       makerMasterPrivateKey,
@@ -74,7 +77,8 @@ Future<void> main() async {
 
     const offerValidityTimeHours = 1;
     final currentUnixTimestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    offerValidityTime = currentUnixTimestamp + (offerValidityTimeHours * 60 * 60);
+    offerValidityTime =
+        currentUnixTimestamp + (offerValidityTimeHours * 60 * 60);
 
     final unspentInitializationCoin = maker.standardCoins.first;
     initializationCoinId = unspentInitializationCoin.id;
@@ -105,9 +109,11 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await maker.refreshCoins();
 
-    final initializationCoin = (await fullNodeSimulator.getCoinById(unspentInitializationCoin.id))!;
+    final initializationCoin =
+        (await fullNodeSimulator.getCoinById(unspentInitializationCoin.id))!;
 
-    initializationCoinSpend = (await fullNodeSimulator.getCoinSpend(initializationCoin))!;
+    initializationCoinSpend =
+        (await fullNodeSimulator.getCoinSpend(initializationCoin))!;
 
     // taker side
     taker = ChiaEnthusiast(fullNodeSimulator, walletSize: 10);
@@ -127,14 +133,16 @@ Future<void> main() async {
     takerPrivateKey = takerWalletVector.childPrivateKey;
     takerPublicKey = takerWalletVector.childPublicKey;
 
-    final offerAcceptFile = crossChainOfferFileService.createBtcToXchTakerOfferFile(
+    final offerAcceptFile =
+        crossChainOfferFileService.createBtcToXchTakerOfferFile(
       initializationCoinId: initializationCoinId,
       serializedMakerOfferFile: serializedOfferFile,
       validityTime: exchangeValidityTime,
       requestorPublicKey: takerPublicKey,
     );
 
-    serializedOfferAcceptFile = await offerAcceptFile.serializeAsync(takerPrivateKey);
+    serializedOfferAcceptFile =
+        await offerAcceptFile.serializeAsync(takerPrivateKey);
 
     escrowPuzzlehash = BtcToXchService.generateEscrowPuzzlehash(
       requestorPrivateKey: takerPrivateKey,
@@ -155,14 +163,15 @@ Future<void> main() async {
   });
 
   test('should find valid initialization coin', () async {
-    final initializationCoins =
-        await fullNodeSimulator.scroungeForExchangeInitializationCoins(maker.puzzlehashes);
+    final initializationCoins = await fullNodeSimulator
+        .scroungeForExchangeInitializationCoins(maker.puzzlehashes);
     expect(initializationCoins.length, equals(1));
     expect(initializationCoins.single.id, equals(initializationCoinId));
   });
 
   test('should find multiple valid initialization coins', () async {
-    final makerDerivationIndex2 = ExchangeOfferService.randomDerivationIndexForExchange();
+    final makerDerivationIndex2 =
+        ExchangeOfferService.randomDerivationIndexForExchange();
 
     final makerWalletVector2 = await WalletVector.fromPrivateKeyAsync(
       makerMasterPrivateKey,
@@ -186,11 +195,12 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await maker.refreshCoins();
 
-    final initializationCoins =
-        await fullNodeSimulator.scroungeForExchangeInitializationCoins(maker.puzzlehashes);
+    final initializationCoins = await fullNodeSimulator
+        .scroungeForExchangeInitializationCoins(maker.puzzlehashes);
     expect(initializationCoins.length, equals(2));
 
-    final initializationCoinIds = initializationCoins.map((coin) => coin.id).toList();
+    final initializationCoinIds =
+        initializationCoins.map((coin) => coin.id).toList();
 
     expect(initializationCoinIds, contains(initializationCoinId));
     expect(initializationCoinIds, contains(initializationCoin2.id));
@@ -201,7 +211,8 @@ Future<void> main() async {
 
     final initializationCoin2 = maker.standardCoins.first;
 
-    final incorrectInitializationSpendBundle = standardWalletService.createSpendBundle(
+    final incorrectInitializationSpendBundle =
+        standardWalletService.createSpendBundle(
       payments: [
         Payment(
           4,
@@ -221,33 +232,37 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await maker.refreshCoins();
 
-    final initializationCoins =
-        await fullNodeSimulator.scroungeForExchangeInitializationCoins(maker.puzzlehashes);
+    final initializationCoins = await fullNodeSimulator
+        .scroungeForExchangeInitializationCoins(maker.puzzlehashes);
 
-    final filteredInitializationCoins =
-        initializationCoins.where((coin) => coin.parentCoinInfo == initializationCoin2.id);
+    final filteredInitializationCoins = initializationCoins
+        .where((coin) => coin.parentCoinInfo == initializationCoin2.id);
 
     expect(filteredInitializationCoins, isEmpty);
   });
 
   test('should correctly find cancel coin', () async {
     final cancelCoinId = initializationCoinSpend.additions
-        .where((addition) => addition.puzzlehash == messagePuzzlehash && addition.amount == 3)
+        .where((addition) =>
+            addition.puzzlehash == messagePuzzlehash && addition.amount == 3)
         .single
         .id;
-    final expectedCancelCoin = await fullNodeSimulator.getCoinById(cancelCoinId);
+    final expectedCancelCoin =
+        await fullNodeSimulator.getCoinById(cancelCoinId);
 
-    final initializationCoin = await fullNodeSimulator.getCoinById(initializationCoinId);
+    final initializationCoin =
+        await fullNodeSimulator.getCoinById(initializationCoinId);
 
-    final cancelCoin =
-        await exchangeOfferService.getCancelCoin(initializationCoin!, messagePuzzlehash);
+    final cancelCoin = await exchangeOfferService.getCancelCoin(
+        initializationCoin!, messagePuzzlehash);
     expect(cancelCoin, equals(expectedCancelCoin));
   });
 
   test(
       'should throw exception when trying to find cancel coin from an offer that has not been initialized',
       () async {
-    final makerDerivationIndex2 = ExchangeOfferService.randomDerivationIndexForExchange();
+    final makerDerivationIndex2 =
+        ExchangeOfferService.randomDerivationIndexForExchange();
 
     final makerWalletVector2 = await WalletVector.fromPrivateKeyAsync(
       makerMasterPrivateKey,
@@ -260,7 +275,8 @@ Future<void> main() async {
 
     expect(
       () async {
-        await exchangeOfferService.getCancelCoin(initializationCoin2, messagePuzzlehash2);
+        await exchangeOfferService.getCancelCoin(
+            initializationCoin2, messagePuzzlehash2);
       },
       throwsA(isA<MissingCancelCoinException>()),
     );
@@ -269,10 +285,11 @@ Future<void> main() async {
   test(
       'should cancel an exchange offer by spending 3 mojo child of initialization coin at message puzzlehash with expected memo',
       () async {
-    final initializationCoin = await fullNodeSimulator.getCoinById(initializationCoinId);
+    final initializationCoin =
+        await fullNodeSimulator.getCoinById(initializationCoinId);
 
-    final unspentCancelCoin =
-        await exchangeOfferService.getCancelCoin(initializationCoin!, messagePuzzlehash);
+    final unspentCancelCoin = await exchangeOfferService.getCancelCoin(
+        initializationCoin!, messagePuzzlehash);
 
     expect(unspentCancelCoin.isNotSpent, isTrue);
 
@@ -285,22 +302,26 @@ Future<void> main() async {
     );
     await fullNodeSimulator.moveToNextBlock();
 
-    final spentCancelCoin = await fullNodeSimulator.getCoinById(unspentCancelCoin.id);
+    final spentCancelCoin =
+        await fullNodeSimulator.getCoinById(unspentCancelCoin.id);
 
     expect(spentCancelCoin!.isSpent, isTrue);
 
-    final cancelationCoinSpend = await fullNodeSimulator.getCoinSpend(spentCancelCoin);
+    final cancelationCoinSpend =
+        await fullNodeSimulator.getCoinSpend(spentCancelCoin);
     final memos = await cancelationCoinSpend!.memos;
 
     expect(memos.contains(initializationCoinId), isTrue);
   });
 
-  test('should throw exception when trying to cancel an offer that has already been canceled',
+  test(
+      'should throw exception when trying to cancel an offer that has already been canceled',
       () async {
-    final initializationCoin = await fullNodeSimulator.getCoinById(initializationCoinId);
+    final initializationCoin =
+        await fullNodeSimulator.getCoinById(initializationCoinId);
 
-    final unspentCancelCoin =
-        await exchangeOfferService.getCancelCoin(initializationCoin!, messagePuzzlehash);
+    final unspentCancelCoin = await exchangeOfferService.getCancelCoin(
+        initializationCoin!, messagePuzzlehash);
 
     expect(unspentCancelCoin.isNotSpent, isTrue);
 
@@ -341,8 +362,10 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await taker.refreshCoins();
 
-    final spentMessageCoinParent = await fullNodeSimulator.getCoinById(coinForMessageSpend.id);
-    final messageCoinSpend = await fullNodeSimulator.getCoinSpend(spentMessageCoinParent!);
+    final spentMessageCoinParent =
+        await fullNodeSimulator.getCoinById(coinForMessageSpend.id);
+    final messageCoinSpend =
+        await fullNodeSimulator.getCoinSpend(spentMessageCoinParent!);
 
     final memos = await messageCoinSpend!.memos;
 
@@ -351,8 +374,8 @@ Future<void> main() async {
     expect(memos[1], equals(initializationCoinId));
     expect(memos[2], equals(Bytes.encodeFromString(serializedOfferAcceptFile)));
 
-    final messageCoins =
-        await fullNodeSimulator.getCoinsByHint(messagePuzzlehash, includeSpentCoins: true);
+    final messageCoins = await fullNodeSimulator
+        .getCoinsByHint(messagePuzzlehash, includeSpentCoins: true);
 
     expect(messageCoins.length, equals(1));
   });
@@ -360,10 +383,11 @@ Future<void> main() async {
   test(
       'should throw exception when trying to send message coin for an offer that has already been canceled',
       () async {
-    final initializationCoin = await fullNodeSimulator.getCoinById(initializationCoinId);
+    final initializationCoin =
+        await fullNodeSimulator.getCoinById(initializationCoinId);
 
-    final unspentCancelCoin =
-        await exchangeOfferService.getCancelCoin(initializationCoin!, messagePuzzlehash);
+    final unspentCancelCoin = await exchangeOfferService.getCancelCoin(
+        initializationCoin!, messagePuzzlehash);
 
     expect(unspentCancelCoin.isNotSpent, isTrue);
 
@@ -407,8 +431,9 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await taker.refreshCoins();
 
-    final messageCoin =
-        (await fullNodeSimulator.getCoinsByHint(messagePuzzlehash, includeSpentCoins: true)).single;
+    final messageCoin = (await fullNodeSimulator
+            .getCoinsByHint(messagePuzzlehash, includeSpentCoins: true))
+        .single;
 
     final expectedMessageCoinChild =
         (await fullNodeSimulator.getCoinsByPuzzleHashes([messagePuzzlehash]))
@@ -416,7 +441,8 @@ Future<void> main() async {
             .toList()
             .single;
 
-    final messageCoinChild = await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
+    final messageCoinChild =
+        await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
 
     expect(messageCoinChild, expectedMessageCoinChild);
   });
@@ -435,10 +461,12 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await taker.refreshCoins();
 
-    final messageCoin =
-        (await fullNodeSimulator.getCoinsByHint(messagePuzzlehash, includeSpentCoins: true)).single;
+    final messageCoin = (await fullNodeSimulator
+            .getCoinsByHint(messagePuzzlehash, includeSpentCoins: true))
+        .single;
 
-    final messageCoinChild = await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
+    final messageCoinChild =
+        await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
 
     expect(messageCoinChild, isNotNull);
     expect(messageCoinChild!.isNotSpent, isTrue);
@@ -453,9 +481,11 @@ Future<void> main() async {
     );
     await fullNodeSimulator.moveToNextBlock();
 
-    final spentMessageCoin = await fullNodeSimulator.getCoinById(messageCoin.id);
+    final spentMessageCoin =
+        await fullNodeSimulator.getCoinById(messageCoin.id);
     expect(spentMessageCoin!.isSpent, isTrue);
-    final declinationCoinSpend = await fullNodeSimulator.getCoinSpend(spentMessageCoin);
+    final declinationCoinSpend =
+        await fullNodeSimulator.getCoinSpend(spentMessageCoin);
     final memos = await declinationCoinSpend!.memos;
     expect(memos.isEmpty, isTrue);
   });
@@ -474,10 +504,12 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await taker.refreshCoins();
 
-    final messageCoin =
-        (await fullNodeSimulator.getCoinsByHint(messagePuzzlehash, includeSpentCoins: true)).single;
+    final messageCoin = (await fullNodeSimulator
+            .getCoinsByHint(messagePuzzlehash, includeSpentCoins: true))
+        .single;
 
-    final messageCoinChild = await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
+    final messageCoinChild =
+        await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
 
     expect(messageCoinChild, isNotNull);
     expect(messageCoinChild!.isNotSpent, isTrue);
@@ -500,7 +532,8 @@ Future<void> main() async {
     await maker.refreshCoins();
 
     final endingMakerBalance = maker.standardCoins.totalValue;
-    expect(endingMakerBalance, equals(startingMakerBalance - fee + minimumNotificationCoinAmount));
+    expect(endingMakerBalance,
+        equals(startingMakerBalance - fee + minimumNotificationCoinAmount));
   });
 
   test('should accept message coin by spending with expected memo', () async {
@@ -517,10 +550,12 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await taker.refreshCoins();
 
-    final messageCoin =
-        (await fullNodeSimulator.getCoinsByHint(messagePuzzlehash, includeSpentCoins: true)).single;
+    final messageCoin = (await fullNodeSimulator
+            .getCoinsByHint(messagePuzzlehash, includeSpentCoins: true))
+        .single;
 
-    final messageCoinChild = await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
+    final messageCoinChild =
+        await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
 
     expect(messageCoinChild, isNotNull);
     expect(messageCoinChild!.isNotSpent, isTrue);
@@ -538,9 +573,11 @@ Future<void> main() async {
     );
     await fullNodeSimulator.moveToNextBlock();
 
-    final spentMessageCoinChild = await fullNodeSimulator.getCoinById(messageCoinChild.id);
+    final spentMessageCoinChild =
+        await fullNodeSimulator.getCoinById(messageCoinChild.id);
     expect(spentMessageCoinChild!.isSpent, isTrue);
-    final acceptanceCoinSpend = await fullNodeSimulator.getCoinSpend(spentMessageCoinChild);
+    final acceptanceCoinSpend =
+        await fullNodeSimulator.getCoinSpend(spentMessageCoinChild);
     final memos = await acceptanceCoinSpend!.memos;
     expect(memos.contains(initializationCoinId), isTrue);
   });
@@ -559,10 +596,12 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await taker.refreshCoins();
 
-    final messageCoin =
-        (await fullNodeSimulator.getCoinsByHint(messagePuzzlehash, includeSpentCoins: true)).single;
+    final messageCoin = (await fullNodeSimulator
+            .getCoinsByHint(messagePuzzlehash, includeSpentCoins: true))
+        .single;
 
-    final messageCoinChild = await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
+    final messageCoinChild =
+        await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
 
     expect(messageCoinChild, isNotNull);
     expect(messageCoinChild!.isNotSpent, isTrue);
@@ -585,10 +624,12 @@ Future<void> main() async {
     await maker.refreshCoins();
 
     final endingMakerBalance = maker.standardCoins.totalValue;
-    expect(endingMakerBalance, equals(startingMakerBalance - fee + minimumNotificationCoinAmount));
+    expect(endingMakerBalance,
+        equals(startingMakerBalance - fee + minimumNotificationCoinAmount));
   });
 
-  test('should throw exception if fee is greater than zero and inputs for fee are missing',
+  test(
+      'should throw exception if fee is greater than zero and inputs for fee are missing',
       () async {
     final coinForMessageSpend = taker.standardCoins.first;
     await exchangeOfferService.sendMessageCoin(
@@ -603,10 +644,12 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await taker.refreshCoins();
 
-    final messageCoin =
-        (await fullNodeSimulator.getCoinsByHint(messagePuzzlehash, includeSpentCoins: true)).single;
+    final messageCoin = (await fullNodeSimulator
+            .getCoinsByHint(messagePuzzlehash, includeSpentCoins: true))
+        .single;
 
-    final messageCoinChild = await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
+    final messageCoinChild =
+        await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
 
     expect(messageCoinChild, isNotNull);
     expect(messageCoinChild!.isNotSpent, isTrue);
@@ -629,7 +672,9 @@ Future<void> main() async {
     );
   });
 
-  test('should throw exception when trying to accept already declined message coin', () async {
+  test(
+      'should throw exception when trying to accept already declined message coin',
+      () async {
     final coinForMessageSpend = taker.standardCoins.first;
     await exchangeOfferService.sendMessageCoin(
       initializationCoinId: initializationCoinId,
@@ -643,10 +688,12 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await taker.refreshCoins();
 
-    final messageCoin =
-        (await fullNodeSimulator.getCoinsByHint(messagePuzzlehash, includeSpentCoins: true)).single;
+    final messageCoin = (await fullNodeSimulator
+            .getCoinsByHint(messagePuzzlehash, includeSpentCoins: true))
+        .single;
 
-    final messageCoinChild = await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
+    final messageCoinChild =
+        await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
 
     expect(messageCoinChild, isNotNull);
     expect(messageCoinChild!.isNotSpent, isTrue);
@@ -676,7 +723,9 @@ Future<void> main() async {
     );
   });
 
-  test('should throw exception when trying to decline already accepted message coin', () async {
+  test(
+      'should throw exception when trying to decline already accepted message coin',
+      () async {
     final coinForMessageSpend = taker.standardCoins.first;
     await exchangeOfferService.sendMessageCoin(
       initializationCoinId: initializationCoinId,
@@ -690,10 +739,12 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await taker.refreshCoins();
 
-    final messageCoin =
-        (await fullNodeSimulator.getCoinsByHint(messagePuzzlehash, includeSpentCoins: true)).single;
+    final messageCoin = (await fullNodeSimulator
+            .getCoinsByHint(messagePuzzlehash, includeSpentCoins: true))
+        .single;
 
-    final messageCoinChild = await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
+    final messageCoinChild =
+        await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
 
     expect(messageCoinChild, isNotNull);
     expect(messageCoinChild!.isNotSpent, isTrue);
@@ -737,11 +788,12 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await taker.refreshCoins();
 
-    final messageCoin =
-        (await fullNodeSimulator.getCoinsByHint(messagePuzzlehash, includeSpentCoins: true)).single;
+    final messageCoin = (await fullNodeSimulator
+            .getCoinsByHint(messagePuzzlehash, includeSpentCoins: true))
+        .single;
 
-    final messageCoinSpentTime =
-        await fullNodeSimulator.getDateTimeFromBlockIndex(messageCoin.spentBlockIndex);
+    final messageCoinSpentTime = await fullNodeSimulator
+        .getDateTimeFromBlockIndex(messageCoin.spentBlockIndex);
 
     final messageCoinInfo = await exchangeOfferService.getNextValidMessageCoin(
       initializationCoinId: initializationCoinId,
@@ -752,14 +804,18 @@ Future<void> main() async {
 
     expect(messageCoinInfo, isNotNull);
     expect(messageCoinInfo!.messageCoin, equals(messageCoin));
-    expect(messageCoinInfo.serializedOfferAcceptFile, equals(serializedOfferAcceptFile));
+    expect(messageCoinInfo.serializedOfferAcceptFile,
+        equals(serializedOfferAcceptFile));
     expect(messageCoinInfo.fulfillerPublicKey, equals(takerPublicKey));
-    expect(messageCoinInfo.messageCoinReceivedTime, equals(messageCoinSpentTime));
+    expect(
+        messageCoinInfo.messageCoinReceivedTime, equals(messageCoinSpentTime));
     expect(messageCoinInfo.exchangeValidityTime, equals(exchangeValidityTime));
   });
 
-  test('should not get message coin info for coin with wrong offer file type', () async {
-    final xchToBtcOfferAcceptFile = crossChainOfferFileService.createXchToBtcTakerOfferFile(
+  test('should not get message coin info for coin with wrong offer file type',
+      () async {
+    final xchToBtcOfferAcceptFile =
+        crossChainOfferFileService.createXchToBtcTakerOfferFile(
       initializationCoinId: initializationCoinId,
       serializedMakerOfferFile: serializedOfferFile,
       validityTime: exchangeValidityTime,
@@ -793,7 +849,8 @@ Future<void> main() async {
     expect(messageCoinInfo, isNull);
   });
 
-  test('should correctly parse message coin info for accepted message coin', () async {
+  test('should correctly parse message coin info for accepted message coin',
+      () async {
     final coinForMessageSpend = taker.standardCoins.first;
     await exchangeOfferService.sendMessageCoin(
       initializationCoinId: initializationCoinId,
@@ -807,7 +864,8 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await taker.refreshCoins();
 
-    final unspentMessageCoinInfo = await exchangeOfferService.getNextValidMessageCoin(
+    final unspentMessageCoinInfo =
+        await exchangeOfferService.getNextValidMessageCoin(
       initializationCoinId: initializationCoinId,
       serializedOfferFile: serializedOfferFile,
       messagePuzzlehash: messagePuzzlehash,
@@ -827,14 +885,15 @@ Future<void> main() async {
     );
     await fullNodeSimulator.moveToNextBlock();
 
-    final messageCoins =
-        await fullNodeSimulator.scroungeForReceivedNotificationCoins([messagePuzzlehash]);
+    final messageCoins = await fullNodeSimulator
+        .scroungeForReceivedNotificationCoins([messagePuzzlehash]);
 
     expect(messageCoins.length, equals(1));
 
     final messageCoin = messageCoins.single;
 
-    final messageCoinInfo = await exchangeOfferService.parseAndValidateReceivedMessageCoin(
+    final messageCoinInfo =
+        await exchangeOfferService.parseAndValidateReceivedMessageCoin(
       messageCoin: messageCoin,
       initializationCoinId: initializationCoinId,
       serializedOfferFile: serializedOfferFile,
@@ -842,28 +901,32 @@ Future<void> main() async {
       exchangeType: ExchangeType.xchToBtc,
     );
 
-    final messageCoinChild = await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
+    final messageCoinChild =
+        await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
 
     expect(messageCoinChild, isNotNull);
     expect(messageCoinChild!.isSpent, isTrue);
 
-    final messageCoinChildSpentTime =
-        await fullNodeSimulator.getDateTimeFromBlockIndex(messageCoinChild.spentBlockIndex);
+    final messageCoinChildSpentTime = await fullNodeSimulator
+        .getDateTimeFromBlockIndex(messageCoinChild.spentBlockIndex);
 
     expect(messageCoinInfo, isNotNull);
     expect(messageCoinInfo!.messageCoin, equals(messageCoin));
-    expect(messageCoinInfo.serializedOfferAcceptFile, equals(serializedOfferAcceptFile));
+    expect(messageCoinInfo.serializedOfferAcceptFile,
+        equals(serializedOfferAcceptFile));
     expect(messageCoinInfo.fulfillerPublicKey, equals(takerPublicKey));
     expect(
       messageCoinInfo.messageCoinReceivedTime,
       equals(messageCoinInfo.messageCoinReceivedTime),
     );
     expect(messageCoinInfo.exchangeValidityTime, equals(exchangeValidityTime));
-    expect(messageCoinInfo.messageCoinAcceptedTime, equals(messageCoinChildSpentTime));
+    expect(messageCoinInfo.messageCoinAcceptedTime,
+        equals(messageCoinChildSpentTime));
     expect(messageCoinInfo.messageCoinDeclinedTime, isNull);
   });
 
-  test('should correctly parse message coin info for declined message coin', () async {
+  test('should correctly parse message coin info for declined message coin',
+      () async {
     final coinForMessageSpend = taker.standardCoins.first;
     await exchangeOfferService.sendMessageCoin(
       initializationCoinId: initializationCoinId,
@@ -877,7 +940,8 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await taker.refreshCoins();
 
-    final unspentMessageCoinInfo = await exchangeOfferService.getNextValidMessageCoin(
+    final unspentMessageCoinInfo =
+        await exchangeOfferService.getNextValidMessageCoin(
       initializationCoinId: initializationCoinId,
       serializedOfferFile: serializedOfferFile,
       messagePuzzlehash: messagePuzzlehash,
@@ -897,14 +961,15 @@ Future<void> main() async {
     );
     await fullNodeSimulator.moveToNextBlock();
 
-    final messageCoins =
-        await fullNodeSimulator.scroungeForReceivedNotificationCoins([messagePuzzlehash]);
+    final messageCoins = await fullNodeSimulator
+        .scroungeForReceivedNotificationCoins([messagePuzzlehash]);
 
     expect(messageCoins.length, equals(1));
 
     final messageCoin = messageCoins.single;
 
-    final messageCoinInfo = await exchangeOfferService.parseAndValidateReceivedMessageCoin(
+    final messageCoinInfo =
+        await exchangeOfferService.parseAndValidateReceivedMessageCoin(
       messageCoin: messageCoin,
       initializationCoinId: initializationCoinId,
       serializedOfferFile: serializedOfferFile,
@@ -912,24 +977,27 @@ Future<void> main() async {
       exchangeType: ExchangeType.xchToBtc,
     );
 
-    final messageCoinChild = await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
+    final messageCoinChild =
+        await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoin);
 
     expect(messageCoinChild, isNotNull);
     expect(messageCoinChild!.isSpent, isTrue);
 
-    final messageCoinChildSpentTime =
-        await fullNodeSimulator.getDateTimeFromBlockIndex(messageCoinChild.spentBlockIndex);
+    final messageCoinChildSpentTime = await fullNodeSimulator
+        .getDateTimeFromBlockIndex(messageCoinChild.spentBlockIndex);
 
     expect(messageCoinInfo, isNotNull);
     expect(messageCoinInfo!.messageCoin, equals(messageCoin));
-    expect(messageCoinInfo.serializedOfferAcceptFile, equals(serializedOfferAcceptFile));
+    expect(messageCoinInfo.serializedOfferAcceptFile,
+        equals(serializedOfferAcceptFile));
     expect(messageCoinInfo.fulfillerPublicKey, equals(takerPublicKey));
     expect(
       messageCoinInfo.messageCoinReceivedTime,
       equals(messageCoinInfo.messageCoinReceivedTime),
     );
     expect(messageCoinInfo.exchangeValidityTime, equals(exchangeValidityTime));
-    expect(messageCoinInfo.messageCoinDeclinedTime, equals(messageCoinChildSpentTime));
+    expect(messageCoinInfo.messageCoinDeclinedTime,
+        equals(messageCoinChildSpentTime));
     expect(messageCoinInfo.messageCoinAcceptedTime, isNull);
   });
 
@@ -958,7 +1026,8 @@ Future<void> main() async {
 
     final endingMakerBalance = maker.standardCoins.totalValue;
 
-    final escrowCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash]);
+    final escrowCoins =
+        await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash]);
 
     expect(escrowCoins.totalValue, equals(mojos));
     expect(endingMakerBalance, equals(startingMakerBalance - mojos));

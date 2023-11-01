@@ -16,10 +16,10 @@ Future<void> main() async {
     spentBlockIndex: 0,
     coinbase: false,
     timestamp: 274829924,
-    parentCoinInfo:
-        Bytes.fromHex('9e79c349dda91dd066d10c71094b3a55fce22ca6eb95b263c8df7f931a307bc8'),
-    puzzlehash:
-        Puzzlehash.fromHex('6b7a64b0c59c1b5f1fc037b6765f2f5a727c162a72a6147184fe1c632921db8f'),
+    parentCoinInfo: Bytes.fromHex(
+        '9e79c349dda91dd066d10c71094b3a55fce22ca6eb95b263c8df7f931a307bc8'),
+    puzzlehash: Puzzlehash.fromHex(
+        '6b7a64b0c59c1b5f1fc037b6765f2f5a727c162a72a6147184fe1c632921db8f'),
     amount: 1000,
   );
   const otherCatParentJson =
@@ -27,18 +27,22 @@ Future<void> main() async {
   final otherParentCoinSpend = CoinSpend.fromJson(
     jsonDecode(otherCatParentJson) as Map<String, dynamic>,
   );
-  final otherCat1 = CatCoin.fromParentSpend(coin: otherCoin, parentCoinSpend: otherParentCoinSpend);
+  final otherCat1 = CatCoin.fromParentSpend(
+      coin: otherCoin, parentCoinSpend: otherParentCoinSpend);
 
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
 
   final cat1WalletService = Cat1WalletService();
   final catWalletService = Cat2WalletService();
 
-  final cat1WalletKeychain = WalletKeychain.fromCoreSecret(TestData.keychainSecret, walletSize: 20)
-    ..addCat1OuterPuzzleHashesForAssetId(TestData.cat1AssetId);
+  final cat1WalletKeychain =
+      WalletKeychain.fromCoreSecret(TestData.keychainSecret, walletSize: 20)
+        ..addCat1OuterPuzzleHashesForAssetId(TestData.cat1AssetId);
 
-  final cat1ChangePuzzlehash = cat1WalletKeychain.unhardenedMap.values.toList()[0].puzzlehash;
-  final cat1TargetPuzzlehash = cat1WalletKeychain.unhardenedMap.values.toList()[1].puzzlehash;
+  final cat1ChangePuzzlehash =
+      cat1WalletKeychain.unhardenedMap.values.toList()[0].puzzlehash;
+  final cat1TargetPuzzlehash =
+      cat1WalletKeychain.unhardenedMap.values.toList()[1].puzzlehash;
 
   test('produces valid CAT1 spendbundle', () async {
     final payment = CatPayment(250, cat1TargetPuzzlehash);
@@ -48,16 +52,21 @@ Future<void> main() async {
       changePuzzlehash: cat1ChangePuzzlehash,
       keychain: cat1WalletKeychain,
     );
-    expect(() => cat1WalletService.validateSpendBundle(spendBundle), returnsNormally);
+    expect(() => cat1WalletService.validateSpendBundle(spendBundle),
+        returnsNormally);
   });
 
-  test('should not produce CAT1 spendbundle when payment amount exceeds total coin amounts', () {
+  test(
+      'should not produce CAT1 spendbundle when payment amount exceeds total coin amounts',
+      () {
     const paymentAmount = 301;
     final payment = CatPayment(paymentAmount, cat1TargetPuzzlehash);
     expect(
-      TestData.cat1Coins.fold<int>(0, (previousValue, catCoin) => previousValue + catCoin.amount),
+      TestData.cat1Coins.fold<int>(
+          0, (previousValue, catCoin) => previousValue + catCoin.amount),
       lessThan(paymentAmount),
-      reason: 'amounts for coin test data in this test must not exceed payment amount',
+      reason:
+          'amounts for coin test data in this test must not exceed payment amount',
     );
     expect(
       () => cat1WalletService.createSpendBundle(
@@ -79,16 +88,19 @@ Future<void> main() async {
       fee: 1000,
       standardCoinsForFee: [TestData.standardCoin],
     );
-    expect(() => cat1WalletService.validateSpendBundle(spendBundle), returnsNormally);
+    expect(() => cat1WalletService.validateSpendBundle(spendBundle),
+        returnsNormally);
   });
 
-  test('produces valid CAT1 spendbundle with fee and multiple payments', () async {
+  test('produces valid CAT1 spendbundle with fee and multiple payments',
+      () async {
     final payment = CatPayment.withStringMemos(
       200,
       cat1TargetPuzzlehash,
       memos: const <String>['Chia is really cool'],
     );
-    final payment1 = CatPayment.withIntMemos(100, cat1TargetPuzzlehash, memos: const <int>[1000]);
+    final payment1 = CatPayment.withIntMemos(100, cat1TargetPuzzlehash,
+        memos: const <int>[1000]);
     final spendBundle = cat1WalletService.createSpendBundle(
       payments: [payment, payment1],
       catCoinsInput: TestData.cat1Coins,
@@ -97,17 +109,20 @@ Future<void> main() async {
       fee: 1000,
       standardCoinsForFee: [TestData.standardCoin],
     );
-    expect(() => cat1WalletService.validateSpendBundle(spendBundle), returnsNormally);
+    expect(() => cat1WalletService.validateSpendBundle(spendBundle),
+        returnsNormally);
   });
 
-  test('throws error when creating CAT2 spendbundle with fee and multiple payments with CAT1 coins',
+  test(
+      'throws error when creating CAT2 spendbundle with fee and multiple payments with CAT1 coins',
       () async {
     final payment = CatPayment.withStringMemos(
       200,
       cat1TargetPuzzlehash,
       memos: const <String>['Chia is really cool'],
     );
-    final payment1 = CatPayment.withIntMemos(100, cat1TargetPuzzlehash, memos: const <int>[1000]);
+    final payment1 = CatPayment.withIntMemos(100, cat1TargetPuzzlehash,
+        memos: const <int>[1000]);
     expect(
       () => catWalletService.createSpendBundle(
         payments: [payment, payment1],
@@ -136,20 +151,25 @@ Future<void> main() async {
     );
   });
 
-  test('should create valid spendbundle without change puzzlehash when there is no change', () {
-    final totalCoinsValue =
-        TestData.cat1Coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
+  test(
+      'should create valid spendbundle without change puzzlehash when there is no change',
+      () {
+    final totalCoinsValue = TestData.cat1Coins
+        .fold(0, (int previousValue, coin) => previousValue + coin.amount);
     final spendBundle = cat1WalletService.createSpendBundle(
       payments: [CatPayment(totalCoinsValue, cat1TargetPuzzlehash)],
       catCoinsInput: TestData.cat1Coins,
       keychain: cat1WalletKeychain,
     );
-    expect(() => cat1WalletService.validateSpendBundle(spendBundle), returnsNormally);
+    expect(() => cat1WalletService.validateSpendBundle(spendBundle),
+        returnsNormally);
   });
 
-  test('throws error when creating CAT2 spendbundle without change puzzlehash with CAT1 coins', () {
-    final totalCoinsValue =
-        TestData.cat1Coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
+  test(
+      'throws error when creating CAT2 spendbundle without change puzzlehash with CAT1 coins',
+      () {
+    final totalCoinsValue = TestData.cat1Coins
+        .fold(0, (int previousValue, coin) => previousValue + coin.amount);
     expect(
       () => catWalletService.createSpendBundle(
         payments: [CatPayment(totalCoinsValue, cat1TargetPuzzlehash)],
@@ -160,7 +180,8 @@ Future<void> main() async {
     );
   });
 
-  test('CAT1 wallet should throw exception when change puzzlehash is not given and there is change',
+  test(
+      'CAT1 wallet should throw exception when change puzzlehash is not given and there is change',
       () {
     expect(
       () {
@@ -174,7 +195,9 @@ Future<void> main() async {
     );
   });
 
-  test('should throw exception when deconstructing a puzzle that is not a CAT1 puzzle', () {
+  test(
+      'should throw exception when deconstructing a puzzle that is not a CAT1 puzzle',
+      () {
     expect(
       () {
         DeconstructedCatPuzzle(

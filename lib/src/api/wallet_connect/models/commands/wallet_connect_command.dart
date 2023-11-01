@@ -81,16 +81,21 @@ enum WalletConnectCommandType {
   addCATToken;
 
   factory WalletConnectCommandType.fromString(String commandString) {
-    return WalletConnectCommandType.values.where((value) => value.name == commandString).single;
+    return WalletConnectCommandType.values
+        .where((value) => value.name == commandString)
+        .single;
   }
 
   factory WalletConnectCommandType.fromMethod(String method) {
-    return WalletConnectCommandType.values.where((value) => value.commandName == method).single;
+    return WalletConnectCommandType.values
+        .where((value) => value.commandName == method)
+        .single;
   }
 
   String get commandName => 'chia_$name';
 }
 
 extension CommandNames on List<WalletConnectCommandType> {
-  List<String> get commandNames => map((command) => command.commandName).toList();
+  List<String> get commandNames =>
+      map((command) => command.commandName).toList();
 }

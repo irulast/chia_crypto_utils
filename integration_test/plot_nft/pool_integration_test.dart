@@ -18,8 +18,8 @@ Future<void> main() async {
 
   test('should create plot nft', () async {
     final genesisCoin = nathan.standardCoins[0];
-    final singletonWalletVector =
-        nathan.keychain.getNextSingletonWalletVector(nathan.keychainSecret.masterPrivateKey);
+    final singletonWalletVector = nathan.keychain
+        .getNextSingletonWalletVector(nathan.keychainSecret.masterPrivateKey);
 
     final initialTargetState = PoolState(
       poolSingletonState: PoolSingletonState.selfPooling,
@@ -40,9 +40,11 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await nathan.refreshCoins();
 
-    final launcherCoinPrototype = PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
+    final launcherCoinPrototype =
+        PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
 
-    final plotNft = (await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id))!;
+    final plotNft = (await fullNodeSimulator
+        .getPlotNftByLauncherId(launcherCoinPrototype.id))!;
     expect(
       plotNft.poolState.toHex(),
       equals(initialTargetState.toHex()),
@@ -56,8 +58,8 @@ Future<void> main() async {
 
   test('should create plot nft with fee', () async {
     final genesisCoin = nathan.standardCoins[0];
-    final singletonWalletVector =
-        nathan.keychain.getNextSingletonWalletVector(nathan.keychainSecret.masterPrivateKey);
+    final singletonWalletVector = nathan.keychain
+        .getNextSingletonWalletVector(nathan.keychainSecret.masterPrivateKey);
 
     final initialTargetState = PoolState(
       poolSingletonState: PoolSingletonState.selfPooling,
@@ -78,9 +80,11 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(plotNftSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final launcherCoinPrototype = PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
+    final launcherCoinPrototype =
+        PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
 
-    final plotNft = await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id);
+    final plotNft = await fullNodeSimulator
+        .getPlotNftByLauncherId(launcherCoinPrototype.id);
     expect(
       plotNft!.poolState.toHex(),
       equals(initialTargetState.toHex()),
@@ -96,8 +100,8 @@ Future<void> main() async {
     final grant = ChiaEnthusiast(fullNodeSimulator, walletSize: 5);
     await grant.farmCoins();
 
-    final singletonWalletVector =
-        grant.keychain.getNextSingletonWalletVector(grant.keychainSecret.masterPrivateKey);
+    final singletonWalletVector = grant.keychain
+        .getNextSingletonWalletVector(grant.keychainSecret.masterPrivateKey);
 
     final genesisCoin = grant.standardCoins[0];
 
@@ -120,7 +124,8 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(plotNftSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final plotNfts = await fullNodeSimulator.scroungeForPlotNfts(grant.puzzlehashes);
+    final plotNfts =
+        await fullNodeSimulator.scroungeForPlotNfts(grant.puzzlehashes);
     expect(plotNfts.length, equals(1));
 
     final plotNft = plotNfts[0];
@@ -141,8 +146,8 @@ Future<void> main() async {
     for (var i = 0; i < 4; i++) {
       await meera.farmCoins();
 
-      final singletonWalletVector =
-          meera.keychain.getNextSingletonWalletVector(meera.keychainSecret.masterPrivateKey);
+      final singletonWalletVector = meera.keychain
+          .getNextSingletonWalletVector(meera.keychainSecret.masterPrivateKey);
 
       final genesisCoin = meera.standardCoins[0];
 
@@ -166,9 +171,11 @@ Future<void> main() async {
       await fullNodeSimulator.moveToNextBlock();
       await meera.refreshCoins();
 
-      final launcherCoinPrototype = PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
+      final launcherCoinPrototype =
+          PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
 
-      final plotNft = await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id);
+      final plotNft = await fullNodeSimulator
+          .getPlotNftByLauncherId(launcherCoinPrototype.id);
       expect(
         plotNft!.poolState.toHex(),
         equals(initialTargetState.toHex()),
@@ -180,7 +187,8 @@ Future<void> main() async {
       expect(plotNft.delayPuzzlehash, equals(meera.firstPuzzlehash));
     }
 
-    final plotNfts = await fullNodeSimulator.scroungeForPlotNfts(meera.puzzlehashes);
+    final plotNfts =
+        await fullNodeSimulator.scroungeForPlotNfts(meera.puzzlehashes);
     expect(plotNfts.length, equals(4));
   });
 
@@ -191,8 +199,8 @@ Future<void> main() async {
     final poolInfo = await pool.getPoolInfo();
 
     final genesisCoin = nathan.standardCoins[0];
-    final singletonWalletVector =
-        nathan.keychain.getNextSingletonWalletVector(nathan.keychainSecret.masterPrivateKey);
+    final singletonWalletVector = nathan.keychain
+        .getNextSingletonWalletVector(nathan.keychainSecret.masterPrivateKey);
 
     final initialTargetState = PoolState(
       poolSingletonState: PoolSingletonState.selfPooling,
@@ -214,9 +222,11 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await nathan.refreshCoins();
 
-    final launcherCoinPrototype = PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
+    final launcherCoinPrototype =
+        PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
 
-    final plotNft = (await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id))!;
+    final plotNft = (await fullNodeSimulator
+        .getPlotNftByLauncherId(launcherCoinPrototype.id))!;
     expect(
       plotNft.poolState.toHex(),
       equals(initialTargetState.toHex()),
@@ -238,7 +248,8 @@ Future<void> main() async {
       poolUrl: poolUrl,
     );
 
-    final plotNftMutationSpendBundle = await poolWalletService.createPlotNftMutationSpendBundle(
+    final plotNftMutationSpendBundle =
+        await poolWalletService.createPlotNftMutationSpendBundle(
       plotNft: plotNft,
       targetState: targetState,
       keychain: nathan.keychain,
@@ -248,8 +259,8 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await nathan.refreshCoins();
 
-    final mutatedPlotNft =
-        (await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id))!;
+    final mutatedPlotNft = (await fullNodeSimulator
+        .getPlotNftByLauncherId(launcherCoinPrototype.id))!;
 
     expect(
       mutatedPlotNft.poolState.toHex(),
@@ -257,13 +268,16 @@ Future<void> main() async {
     );
   });
 
-  test('should create plot nft in farmingToPool state, leave pool, and transfer ownership',
+  test(
+      'should create plot nft in farmingToPool state, leave pool, and transfer ownership',
       () async {
     final genesisCoin = nathan.standardCoins[0];
-    final singletonWalletVector =
-        nathan.keychain.getNextSingletonWalletVector(nathan.keychainSecret.masterPrivateKey);
+    final singletonWalletVector = nathan.keychain
+        .getNextSingletonWalletVector(nathan.keychainSecret.masterPrivateKey);
 
-    final poolInfo = await PoolInterface.fromURL('https://xch-us-west.flexpool.io').getPoolInfo();
+    final poolInfo =
+        await PoolInterface.fromURL('https://xch-us-west.flexpool.io')
+            .getPoolInfo();
     final initialTargetState = PoolState(
       poolSingletonState: PoolSingletonState.farmingToPool,
       targetPuzzlehash: poolInfo.targetPuzzlehash,
@@ -284,9 +298,11 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await nathan.refreshCoins();
 
-    final launcherCoinPrototype = PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
+    final launcherCoinPrototype =
+        PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
 
-    final plotNft = (await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id))!;
+    final plotNft = (await fullNodeSimulator
+        .getPlotNftByLauncherId(launcherCoinPrototype.id))!;
 
     expect(
       plotNft.poolState.toHex(),
@@ -303,8 +319,8 @@ Future<void> main() async {
 
     final meera = ChiaEnthusiast(fullNodeSimulator);
 
-    final meeraSingletonWalletVector =
-        meera.keychain.getNextSingletonWalletVector(meera.keychainSecret.masterPrivateKey);
+    final meeraSingletonWalletVector = meera.keychain
+        .getNextSingletonWalletVector(meera.keychainSecret.masterPrivateKey);
 
     final targetState = PoolState(
       poolSingletonState: PoolSingletonState.leavingPool,
@@ -313,7 +329,8 @@ Future<void> main() async {
       relativeLockHeight: 0,
     );
 
-    final plotNftMutationSpendBundle = await poolWalletService.createPlotNftMutationSpendBundle(
+    final plotNftMutationSpendBundle =
+        await poolWalletService.createPlotNftMutationSpendBundle(
       plotNft: plotNft,
       targetState: targetState,
       keychain: nathan.keychain,
@@ -323,8 +340,8 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await nathan.refreshCoins();
 
-    final leftPoolPlotNft =
-        (await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id))!;
+    final leftPoolPlotNft = (await fullNodeSimulator
+        .getPlotNftByLauncherId(launcherCoinPrototype.id))!;
 
     expect(
       leftPoolPlotNft.poolState.toHex(),
@@ -339,7 +356,8 @@ Future<void> main() async {
       poolUrl: 'https://xch-us-west.flexpool.io',
     );
 
-    final transferAndJoinPoolSpendBundle = await poolWalletService.createTransferPlotNftSpendBundle(
+    final transferAndJoinPoolSpendBundle =
+        await poolWalletService.createTransferPlotNftSpendBundle(
       coins: nathan.standardCoins,
       plotNft: leftPoolPlotNft,
       targetOwnerPublicKey: meeraSingletonWalletVector.singletonOwnerPublicKey,
@@ -358,8 +376,8 @@ Future<void> main() async {
     ))
         .single;
 
-    final transferredPlotNft =
-        await fullNodeSimulator.getPlotNftByLauncherId(plotNftTreasureMapCoin.puzzlehash);
+    final transferredPlotNft = await fullNodeSimulator
+        .getPlotNftByLauncherId(plotNftTreasureMapCoin.puzzlehash);
 
     expect(
       transferredPlotNft!.poolState.toHex(),
@@ -371,8 +389,8 @@ Future<void> main() async {
       'should create plot nft in selfPooling state and transfer ownership no  with treasure map spend',
       () async {
     final genesisCoin = nathan.standardCoins[0];
-    final singletonWalletVector =
-        nathan.keychain.getNextSingletonWalletVector(nathan.keychainSecret.masterPrivateKey);
+    final singletonWalletVector = nathan.keychain
+        .getNextSingletonWalletVector(nathan.keychainSecret.masterPrivateKey);
 
     final initialTargetState = PoolState(
       poolSingletonState: PoolSingletonState.selfPooling,
@@ -394,9 +412,11 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await nathan.refreshCoins();
 
-    final launcherCoinPrototype = PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
+    final launcherCoinPrototype =
+        PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
 
-    final plotNft = (await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id))!;
+    final plotNft = (await fullNodeSimulator
+        .getPlotNftByLauncherId(launcherCoinPrototype.id))!;
 
     expect(
       plotNft.poolState.toHex(),
@@ -413,8 +433,8 @@ Future<void> main() async {
 
     final meera = ChiaEnthusiast(fullNodeSimulator);
 
-    final meeraSingletonWalletVector =
-        meera.keychain.getNextSingletonWalletVector(meera.keychainSecret.masterPrivateKey);
+    final meeraSingletonWalletVector = meera.keychain
+        .getNextSingletonWalletVector(meera.keychainSecret.masterPrivateKey);
 
     const poolUrl = 'https://xch-us-west.flexpool.io';
     final poolInfo = await PoolInterface.fromURL(poolUrl).getPoolInfo();
@@ -427,7 +447,8 @@ Future<void> main() async {
       poolUrl: poolUrl,
     );
 
-    final transferSpendBundle = await poolWalletService.createTransferPlotNftSpendBundle(
+    final transferSpendBundle =
+        await poolWalletService.createTransferPlotNftSpendBundle(
       coins: nathan.standardCoins,
       plotNft: plotNft,
       targetOwnerPublicKey: meeraSingletonWalletVector.singletonOwnerPublicKey,
@@ -446,8 +467,8 @@ Future<void> main() async {
     ))
         .single;
 
-    final transferredPlotNft =
-        await fullNodeSimulator.getPlotNftByLauncherId(plotNftTreasureMapCoin.puzzlehash);
+    final transferredPlotNft = await fullNodeSimulator
+        .getPlotNftByLauncherId(plotNftTreasureMapCoin.puzzlehash);
 
     expect(
       transferredPlotNft!.poolState.toHex(),
@@ -455,10 +476,11 @@ Future<void> main() async {
     );
   });
 
-  test('should create plot nft in selfPooling state and transfer ownership', () async {
+  test('should create plot nft in selfPooling state and transfer ownership',
+      () async {
     final genesisCoin = nathan.standardCoins[0];
-    final singletonWalletVector =
-        nathan.keychain.getNextSingletonWalletVector(nathan.keychainSecret.masterPrivateKey);
+    final singletonWalletVector = nathan.keychain
+        .getNextSingletonWalletVector(nathan.keychainSecret.masterPrivateKey);
 
     final initialTargetState = PoolState(
       poolSingletonState: PoolSingletonState.selfPooling,
@@ -480,9 +502,11 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await nathan.refreshCoins();
 
-    final launcherCoinPrototype = PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
+    final launcherCoinPrototype =
+        PlotNftWalletService.makeLauncherCoin(genesisCoin.id);
 
-    final plotNft = (await fullNodeSimulator.getPlotNftByLauncherId(launcherCoinPrototype.id))!;
+    final plotNft = (await fullNodeSimulator
+        .getPlotNftByLauncherId(launcherCoinPrototype.id))!;
 
     expect(
       plotNft.poolState.toHex(),
@@ -499,8 +523,8 @@ Future<void> main() async {
 
     final meera = ChiaEnthusiast(fullNodeSimulator);
 
-    final meeraSingletonWalletVector =
-        meera.keychain.getNextSingletonWalletVector(meera.keychainSecret.masterPrivateKey);
+    final meeraSingletonWalletVector = meera.keychain
+        .getNextSingletonWalletVector(meera.keychainSecret.masterPrivateKey);
 
     const poolUrl = 'https://xch-us-west.flexpool.io';
     final poolInfo = await PoolInterface.fromURL(poolUrl).getPoolInfo();
@@ -513,7 +537,8 @@ Future<void> main() async {
       poolUrl: poolUrl,
     );
 
-    final transferSpendBundle = await poolWalletService.createPlotNftTransferSpendBundle(
+    final transferSpendBundle =
+        await poolWalletService.createPlotNftTransferSpendBundle(
       plotNft: plotNft,
       coinsForTreasureMapCoin: [nathan.standardCoins.first],
       receiverPuzzlehash: meera.firstPuzzlehash,
@@ -532,10 +557,11 @@ Future<void> main() async {
     //     SingletonService.puzzleForSingleton(plotNft.launcherId, singletonOutputInnerPuzzleProgram)
     //         .hash();
 
-    final sibling = await fullNodeSimulator.getCoinsByHint(meera.firstPuzzlehash);
+    final sibling =
+        await fullNodeSimulator.getCoinsByHint(meera.firstPuzzlehash);
 
-    final transferredPlotNft =
-        await fullNodeSimulator.getPlotNftByLauncherId(sibling.single.puzzlehash);
+    final transferredPlotNft = await fullNodeSimulator
+        .getPlotNftByLauncherId(sibling.single.puzzlehash);
 
     expect(
       transferredPlotNft!.poolState.toHex(),

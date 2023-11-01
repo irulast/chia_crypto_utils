@@ -42,7 +42,8 @@ class Cryptocurrency {
   late Quote quote;
 
   @override
-  String toString() => 'Cryptocurrency(id: $id, name: $name, symbol: $symbol, slug: $slug, '
+  String toString() =>
+      'Cryptocurrency(id: $id, name: $name, symbol: $symbol, slug: $slug, '
       'isActive: $isActive, isFiat: $isFiat, cmcRank: $cmcRank, numMarketPairs: $numMarketPairs, '
       'circulatingSupply: $circulatingSupply, totalSupply: $totalSupply, maxSupply: $maxSupply, '
       'dateAdded: $dateAdded, tags: $tags, platform: $platform)';

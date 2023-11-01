@@ -2,10 +2,10 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:test/test.dart';
 
 void main() async {
-  final expectedMetadataHash =
-      Bytes.fromHex('2a547a139a5f8d56268525cdec4ffd5117f81d904475c5bcb60e3c58a6121fa7');
-  final expectedDataHash =
-      Bytes.fromHex('0974e28983f967f94025b0b37e27e785e0d05b8f59d9b9686127924095ad0c87');
+  final expectedMetadataHash = Bytes.fromHex(
+      '2a547a139a5f8d56268525cdec4ffd5117f81d904475c5bcb60e3c58a6121fa7');
+  final expectedDataHash = Bytes.fromHex(
+      '0974e28983f967f94025b0b37e27e785e0d05b8f59d9b9686127924095ad0c87');
 
   final uriHashProvider = UriHashProvider();
 
