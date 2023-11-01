@@ -27,8 +27,7 @@ class TailInfo with ToJsonMixin {
       logoUrl: pick(json, 'nft_uri').asStringOrNull(),
       websiteUrl: pick(json, 'website_url').asStringOrNull(),
       clsp: pick(json, 'chialisp').asStringOrNull(),
-      hashgreenInfo:
-          pick(json, 'hashgreen').letJsonOrNull(HashgreenInfo.fromJson),
+      hashgreenInfo: pick(json, 'hashgreen').letJsonOrNull(HashgreenInfo.fromJson),
     );
   }
 

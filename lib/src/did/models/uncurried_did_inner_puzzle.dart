@@ -23,10 +23,8 @@ class UncurriedDidInnerPuzzle {
     return maybeFromUncurriedProgram(uncurriedPuzzle);
   }
 
-  static Future<UncurriedDidInnerPuzzle> fromProgramAsync(
-      Program innerPuzzle) async {
-    final uncurried =
-        maybeFromUncurriedProgram(await innerPuzzle.uncurryAsync());
+  static Future<UncurriedDidInnerPuzzle> fromProgramAsync(Program innerPuzzle) async {
+    final uncurried = maybeFromUncurriedProgram(await innerPuzzle.uncurryAsync());
     if (uncurried == null) {
       throw InvalidDidException();
     }
@@ -34,8 +32,7 @@ class UncurriedDidInnerPuzzle {
     return uncurried;
   }
 
-  static UncurriedDidInnerPuzzle? maybeFromUncurriedProgram(
-      ModAndArguments uncurriedPuzzle) {
+  static UncurriedDidInnerPuzzle? maybeFromUncurriedProgram(ModAndArguments uncurriedPuzzle) {
     if (uncurriedPuzzle.mod != didInnerPuzzleProgram) {
       return null;
     }
@@ -56,8 +53,7 @@ class UncurriedDidInnerPuzzle {
   final Program singletonStructureProgram;
   final Program metadataProgram;
 
-  int get nVerificationsRequired =>
-      numberOfVerificationsRequiredProgram.toInt();
+  int get nVerificationsRequired => numberOfVerificationsRequiredProgram.toInt();
   Puzzlehash get backUpIdsHash => Puzzlehash(backUpIdsHashProgram.atom);
   DidMetadata get metadata => DidMetadata.fromProgram(metadataProgram);
 }

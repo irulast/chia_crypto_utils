@@ -38,19 +38,14 @@ class OfferWalletService {
     bool payRoyalties = true,
   }) {
     _validateCats(coinsForOffer);
-    if (coinsForOffer.nfts.any((element) => element.doesSupportDid) &&
-        payRoyalties) {
+    if (coinsForOffer.nfts.any((element) => element.doesSupportDid) && payRoyalties) {
       return _makeNft1Offer(
         coinsForOffer: coinsForOffer,
         offeredAmounts: offeredAmounts.toMixedAmounts(),
-        requestedPayments:
-            requestedPayments?.toMixedPayments() ?? const MixedPayments({}),
+        requestedPayments: requestedPayments?.toMixedPayments() ?? const MixedPayments({}),
         changePuzzlehash: changePuzzlehash,
         keychain: keychain,
-        requestedNfts: requestedPayments?.nft.values
-                .map((e) => e.single.nftRecord)
-                .toList() ??
-            [],
+        requestedNfts: requestedPayments?.nft.values.map((e) => e.single.nftRecord).toList() ?? [],
         fee: fee,
         settlementProgram: Offer.defaultSettlementProgram,
         additionalAggSigMeConditions: additionalAggSigMeConditions,
@@ -59,14 +54,10 @@ class OfferWalletService {
     return _makeOffer(
       offeredCoins: coinsForOffer,
       offeredAmounts: offeredAmounts.toMixedAmounts(),
-      requestedPayments:
-          requestedPayments?.toMixedPayments() ?? const MixedPayments({}),
+      requestedPayments: requestedPayments?.toMixedPayments() ?? const MixedPayments({}),
       changePuzzlehash: changePuzzlehash,
       keychain: keychain,
-      requestedNfts: requestedPayments?.nft.values
-              .map((e) => e.single.nftRecord)
-              .toList() ??
-          [],
+      requestedNfts: requestedPayments?.nft.values.map((e) => e.single.nftRecord).toList() ?? [],
       fee: fee,
       settlementProgram: Offer.defaultSettlementProgram,
       additionalAggSigMeConditions: additionalAggSigMeConditions,
@@ -86,8 +77,7 @@ class OfferWalletService {
   }) {
     validateAmounts(offeredAmounts, offeredCoins);
 
-    if ((offeredCoins.allCoins.isNotEmpty || !offeredAmounts.isZero) &&
-        keychain == null) {
+    if ((offeredCoins.allCoins.isNotEmpty || !offeredAmounts.isZero) && keychain == null) {
       throw Exception('keychain is needed if offering coins');
     }
 
@@ -101,8 +91,7 @@ class OfferWalletService {
     );
 
     final nonce = createNonce(offeredCoins.allCoins);
-    final notarizedMixedPayments =
-        requestedPayments.toMixedNotarizedPayments(nonce);
+    final notarizedMixedPayments = requestedPayments.toMixedNotarizedPayments(nonce);
     final announcements = calculateAnnouncements(
       notarizedMixedPayments,
       driverDict,
@@ -189,8 +178,7 @@ class OfferWalletService {
   }) {
     validateAmounts(offeredAmounts, coinsForOffer);
 
-    if ((coinsForOffer.allCoins.isNotEmpty || !offeredAmounts.isZero) &&
-        keychain == null) {
+    if ((coinsForOffer.allCoins.isNotEmpty || !offeredAmounts.isZero) && keychain == null) {
       throw Exception('keychain is needed if offering coins');
     }
 
@@ -236,8 +224,7 @@ class OfferWalletService {
               .hash();
           if (requestedPayment.amount > 0 && offerSideRoyaltySplit > 0) {
             tradePrices.add(
-              TradePrice(requestedPayment.amount ~/ offerSideRoyaltySplit,
-                  settlementPuzzleHash),
+              TradePrice(requestedPayment.amount ~/ offerSideRoyaltySplit, settlementPuzzleHash),
             );
           }
         }
@@ -246,15 +233,12 @@ class OfferWalletService {
 
     final royaltyInfos = <RoyaltyInfo>[];
 
-    for (final requestedRoyaltyEnabledNft
-        in requestedRoyaltyEnabledNftRecords) {
+    for (final requestedRoyaltyEnabledNft in requestedRoyaltyEnabledNftRecords) {
       royaltyInfos.add(
         RoyaltyInfo(
           launcherId: requestedRoyaltyEnabledNft.launcherId,
-          royaltyPuzzleHash:
-              requestedRoyaltyEnabledNft.ownershipLayerInfo!.royaltyPuzzleHash!,
-          royaltyPercentage: requestedRoyaltyEnabledNft
-              .ownershipLayerInfo!.royaltyPercentagePoints,
+          royaltyPuzzleHash: requestedRoyaltyEnabledNft.ownershipLayerInfo!.royaltyPuzzleHash!,
+          royaltyPercentage: requestedRoyaltyEnabledNft.ownershipLayerInfo!.royaltyPercentagePoints,
         ),
       );
     }
@@ -269,8 +253,7 @@ class OfferWalletService {
 
     // standard royalty payments
 
-    final royaltyPayments =
-        <GeneralCoinType, Map<Bytes?, List<RoyaltyPaymentWithLauncherId>>>{};
+    final royaltyPayments = <GeneralCoinType, Map<Bytes?, List<RoyaltyPaymentWithLauncherId>>>{};
 
     offeredAmounts.map.forEach((type, assetAmountMap) {
       royaltyPayments[type] = assetAmountMap.map((assetId, offeredAmount) {
@@ -278,8 +261,7 @@ class OfferWalletService {
 
         for (final royaltyInfo in royaltyInfos) {
           final extraRoyaltyAmount =
-              ((offeredAmount ~/ requestSideRoyaltySplit) *
-                      (royaltyInfo.royaltyPercentage / 10000))
+              ((offeredAmount ~/ requestSideRoyaltySplit) * (royaltyInfo.royaltyPercentage / 10000))
                   .floor();
           assetRoyaltyPayments.add(
             RoyaltyPaymentWithLauncherId(
@@ -298,8 +280,7 @@ class OfferWalletService {
     });
 
     final nonce = createNonce(coinsForOffer.allCoins);
-    final notarizedMixedPayments =
-        requestedPayments.toMixedNotarizedPayments(nonce);
+    final notarizedMixedPayments = requestedPayments.toMixedNotarizedPayments(nonce);
     final announcements = calculateAnnouncements(
       notarizedMixedPayments,
       driverDict,
@@ -308,9 +289,8 @@ class OfferWalletService {
 
     royaltyPayments.forEach((type, assetPaymentType) {
       assetPaymentType.forEach((assetId, payments) {
-        final settlementHash = driverDict[assetId]!
-            .getNewFullPuzzleForP2Puzzle(Offer.defaultSettlementProgram)
-            .hash();
+        final settlementHash =
+            driverDict[assetId]!.getNewFullPuzzleForP2Puzzle(Offer.defaultSettlementProgram).hash();
         for (final payment in payments) {
           if (payment.amount > 0) {
             announcements.add(
@@ -336,17 +316,15 @@ class OfferWalletService {
     offeredAmounts.cat.forEach((assetId, amount) {
       final catCoins = coinsForOffer.cats.where((c) => c.assetId == assetId);
 
-      final catRoyaltyPayments = royaltyPayments[GeneralCoinType.cat]
-              ?[assetId] ??
-          <RoyaltyPaymentWithLauncherId>[];
+      final catRoyaltyPayments =
+          royaltyPayments[GeneralCoinType.cat]?[assetId] ?? <RoyaltyPaymentWithLauncherId>[];
 
       final royaltyPaymentsSum = catRoyaltyPayments.sum();
 
       final catSpendBundle = catWalletService.createSpendBundle(
         payments: [
           CatPayment(amount, offerPuzzlehash),
-          if (royaltyPaymentsSum > 0)
-            CatPayment(royaltyPaymentsSum, offerPuzzlehash),
+          if (royaltyPaymentsSum > 0) CatPayment(royaltyPaymentsSum, offerPuzzlehash),
         ],
         catCoinsInput: catCoins.toList(),
         keychain: keychain!,
@@ -359,12 +337,10 @@ class OfferWalletService {
 
       if (royaltyPaymentsSum > 0) {
         final royaltyBundle = makeRoyaltySpendBundle(
-            driverDict[assetId]!
-                .getNewFullPuzzleForP2Puzzle(Offer.defaultSettlementProgram),
+            driverDict[assetId]!.getNewFullPuzzleForP2Puzzle(Offer.defaultSettlementProgram),
             catRoyaltyPayments,
             catSpendBundle, (coin, parentSpend, innerRoyaltySolution) {
-          final catProgram =
-              parentSpend.type == SpendType.cat ? cat2Program : cat1Program;
+          final catProgram = parentSpend.type == SpendType.cat ? cat2Program : cat1Program;
           final catCoin = CatCoin.fromParentSpend(
             parentCoinSpend: parentSpend,
             coin: coin,
@@ -385,9 +361,8 @@ class OfferWalletService {
     });
 
     if (offeredAmounts.standard > 0) {
-      final standardRoyaltyPayments = royaltyPayments[GeneralCoinType.standard]
-              ?[null] ??
-          <RoyaltyPaymentWithLauncherId>[];
+      final standardRoyaltyPayments =
+          royaltyPayments[GeneralCoinType.standard]?[null] ?? <RoyaltyPaymentWithLauncherId>[];
 
       final royaltySum = standardRoyaltyPayments.sum();
       final standardSpendBundle = standardWalletService.createSpendBundle(
@@ -439,8 +414,7 @@ class OfferWalletService {
               (element) =>
                   element.amount *
                       (offeredRoyaltyInfos
-                              .singleWhere((element) =>
-                                  element.launcherId == nft.launcherId)
+                              .singleWhere((element) => element.launcherId == nft.launcherId)
                               .royaltyPercentage /
                           10000) >
                   0,
@@ -469,11 +443,9 @@ class OfferWalletService {
       CoinPrototype coin,
       CoinSpend parentSpend,
       Program innerRoyaltySolution,
-    )
-        makeSolutionFromInnerSolution,
+    ) makeSolutionFromInnerSolution,
   ) {
-    var royaltyPayments =
-        List<RoyaltyPaymentWithLauncherId>.from(royaltyPayments_);
+    var royaltyPayments = List<RoyaltyPaymentWithLauncherId>.from(royaltyPayments_);
     CoinPrototypeWithParentSpend? royaltyCoinWithParentSpend;
     final royaltyPuzzleHash = offerPuzzle.hash();
     var totalBundle = SpendBundle.empty;
@@ -481,9 +453,7 @@ class OfferWalletService {
       final duplicatePayments = <RoyaltyPaymentWithLauncherId>[];
       final deDuplicatedPayments = <RoyaltyPaymentWithLauncherId>[];
       for (final royaltyPayment in royaltyPayments) {
-        if (deDuplicatedPayments
-            .map((e) => e.payment)
-            .contains(royaltyPayment.payment)) {
+        if (deDuplicatedPayments.map((e) => e.payment).contains(royaltyPayment.payment)) {
           duplicatePayments.add(royaltyPayment);
         } else {
           deDuplicatedPayments.add(royaltyPayment);
@@ -510,14 +480,12 @@ class OfferWalletService {
       royaltyCoinWithParentSpend = () {
         for (final coin in mainSpendBundle.additions) {
           final royaltyPaymentAmount = royaltyPayments.sum();
-          if (coin.amount == royaltyPaymentAmount &&
-              coin.puzzlehash == royaltyPuzzleHash) {
+          if (coin.amount == royaltyPaymentAmount && coin.puzzlehash == royaltyPuzzleHash) {
             final royaltyCoin = coin;
-            final coinSpend = mainSpendBundle.coinSpends.singleWhere(
-                (element) => element.coin.id == royaltyCoin.parentCoinInfo);
+            final coinSpend = mainSpendBundle.coinSpends
+                .singleWhere((element) => element.coin.id == royaltyCoin.parentCoinInfo);
 
-            return CoinPrototypeWithParentSpend.fromCoin(
-                royaltyCoin, coinSpend);
+            return CoinPrototypeWithParentSpend.fromCoin(royaltyCoin, coinSpend);
           }
         }
       }();
@@ -539,8 +507,7 @@ class OfferWalletService {
       if (duplicatePayments.isNotEmpty) {
         royaltyPayments = duplicatePayments;
         royaltyCoinWithParentSpend = CoinPrototypeWithParentSpend.fromCoin(
-          newCoinSpend.additions
-              .firstWhere((a) => a.puzzlehash == royaltyPuzzleHash),
+          newCoinSpend.additions.firstWhere((a) => a.puzzlehash == royaltyPuzzleHash),
           newCoinSpend,
         );
         throw Exception('ha');
@@ -613,8 +580,8 @@ class OfferWalletService {
           changePuzzlehash: changePuzzlehash ?? puzzlehash,
           requestedNfts: offeredNfts,
           fee: fee,
-          settlementProgram: askOffer.requestedPaymentsSettlementProgram ??
-              Offer.defaultSettlementProgram,
+          settlementProgram:
+              askOffer.requestedPaymentsSettlementProgram ?? Offer.defaultSettlementProgram,
         );
       }
       return _makeOffer(
@@ -625,8 +592,8 @@ class OfferWalletService {
         changePuzzlehash: changePuzzlehash ?? puzzlehash,
         requestedNfts: offeredNfts,
         fee: fee,
-        settlementProgram: askOffer.requestedPaymentsSettlementProgram ??
-            Offer.defaultSettlementProgram,
+        settlementProgram:
+            askOffer.requestedPaymentsSettlementProgram ?? Offer.defaultSettlementProgram,
       );
     }();
 
@@ -653,9 +620,8 @@ class OfferWalletService {
       if (payments.isEmpty) {
         return;
       }
-      final settlementPuzzlehash = driverDict[assetId]!
-          .getNewFullPuzzleForP2Puzzle(settlementProgram)
-          .hash();
+      final settlementPuzzlehash =
+          driverDict[assetId]!.getNewFullPuzzleForP2Puzzle(settlementProgram).hash();
       final message = Program.cons(
         Program.fromAtom(payments[0].nonce),
         Program.list(payments.map((p) => p.toProgram()).toList()),
@@ -663,8 +629,7 @@ class OfferWalletService {
 
       announcements.add(
         AssertPuzzleAnnouncementCondition(
-          AssertCoinAnnouncementCondition(settlementPuzzlehash, message)
-              .announcementId,
+          AssertCoinAnnouncementCondition(settlementPuzzlehash, message).announcementId,
         ),
       );
     });

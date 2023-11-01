@@ -5,11 +5,9 @@ class ExchangeCoinMemos {
     required Bytes initializationCoinId,
     required PrivateKey requestorPrivateKey,
   }) {
-    final signature =
-        AugSchemeMPL.sign(requestorPrivateKey, initializationCoinId);
+    final signature = AugSchemeMPL.sign(requestorPrivateKey, initializationCoinId);
 
-    return ExchangeCoinMemos._(
-        initializationCoinId: initializationCoinId, signature: signature);
+    return ExchangeCoinMemos._(initializationCoinId: initializationCoinId, signature: signature);
   }
 
   ExchangeCoinMemos._({
@@ -28,8 +26,7 @@ class ExchangeCoinMemos {
     final initializationCoinId = memos[0];
     final signature = JacobianPoint.fromBytesG2(memos[1]);
 
-    return ExchangeCoinMemos._(
-        initializationCoinId: initializationCoinId, signature: signature);
+    return ExchangeCoinMemos._(initializationCoinId: initializationCoinId, signature: signature);
   }
 
   bool verify(JacobianPoint publicKey) {

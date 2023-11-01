@@ -9,8 +9,7 @@ abstract class NftStorageUploadApi {
   factory NftStorageUploadApi(String apiKey) => NftStorageUploadApiI(apiKey);
 
   /// throws [TooManyRequestsException], [NftStorageUploadException]
-  Future<NftStorageUploadResponse> uploadBytes(Bytes bytes,
-      {ContentType? contentType});
+  Future<NftStorageUploadResponse> uploadBytes(Bytes bytes, {ContentType? contentType});
 }
 
 extension UploadTypesX on NftStorageUploadApi {
@@ -21,8 +20,7 @@ extension UploadTypesX on NftStorageUploadApi {
     );
   }
 
-  Future<NftStorageUploadResponse> uploadFile(File file,
-      {ContentType? contentType}) {
+  Future<NftStorageUploadResponse> uploadFile(File file, {ContentType? contentType}) {
     return uploadBytes(Bytes(file.readAsBytesSync()), contentType: contentType);
   }
 }

@@ -40,6 +40,5 @@ class CreatePuzzleAnnouncementCondition implements Condition {
   }
 
   @override
-  String toString() =>
-      'CreatePuzzleAnnouncementCondition(code: $conditionCode, message: $message)';
+  String toString() => 'CreatePuzzleAnnouncementCondition(code: $conditionCode, message: $message)';
 }

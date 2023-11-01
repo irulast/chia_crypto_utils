@@ -21,8 +21,7 @@ class UncurriedDidPuzzle {
     return maybeFromUncurriedProgram(uncurriedPuzzle);
   }
 
-  static UncurriedDidPuzzle? maybeFromUncurriedProgram(
-      ModAndArguments uncurriedPuzzle) {
+  static UncurriedDidPuzzle? maybeFromUncurriedProgram(ModAndArguments uncurriedPuzzle) {
     if (uncurriedPuzzle.mod != singletonTopLayerV1Program) {
       return null;
     }
@@ -32,8 +31,7 @@ class UncurriedDidPuzzle {
     final parentInnerPuzzle = arguments[1];
     final did = singletonStructure.rest().first().atom;
 
-    final uncurriedInnerPuzzle =
-        UncurriedDidInnerPuzzle.maybeFromProgram(parentInnerPuzzle);
+    final uncurriedInnerPuzzle = UncurriedDidInnerPuzzle.maybeFromProgram(parentInnerPuzzle);
     if (uncurriedInnerPuzzle == null) {
       return null;
     }

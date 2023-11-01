@@ -10,14 +10,13 @@ void main() {
     ) as Map<String, dynamic>,
   );
 
-  final privateKey = PrivateKey.fromHex(
-      '0ebdfc43fb7be1f78a50782ed76251520de6686b80e645f0b4e658868a9e792f');
+  final privateKey =
+      PrivateKey.fromHex('0ebdfc43fb7be1f78a50782ed76251520de6686b80e645f0b4e658868a9e792f');
 
   final fullDidPuzzle = spendBundle.coinSpends.single.puzzleReveal;
 
-  final p2FromDriver = PuzzleDriver.match(fullDidPuzzle)!
-      .getP2Puzzle(spendBundle.coinSpends.single)
-      .hash();
+  final p2FromDriver =
+      PuzzleDriver.match(fullDidPuzzle)!.getP2Puzzle(spendBundle.coinSpends.single).hash();
 
   print(p2FromDriver);
 

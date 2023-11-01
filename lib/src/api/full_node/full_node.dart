@@ -41,8 +41,7 @@ abstract class FullNode {
 
   Future<BlockchainStateResponse> getBlockchainState();
 
-  Future<GetAdditionsAndRemovalsResponse> getAdditionsAndRemovals(
-      Bytes headerHash);
+  Future<GetAdditionsAndRemovalsResponse> getAdditionsAndRemovals(Bytes headerHash);
 
   Future<GetBlockRecordByHeightResponse> getBlockRecordByHeight(int height);
   Future<GetBlockRecordsResponse> getBlockRecords(int start, int end);

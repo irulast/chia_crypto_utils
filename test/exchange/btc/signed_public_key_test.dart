@@ -5,8 +5,8 @@ void main() {
   test('should correctly create and parse signed public key', () {
     final exchangeService = BtcExchangeService();
 
-    final privateKey = PrivateKey.fromHex(
-        '308f34305ed545c7b6bdefe9fff88176dc3b1a68c40f9065e2cf24c98bf6a4e1');
+    final privateKey =
+        PrivateKey.fromHex('308f34305ed545c7b6bdefe9fff88176dc3b1a68c40f9065e2cf24c98bf6a4e1');
 
     final expectedPublicKey = privateKey.getG1();
 
@@ -17,12 +17,11 @@ void main() {
     expect(publicKey, equals(expectedPublicKey));
   });
 
-  test('should throw exception when public key is signed with wrong message',
-      () {
+  test('should throw exception when public key is signed with wrong message', () {
     final exchangeService = BtcExchangeService();
 
-    final privateKey = PrivateKey.fromHex(
-        '308f34305ed545c7b6bdefe9fff88176dc3b1a68c40f9065e2cf24c98bf6a4e1');
+    final privateKey =
+        PrivateKey.fromHex('308f34305ed545c7b6bdefe9fff88176dc3b1a68c40f9065e2cf24c98bf6a4e1');
 
     // create signed public key with wrong message
     final publicKey = privateKey.getG1();

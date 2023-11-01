@@ -2,8 +2,7 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:test/test.dart';
 
 void main() {
-  const chiaPayloadHashHex =
-      '12cce226f66188ea5c93d8337f0fa7512cec31c383e5ca897dcba04f60e5cec0';
+  const chiaPayloadHashHex = '12cce226f66188ea5c93d8337f0fa7512cec31c383e5ca897dcba04f60e5cec0';
 
   final launcherId = Program.fromBool(true).hash();
   const authenticationToken = 12689;
@@ -27,8 +26,7 @@ void main() {
     expect(payload.toJson(), <String, dynamic>{
       'launcher_id': payload.launcherId.toHexWithPrefix(),
       'authentication_token': payload.authenticationToken,
-      'authentication_public_key':
-          payload.authenticationPublicKey.toHexWithPrefix(),
+      'authentication_public_key': payload.authenticationPublicKey.toHexWithPrefix(),
       'payout_instructions': payload.payoutPuzzlehash.toHexWithPrefix(),
       'suggested_difficulty': payload.suggestedDifficulty,
     });

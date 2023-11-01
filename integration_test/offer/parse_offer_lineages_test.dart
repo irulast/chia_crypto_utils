@@ -13,28 +13,26 @@ void main() {
     walletSize: 100,
   );
   test('Should parse lineages from offer service', () async {
-    final lineages = await OfferService.getLineagesFromOfferSpendBundle(
-        spendBundle, fullNode);
+    final lineages = await OfferService.getLineagesFromOfferSpendBundle(spendBundle, fullNode);
 
     final puzzlehashes = keychain.puzzlehashes.toSet();
 
     for (final lineage in lineages) {
-      final originalDriver = await PuzzleDriver.matchAsync(
-          lineage.originalParentSpend!.puzzleReveal);
+      final originalDriver =
+          await PuzzleDriver.matchAsync(lineage.originalParentSpend!.puzzleReveal);
 
       if (originalDriver == null) {
         throw UnsupportedCoinException(lineage.originalParentSpend!);
       }
 
-      final originP2Puzzlehash =
-          originalDriver.getP2Puzzle(lineage.originalCoinSpend).hash();
+      final originP2Puzzlehash = originalDriver.getP2Puzzle(lineage.originalCoinSpend).hash();
       print(originP2Puzzlehash);
       if (!puzzlehashes.contains(originP2Puzzlehash)) {
         continue;
       }
 
-      for (final p2Payment in await originalDriver.getP2PaymentsAsync(
-          lineage.intermediateSpendWithAdditions.coinSpend)) {
+      for (final p2Payment in await originalDriver
+          .getP2PaymentsAsync(lineage.intermediateSpendWithAdditions.coinSpend)) {
         print(p2Payment);
       }
     }

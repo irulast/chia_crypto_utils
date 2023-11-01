@@ -37,8 +37,7 @@ class BtcToXchService {
     int fee = 0,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
-        const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
   }) {
     return exchangeService.createExchangeSpendBundle(
       payments: payments,
@@ -67,8 +66,7 @@ class BtcToXchService {
     int fee = 0,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
-        const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
   }) {
     final requestorPublicKey = requestorPrivateKey.getG1();
     final fulfillerPublicKey = fulfillerPrivateKey.getG1();

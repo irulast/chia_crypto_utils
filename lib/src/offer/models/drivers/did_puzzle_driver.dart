@@ -15,22 +15,18 @@ class DidPuzzleDriver implements PuzzleDriver {
 
   @override
   Puzzlehash? getAssetId(Program fullPuzzle) {
-    return Puzzlehash.maybe(
-        UncurriedDidPuzzle.maybeFromProgram(fullPuzzle)?.did);
+    return Puzzlehash.maybe(UncurriedDidPuzzle.maybeFromProgram(fullPuzzle)?.did);
   }
 
   @override
-  Program getNewFullPuzzleForP2Puzzle(
-      Program currentFullPuzzle, Program p2Puzzle) {
+  Program getNewFullPuzzleForP2Puzzle(Program currentFullPuzzle, Program p2Puzzle) {
     // TODO(nvjoshi): implement getNewFullPuzzleForP2Puzzle
     throw UnimplementedError();
   }
 
   @override
   Program getP2Puzzle(CoinSpend coinSpend) {
-    return UncurriedDidPuzzle.fromProgram(coinSpend.puzzleReveal)
-        .innerPuzzle
-        .p2Puzzle;
+    return UncurriedDidPuzzle.fromProgram(coinSpend.puzzleReveal).innerPuzzle.p2Puzzle;
   }
 
   @override
@@ -40,15 +36,13 @@ class DidPuzzleDriver implements PuzzleDriver {
   }
 
   @override
-  OfferedCoin makeOfferedCoinFromParentSpend(
-      CoinPrototype coin, CoinSpend parentSpend) {
+  OfferedCoin makeOfferedCoinFromParentSpend(CoinPrototype coin, CoinSpend parentSpend) {
     // TODO(nvjoshi): implement makeOfferedCoinFromParentSpend
     throw UnimplementedError();
   }
 
   @override
-  CoinPrototype getChildCoinForP2Payment(
-      CoinSpend coinSpend, Payment p2Payment) {
+  CoinPrototype getChildCoinForP2Payment(CoinSpend coinSpend, Payment p2Payment) {
     return getSingletonChildFromCoinSpend(coinSpend);
   }
 

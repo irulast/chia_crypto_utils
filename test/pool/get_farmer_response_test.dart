@@ -20,8 +20,7 @@ void main() {
     );
     expect(
       getFarmerResponse.payoutInstructions,
-      Puzzlehash.fromHex(
-          'f7b8e2be4865eaedaeac80f0577f41b89fc0b32f9536e458809548192ea9c528'),
+      Puzzlehash.fromHex('f7b8e2be4865eaedaeac80f0577f41b89fc0b32f9536e458809548192ea9c528'),
     );
     expect(getFarmerResponse.currentDifficulty, 1);
     expect(getFarmerResponse.currentPoints, 9999);

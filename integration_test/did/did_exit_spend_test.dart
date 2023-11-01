@@ -25,15 +25,14 @@ Future<void> main() async {
   final didWalletService = DIDWalletService();
 
   final puzzlehash = walletVector.puzzlehash;
-  final address = Address.fromPuzzlehash(
-      puzzlehash, didWalletService.blockchainNetwork.addressPrefix);
+  final address =
+      Address.fromPuzzlehash(puzzlehash, didWalletService.blockchainNetwork.addressPrefix);
 
   await fullNodeSimulator.farmCoins(address);
   await fullNodeSimulator.farmCoins(address);
   await fullNodeSimulator.moveToNextBlock();
 
-  final standardCoins =
-      await fullNodeSimulator.getCoinsByPuzzleHashes([puzzlehash]);
+  final standardCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([puzzlehash]);
 
   final didSpendBundle = didWalletService.createGenerateDIDSpendBundle(
     standardCoins: [standardCoins[0]],
@@ -45,8 +44,7 @@ Future<void> main() async {
   await fullNodeSimulator.pushTransaction(didSpendBundle);
   await fullNodeSimulator.moveToNextBlock();
 
-  final didsAfterCreation =
-      await fullNodeSimulator.getDidRecordsFromHint(walletVector.puzzlehash);
+  final didsAfterCreation = await fullNodeSimulator.getDidRecordsFromHint(walletVector.puzzlehash);
 
   final didInfo = didsAfterCreation[0];
 
@@ -60,20 +58,18 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
 
     final didAfterDestruction = await fullNodeSimulator
-        .getDidRecordsByPuzzleHashes(
-            [walletVector.puzzlehash, exitWalletVector.puzzlehash]);
+        .getDidRecordsByPuzzleHashes([walletVector.puzzlehash, exitWalletVector.puzzlehash]);
     expect(didAfterDestruction.length, equals(0));
 
-    final newStandardCoins = await fullNodeSimulator
-        .getCoinsByPuzzleHashes([exitWalletVector.puzzlehash]);
+    final newStandardCoins =
+        await fullNodeSimulator.getCoinsByPuzzleHashes([exitWalletVector.puzzlehash]);
     expect(newStandardCoins.length, equals(1));
 
     final newStandardCoin = newStandardCoins[0];
     expect(newStandardCoin.amount, equals(didInfo.coin.amount - 1));
 
     // should be able to spend standardCoin
-    final standardSpendBundle =
-        didWalletService.standardWalletService.createSpendBundle(
+    final standardSpendBundle = didWalletService.standardWalletService.createSpendBundle(
       payments: [Payment(newStandardCoin.amount, exitWalletVector.puzzlehash)],
       coinsInput: [newStandardCoin],
       keychain: keychain,

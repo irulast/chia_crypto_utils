@@ -24,8 +24,7 @@ class StandardCoinSplittingService {
       );
     }
     final changePh = changePuzzleHash ?? keychain.puzzlehashes.first;
-    final splitPuzzlehashes =
-        keychain.puzzlehashes.where((ph) => ph != changePh).toList();
+    final splitPuzzlehashes = keychain.puzzlehashes.where((ph) => ph != changePh).toList();
 
     var totalCoinsCreated = 0;
 
@@ -54,8 +53,8 @@ class StandardCoinSplittingService {
     var totalSpendBundle = initialSplitSpendBundle;
 
     // need to make sure we don't spend changeback coin so we use up all of the surplus value from the initial split spend bundle
-    var previousSplitNetAdditions = initialSplitSpendBundle.netAdditions
-        .where((element) => element.puzzlehash != changePh);
+    var previousSplitNetAdditions =
+        initialSplitSpendBundle.netAdditions.where((element) => element.puzzlehash != changePh);
 
     var splitCount = 1;
     while (totalCoinsCreated < targetCoinCount) {
@@ -66,8 +65,7 @@ class StandardCoinSplittingService {
         if (previousSplitAddition.amount != targetAmountPerCoin) {
           print(previousSplitAddition);
         }
-        final numberOfCoinsToCreate =
-            min(splitWidth, targetCoinCount - totalCoinsCreated);
+        final numberOfCoinsToCreate = min(splitWidth, targetCoinCount - totalCoinsCreated);
         if (numberOfCoinsToCreate == 0) {
           break;
         }
@@ -88,8 +86,7 @@ class StandardCoinSplittingService {
 
         totalSpendBundle += spendBundle;
         splitNetAdditions.addAll(
-          spendBundle.netAdditions
-              .where((element) => element.puzzlehash != changePh),
+          spendBundle.netAdditions.where((element) => element.puzzlehash != changePh),
         );
 
         totalCoinsCreated += numberOfCoinsToCreate;

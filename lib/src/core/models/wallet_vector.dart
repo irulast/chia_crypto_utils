@@ -15,8 +15,7 @@ class WalletVector with ToBytesMixin {
     PrivateKey masterPrivateKey,
     int derivationIndex,
   ) {
-    final childPrivateKeyHardened =
-        masterSkToWalletSk(masterPrivateKey, derivationIndex);
+    final childPrivateKeyHardened = masterSkToWalletSk(masterPrivateKey, derivationIndex);
     final childPublicKeyHardened = childPrivateKeyHardened.getG1();
 
     final puzzleHardened = getPuzzleFromPk(childPublicKeyHardened);
@@ -73,8 +72,7 @@ class WalletVector with ToBytesMixin {
   }
 
   static String _fromPrivateKeyTask(_PrivateKeyWithDerivationIndex arg) {
-    final walletVector =
-        WalletVector.fromMasterPrivateKey(arg.privateKey, arg.derivationIndex);
+    final walletVector = WalletVector.fromMasterPrivateKey(arg.privateKey, arg.derivationIndex);
 
     return walletVector.toHex();
   }
@@ -118,10 +116,8 @@ class UnhardenedWalletVector extends WalletVector {
     required super.puzzlehash,
     required super.derivationIndex,
     Map<Puzzlehash, Puzzlehash>? assetIdtoOuterPuzzlehash,
-  }) : assetIdtoOuterPuzzlehash =
-            assetIdtoOuterPuzzlehash ?? <Puzzlehash, Puzzlehash>{};
-  factory UnhardenedWalletVector.fromStream(
-      Iterator<int> iterator, int derivationIndex) {
+  }) : assetIdtoOuterPuzzlehash = assetIdtoOuterPuzzlehash ?? <Puzzlehash, Puzzlehash>{};
+  factory UnhardenedWalletVector.fromStream(Iterator<int> iterator, int derivationIndex) {
     final childPrivateKey = PrivateKey.fromStream(iterator);
     final puzzlehash = Puzzlehash.fromStream(iterator);
 
@@ -203,8 +199,7 @@ class UnhardenedWalletVector extends WalletVector {
     }
 
     for (final assetId in assetIdtoOuterPuzzlehash.keys) {
-      if (other.assetIdtoOuterPuzzlehash[assetId] !=
-          assetIdtoOuterPuzzlehash[assetId]) {
+      if (other.assetIdtoOuterPuzzlehash[assetId] != assetIdtoOuterPuzzlehash[assetId]) {
         return false;
       }
     }

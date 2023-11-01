@@ -3,6 +3,5 @@ abstract class Summable {
 }
 
 extension Sum on Iterable<Summable> {
-  int sum() =>
-      fold(0, (int previousValue, item) => previousValue + item.amount);
+  int sum() => fold(0, (int previousValue, item) => previousValue + item.amount);
 }

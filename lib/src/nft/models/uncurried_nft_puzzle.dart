@@ -50,8 +50,7 @@ class UncurriedNftPuzzle {
       final currentDid = innerPuzzleArguments[1].maybeAtom;
       final transferProgram = innerPuzzleArguments[2];
 
-      final uncurriedTransferProgramArguments =
-          (await transferProgram.uncurryAsync()).arguments;
+      final uncurriedTransferProgramArguments = (await transferProgram.uncurryAsync()).arguments;
       final royaltyAddress = uncurriedTransferProgramArguments[1].maybeAtom;
 
       final royaltyPercentage = uncurriedTransferProgramArguments[2].toInt();
@@ -97,8 +96,7 @@ class UncurriedNftPuzzle {
     return fromUnCurriedProgram(programAndArguments);
   }
 
-  static UncurriedNftPuzzle? fromUnCurriedProgram(
-      ModAndArguments programAndArguments) {
+  static UncurriedNftPuzzle? fromUnCurriedProgram(ModAndArguments programAndArguments) {
     if (programAndArguments.mod != singletonTopLayerV1Program) {
       return null;
     }
@@ -130,8 +128,7 @@ class UncurriedNftPuzzle {
       final currentDidAtom = innerPuzzleArguments[1].maybeAtom;
       final transferProgram = innerPuzzleArguments[2];
 
-      final uncurriedTransferProgramArguments =
-          transferProgram.uncurry().arguments;
+      final uncurriedTransferProgramArguments = transferProgram.uncurry().arguments;
       final royaltyAddress = uncurriedTransferProgramArguments[1].maybeAtom;
 
       final royaltyPercentage = uncurriedTransferProgramArguments[2].toInt();
@@ -139,8 +136,7 @@ class UncurriedNftPuzzle {
       final p2Puzzle = innerPuzzleArguments[3];
 
       // ignore: use_if_null_to_convert_nulls_to_bools
-      final currentDid =
-          currentDidAtom?.isNotEmpty == true ? currentDidAtom : null;
+      final currentDid = currentDidAtom?.isNotEmpty == true ? currentDidAtom : null;
 
       final ownershipLayerInfo = NftOwnershipLayerInfo(
         transferProgram: transferProgram,
@@ -188,8 +184,7 @@ class UncurriedNftPuzzle {
 
   bool get doesSupportDid => ownershipLayerInfo != null;
 
-  Program get p2Puzzle =>
-      ownershipLayerInfo?.ownershipLayerP2Puzzle ?? innerPuzzle;
+  Program get p2Puzzle => ownershipLayerInfo?.ownershipLayerP2Puzzle ?? innerPuzzle;
 
   Program getFullPuzzleWithNewInnerPuzzle(Program newInnerPuzzle) {
     return NftWalletService.createFullPuzzle(
@@ -208,9 +203,8 @@ class UncurriedNftPuzzle {
   Program getInnerSolution(Program spendSolution) {
     final stateLayerInnerSolution = spendSolution.rest().rest().first().first();
 
-    final innermostSolution = doesSupportDid
-        ? stateLayerInnerSolution.first()
-        : stateLayerInnerSolution;
+    final innermostSolution =
+        doesSupportDid ? stateLayerInnerSolution.first() : stateLayerInnerSolution;
     return innermostSolution;
   }
 }

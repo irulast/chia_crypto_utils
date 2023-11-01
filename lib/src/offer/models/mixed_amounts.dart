@@ -97,15 +97,10 @@ extension MixedAmountsBase on MixedAmounts {
     return MixedPayments({
       for (final typeEntry in map.entries)
         typeEntry.key: Map.fromEntries(
-          typeEntry.value.entries
-              .where((element) => element.value > 0)
-              .map((assetEntry) {
+          typeEntry.value.entries.where((element) => element.value > 0).map((assetEntry) {
             return MapEntry(
               assetEntry.key,
-              [
-                Payment.ofType(assetEntry.value, puzzlehash,
-                    type: typeEntry.key)
-              ],
+              [Payment.ofType(assetEntry.value, puzzlehash, type: typeEntry.key)],
             );
           }),
         ),

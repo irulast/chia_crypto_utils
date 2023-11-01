@@ -5,15 +5,13 @@ void main() {
   final api = DexieOffersApi();
 
   test('should fetch offer', () async {
-    final offer =
-        await api.inspectOffer('3XmDauuggBsiUbUi9o8m4Gip69xf82rPqedT1C99svQk');
+    final offer = await api.inspectOffer('3XmDauuggBsiUbUi9o8m4Gip69xf82rPqedT1C99svQk');
 
     expect(offer!.serializedOffer, rawOffer);
   });
 
   test('should return null on phoney id', () async {
-    final offer =
-        await api.inspectOffer('4XmDauuggBsibUi9o8m4Gip69xf82rPqedT1C99svQk');
+    final offer = await api.inspectOffer('4XmDauuggBsibUi9o8m4Gip69xf82rPqedT1C99svQk');
 
     expect(offer, isNull);
   });

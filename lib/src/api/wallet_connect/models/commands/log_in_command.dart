@@ -6,8 +6,7 @@ class LogInCommand implements WalletConnectCommand {
     required this.fingerprint,
   });
   factory LogInCommand.fromParams(Map<String, dynamic> params) {
-    return LogInCommand(
-        fingerprint: pick(params, 'fingerprint').asIntOrThrow());
+    return LogInCommand(fingerprint: pick(params, 'fingerprint').asIntOrThrow());
   }
 
   @override
@@ -28,8 +27,7 @@ class LogInResponse
   factory LogInResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
-    return LogInResponse(
-        baseResponse, pick(json, 'data').letJsonOrThrow(LogInData.fromJson));
+    return LogInResponse(baseResponse, pick(json, 'data').letJsonOrThrow(LogInData.fromJson));
   }
 
   @override

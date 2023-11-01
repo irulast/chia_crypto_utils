@@ -37,11 +37,9 @@ Future<void> main() async {
 
     var newInnerPuzzlehash = DIDWalletService.createInnerPuzzleForPk(
       publicKey: firstRecoveringEnthusiast.firstWalletVector.childPublicKey,
-      backupIdsHash:
-          recoveryEnthusiasts.map((e) => e.didInfo!.did).toList().programHash(),
+      backupIdsHash: recoveryEnthusiasts.map((e) => e.didInfo!.did).toList().programHash(),
       launcherCoinId: recoverableEnthusiast.didInfo!.did,
-      nVerificationsRequired:
-          recoveryEnthusiasts.map((e) => e.didInfo!.did).toList().length,
+      nVerificationsRequired: recoveryEnthusiasts.map((e) => e.didInfo!.did).toList().length,
       metadataProgram: null,
     ).hash();
 
@@ -51,10 +49,8 @@ Future<void> main() async {
       final attestment = didWalletService.createAttestment(
         attestmentMakerDidInfo: recoveryEnthusiast.didInfo!,
         recoveringDidInfo: recoverableEnthusiast.didInfo!,
-        attestmentMakerPrivateKey:
-            recoveryEnthusiast.firstWalletVector.childPrivateKey,
-        newPublicKey:
-            firstRecoveringEnthusiast.firstWalletVector.childPublicKey,
+        attestmentMakerPrivateKey: recoveryEnthusiast.firstWalletVector.childPrivateKey,
+        newPublicKey: firstRecoveringEnthusiast.firstWalletVector.childPublicKey,
         newInnerPuzzlehash: newInnerPuzzlehash,
       );
       await fullNodeSimulator.pushTransaction(attestment.attestmentSpendBundle);
@@ -79,24 +75,20 @@ Future<void> main() async {
       await recoveryEnthusiast.refreshDidInfo();
     }
 
-    await firstRecoveringEnthusiast
-        .recoverDid(recoverableEnthusiast.didInfo!.did);
+    await firstRecoveringEnthusiast.recoverDid(recoverableEnthusiast.didInfo!.did);
 
     expect(
       firstRecoveringEnthusiast.didInfo!.p2Puzzle,
-      equals(getPuzzleFromPk(
-          firstRecoveringEnthusiast.firstWalletVector.childPublicKey)),
+      equals(getPuzzleFromPk(firstRecoveringEnthusiast.firstWalletVector.childPublicKey)),
     );
 
     final secondRecoveringEnthusiast = ChiaEnthusiast(fullNodeSimulator);
 
     newInnerPuzzlehash = DIDWalletService.createInnerPuzzleForPk(
       publicKey: secondRecoveringEnthusiast.firstWalletVector.childPublicKey,
-      backupIdsHash:
-          recoveryEnthusiasts.map((e) => e.didInfo!.did).toList().programHash(),
+      backupIdsHash: recoveryEnthusiasts.map((e) => e.didInfo!.did).toList().programHash(),
       launcherCoinId: firstRecoveringEnthusiast.didInfo!.did,
-      nVerificationsRequired:
-          recoveryEnthusiasts.map((e) => e.didInfo!.did).toList().length,
+      nVerificationsRequired: recoveryEnthusiasts.map((e) => e.didInfo!.did).toList().length,
       metadataProgram: null,
     ).hash();
 
@@ -106,10 +98,8 @@ Future<void> main() async {
       final attestment = didWalletService.createAttestment(
         attestmentMakerDidInfo: recoveryEnthusiast.didInfo!,
         recoveringDidInfo: firstRecoveringEnthusiast.didInfo!,
-        attestmentMakerPrivateKey:
-            recoveryEnthusiast.firstWalletVector.childPrivateKey,
-        newPublicKey:
-            secondRecoveringEnthusiast.firstWalletVector.childPublicKey,
+        attestmentMakerPrivateKey: recoveryEnthusiast.firstWalletVector.childPrivateKey,
+        newPublicKey: secondRecoveringEnthusiast.firstWalletVector.childPublicKey,
         newInnerPuzzlehash: newInnerPuzzlehash,
       );
       await fullNodeSimulator.pushTransaction(attestment.attestmentSpendBundle);
@@ -118,8 +108,7 @@ Future<void> main() async {
       messageSpendBundle += attestment.messageSpendBundle;
     }
 
-    final secondRecoverySpendBundle =
-        didWalletService.createRecoverySpendBundle(
+    final secondRecoverySpendBundle = didWalletService.createRecoverySpendBundle(
       firstRecoveringEnthusiast.didInfo!,
       secondRecoveringEnthusiast.firstWalletVector.childPrivateKey,
       newInnerPuzzlehash,
@@ -131,13 +120,11 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(secondRecoverySpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    await secondRecoveringEnthusiast
-        .recoverDid(recoverableEnthusiast.didInfo!.did);
+    await secondRecoveringEnthusiast.recoverDid(recoverableEnthusiast.didInfo!.did);
 
     expect(
       secondRecoveringEnthusiast.didInfo!.p2Puzzle,
-      equals(getPuzzleFromPk(
-          secondRecoveringEnthusiast.firstWalletVector.childPublicKey)),
+      equals(getPuzzleFromPk(secondRecoveringEnthusiast.firstWalletVector.childPublicKey)),
     );
   });
 }

@@ -42,8 +42,7 @@ void main() {
   });
   test('should fail with coin mismatch', () {
     expect(
-      () => DidRecord.fromParentCoinSpend(parentSpend, otherCoin)!
-          .toDidInfoOrThrow(ownerKeychain),
+      () => DidRecord.fromParentCoinSpend(parentSpend, otherCoin)!.toDidInfoOrThrow(ownerKeychain),
       throwsA(isA<KeychainMismatchException>()),
     );
   });
@@ -55,10 +54,8 @@ void main() {
     );
   });
 
-  test('should correctly construct DID record from parent spend asynchronously',
-      () async {
-    final didRecordAsync =
-        await DidRecord.fromParentCoinSpendAsync(parentSpend, coin);
+  test('should correctly construct DID record from parent spend asynchronously', () async {
+    final didRecordAsync = await DidRecord.fromParentCoinSpendAsync(parentSpend, coin);
 
     expect(
       didRecordAsync!.toDidInfoOrThrow(ownerKeychain),

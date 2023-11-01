@@ -5,8 +5,7 @@ class ExchangeAmount {
   const ExchangeAmount({required this.type, required this.amount});
   factory ExchangeAmount.fromJson(Map<String, dynamic> json) {
     return ExchangeAmount(
-      type: ExchangeAmountType.values
-          .firstWhere((type) => type.name == json['type'] as String),
+      type: ExchangeAmountType.values.firstWhere((type) => type.name == json['type'] as String),
       amount: json['amount'] as int,
     );
   }
@@ -21,9 +20,7 @@ class ExchangeAmount {
 
   @override
   bool operator ==(Object other) {
-    return other is ExchangeAmount &&
-        other.type == type &&
-        other.amount == amount;
+    return other is ExchangeAmount && other.type == type && other.amount == amount;
   }
 
   @override

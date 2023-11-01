@@ -46,8 +46,7 @@ void main() {
         const lowLogLevelTextToLog = 'Howdy partner';
         const mediumLogLevelTextToLog = 'Howdy partner, hows weather?';
 
-        const highLogLevelTextToLog =
-            'Howdy partner, hows the weather in Guadalajara?';
+        const highLogLevelTextToLog = 'Howdy partner, hows the weather in Guadalajara?';
         logFunction(
           lowLogLevelTextToLog,
           mediumLog: mediumLogLevelTextToLog,

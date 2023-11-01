@@ -32,8 +32,7 @@ class DidExitCondition implements Condition {
     if (conditionParts.length != 3) {
       return false;
     }
-    if (conditionParts[0].toInt() != conditionCode ||
-        conditionParts[2].toInt() != magicNumber) {
+    if (conditionParts[0].toInt() != conditionCode || conditionParts[2].toInt() != magicNumber) {
       return false;
     }
     return true;

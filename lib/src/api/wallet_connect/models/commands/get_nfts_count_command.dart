@@ -7,8 +7,7 @@ class GetNftsCountCommand implements WalletConnectCommand {
   });
   factory GetNftsCountCommand.fromParams(Map<String, dynamic> params) {
     return GetNftsCountCommand(
-      walletIds: pick(params, 'walletIds')
-          .asListOrThrow<int>((json) => json.asIntOrThrow()),
+      walletIds: pick(params, 'walletIds').asListOrThrow<int>((json) => json.asIntOrThrow()),
     );
   }
 

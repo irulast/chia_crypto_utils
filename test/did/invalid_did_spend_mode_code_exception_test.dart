@@ -4,8 +4,7 @@ import 'package:test/scaffolding.dart';
 
 void main() {
   test('should return the desired string form with message', () {
-    final invalidDIDSpendModeCodeException =
-        InvalidDIDSpendModeCodeException(invalidCode: 2);
+    final invalidDIDSpendModeCodeException = InvalidDIDSpendModeCodeException(invalidCode: 2);
     expect(
       invalidDIDSpendModeCodeException.toString(),
       'Spend mode code ${invalidDIDSpendModeCodeException.invalidCode} is invalid. '

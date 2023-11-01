@@ -11,19 +11,16 @@ class CreateOfferForIdsCommand implements WalletConnectCommand {
   factory CreateOfferForIdsCommand.fromParams(Map<String, dynamic> params) {
     return CreateOfferForIdsCommand(
       offerMap: pick(params, 'offer').letJsonOrThrow(
-        (json) => json
-            .map((key, value) => MapEntry(key, int.parse(value.toString()))),
+        (json) => json.map((key, value) => MapEntry(key, int.parse(value.toString()))),
       ),
       driverDict: pick(params, 'driverDict').letJsonOrThrow((json) => json),
       validateOnly: pick(params, 'validateOnly').asBoolOrFalse(),
-      disableJsonFormatting:
-          pick(params, 'disableJSONFormatting').asBoolOrFalse(),
+      disableJsonFormatting: pick(params, 'disableJSONFormatting').asBoolOrFalse(),
     );
   }
 
   @override
-  WalletConnectCommandType get type =>
-      WalletConnectCommandType.createOfferForIds;
+  WalletConnectCommandType get type => WalletConnectCommandType.createOfferForIds;
 
   /// Map of walletId to amount. If amount is negative, it is being offered,else it is being requested.
   final Map<String, int> offerMap;
@@ -49,8 +46,8 @@ class CreateOfferForIdsResponse
   factory CreateOfferForIdsResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
-    final createdOfferData = CreatedOfferData.fromJson(
-        pick(json, 'data').letJsonOrThrow((json) => json));
+    final createdOfferData =
+        CreatedOfferData.fromJson(pick(json, 'data').letJsonOrThrow((json) => json));
 
     return CreateOfferForIdsResponse(baseResponse, createdOfferData);
   }
@@ -76,8 +73,7 @@ class CreatedOfferData {
   factory CreatedOfferData.fromJson(Map<String, dynamic> json) {
     return CreatedOfferData(
       offer: Offer.fromBech32(pick(json, 'offer').asStringOrThrow()),
-      tradeRecord:
-          pick(json, 'tradeRecord').letJsonOrThrow(TradeRecord.fromJson),
+      tradeRecord: pick(json, 'tradeRecord').letJsonOrThrow(TradeRecord.fromJson),
     );
   }
 

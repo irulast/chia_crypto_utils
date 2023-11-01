@@ -54,8 +54,7 @@ void main() async {
 
     await offerMaker.refreshCoins();
 
-    final nftCoins =
-        await fullNodeSimulator.getNftRecordsByHint(targetPuzzleHash);
+    final nftCoins = await fullNodeSimulator.getNftRecordsByHint(targetPuzzleHash);
     expect(nftCoins.single.metadata, inputMetadata);
 
     final nft = nftCoins.single.toNft(offerMaker.keychain);
@@ -69,12 +68,10 @@ void main() async {
       changePuzzleHash: offerMaker.firstPuzzlehash,
     );
 
-    await fullNodeSimulator
-        .pushTransaction(dependentCoinCreationBundle.creationBundle);
+    await fullNodeSimulator.pushTransaction(dependentCoinCreationBundle.creationBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final dependentFeeCoinBundle =
-        dependentCoinService.createFeeCoinSpendBundle(
+    final dependentFeeCoinBundle = dependentCoinService.createFeeCoinSpendBundle(
       dependentCoin: dependentCoinCreationBundle.dependentCoins[0],
     );
 
@@ -84,12 +81,11 @@ void main() async {
 
     final nftForXchOffer = offerService
         .makeOffer(
-          coinsForOffer: MixedCoins(
-              nfts: [nft],
-              standardCoins: offerMaker.standardCoins.sublist(0, 1)),
+          coinsForOffer:
+              MixedCoins(nfts: [nft], standardCoins: offerMaker.standardCoins.sublist(0, 1)),
           keychain: offerMaker.keychain,
-          requestedPayments: RequestedMixedPayments(
-              standard: [Payment(5000, offerMaker.puzzlehashes.first)]),
+          requestedPayments:
+              RequestedMixedPayments(standard: [Payment(5000, offerMaker.puzzlehashes.first)]),
           fee: 100,
           changePuzzlehash: offerMaker.firstPuzzlehash,
         )
@@ -137,9 +133,8 @@ void main() async {
 
     await fullNodeSimulator.moveToNextBlock();
 
-    final didInfo = (await fullNodeSimulator
-            .getDidRecordsByPuzzleHashes(offerMaker.puzzlehashes))
-        .single;
+    final didInfo =
+        (await fullNodeSimulator.getDidRecordsByPuzzleHashes(offerMaker.puzzlehashes)).single;
     await offerMaker.refreshCoins();
     final targetPuzzleHash = offerMaker.puzzlehashes[1];
     final spendBundle = nftWalletService.createGenerateNftSpendBundle(
@@ -158,8 +153,7 @@ void main() async {
 
     await offerMaker.refreshCoins();
 
-    final nftCoins =
-        await fullNodeSimulator.getNftRecordsByHint(targetPuzzleHash);
+    final nftCoins = await fullNodeSimulator.getNftRecordsByHint(targetPuzzleHash);
     expect(nftCoins.single.metadata, inputMetadata);
 
     final nft = nftCoins.single.toNft(offerMaker.keychain);
@@ -173,12 +167,10 @@ void main() async {
       changePuzzleHash: offerMaker.firstPuzzlehash,
     );
 
-    await fullNodeSimulator
-        .pushTransaction(dependentCoinCreationBundle.creationBundle);
+    await fullNodeSimulator.pushTransaction(dependentCoinCreationBundle.creationBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final dependentFeeCoinBundle =
-        dependentCoinService.createFeeCoinSpendBundle(
+    final dependentFeeCoinBundle = dependentCoinService.createFeeCoinSpendBundle(
       dependentCoin: dependentCoinCreationBundle.dependentCoins[0],
     );
 
@@ -222,9 +214,8 @@ void main() async {
 
     await fullNodeSimulator.moveToNextBlock();
 
-    final didInfo = (await fullNodeSimulator
-            .getDidRecordsByPuzzleHashes(offerMaker.puzzlehashes))
-        .single;
+    final didInfo =
+        (await fullNodeSimulator.getDidRecordsByPuzzleHashes(offerMaker.puzzlehashes)).single;
     await offerMaker.refreshCoins();
     final targetPuzzleHash = offerMaker.puzzlehashes[1];
     final spendBundle = nftWalletService.createGenerateNftSpendBundle(
@@ -243,8 +234,7 @@ void main() async {
 
     await offerMaker.refreshCoins();
 
-    final nftCoins =
-        await fullNodeSimulator.getNftRecordsByHint(targetPuzzleHash);
+    final nftCoins = await fullNodeSimulator.getNftRecordsByHint(targetPuzzleHash);
     expect(nftCoins.single.metadata.toProgram(), inputMetadata.toProgram());
 
     final nft = nftCoins.single.toNft(offerMaker.keychain);
@@ -258,12 +248,10 @@ void main() async {
       changePuzzleHash: offerMaker.firstPuzzlehash,
     );
 
-    await fullNodeSimulator
-        .pushTransaction(dependentCoinCreationBundle.creationBundle);
+    await fullNodeSimulator.pushTransaction(dependentCoinCreationBundle.creationBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final dependentFeeCoinBundle =
-        dependentCoinService.createFeeCoinSpendBundle(
+    final dependentFeeCoinBundle = dependentCoinService.createFeeCoinSpendBundle(
       dependentCoin: dependentCoinCreationBundle.dependentCoins[0],
     );
     await offerMaker.refreshCoins();
@@ -271,8 +259,8 @@ void main() async {
 
     final nftForXchOffer = (await offerMaker.offerService.createOffer(
       offeredAmounts: MixedAmounts(nft: {Puzzlehash(nft.launcherId)}),
-      requestedPayments: RequestedMixedPayments(
-          standard: [Payment(5000, offerMaker.puzzlehashes.first)]),
+      requestedPayments:
+          RequestedMixedPayments(standard: [Payment(5000, offerMaker.puzzlehashes.first)]),
       changePuzzlehash: offerMaker.firstPuzzlehash,
     ))
         .withAdditionalBundle(dependentFeeCoinBundle);
@@ -314,9 +302,8 @@ void main() async {
 
     await fullNodeSimulator.moveToNextBlock();
 
-    final didInfo = (await fullNodeSimulator
-            .getDidRecordsByPuzzleHashes(offerMaker.puzzlehashes))
-        .single;
+    final didInfo =
+        (await fullNodeSimulator.getDidRecordsByPuzzleHashes(offerMaker.puzzlehashes)).single;
     await offerMaker.refreshCoins();
 
     print('royalty puzzlehash:${offerMaker.firstPuzzlehash}}');
@@ -339,8 +326,7 @@ void main() async {
 
     await offerMaker.refreshCoins();
 
-    final nftCoins =
-        await fullNodeSimulator.getNftRecordsByHint(targetPuzzleHash);
+    final nftCoins = await fullNodeSimulator.getNftRecordsByHint(targetPuzzleHash);
     expect(nftCoins.single.metadata, inputMetadata);
 
     final nft = nftCoins.single.toNft(offerMaker.keychain);
@@ -395,9 +381,8 @@ void main() async {
 
     await fullNodeSimulator.moveToNextBlock();
 
-    final didInfo = (await fullNodeSimulator
-            .getDidRecordsByPuzzleHashes(offerMaker.puzzlehashes))
-        .single;
+    final didInfo =
+        (await fullNodeSimulator.getDidRecordsByPuzzleHashes(offerMaker.puzzlehashes)).single;
 
     final artist = ChiaEnthusiast(fullNodeSimulator);
 
@@ -423,8 +408,7 @@ void main() async {
     await fullNodeSimulator.moveToNextBlock();
     await offerMaker.refreshCoins();
 
-    final nfts =
-        await fullNodeSimulator.getNftRecordsByHint(offerMaker.firstPuzzlehash);
+    final nfts = await fullNodeSimulator.getNftRecordsByHint(offerMaker.firstPuzzlehash);
 
     final nft = nfts.single.toNft(offerMaker.keychain);
 
@@ -433,8 +417,8 @@ void main() async {
 
     final nftForXchOffer = await offerMaker.offerService.createOffer(
       offeredAmounts: MixedAmounts(nft: {Puzzlehash(nft.launcherId)}),
-      requestedPayments: RequestedMixedPayments(
-          standard: [Payment(requestedAmount, offerMaker.firstPuzzlehash)]),
+      requestedPayments:
+          RequestedMixedPayments(standard: [Payment(requestedAmount, offerMaker.firstPuzzlehash)]),
       changePuzzlehash: offerMaker.firstPuzzlehash,
     );
 
@@ -496,9 +480,8 @@ void main() async {
 
     await fullNodeSimulator.moveToNextBlock();
 
-    final didInfo = (await fullNodeSimulator
-            .getDidRecordsByPuzzleHashes(offerMaker.puzzlehashes))
-        .single;
+    final didInfo =
+        (await fullNodeSimulator.getDidRecordsByPuzzleHashes(offerMaker.puzzlehashes)).single;
 
     final artist = ChiaEnthusiast(fullNodeSimulator);
 
@@ -522,24 +505,18 @@ void main() async {
     await fullNodeSimulator.moveToNextBlock();
     await offerMaker.refreshCoins();
 
-    final nfts =
-        await fullNodeSimulator.getNftRecordsByHint(offerMaker.firstPuzzlehash);
+    final nfts = await fullNodeSimulator.getNftRecordsByHint(offerMaker.firstPuzzlehash);
 
     final offerMakerStartingCatBalance = offerMaker.catCoins.totalValue;
-    final offerMakerStartingStandardBalance =
-        offerMaker.standardCoins.totalValue;
+    final offerMakerStartingStandardBalance = offerMaker.standardCoins.totalValue;
 
     final nft = nfts.single.toNft(offerMaker.keychain);
     final nftForXchOffer = await offerMaker.offerService.createOffer(
       offeredAmounts: MixedAmounts(nft: {Puzzlehash(nft.launcherId)}),
       requestedPayments: RequestedMixedPayments(
-        standard: [
-          Payment(requestedStandardAmount, offerMaker.firstPuzzlehash)
-        ],
+        standard: [Payment(requestedStandardAmount, offerMaker.firstPuzzlehash)],
         cat: {
-          catAssetId: [
-            CatPayment(requestedCatAmount, offerMaker.firstPuzzlehash)
-          ],
+          catAssetId: [CatPayment(requestedCatAmount, offerMaker.firstPuzzlehash)],
         },
       ),
       changePuzzlehash: offerMaker.firstPuzzlehash,
@@ -548,8 +525,7 @@ void main() async {
     final takeTargetPuzzlehash = offerTaker.puzzlehashes.last;
 
     final initialTakerStandardBalance = offerTaker.standardCoins.totalValue;
-    final initialTakerCatBalance =
-        offerTaker.catCoinMap[catAssetId]!.totalValue;
+    final initialTakerCatBalance = offerTaker.catCoinMap[catAssetId]!.totalValue;
 
     const fee = 100;
 
@@ -575,8 +551,7 @@ void main() async {
     await artist.refreshCoins();
 
     final offerTakerEndingStandardBalance = offerTaker.standardCoins.totalValue;
-    final offerTakerEndingCatBalance =
-        offerTaker.catCoinMap[catAssetId]!.totalValue;
+    final offerTakerEndingCatBalance = offerTaker.catCoinMap[catAssetId]!.totalValue;
 
     const standardRoyaltyAmount = royaltyPercentage * requestedStandardAmount;
 
@@ -584,10 +559,7 @@ void main() async {
 
     expect(
       offerTakerEndingStandardBalance,
-      initialTakerStandardBalance -
-          requestedStandardAmount -
-          fee -
-          standardRoyaltyAmount,
+      initialTakerStandardBalance - requestedStandardAmount - fee - standardRoyaltyAmount,
     );
 
     expect(
@@ -598,12 +570,10 @@ void main() async {
     final offerMakerEndingCatBalance = offerMaker.catCoins.totalValue;
     final offerMakerEndingStandardBalance = offerMaker.standardCoins.totalValue;
 
-    expect(artist.standardCoins.totalValue,
-        royaltyPercentage * requestedStandardAmount);
+    expect(artist.standardCoins.totalValue, royaltyPercentage * requestedStandardAmount);
     expect(artist.catCoins.totalValue, royaltyPercentage * requestedCatAmount);
 
-    expect(offerMakerEndingCatBalance,
-        offerMakerStartingCatBalance + requestedCatAmount);
+    expect(offerMakerEndingCatBalance, offerMakerStartingCatBalance + requestedCatAmount);
     expect(
       offerMakerEndingStandardBalance,
       offerMakerStartingStandardBalance + requestedStandardAmount,

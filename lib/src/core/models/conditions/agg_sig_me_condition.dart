@@ -19,8 +19,8 @@ class AggSigMeCondition implements Condition {
   }
   static const conditionCode = 50;
 
-  final JacobianPoint publicKey;
-  final Bytes message;
+ final JacobianPoint publicKey;
+ final Bytes message;
 
   @override
   int get code => conditionCode;

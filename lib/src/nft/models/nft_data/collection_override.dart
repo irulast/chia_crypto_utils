@@ -10,9 +10,7 @@ class NftCollectionOverride with ToJsonMixin {
   factory NftCollectionOverride.fromJson(Map<String, dynamic> json) {
     return NftCollectionOverride(
       name: pick(json, 'name').asStringOrNull(),
-      attributes: pick(json, 'attributes')
-              .letJsonListOrNull(CollectionAttribute.fromJson) ??
-          [],
+      attributes: pick(json, 'attributes').letJsonListOrNull(CollectionAttribute.fromJson) ?? [],
     );
   }
 

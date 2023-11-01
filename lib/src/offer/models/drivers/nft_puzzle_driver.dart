@@ -46,23 +46,20 @@ class NftPuzzleDriver implements PuzzleDriver {
   SpendType get type => SpendType.nft;
 
   @override
-  OfferedCoin makeOfferedCoinFromParentSpend(
-      CoinPrototype coin, CoinSpend parentSpend) {
+  OfferedCoin makeOfferedCoinFromParentSpend(CoinPrototype coin, CoinSpend parentSpend) {
     return OfferedNft.fromOfferBundleParentSpend(coin, parentSpend);
   }
 
   @override
   Program getP2Solution(CoinSpend coinSpend) {
-    final stateLayerInnerSolution =
-        coinSpend.solution.rest().rest().first().first();
+    final stateLayerInnerSolution = coinSpend.solution.rest().rest().first().first();
 
     return stateLayerInnerSolution;
   }
 
   @override
   Program getP2Puzzle(CoinSpend coinSpend) {
-    final uncurriedNft =
-        UncurriedNftPuzzle.fromProgramSync(coinSpend.puzzleReveal);
+    final uncurriedNft = UncurriedNftPuzzle.fromProgramSync(coinSpend.puzzleReveal);
     return uncurriedNft!.p2Puzzle;
   }
 
@@ -73,8 +70,7 @@ class NftPuzzleDriver implements PuzzleDriver {
   }
 
   @override
-  CoinPrototype getChildCoinForP2Payment(
-      CoinSpend coinSpend, Payment p2Payment) {
+  CoinPrototype getChildCoinForP2Payment(CoinSpend coinSpend, Payment p2Payment) {
     return getSingletonChildFromCoinSpend(coinSpend);
   }
 }
@@ -127,23 +123,20 @@ class DidNftPuzzleDriver implements PuzzleDriver {
   SpendType get type => SpendType.nft;
 
   @override
-  OfferedCoin makeOfferedCoinFromParentSpend(
-      CoinPrototype coin, CoinSpend parentSpend) {
+  OfferedCoin makeOfferedCoinFromParentSpend(CoinPrototype coin, CoinSpend parentSpend) {
     return OfferedNft.fromOfferBundleParentSpend(coin, parentSpend);
   }
 
   @override
   Program getP2Solution(CoinSpend coinSpend) {
-    final stateLayerInnerSolution =
-        coinSpend.solution.rest().rest().first().first();
+    final stateLayerInnerSolution = coinSpend.solution.rest().rest().first().first();
 
     return stateLayerInnerSolution.first();
   }
 
   @override
   Program getP2Puzzle(CoinSpend coinSpend) {
-    final uncurriedNft =
-        UncurriedNftPuzzle.fromProgramSync(coinSpend.puzzleReveal);
+    final uncurriedNft = UncurriedNftPuzzle.fromProgramSync(coinSpend.puzzleReveal);
     return uncurriedNft!.p2Puzzle;
   }
 
@@ -154,8 +147,7 @@ class DidNftPuzzleDriver implements PuzzleDriver {
   }
 
   @override
-  CoinPrototype getChildCoinForP2Payment(
-      CoinSpend coinSpend, Payment p2Payment) {
+  CoinPrototype getChildCoinForP2Payment(CoinSpend coinSpend, Payment p2Payment) {
     return getSingletonChildFromCoinSpend(coinSpend);
   }
 }

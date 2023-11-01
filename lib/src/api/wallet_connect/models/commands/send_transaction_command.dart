@@ -51,8 +51,7 @@ class SendTransactionResponse
   factory SendTransactionResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
-    final sentTransactionData =
-        pick(json, 'data').letJsonOrThrow(SentTransactionData.fromJson);
+    final sentTransactionData = pick(json, 'data').letJsonOrThrow(SentTransactionData.fromJson);
     return SendTransactionResponse(baseResponse, sentTransactionData);
   }
 
@@ -78,8 +77,7 @@ class SentTransactionData {
   });
   factory SentTransactionData.fromJson(Map<String, dynamic> json) {
     return SentTransactionData(
-      transaction:
-          pick(json, 'transaction').letJsonOrThrow(TransactionRecord.fromJson),
+      transaction: pick(json, 'transaction').letJsonOrThrow(TransactionRecord.fromJson),
       transactionId: pick(json, 'transactionId').asStringOrThrow(),
       success: pick(json, 'success').asBoolOrThrow(),
     );

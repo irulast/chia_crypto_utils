@@ -1,8 +1,7 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class FullDidRecordWithOriginCoin {
-  const FullDidRecordWithOriginCoin(
-      {required this.didRecord, required this.originCoin});
+  const FullDidRecordWithOriginCoin({required this.didRecord, required this.originCoin});
 
   final FullDidRecord didRecord;
   final CoinPrototype originCoin;

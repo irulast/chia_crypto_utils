@@ -4,13 +4,11 @@ import 'package:deep_pick/deep_pick.dart';
 class GetWalletBalanceCommand implements WalletConnectCommand {
   const GetWalletBalanceCommand({this.walletId = 1});
   factory GetWalletBalanceCommand.fromParams(Map<String, dynamic> params) {
-    return GetWalletBalanceCommand(
-        walletId: pick(params, 'walletId').asIntOrNull());
+    return GetWalletBalanceCommand(walletId: pick(params, 'walletId').asIntOrNull());
   }
 
   @override
-  WalletConnectCommandType get type =>
-      WalletConnectCommandType.getWalletBalance;
+  WalletConnectCommandType get type => WalletConnectCommandType.getWalletBalance;
 
   final int? walletId;
 
@@ -27,8 +25,7 @@ class GetWalletBalanceResponse
   factory GetWalletBalanceResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
-    final balance = WalletBalance.fromJson(
-        pick(json, 'data').letJsonOrThrow((json) => json));
+    final balance = WalletBalance.fromJson(pick(json, 'data').letJsonOrThrow((json) => json));
     return GetWalletBalanceResponse(baseResponse, balance);
   }
 
@@ -60,20 +57,16 @@ class WalletBalance {
   });
   factory WalletBalance.fromJson(Map<String, dynamic> json) {
     return WalletBalance(
-      confirmedWalletBalance:
-          pick(json, 'confirmedWalletBalance').asIntOrThrow(),
+      confirmedWalletBalance: pick(json, 'confirmedWalletBalance').asIntOrThrow(),
       fingerprint: pick(json, 'fingerprint').asIntOrThrow(),
       maxSendAmount: pick(json, 'maxSendAmount').asIntOrThrow(),
       pendingChange: pick(json, 'pendingChange').asIntOrThrow(),
-      pendingCoinRemovalCount:
-          pick(json, 'pendingCoinRemovalCount').asIntOrThrow(),
+      pendingCoinRemovalCount: pick(json, 'pendingCoinRemovalCount').asIntOrThrow(),
       spendableBalance: pick(json, 'spendableBalance').asIntOrThrow(),
-      unconfirmedWalletBalance:
-          pick(json, 'unconfirmedWalletBalance').asIntOrThrow(),
+      unconfirmedWalletBalance: pick(json, 'unconfirmedWalletBalance').asIntOrThrow(),
       unspentCoinCount: pick(json, 'unspentCoinCount').asIntOrThrow(),
       walletId: pick(json, 'walletId').asIntOrThrow(),
-      walletType:
-          ChiaWalletType.fromIndex(pick(json, 'walletType').asIntOrThrow()),
+      walletType: ChiaWalletType.fromIndex(pick(json, 'walletType').asIntOrThrow()),
     );
   }
 

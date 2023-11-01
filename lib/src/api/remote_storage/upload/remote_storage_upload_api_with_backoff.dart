@@ -19,12 +19,10 @@ class NftStorageUploadApiWithBinaryBackoff implements NftStorageUploadApi {
   final Duration initialBackoffDuration;
 
   @override
-  Future<NftStorageUploadResponse> uploadBytes(Bytes bytes,
-      {ContentType? contentType}) async {
+  Future<NftStorageUploadResponse> uploadBytes(Bytes bytes, {ContentType? contentType}) async {
     final request = RemoteUploadRequest(bytes, contentType);
 
-    final response =
-        await _completeRequestWithBackoff(request, initialBackoffDuration);
+    final response = await _completeRequestWithBackoff(request, initialBackoffDuration);
     return response;
   }
 
@@ -36,12 +34,10 @@ class NftStorageUploadApiWithBinaryBackoff implements NftStorageUploadApi {
     int clientExceptionCount = 0,
   }) async {
     try {
-      final response = await delegate.uploadBytes(request.bytes,
-          contentType: request.contentType);
+      final response = await delegate.uploadBytes(request.bytes, contentType: request.contentType);
       return response;
     } on TooManyRequestsException {
-      LoggingContext().info(
-          'Too many requests: backing off nft storage for $backoffDuration');
+      LoggingContext().info('Too many requests: backing off nft storage for $backoffDuration');
       await Future<void>.delayed(backoffDuration);
       return _completeRequestWithBackoff(
         request,
@@ -52,8 +48,8 @@ class NftStorageUploadApiWithBinaryBackoff implements NftStorageUploadApi {
         LoggingContext().info('max upload socket exceptions reached');
         rethrow;
       }
-      LoggingContext().info(
-          'Client exception:${e.message}, backing off nft storage for $backoffDuration');
+      LoggingContext()
+          .info('Client exception:${e.message}, backing off nft storage for $backoffDuration');
       await Future<void>.delayed(backoffDuration);
       return _completeRequestWithBackoff(
         request,

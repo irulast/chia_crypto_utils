@@ -4,7 +4,6 @@ import 'package:test/scaffolding.dart';
 
 void main() {
   test('should fail on invalid spend mode code', () {
-    expect(() => SpendMode.fromCode(2),
-        throwsA(isA<InvalidDIDSpendModeCodeException>()));
+    expect(() => SpendMode.fromCode(2), throwsA(isA<InvalidDIDSpendModeCodeException>()));
   });
 }

@@ -6,10 +6,9 @@ class NpcResult {
   factory NpcResult.fromJson(Map<String, dynamic> json) {
     final cost = json['clvm_cost'] as int?;
     final conds = json['conds'] as Map<String, dynamic>;
-    final spendConditionsList =
-        List<Map<String, dynamic>>.from(conds['spends'] as Iterable)
-            .map(SpendConditions.fromJson)
-            .toList();
+    final spendConditionsList = List<Map<String, dynamic>>.from(conds['spends'] as Iterable)
+        .map(SpendConditions.fromJson)
+        .toList();
 
     return NpcResult(cost, spendConditionsList);
   }

@@ -29,8 +29,7 @@ class GetNftInfoResponse
   factory GetNftInfoResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
-    final nftInfo =
-        NftInfo.fromJson(pick(json, 'data').letJsonOrThrow((json) => json));
+    final nftInfo = NftInfo.fromJson(pick(json, 'data').letJsonOrThrow((json) => json));
     return GetNftInfoResponse(baseResponse, nftInfo);
   }
 
@@ -73,29 +72,24 @@ class NftInfo {
   factory NftInfo.fromJson(Map<String, dynamic> json) {
     return NftInfo(
       launcherId: pick(json, 'launcherId').asStringOrThrow().hexToBytes(),
-      launcherPuzzlehash:
-          Puzzlehash.fromHex(pick(json, 'launcherPuzhash').asStringOrThrow()),
+      launcherPuzzlehash: Puzzlehash.fromHex(pick(json, 'launcherPuzhash').asStringOrThrow()),
       nftCoinId: pick(json, 'nftCoinId').asStringOrThrow().hexToBytes(),
       dataHash: pick(json, 'dataHash').asStringOrThrow().hexToBytes(),
       dataUris: pick(json, 'dataUris').letStringListOrThrow((string) => string),
       chainInfo: pick(json, 'chainInfo').asStringOrThrow(),
       licenseHash: pick(json, 'licenseHash').asStringOrThrow().hexToBytes(),
-      licenseUris:
-          pick(json, 'licenseUris').letStringListOrThrow((string) => string),
+      licenseUris: pick(json, 'licenseUris').letStringListOrThrow((string) => string),
       metadataHash: pick(json, 'metadataHash').asStringOrThrow().hexToBytes(),
-      metadataUris:
-          pick(json, 'metadataUris').letStringListOrThrow((string) => string),
+      metadataUris: pick(json, 'metadataUris').letStringListOrThrow((string) => string),
       mintHeight: pick(json, 'mintHeight').asIntOrThrow(),
       ownerDid: pick(json, 'ownerDid').asStringOrNull()?.hexToBytes(),
       editionNumber: pick(json, 'editionNumber').asIntOrThrow(),
       editionTotal: pick(json, 'editionTotal').asIntOrThrow(),
       supportsDid: pick(json, 'supportsDid').asBoolOrThrow(),
-      updaterPuzzlehash:
-          Puzzlehash.fromHex(pick(json, 'updaterPuzhash').asStringOrThrow()),
+      updaterPuzzlehash: Puzzlehash.fromHex(pick(json, 'updaterPuzhash').asStringOrThrow()),
       royaltyPercentage: pick(json, 'royaltyPercentage').asIntOrNull(),
       royaltyPuzzlehash: json['royaltyPuzzleHash'] != null
-          ? Puzzlehash.fromHex(
-              pick(json, 'royaltyPuzzleHash').asStringOrThrow())
+          ? Puzzlehash.fromHex(pick(json, 'royaltyPuzzleHash').asStringOrThrow())
           : null,
     );
   }
@@ -200,18 +194,12 @@ class ChainInfo {
   Program toProgram() {
     return Program.list(
       [
-        Program.cons(
-            Program.fromString('u'), Program.fromString(dataUris.toString())),
-        Program.cons(
-            Program.fromString('h'), Program.fromString(dataHash.toHex())),
-        Program.cons(Program.fromString('mu'),
-            Program.fromString(metadataUris.toString())),
-        Program.cons(Program.fromString('lu'),
-            Program.fromString(licenseUris.toString())),
-        Program.cons(
-            Program.fromString('sn'), Program.fromString(metadataHash.toHex())),
-        Program.cons(
-            Program.fromString('st'), Program.fromString(licenseHash.toHex())),
+        Program.cons(Program.fromString('u'), Program.fromString(dataUris.toString())),
+        Program.cons(Program.fromString('h'), Program.fromString(dataHash.toHex())),
+        Program.cons(Program.fromString('mu'), Program.fromString(metadataUris.toString())),
+        Program.cons(Program.fromString('lu'), Program.fromString(licenseUris.toString())),
+        Program.cons(Program.fromString('sn'), Program.fromString(metadataHash.toHex())),
+        Program.cons(Program.fromString('st'), Program.fromString(licenseHash.toHex())),
       ],
     );
   }

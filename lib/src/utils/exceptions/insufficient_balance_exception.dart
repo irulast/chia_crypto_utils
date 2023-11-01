@@ -10,8 +10,7 @@ class InsufficientBalanceException implements Exception {
   final int currentBalance;
 }
 
-class InsufficientStandardBalanceException
-    extends InsufficientBalanceException {
+class InsufficientStandardBalanceException extends InsufficientBalanceException {
   InsufficientStandardBalanceException({
     required super.requiredBalance,
     required super.currentBalance,
@@ -37,8 +36,7 @@ class InsufficientCatBalanceException extends InsufficientBalanceException {
 }
 
 class InsufficientNftBalanceException extends InsufficientBalanceException {
-  InsufficientNftBalanceException(this.launcherId)
-      : super(currentBalance: 0, requiredBalance: 1);
+  InsufficientNftBalanceException(this.launcherId) : super(currentBalance: 0, requiredBalance: 1);
   final Bytes launcherId;
 
   @override

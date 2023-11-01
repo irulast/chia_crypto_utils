@@ -13,23 +13,21 @@ class CoinRecordsWithCoinSpendsResponse extends ChiaBaseResponse {
     required super.error,
   });
 
-  factory CoinRecordsWithCoinSpendsResponse.fromJson(
-      Map<String, dynamic> json) {
+  factory CoinRecordsWithCoinSpendsResponse.fromJson(Map<String, dynamic> json) {
     final chiaBaseResponse = ChiaBaseResponse.fromJson(json);
 
     final coinRecords = json['coin_records'] != null
         ? (json['coin_records'] as List)
             .map(
-              (dynamic value) => ChiaCoinRecordWithCoinSpend.fromJson(
-                  value as Map<String, dynamic>),
+              (dynamic value) =>
+                  ChiaCoinRecordWithCoinSpend.fromJson(value as Map<String, dynamic>),
             )
             .toList()
         : <ChiaCoinRecordWithCoinSpend>[];
 
     final lastIdSerialized = json['last_id'] as String?;
 
-    final lastId =
-        (lastIdSerialized != null) ? Bytes.fromHex(lastIdSerialized) : null;
+    final lastId = (lastIdSerialized != null) ? Bytes.fromHex(lastIdSerialized) : null;
 
     return CoinRecordsWithCoinSpendsResponse(
       coinRecords: coinRecords,

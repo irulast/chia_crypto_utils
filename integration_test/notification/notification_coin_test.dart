@@ -35,8 +35,7 @@ Future<void> main() async {
   });
 
   test('should send and parse notification coin', () async {
-    final notificationSpendBundle =
-        notificationService.createNotificationSpendBundle(
+    final notificationSpendBundle = notificationService.createNotificationSpendBundle(
       targetPuzzlehash: targetPuzzlehash,
       message: [Memo(memo)],
       amount: minimumNotificationCoinAmount,
@@ -48,8 +47,8 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(notificationSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final coinsByHint = await fullNodeSimulator
-        .getCoinsByHints([targetPuzzlehash], includeSpentCoins: true);
+    final coinsByHint =
+        await fullNodeSimulator.getCoinsByHints([targetPuzzlehash], includeSpentCoins: true);
 
     expect(coinsByHint.length, equals(1));
 
@@ -63,8 +62,7 @@ Future<void> main() async {
     expect(notificationCoin.isSpent, isTrue);
     expect(notificationCoin.amount, minimumNotificationCoinAmount);
     expect(notificationCoin.puzzlehash, equals(expectedNotificationPuzzlehash));
-    expect(
-        notificationCoin.parentCoinInfo, equals(coinForNotificationSpend.id));
+    expect(notificationCoin.parentCoinInfo, equals(coinForNotificationSpend.id));
 
     final fullNotificationCoin =
         await fullNodeSimulator.getNotificationCoinFromCoin(notificationCoin);
@@ -74,8 +72,7 @@ Future<void> main() async {
     expect(fullNotificationCoin.message.single, equals(memo));
   });
 
-  test('should return null when trying to parse standard hinted coin',
-      () async {
+  test('should return null when trying to parse standard hinted coin', () async {
     final standardSpendBundle = standardWalletService.createSpendBundle(
       payments: [
         Payment(
@@ -91,24 +88,19 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(standardSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final coinsByHint =
-        await fullNodeSimulator.getCoinsByHint(targetPuzzlehash);
+    final coinsByHint = await fullNodeSimulator.getCoinsByHint(targetPuzzlehash);
     expect(coinsByHint.length, equals(1));
 
     final coinByHint = coinsByHint.single;
 
-    final notificationCoin =
-        await fullNodeSimulator.getNotificationCoinFromCoin(coinByHint);
+    final notificationCoin = await fullNodeSimulator.getNotificationCoinFromCoin(coinByHint);
     expect(notificationCoin, isNull);
   });
 
-  test(
-      'should throw exception when trying to construct notification coin from standard coin spend',
+  test('should throw exception when trying to construct notification coin from standard coin spend',
       () async {
     final standardSpendBundle = standardWalletService.createSpendBundle(
-      payments: [
-        Payment(minimumNotificationCoinAmount, sender.puzzlehashes[1])
-      ],
+      payments: [Payment(minimumNotificationCoinAmount, sender.puzzlehashes[1])],
       coinsInput: [coinForNotificationSpend],
       keychain: sender.keychain,
       changePuzzlehash: sender.firstPuzzlehash,
@@ -116,13 +108,11 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(standardSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final spentCoin =
-        await fullNodeSimulator.getCoinById(coinForNotificationSpend.id);
+    final spentCoin = await fullNodeSimulator.getCoinById(coinForNotificationSpend.id);
 
     final coinSpend = await fullNodeSimulator.getCoinSpend(spentCoin!);
-    final childCoin = coinSpend!.additions
-        .where((coin) => coin.amount == minimumNotificationCoinAmount)
-        .single;
+    final childCoin =
+        coinSpend!.additions.where((coin) => coin.amount == minimumNotificationCoinAmount).single;
 
     final secondSpendBundle = standardWalletService.createSpendBundle(
       payments: [Payment(minimumNotificationCoinAmount, targetPuzzlehash)],
@@ -147,8 +137,7 @@ Future<void> main() async {
   });
 
   test('should send and parse notification coin with multiple memos', () async {
-    final notificationSpendBundle =
-        notificationService.createNotificationSpendBundle(
+    final notificationSpendBundle = notificationService.createNotificationSpendBundle(
       targetPuzzlehash: targetPuzzlehash,
       message: [Memo(memo), Memo(memo2)],
       amount: minimumNotificationCoinAmount,
@@ -160,8 +149,8 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(notificationSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final coinsByHint = await fullNodeSimulator
-        .getCoinsByHints([targetPuzzlehash], includeSpentCoins: true);
+    final coinsByHint =
+        await fullNodeSimulator.getCoinsByHints([targetPuzzlehash], includeSpentCoins: true);
 
     expect(coinsByHint.length, equals(1));
 
@@ -175,8 +164,7 @@ Future<void> main() async {
     expect(notificationCoin.isSpent, isTrue);
     expect(notificationCoin.amount, minimumNotificationCoinAmount);
     expect(notificationCoin.puzzlehash, equals(expectedNotificationPuzzlehash));
-    expect(
-        notificationCoin.parentCoinInfo, equals(coinForNotificationSpend.id));
+    expect(notificationCoin.parentCoinInfo, equals(coinForNotificationSpend.id));
 
     final fullNotificationCoin =
         await fullNodeSimulator.getNotificationCoinFromCoin(notificationCoin);
@@ -189,8 +177,7 @@ Future<void> main() async {
   });
 
   test('should find received notification coin', () async {
-    final notificationSpendBundle =
-        notificationService.createNotificationSpendBundle(
+    final notificationSpendBundle = notificationService.createNotificationSpendBundle(
       targetPuzzlehash: targetPuzzlehash,
       message: [Memo(memo)],
       amount: minimumNotificationCoinAmount,
@@ -202,8 +189,8 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(notificationSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final receivedNotificationCoins = await fullNodeSimulator
-        .scroungeForReceivedNotificationCoins([targetPuzzlehash]);
+    final receivedNotificationCoins =
+        await fullNodeSimulator.scroungeForReceivedNotificationCoins([targetPuzzlehash]);
 
     expect(receivedNotificationCoins.length, equals(1));
 
@@ -212,13 +199,11 @@ Future<void> main() async {
     expect(notificationCoin.amount, equals(minimumNotificationCoinAmount));
     expect(notificationCoin.message.single, equals(memo));
     expect(notificationCoin.targetPuzzlehash, equals(targetPuzzlehash));
-    expect(
-        notificationCoin.parentCoinInfo, equals(coinForNotificationSpend.id));
+    expect(notificationCoin.parentCoinInfo, equals(coinForNotificationSpend.id));
   });
 
   test('should find multiple received notification coins', () async {
-    final notificationSpendBundle =
-        notificationService.createNotificationSpendBundle(
+    final notificationSpendBundle = notificationService.createNotificationSpendBundle(
       targetPuzzlehash: targetPuzzlehash,
       message: [Memo(memo)],
       amount: minimumNotificationCoinAmount,
@@ -235,8 +220,7 @@ Future<void> main() async {
     await sender2.refreshCoins();
     final coinForNotificationSpend2 = sender2.standardCoins.first;
 
-    final notificationSpendBundle2 =
-        notificationService.createNotificationSpendBundle(
+    final notificationSpendBundle2 = notificationService.createNotificationSpendBundle(
       targetPuzzlehash: targetPuzzlehash,
       message: [Memo(memo2)],
       amount: minimumNotificationCoinAmount,
@@ -248,8 +232,8 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(notificationSpendBundle2);
     await fullNodeSimulator.moveToNextBlock();
 
-    final receivedNotificationCoins = await fullNodeSimulator
-        .scroungeForReceivedNotificationCoins([targetPuzzlehash]);
+    final receivedNotificationCoins =
+        await fullNodeSimulator.scroungeForReceivedNotificationCoins([targetPuzzlehash]);
 
     expect(receivedNotificationCoins.length, equals(2));
 
@@ -268,13 +252,11 @@ Future<void> main() async {
     expect(notificationCoin2.amount, equals(minimumNotificationCoinAmount));
     expect(notificationCoin2.message.single, equals(memo2));
     expect(notificationCoin2.targetPuzzlehash, equals(targetPuzzlehash));
-    expect(
-        notificationCoin2.parentCoinInfo, equals(coinForNotificationSpend2.id));
+    expect(notificationCoin2.parentCoinInfo, equals(coinForNotificationSpend2.id));
   });
 
   test('should find sent notification coin', () async {
-    final notificationSpendBundle =
-        notificationService.createNotificationSpendBundle(
+    final notificationSpendBundle = notificationService.createNotificationSpendBundle(
       targetPuzzlehash: targetPuzzlehash,
       message: [Memo(memo)],
       amount: minimumNotificationCoinAmount,
@@ -286,8 +268,8 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(notificationSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final sentNotificationCoins = await fullNodeSimulator
-        .scroungeForSentNotificationCoins(sender.puzzlehashes);
+    final sentNotificationCoins =
+        await fullNodeSimulator.scroungeForSentNotificationCoins(sender.puzzlehashes);
 
     expect(sentNotificationCoins.length, equals(1));
 
@@ -296,13 +278,11 @@ Future<void> main() async {
     expect(notificationCoin.amount, equals(minimumNotificationCoinAmount));
     expect(notificationCoin.message.single, equals(memo));
     expect(notificationCoin.targetPuzzlehash, equals(targetPuzzlehash));
-    expect(
-        notificationCoin.parentCoinInfo, equals(coinForNotificationSpend.id));
+    expect(notificationCoin.parentCoinInfo, equals(coinForNotificationSpend.id));
   });
 
   test('should find multiple sent notification coins', () async {
-    final notificationSpendBundle =
-        notificationService.createNotificationSpendBundle(
+    final notificationSpendBundle = notificationService.createNotificationSpendBundle(
       targetPuzzlehash: targetPuzzlehash,
       message: [Memo(memo)],
       amount: minimumNotificationCoinAmount,
@@ -313,8 +293,7 @@ Future<void> main() async {
 
     final coinForNotificationSpend2 = sender.standardCoins.last;
 
-    final notificationSpendBundle2 =
-        notificationService.createNotificationSpendBundle(
+    final notificationSpendBundle2 = notificationService.createNotificationSpendBundle(
       targetPuzzlehash: targetPuzzlehash,
       message: [Memo(memo2)],
       amount: minimumNotificationCoinAmount,
@@ -323,12 +302,11 @@ Future<void> main() async {
       changePuzzlehash: sender.firstPuzzlehash,
     );
 
-    await fullNodeSimulator
-        .pushTransaction(notificationSpendBundle + notificationSpendBundle2);
+    await fullNodeSimulator.pushTransaction(notificationSpendBundle + notificationSpendBundle2);
     await fullNodeSimulator.moveToNextBlock();
 
-    final sentNotificationCoins = await fullNodeSimulator
-        .scroungeForSentNotificationCoins(sender.puzzlehashes);
+    final sentNotificationCoins =
+        await fullNodeSimulator.scroungeForSentNotificationCoins(sender.puzzlehashes);
 
     final notificationCoin1 = sentNotificationCoins
         .where((coin) => coin.parentCoinInfo == coinForNotificationSpend.id)
@@ -345,7 +323,6 @@ Future<void> main() async {
     expect(notificationCoin2.amount, equals(minimumNotificationCoinAmount));
     expect(notificationCoin2.message.single, equals(memo2));
     expect(notificationCoin2.targetPuzzlehash, equals(targetPuzzlehash));
-    expect(
-        notificationCoin2.parentCoinInfo, equals(coinForNotificationSpend2.id));
+    expect(notificationCoin2.parentCoinInfo, equals(coinForNotificationSpend2.id));
   });
 }

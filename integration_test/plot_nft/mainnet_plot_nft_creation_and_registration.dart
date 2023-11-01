@@ -10,8 +10,7 @@ Future<void> main() async {
   const fullNodeUrl = 'FULL_NODE_URL';
 
   // clone this for certificate chain: https://github.com/Chia-Network/mozilla-ca.git
-  final certificateBytes =
-      Bytes(File('CERTIFICATE_BYTES_PATH').readAsBytesSync());
+  final certificateBytes = Bytes(File('CERTIFICATE_BYTES_PATH').readAsBytesSync());
 
   const fullNodeRpc = FullNodeHttpRpc(
     fullNodeUrl,
@@ -37,8 +36,8 @@ Future<void> main() async {
 
   final keychain = WalletKeychain.fromWalletSets(walletsSetList);
 
-  final singletonWalletVector = SingletonWalletVector.fromMasterPrivateKey(
-      keychainSecret.masterPrivateKey, 20);
+  final singletonWalletVector =
+      SingletonWalletVector.fromMasterPrivateKey(keychainSecret.masterPrivateKey, 20);
 
   final coins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
 

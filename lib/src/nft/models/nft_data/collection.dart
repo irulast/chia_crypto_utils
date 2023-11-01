@@ -12,8 +12,7 @@ class Collection {
     required this.banner,
   });
   factory Collection.fromJson(Map<String, dynamic> json) {
-    final attributes = pick(json, 'attributes')
-        .letJsonListOrThrow(CollectionAttribute.fromJson);
+    final attributes = pick(json, 'attributes').letJsonListOrThrow(CollectionAttribute.fromJson);
 
     return Collection.fromAttributes(
       name: pick(json, 'name').asStringOrThrow(),
@@ -62,9 +61,7 @@ extension AttributeMap on Iterable<Attribute> {
       };
 }
 
-class CollectionAttribute extends Equatable
-    with ToJsonMixin
-    implements Attribute {
+class CollectionAttribute extends Equatable with ToJsonMixin implements Attribute {
   const CollectionAttribute({
     required this.type,
     required this.value,

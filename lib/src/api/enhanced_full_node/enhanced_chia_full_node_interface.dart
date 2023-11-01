@@ -32,8 +32,7 @@ class EnhancedChiaFullNodeInterface extends ChiaFullNodeInterface {
     Bytes? lastId,
     bool includeSpentCoins = false,
   }) async {
-    final recordsResponse =
-        await enhancedFullNode.getCoinRecordsByPuzzleHashesPaginated(
+    final recordsResponse = await enhancedFullNode.getCoinRecordsByPuzzleHashesPaginated(
       puzzlehashes,
       maxNumberOfCoins,
       startHeight: startHeight,
@@ -111,8 +110,7 @@ class EnhancedChiaFullNodeInterface extends ChiaFullNodeInterface {
     Bytes? lastId,
     bool includeSpentCoins = false,
   }) async {
-    final recordsResponse =
-        await enhancedFullNode.getCoinRecordsByHintsPaginated(
+    final recordsResponse = await enhancedFullNode.getCoinRecordsByHintsPaginated(
       hints,
       maxNumberOfCoins,
       startHeight: startHeight,
@@ -212,10 +210,8 @@ class EnhancedChiaFullNodeInterface extends ChiaFullNodeInterface {
     return response.coinSpendsMap;
   }
 
-  Future<AdditionsAndRemovalsWithHints> getAdditionsAndRemovalsWithHints(
-      Bytes headerHash) async {
-    final response =
-        await enhancedFullNode.getAdditionsAndRemovalsWithHints(headerHash);
+  Future<AdditionsAndRemovalsWithHints> getAdditionsAndRemovalsWithHints(Bytes headerHash) async {
+    final response = await enhancedFullNode.getAdditionsAndRemovalsWithHints(headerHash);
     ChiaFullNodeInterface.mapResponseToError(response);
     return AdditionsAndRemovalsWithHints(
       additions: response.additions!,
@@ -241,8 +237,7 @@ class EnhancedChiaFullNodeInterface extends ChiaFullNodeInterface {
   @override
   Future<List<DidRecord>> getDidsFromCoins(List<Coin> coins) async {
     final didInfos = <DidRecord>[];
-    final parentSpends =
-        await getCoinSpendsByIds(coins.map((e) => e.parentCoinInfo).toList());
+    final parentSpends = await getCoinSpendsByIds(coins.map((e) => e.parentCoinInfo).toList());
     for (final coin in coins) {
       if (coin.amount.isEven) {
         continue;

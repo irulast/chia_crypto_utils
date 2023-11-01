@@ -42,10 +42,9 @@ void main() async {
     await fullNodeSimulator.pushTransaction(nathanToGrantSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final grantDid =
-        (await fullNodeSimulator.getDidRecordsFromHint(grant.firstPuzzlehash))
-            .single
-            .toDidInfoOrThrow(grant.keychain);
+    final grantDid = (await fullNodeSimulator.getDidRecordsFromHint(grant.firstPuzzlehash))
+        .single
+        .toDidInfoOrThrow(grant.keychain);
 
     final grantToMeeraSpendBundle = didWalletService.createSpendBundle(
       newP2Puzzlehash: meera.firstPuzzlehash,
@@ -56,10 +55,9 @@ void main() async {
     await fullNodeSimulator.pushTransaction(grantToMeeraSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final meeraDid =
-        (await fullNodeSimulator.getDidRecordsFromHint(meera.firstPuzzlehash))
-            .single
-            .toDidInfoOrThrow(meera.keychain);
+    final meeraDid = (await fullNodeSimulator.getDidRecordsFromHint(meera.firstPuzzlehash))
+        .single
+        .toDidInfoOrThrow(meera.keychain);
 
     final meeraToNathanSpendBundle = didWalletService.createSpendBundle(
       newP2Puzzlehash: nathan.firstPuzzlehash,
@@ -69,10 +67,9 @@ void main() async {
     await fullNodeSimulator.pushTransaction(meeraToNathanSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final nathanDid =
-        (await fullNodeSimulator.getDidRecordsFromHint(nathan.firstPuzzlehash))
-            .single
-            .toDidInfoOrThrow(nathan.keychain);
+    final nathanDid = (await fullNodeSimulator.getDidRecordsFromHint(nathan.firstPuzzlehash))
+        .single
+        .toDidInfoOrThrow(nathan.keychain);
 
     expectDidEquality(nathanDid, origionalDid);
 
@@ -86,8 +83,7 @@ void main() async {
     final targetPuzzleHash = nathan.puzzlehashes.first;
     await nathan.refreshCoins();
 
-    final bulkMintSpendBundle =
-        nftWalletService.createDidNftBulkMintSpendBundle(
+    final bulkMintSpendBundle = nftWalletService.createDidNftBulkMintSpendBundle(
       minterPuzzlehash: targetPuzzleHash,
       nftMintData: await NftMintingDataWithHashes.makeUniformBulkMintData(
         uriHashProvider: MockUriHashProvider(),
@@ -108,10 +104,9 @@ void main() async {
     await fullNodeSimulator.pushTransaction(bulkMintSpendBundle);
 
     await fullNodeSimulator.moveToNextBlock();
-    final nftRecords =
-        await fullNodeSimulator.getNftRecordsByHint(targetPuzzleHash);
-    final mintedNftRecords = nftRecords.where(
-        (element) => bulkMintSpendBundle.additions.contains(element.coin));
+    final nftRecords = await fullNodeSimulator.getNftRecordsByHint(targetPuzzleHash);
+    final mintedNftRecords =
+        nftRecords.where((element) => bulkMintSpendBundle.additions.contains(element.coin));
     expect(mintedNftRecords.length, 10);
     final mirror = ChiaEnthusiast(fullNodeSimulator);
 
@@ -125,8 +120,7 @@ void main() async {
     }
 
     await fullNodeSimulator.moveToNextBlock();
-    final sentNfts =
-        await fullNodeSimulator.getNftRecordsByHint(mirror.firstPuzzlehash);
+    final sentNfts = await fullNodeSimulator.getNftRecordsByHint(mirror.firstPuzzlehash);
     expect(sentNfts.length, 10);
 
     final finalDid = await fullNodeSimulator.getDidRecordForDid(nathanDid.did);
@@ -154,8 +148,7 @@ void main() async {
     await fullNodeSimulator.pushTransaction(createNftSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final nfts =
-        await fullNodeSimulator.getNftRecordsByHint(nathan.firstPuzzlehash);
+    final nfts = await fullNodeSimulator.getNftRecordsByHint(nathan.firstPuzzlehash);
 
     await meera.issueDid();
 
@@ -175,9 +168,7 @@ void main() async {
     await fullNodeSimulator.pushTransaction(spendNftBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    var meeraNft =
-        (await fullNodeSimulator.getNftRecordsByHint(meera.firstPuzzlehash))
-            .single;
+    var meeraNft = (await fullNodeSimulator.getNftRecordsByHint(meera.firstPuzzlehash)).single;
 
     await fullNodeSimulator.pushTransaction(
       nftWalletService.createSpendBundle(
@@ -196,12 +187,9 @@ void main() async {
     );
 
     await fullNodeSimulator.moveToNextBlock();
-    meeraNft =
-        (await fullNodeSimulator.getNftRecordsByHint(meera.firstPuzzlehash))
-            .single;
+    meeraNft = (await fullNodeSimulator.getNftRecordsByHint(meera.firstPuzzlehash)).single;
 
-    final mintInfo = await fullNodeSimulator
-        .getNftMintInfoForLauncherId(meeraNft.launcherId);
+    final mintInfo = await fullNodeSimulator.getNftMintInfoForLauncherId(meeraNft.launcherId);
 
     expect(mintInfo!.minterDid, nathanDid.did);
     expect(meeraNft.ownershipLayerInfo!.currentDid, meera.didInfo!.did);

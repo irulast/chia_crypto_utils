@@ -1,5 +1,4 @@
-@Skip(
-    'These tests should be run manually, as they depend on the WalletConnect relay server')
+@Skip('These tests should be run manually, as they depend on the WalletConnect relay server')
 @Timeout(Duration(minutes: 5))
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:test/test.dart';
@@ -20,8 +19,7 @@ Future<void> main() async {
     SimulatorUtils.simulatorUrl,
   );
 
-  final enhancedFullNodeInterface =
-      EnhancedChiaFullNodeInterface(enhancedFullNodeHttpRpc);
+  final enhancedFullNodeInterface = EnhancedChiaFullNodeInterface(enhancedFullNodeHttpRpc);
 
   final fullNodeSimulator = SimulatorFullNodeInterface.withDefaultUrl();
 
@@ -84,12 +82,9 @@ Future<void> main() async {
 
     await fullNodeSimulator.moveToNextBlock();
 
-    nftRecord =
-        (await fullNodeSimulator.getNftRecordsByHint(meera.firstPuzzlehash))
-            .single;
+    nftRecord = (await fullNodeSimulator.getNftRecordsByHint(meera.firstPuzzlehash)).single;
 
-    final nftRecordWithMintInfo =
-        (await nftRecord.fetchMintInfo(fullNodeSimulator))!;
+    final nftRecordWithMintInfo = (await nftRecord.fetchMintInfo(fullNodeSimulator))!;
 
     nftInfo = NftInfo.fromNftRecordWithMintInfo(nftRecordWithMintInfo);
 
@@ -101,8 +96,7 @@ Future<void> main() async {
 
     // set up WalletConnect wallet client
     final walletCore = Core(projectId: testWalletProjectId);
-    final web3Wallet =
-        Web3Wallet(core: walletCore, metadata: defaultPairingMetadata);
+    final web3Wallet = Web3Wallet(core: walletCore, metadata: defaultPairingMetadata);
 
     fingerprint = meera.keychainSecret.fingerprint;
 
@@ -144,15 +138,12 @@ Future<void> main() async {
   });
 
   test('Should request and receive current address data', () async {
-    final response =
-        await appClient.getCurrentAddress(fingerprint: fingerprint);
+    final response = await appClient.getCurrentAddress(fingerprint: fingerprint);
 
-    expect(
-        response.address, equals(meera.firstPuzzlehash.toAddressWithContext()));
+    expect(response.address, equals(meera.firstPuzzlehash.toAddressWithContext()));
   });
 
-  test('Should make request and throw exception when request is rejected',
-      () async {
+  test('Should make request and throw exception when request is rejected', () async {
     requestHandler.approveRequest = false;
 
     expect(
@@ -166,15 +157,14 @@ Future<void> main() async {
 
     final response = await appClient.getNextAddress(fingerprint: fingerprint);
 
-    final expectedNewAddress =
-        meera.puzzlehashes[initialLastIndex + 1].toAddressWithContext();
+    final expectedNewAddress = meera.puzzlehashes[initialLastIndex + 1].toAddressWithContext();
 
     expect(response.address.address, equals(expectedNewAddress.address));
   });
 
   test('Should request and receive NFT info', () async {
-    final response = await appClient.getNFTInfo(
-        fingerprint: fingerprint, coinId: nftInfo.nftCoinId);
+    final response =
+        await appClient.getNFTInfo(fingerprint: fingerprint, coinId: nftInfo.nftCoinId);
 
     expect(response.nftInfo.toJson(), equals(nftInfo.toJson()));
   });
@@ -182,12 +172,10 @@ Future<void> main() async {
   test('Should request and receive NFTs data', () async {
     final nftWalletIds = walletMap.nftWallets().keys.toList();
 
-    final response = await appClient.getNFTs(
-        fingerprint: fingerprint, walletIds: nftWalletIds);
+    final response = await appClient.getNFTs(fingerprint: fingerprint, walletIds: nftWalletIds);
 
     expect(response.nfts.length, equals(1));
-    expect(response.nfts.entries.single.value.single.toJson(),
-        equals(nftInfo.toJson()));
+    expect(response.nfts.entries.single.value.single.toJson(), equals(nftInfo.toJson()));
   });
 
   test('Should request and receive paginated NFTs data', () async {
@@ -224,18 +212,14 @@ Future<void> main() async {
   test('Should request and receive wallet balance data', () async {
     final response = await appClient.getWalletBalance(fingerprint: fingerprint);
 
-    expect(response.balance.confirmedWalletBalance,
-        equals(meera.standardCoins.totalValue));
+    expect(response.balance.confirmedWalletBalance, equals(meera.standardCoins.totalValue));
     expect(response.balance.fingerprint, equals(fingerprint));
     expect(response.balance.pendingChange, equals(0));
     expect(response.balance.pendingCoinRemovalCount, equals(0));
     expect(response.balance.pendingChange, equals(0));
-    expect(response.balance.spendableBalance,
-        equals(meera.standardCoins.totalValue));
-    expect(response.balance.unconfirmedWalletBalance,
-        equals(meera.standardCoins.totalValue));
-    expect(
-        response.balance.unspentCoinCount, equals(meera.standardCoins.length));
+    expect(response.balance.spendableBalance, equals(meera.standardCoins.totalValue));
+    expect(response.balance.unconfirmedWalletBalance, equals(meera.standardCoins.totalValue));
+    expect(response.balance.unspentCoinCount, equals(meera.standardCoins.length));
     expect(response.balance.walletId, equals(1));
     expect(response.balance.walletType, equals(ChiaWalletType.standard));
   });
@@ -247,8 +231,7 @@ Future<void> main() async {
 
     final walletTypes = response.wallets.map((wallet) => wallet.type);
 
-    final standardWallets =
-        walletTypes.where((type) => type == ChiaWalletType.standard);
+    final standardWallets = walletTypes.where((type) => type == ChiaWalletType.standard);
     final nftWallets = walletTypes.where((type) => type == ChiaWalletType.nft);
     final didWallets = walletTypes.where((type) => type == ChiaWalletType.did);
     final catWallets = walletTypes.where((type) => type == ChiaWalletType.cat);
@@ -259,8 +242,7 @@ Future<void> main() async {
     expect(catWallets.length, equals(1));
   });
 
-  test(
-      'Should make transaction request, wait for confirmation, and receive sent transaction data',
+  test('Should make transaction request, wait for confirmation, and receive sent transaction data',
       () async {
     final meeraStartingBalance = meera.standardCoins.totalValue;
     final nathanStartingBalance = nathan.standardCoins.totalValue;
@@ -278,11 +260,9 @@ Future<void> main() async {
     fullNodeSimulator.stop();
 
     expect(response.sentTransactionData.success, isTrue);
-    expect(response.sentTransactionData.transaction.amount,
-        equals(standardAmount));
+    expect(response.sentTransactionData.transaction.amount, equals(standardAmount));
     expect(response.sentTransactionData.transaction.feeAmount, equals(fee));
-    expect(response.sentTransactionData.transaction.toPuzzlehash,
-        equals(nathan.firstPuzzlehash));
+    expect(response.sentTransactionData.transaction.toPuzzlehash, equals(nathan.firstPuzzlehash));
     expect(response.sentTransactionData.transaction.confirmed, isTrue);
 
     await fullNodeSimulator.moveToNextBlock();
@@ -292,8 +272,7 @@ Future<void> main() async {
     final meeraEndingBalance = meera.standardCoins.totalValue;
     final nathanEndingBalance = nathan.standardCoins.totalValue;
 
-    expect(meeraEndingBalance,
-        equals(meeraStartingBalance - fee - standardAmount));
+    expect(meeraEndingBalance, equals(meeraStartingBalance - fee - standardAmount));
     expect(nathanEndingBalance, equals(nathanStartingBalance + standardAmount));
   });
 
@@ -311,11 +290,9 @@ Future<void> main() async {
     );
 
     expect(response.sentTransactionData.success, isTrue);
-    expect(response.sentTransactionData.transaction.amount,
-        equals(standardAmount));
+    expect(response.sentTransactionData.transaction.amount, equals(standardAmount));
     expect(response.sentTransactionData.transaction.feeAmount, equals(fee));
-    expect(response.sentTransactionData.transaction.toPuzzlehash,
-        equals(nathan.firstPuzzlehash));
+    expect(response.sentTransactionData.transaction.toPuzzlehash, equals(nathan.firstPuzzlehash));
     expect(response.sentTransactionData.transaction.confirmed, isFalse);
 
     await fullNodeSimulator.moveToNextBlock();
@@ -325,14 +302,11 @@ Future<void> main() async {
     final meeraEndingBalance = meera.standardCoins.totalValue;
     final nathanEndingBalance = nathan.standardCoins.totalValue;
 
-    expect(meeraEndingBalance,
-        equals(meeraStartingBalance - fee - standardAmount));
+    expect(meeraEndingBalance, equals(meeraStartingBalance - fee - standardAmount));
     expect(nathanEndingBalance, equals(nathanStartingBalance + standardAmount));
   });
 
-  test(
-      'Should make a CAT transaction request and receive sent transaction data',
-      () async {
+  test('Should make a CAT transaction request and receive sent transaction data', () async {
     final meeraStartingCatBalance = meera.catCoins.totalValue;
     final nathanStartingCatBalance = nathan.catCoins.totalValue;
 
@@ -347,8 +321,7 @@ Future<void> main() async {
     expect(response.sentTransactionData.success, isTrue);
     expect(response.sentTransactionData.transaction.amount, equals(catAmount));
     expect(response.sentTransactionData.transaction.feeAmount, equals(fee));
-    expect(response.sentTransactionData.transaction.toPuzzlehash,
-        equals(nathan.firstPuzzlehash));
+    expect(response.sentTransactionData.transaction.toPuzzlehash, equals(nathan.firstPuzzlehash));
     expect(response.sentTransactionData.transaction.confirmed, isFalse);
 
     await fullNodeSimulator.moveToNextBlock();
@@ -359,17 +332,14 @@ Future<void> main() async {
     final nathanEndingCatBalance = nathan.catCoins.totalValue;
 
     expect(meeraEndingCatBalance, equals(meeraStartingCatBalance - catAmount));
-    expect(
-        nathanEndingCatBalance, equals(nathanStartingCatBalance + catAmount));
+    expect(nathanEndingCatBalance, equals(nathanStartingCatBalance + catAmount));
   });
 
   test('Should make a NFT transaction request and receive data', () async {
-    var meeraNfts =
-        await fullNodeSimulator.getNftRecordsByHint(meera.firstPuzzlehash);
+    var meeraNfts = await fullNodeSimulator.getNftRecordsByHint(meera.firstPuzzlehash);
     expect(meeraNfts.length, equals(1));
 
-    var nathanNfts =
-        await fullNodeSimulator.getNftRecordsByHint(nathan.firstPuzzlehash);
+    var nathanNfts = await fullNodeSimulator.getNftRecordsByHint(nathan.firstPuzzlehash);
     expect(nathanNfts, isEmpty);
 
     final response = await appClient.sendTransaction(
@@ -383,26 +353,22 @@ Future<void> main() async {
     expect(response.sentTransactionData.success, isTrue);
     expect(response.sentTransactionData.transaction.amount, equals(1));
     expect(response.sentTransactionData.transaction.feeAmount, equals(fee));
-    expect(response.sentTransactionData.transaction.toPuzzlehash,
-        equals(nathan.firstPuzzlehash));
+    expect(response.sentTransactionData.transaction.toPuzzlehash, equals(nathan.firstPuzzlehash));
     expect(response.sentTransactionData.transaction.confirmed, isFalse);
 
     await fullNodeSimulator.moveToNextBlock();
     await meera.refreshCoins();
     await nathan.refreshCoins();
 
-    meeraNfts =
-        await fullNodeSimulator.getNftRecordsByHint(meera.firstPuzzlehash);
+    meeraNfts = await fullNodeSimulator.getNftRecordsByHint(meera.firstPuzzlehash);
     expect(meeraNfts, isEmpty);
 
-    nathanNfts =
-        await fullNodeSimulator.getNftRecordsByHint(nathan.firstPuzzlehash);
+    nathanNfts = await fullNodeSimulator.getNftRecordsByHint(nathan.firstPuzzlehash);
     expect(nathanNfts.length, equals(1));
     expect(nathanNfts.single.launcherId, equals(nftInfo.launcherId));
   });
 
-  test('Should make request to spend CAT and receive sent transaction data',
-      () async {
+  test('Should make request to spend CAT and receive sent transaction data', () async {
     final meeraStartingCatBalance = meera.catCoins.totalValue;
     final nathanStartingCatBalance = nathan.catCoins.totalValue;
 
@@ -417,8 +383,7 @@ Future<void> main() async {
     expect(response.sentTransactionData.success, isTrue);
     expect(response.sentTransactionData.transaction.amount, equals(catAmount));
     expect(response.sentTransactionData.transaction.feeAmount, equals(fee));
-    expect(response.sentTransactionData.transaction.toPuzzlehash,
-        equals(nathan.firstPuzzlehash));
+    expect(response.sentTransactionData.transaction.toPuzzlehash, equals(nathan.firstPuzzlehash));
     expect(response.sentTransactionData.transaction.confirmed, isFalse);
 
     await fullNodeSimulator.moveToNextBlock();
@@ -429,12 +394,10 @@ Future<void> main() async {
     final nathanEndingCatBalance = nathan.catCoins.totalValue;
 
     expect(meeraEndingCatBalance, equals(meeraStartingCatBalance - catAmount));
-    expect(
-        nathanEndingCatBalance, equals(nathanStartingCatBalance + catAmount));
+    expect(nathanEndingCatBalance, equals(nathanStartingCatBalance + catAmount));
   });
 
-  test('Should request to take CAT for XCH offer and receive response',
-      () async {
+  test('Should request to take CAT for XCH offer and receive response', () async {
     final nathanStartingStandardBalance = nathan.standardCoins.totalValue;
     final nathanStartingCatBalance = nathan.catCoins.totalValue;
     final meeraStartingStandardBalance = meera.standardCoins.totalValue;
@@ -463,8 +426,7 @@ Future<void> main() async {
     fullNodeSimulator.stop();
 
     expect(response.takeOfferData.success, isTrue);
-    expect(response.takeOfferData.tradeRecord.takenOffer,
-        equals(offer.toBech32()));
+    expect(response.takeOfferData.tradeRecord.takenOffer, equals(offer.toBech32()));
 
     await fullNodeSimulator.moveToNextBlock();
     await meera.refreshCoins();
@@ -485,12 +447,10 @@ Future<void> main() async {
       nathanEndingStandardBalance,
       equals(nathanStartingStandardBalance - standardAmount),
     );
-    expect(
-        nathanEndingCatBalance, equals(nathanStartingCatBalance + catAmount));
+    expect(nathanEndingCatBalance, equals(nathanStartingCatBalance + catAmount));
   });
 
-  test('Should request to take XCH for CAT offer and receive response',
-      () async {
+  test('Should request to take XCH for CAT offer and receive response', () async {
     await nathan.issueMultiIssuanceCat();
 
     final nathanStartingStandardBalance = nathan.standardCoins.totalValue;
@@ -503,12 +463,11 @@ Future<void> main() async {
     final targetPuzzlehash = nathan.firstPuzzlehash;
 
     final offer = catOfferService.makeOffer(
-      coinsForOffer: MixedCoins(
-          cats: nathan.catCoins, standardCoins: [nathan.standardCoins.first]),
+      coinsForOffer: MixedCoins(cats: nathan.catCoins, standardCoins: [nathan.standardCoins.first]),
       offeredAmounts: OfferedMixedAmounts(cat: {nathanCoinAssetId: catAmount}),
       changePuzzlehash: targetPuzzlehash,
-      requestedPayments: RequestedMixedPayments(
-          standard: [Payment(standardAmount, targetPuzzlehash)]),
+      requestedPayments:
+          RequestedMixedPayments(standard: [Payment(standardAmount, targetPuzzlehash)]),
       keychain: nathan.keychain,
       fee: fee,
     );
@@ -524,8 +483,7 @@ Future<void> main() async {
     fullNodeSimulator.stop();
 
     expect(response.takeOfferData.success, isTrue);
-    expect(response.takeOfferData.tradeRecord.takenOffer,
-        equals(offer.toBech32()));
+    expect(response.takeOfferData.tradeRecord.takenOffer, equals(offer.toBech32()));
 
     await fullNodeSimulator.moveToNextBlock();
 
@@ -547,12 +505,10 @@ Future<void> main() async {
       nathanEndingStandardBalance,
       equals(nathanStartingStandardBalance + standardAmount - fee),
     );
-    expect(
-        nathanEndingCatBalance, equals(nathanStartingCatBalance - catAmount));
+    expect(nathanEndingCatBalance, equals(nathanStartingCatBalance - catAmount));
   });
 
-  test('Should request to take XCH for NFT offer and receive response',
-      () async {
+  test('Should request to take XCH for NFT offer and receive response', () async {
     // generate an NFT without owner DID for offer
     final spendBundle = nftWalletService.createGenerateNftSpendBundle(
       minterPuzzlehash: meera.puzzlehashes[2],
@@ -570,14 +526,12 @@ Future<void> main() async {
     await meera.farmCoins();
 
     final requestedNftRecord =
-        (await fullNodeSimulator.getNftRecordsByHint(meera.puzzlehashes[2]))
-            .single;
+        (await fullNodeSimulator.getNftRecordsByHint(meera.puzzlehashes[2])).single;
 
     final nathanStartingStandardBalance = nathan.standardCoins.totalValue;
     final meeraStartingStandardBalance = meera.standardCoins.totalValue;
 
-    var nathanNfts = await enhancedFullNodeInterface
-        .getNftRecordsByHints(nathan.puzzlehashes);
+    var nathanNfts = await enhancedFullNodeInterface.getNftRecordsByHints(nathan.puzzlehashes);
     expect(nathanNfts, isEmpty);
 
     final targetPuzzlehash = nathan.firstPuzzlehash;
@@ -601,8 +555,7 @@ Future<void> main() async {
     fullNodeSimulator.stop();
 
     expect(response.takeOfferData.success, isTrue);
-    expect(response.takeOfferData.tradeRecord.takenOffer,
-        equals(offer.toBech32()));
+    expect(response.takeOfferData.tradeRecord.takenOffer, equals(offer.toBech32()));
 
     await fullNodeSimulator.moveToNextBlock();
     await meera.refreshCoins();
@@ -621,14 +574,12 @@ Future<void> main() async {
       equals(nathanStartingStandardBalance - standardAmount),
     );
 
-    nathanNfts = await enhancedFullNodeInterface
-        .getNftRecordsByHints(nathan.puzzlehashes);
+    nathanNfts = await enhancedFullNodeInterface.getNftRecordsByHints(nathan.puzzlehashes);
     expect(nathanNfts.length, equals(1));
     expect(nathanNfts.single.launcherId, equals(requestedNftRecord.launcherId));
   });
 
-  test('Should request to take NFT for XCH offer and receive response',
-      () async {
+  test('Should request to take NFT for XCH offer and receive response', () async {
     final spendBundle = nftWalletService.createGenerateNftSpendBundle(
       minterPuzzlehash: nathan.puzzlehashes[1],
       metadata: inputMetadata,
@@ -645,8 +596,7 @@ Future<void> main() async {
     await nathan.farmCoins();
 
     final offeredNftRecord =
-        (await fullNodeSimulator.getNftRecordsByHint(nathan.puzzlehashes[1]))
-            .single;
+        (await fullNodeSimulator.getNftRecordsByHint(nathan.puzzlehashes[1])).single;
 
     final offeredNft = offeredNftRecord.toNft(nathan.keychain);
 
@@ -657,15 +607,13 @@ Future<void> main() async {
     final nathanStartingStandardBalance = nathan.standardCoins.totalValue;
     final meeraStartingStandardBalance = meera.standardCoins.totalValue;
 
-    var meeraNfts = await enhancedFullNodeInterface
-        .getNftRecordsByHints(meera.puzzlehashes);
+    var meeraNfts = await enhancedFullNodeInterface.getNftRecordsByHints(meera.puzzlehashes);
     expect(meeraNfts.length, equals(1));
 
     final targetPuzzlehash = nathan.firstPuzzlehash;
 
     final offer = catOfferService.makeOffer(
-      coinsForOffer: MixedCoins(
-          nfts: [offeredNft], standardCoins: [nathan.standardCoins.first]),
+      coinsForOffer: MixedCoins(nfts: [offeredNft], standardCoins: [nathan.standardCoins.first]),
       changePuzzlehash: targetPuzzlehash,
       requestedPayments: RequestedMixedPayments(
         standard: [Payment(standardAmount, targetPuzzlehash)],
@@ -684,8 +632,7 @@ Future<void> main() async {
     fullNodeSimulator.stop();
 
     expect(response.takeOfferData.success, isTrue);
-    expect(response.takeOfferData.tradeRecord.takenOffer,
-        equals(offer.toBech32()));
+    expect(response.takeOfferData.tradeRecord.takenOffer, equals(offer.toBech32()));
 
     await fullNodeSimulator.moveToNextBlock();
     await meera.refreshCoins();
@@ -704,24 +651,20 @@ Future<void> main() async {
       equals(nathanStartingStandardBalance + standardAmount - fee),
     );
 
-    meeraNfts = await enhancedFullNodeInterface
-        .getNftRecordsByHints(meera.puzzlehashes);
+    meeraNfts = await enhancedFullNodeInterface.getNftRecordsByHints(meera.puzzlehashes);
     expect(meeraNfts.length, equals(2));
 
-    final newNft =
-        meeraNfts.where((nft) => nft.launcherId != nftRecord.launcherId);
+    final newNft = meeraNfts.where((nft) => nft.launcherId != nftRecord.launcherId);
     expect(newNft.length, equals(1));
 
     expect(newNft.single.launcherId, equals(offeredNftRecord.launcherId));
   });
 
   test('Should make a transfer NFT request and receive data', () async {
-    var meeraNfts =
-        await fullNodeSimulator.getNftRecordsByHint(meera.firstPuzzlehash);
+    var meeraNfts = await fullNodeSimulator.getNftRecordsByHint(meera.firstPuzzlehash);
     expect(meeraNfts.length, equals(1));
 
-    var nathanNfts =
-        await fullNodeSimulator.getNftRecordsByHint(nathan.firstPuzzlehash);
+    var nathanNfts = await fullNodeSimulator.getNftRecordsByHint(nathan.firstPuzzlehash);
     expect(nathanNfts, isEmpty);
 
     final response = await appClient.transferNFT(
@@ -733,9 +676,7 @@ Future<void> main() async {
     );
 
     expect(
-      response.transferNftData.spendBundle.coins
-          .map((coin) => coin.id)
-          .contains(nftInfo.nftCoinId),
+      response.transferNftData.spendBundle.coins.map((coin) => coin.id).contains(nftInfo.nftCoinId),
       isTrue,
     );
 
@@ -743,20 +684,17 @@ Future<void> main() async {
     await meera.refreshCoins();
     await nathan.refreshCoins();
 
-    meeraNfts =
-        await fullNodeSimulator.getNftRecordsByHint(meera.firstPuzzlehash);
+    meeraNfts = await fullNodeSimulator.getNftRecordsByHint(meera.firstPuzzlehash);
     expect(meeraNfts, isEmpty);
 
-    nathanNfts =
-        await fullNodeSimulator.getNftRecordsByHint(nathan.firstPuzzlehash);
+    nathanNfts = await fullNodeSimulator.getNftRecordsByHint(nathan.firstPuzzlehash);
 
     expect(nathanNfts.length, equals(1));
 
     expect(nathanNfts.single.launcherId, equals(nftInfo.launcherId));
   });
 
-  test('Should request to sign by address and receive signature data',
-      () async {
+  test('Should request to sign by address and receive signature data', () async {
     final walletVector = meera.keychain.getWalletVector(meera.puzzlehashes[2]);
 
     final response = await appClient.signMessageByAddress(
@@ -801,8 +739,8 @@ Future<void> main() async {
       () async {
     final walletVector = meera.keychain.getWalletVector(meera.puzzlehashes[2]);
 
-    final signature = AugSchemeMPL.sign(
-        walletVector!.childPrivateKey, Bytes.encodeFromString(message));
+    final signature =
+        AugSchemeMPL.sign(walletVector!.childPrivateKey, Bytes.encodeFromString(message));
 
     final response = await appClient.verifySignature(
       fingerprint: fingerprint,
@@ -822,8 +760,7 @@ Future<void> main() async {
 
     final hexMessage = Bytes.encodeFromString(message).toHex();
 
-    final signature = AugSchemeMPL.sign(
-        walletVector!.childPrivateKey, hexMessage.hexToBytes());
+    final signature = AugSchemeMPL.sign(walletVector!.childPrivateKey, hexMessage.hexToBytes());
 
     final response = await appClient.verifySignature(
       fingerprint: fingerprint,
@@ -843,8 +780,7 @@ Future<void> main() async {
 
     final chip002Message = constructChip002Message(message);
 
-    final signature =
-        AugSchemeMPL.sign(walletVector!.childPrivateKey, chip002Message);
+    final signature = AugSchemeMPL.sign(walletVector!.childPrivateKey, chip002Message);
 
     final response = await appClient.verifySignature(
       fingerprint: fingerprint,
@@ -862,8 +798,8 @@ Future<void> main() async {
       () async {
     final walletVector = meera.keychain.getWalletVector(meera.puzzlehashes[2]);
 
-    final signature = AugSchemeMPL.sign(
-        walletVector!.childPrivateKey, Bytes.encodeFromString(message));
+    final signature =
+        AugSchemeMPL.sign(walletVector!.childPrivateKey, Bytes.encodeFromString(message));
 
     final response = await appClient.verifySignature(
       fingerprint: fingerprint,
@@ -889,18 +825,15 @@ Future<void> main() async {
       await meera.issueDid();
     }
 
-    final didSigningService =
-        WalletConnectDidSigningService(appClient, fullNodeSimulator);
+    final didSigningService = WalletConnectDidSigningService(appClient, fullNodeSimulator);
 
-    final didInfo =
-        await didSigningService.getDidInfoForDid(meera.didInfo!.did);
+    final didInfo = await didSigningService.getDidInfoForDid(meera.didInfo!.did);
 
     expect(didInfo.did, equals(meera.didInfo!.did));
   });
   test('Should request to create offer file and receive response', () async {
-    final catWalletId = walletMap.entries
-        .firstWhere((entry) => entry.value.type == ChiaWalletType.cat)
-        .key;
+    final catWalletId =
+        walletMap.entries.firstWhere((entry) => entry.value.type == ChiaWalletType.cat).key;
 
     final response = await appClient.createOfferForIds(
       fingerprint: fingerprint,
@@ -917,8 +850,7 @@ Future<void> main() async {
     expect(offer.requestedAmounts.standard, equals(standardAmount));
   });
 
-  test(
-      'Should request to check offer validity of still valid offer and receive response',
+  test('Should request to check offer validity of still valid offer and receive response',
       () async {
     final targetPuzzlehash = nathan.firstPuzzlehash;
 
@@ -932,15 +864,12 @@ Future<void> main() async {
       ),
     );
 
-    final response = await appClient.checkOfferValidity(
-        fingerprint: fingerprint, offer: offer);
+    final response = await appClient.checkOfferValidity(fingerprint: fingerprint, offer: offer);
 
     expect(response.offerValidityData.valid, isTrue);
   });
 
-  test(
-      'Should request to check offer validity of completed offer and receive response',
-      () async {
+  test('Should request to check offer validity of completed offer and receive response', () async {
     final targetPuzzlehash = nathan.firstPuzzlehash;
 
     final offer = await nathan.offerService.createOffer(
@@ -965,16 +894,15 @@ Future<void> main() async {
 
     expect(takeOfferResponse.takeOfferData.success, isTrue);
 
-    final validityResponse = await appClient.checkOfferValidity(
-        fingerprint: fingerprint, offer: offer);
+    final validityResponse =
+        await appClient.checkOfferValidity(fingerprint: fingerprint, offer: offer);
 
     expect(validityResponse.offerValidityData.valid, isFalse);
   });
 
-  test('Should request to add CAT token to wallet and receive response',
-      () async {
-    final assetId = Puzzlehash.fromHex(
-        '8ebf855de6eb146db5602f0456d2f0cbe750d57f821b6f91a8592ee9f1d4cf31');
+  test('Should request to add CAT token to wallet and receive response', () async {
+    final assetId =
+        Puzzlehash.fromHex('8ebf855de6eb146db5602f0456d2f0cbe750d57f821b6f91a8592ee9f1d4cf31');
     const name = 'Marmot Coin';
 
     final response = await appClient.addCatToken(

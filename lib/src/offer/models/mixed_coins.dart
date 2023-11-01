@@ -58,8 +58,7 @@ class MixedCoins {
   }
 
   Map<Puzzlehash, Nft> get nftMap {
-    return Map.fromEntries(
-        nfts.map((e) => MapEntry(Puzzlehash(e.launcherId), e)));
+    return Map.fromEntries(nfts.map((e) => MapEntry(Puzzlehash(e.launcherId), e)));
   }
 
   List<CoinPrototype> get allCoins =>

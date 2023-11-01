@@ -36,6 +36,5 @@ class ReserveFeeCondition implements Condition {
   }
 
   @override
-  String toString() =>
-      'ReserveFeeCondition(code: $conditionCode, feeAmount: $feeAmount)';
+  String toString() => 'ReserveFeeCondition(code: $conditionCode, feeAmount: $feeAmount)';
 }

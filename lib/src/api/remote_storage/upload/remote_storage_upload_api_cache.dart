@@ -6,8 +6,7 @@ import 'package:chia_crypto_utils/src/api/remote_storage/upload/remote_storage_u
 import 'package:synchronized/synchronized.dart';
 
 abstract class NftStorageUploadCache {
-  Future<void> add(
-      RemoteUploadRequest request, NftStorageUploadResponse response);
+  Future<void> add(RemoteUploadRequest request, NftStorageUploadResponse response);
 
   NftStorageUploadResponse? get(RemoteUploadRequest request);
 }
@@ -34,8 +33,7 @@ class NftStorageApiJsonCache implements NftStorageUploadCache {
   }
 
   @override
-  Future<void> add(
-      RemoteUploadRequest request, NftStorageUploadResponse response) {
+  Future<void> add(RemoteUploadRequest request, NftStorageUploadResponse response) {
     return _lock.synchronized(() async {
       final json = _currentJson;
       json[request.cacheKey] = response.toJson();
@@ -50,7 +48,6 @@ class NftStorageApiJsonCache implements NftStorageUploadCache {
     if (!current.containsKey(key)) {
       return null;
     }
-    return NftStorageUploadResponse.fromJson(
-        current[key] as Map<String, dynamic>);
+    return NftStorageUploadResponse.fromJson(current[key] as Map<String, dynamic>);
   }
 }

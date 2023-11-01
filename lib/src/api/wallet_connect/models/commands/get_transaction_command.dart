@@ -8,8 +8,7 @@ class GetTransactionCommand implements WalletConnectCommand {
   });
   factory GetTransactionCommand.fromParams(Map<String, dynamic> params) {
     return GetTransactionCommand(
-      transactionId:
-          Bytes.fromHex(pick(params, 'transactionId').asStringOrThrow()),
+      transactionId: Bytes.fromHex(pick(params, 'transactionId').asStringOrThrow()),
     );
   }
 
@@ -34,8 +33,7 @@ class GetTransactionResponse
   factory GetTransactionResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
-    final transactionRecord =
-        pick(json, 'data').letJsonOrThrow(TransactionRecord.fromJson);
+    final transactionRecord = pick(json, 'data').letJsonOrThrow(TransactionRecord.fromJson);
     return GetTransactionResponse(baseResponse, transactionRecord);
   }
 
@@ -85,9 +83,7 @@ class TransactionRecord {
         memos = memoMap.map(
           (key, value) => MapEntry(
             key.hexToBytes(),
-            (value as List<dynamic>)
-                .map((memo) => Memo(memo.toString().hexToBytes()))
-                .toList(),
+            (value as List<dynamic>).map((memo) => Memo(memo.toString().hexToBytes())).toList(),
           ),
         );
       } catch (e) {
@@ -103,8 +99,7 @@ class TransactionRecord {
     }
 
     return TransactionRecord(
-      additions: pick(json, 'additions')
-          .letJsonListOrThrow(CoinPrototype.fromCamelJson),
+      additions: pick(json, 'additions').letJsonListOrThrow(CoinPrototype.fromCamelJson),
       amount: pick(json, 'amount').asIntOrThrow(),
       confirmed: pick(json, 'confirmed').asBoolOrThrow(),
       confirmedAtHeight: pick(json, 'confirmedAtHeight').asIntOrThrow(),
@@ -112,17 +107,14 @@ class TransactionRecord {
       feeAmount: pick(json, 'feeAmount').asIntOrThrow(),
       memos: memos,
       name: pick(json, 'name').asStringOrThrow(),
-      removals: pick(json, 'removals')
-          .letJsonListOrThrow(CoinPrototype.fromCamelJson),
+      removals: pick(json, 'removals').letJsonListOrThrow(CoinPrototype.fromCamelJson),
       sent: pick(json, 'sent').asIntOrThrow(),
       sentTo: pick(json, 'sentTo').asListOrEmpty((p0) => p0.asString()),
       toAddress: Address(pick(json, 'toAddress').asStringOrThrow()),
-      toPuzzlehash:
-          Puzzlehash.fromHex(pick(json, 'toPuzzleHash').asStringOrThrow()),
+      toPuzzlehash: Puzzlehash.fromHex(pick(json, 'toPuzzleHash').asStringOrThrow()),
       type: ChiaTransactionType.values[pick(json, 'type').asIntOrThrow()],
       walletId: pick(json, 'walletId').asIntOrThrow(),
-      spendBundle:
-          pick(json, 'spendBundle').letJsonOrNull(SpendBundle.fromCamelJson),
+      spendBundle: pick(json, 'spendBundle').letJsonOrNull(SpendBundle.fromCamelJson),
       tradeId: pick(json, 'tradeId').asStringOrNull()?.hexToBytes(),
     );
   }
@@ -153,8 +145,8 @@ class TransactionRecord {
       'confirmedAtHeight': confirmedAtHeight,
       'createdAtTime': createdAtTime,
       'feeAmount': feeAmount,
-      'memos': memos.map((key, value) =>
-          MapEntry(key.toHex(), value.map((memo) => memo.toHex()).toList())),
+      'memos': memos
+          .map((key, value) => MapEntry(key.toHex(), value.map((memo) => memo.toHex()).toList())),
       'name': name,
       'removals': removals.map((coin) => coin.toCamelJson()).toList(),
       'sent': sent,
@@ -191,8 +183,7 @@ class Peer {
 
   Peer? maybeFromList(List<String> list) {
     try {
-      return Peer(
-          list[0], InclusionStatus.fromIndex(int.parse(list[1])), list[3]);
+      return Peer(list[0], InclusionStatus.fromIndex(int.parse(list[1])), list[3]);
     } catch (e) {
       return null;
     }

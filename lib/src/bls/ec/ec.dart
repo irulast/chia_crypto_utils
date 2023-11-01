@@ -41,8 +41,7 @@ class EC {
 }
 
 final defaultEc = EC(q, a, b, gx, gy, g2x, g2y, n, h, x, k, sqrtN3, sqrtN3m1o2);
-final defaultEcTwist =
-    EC(q, aTwist, bTwist, gx, gy, g2x, g2y, n, hEff, x, k, sqrtN3, sqrtN3m1o2);
+final defaultEcTwist = EC(q, aTwist, bTwist, gx, gy, g2x, g2y, n, hEff, x, k, sqrtN3, sqrtN3m1o2);
 
 bool signFq(Fq element, {EC? ec}) {
   ec ??= defaultEc;
@@ -147,10 +146,9 @@ JacobianPoint evalIso(JacobianPoint P, List<List<Fq2>> mapCoeffs, EC ec) {
   final mapVals = List<Fq2?>.filled(4, null);
 
   for (final item in enumerate(mapCoeffs)) {
-    final coeffsZ =
-        zip([item.value.reversed.toList(), zPows.sublist(0, item.value.length)])
-            .map((item) => item[0] * item[1])
-            .toList();
+    final coeffsZ = zip([item.value.reversed.toList(), zPows.sublist(0, item.value.length)])
+        .map((item) => item[0] * item[1])
+        .toList();
     var tmp = coeffsZ[0];
     for (final coeff in coeffsZ.sublist(1, coeffsZ.length)) {
       tmp *= x;

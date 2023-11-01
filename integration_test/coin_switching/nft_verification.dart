@@ -4,14 +4,12 @@ void main() async {
   final mnemonic =
       'sniff wrestle coin sign one expect seed spirit summer bracket choose lumber bottom risk hip jealous fold hotel baby account chest stock humor pudding'
           .split(' ');
-  final keychain = WalletKeychain.fromCoreSecret(
-      KeychainCoreSecret.fromMnemonic(mnemonic),
-      walletSize: 50);
+  final keychain =
+      WalletKeychain.fromCoreSecret(KeychainCoreSecret.fromMnemonic(mnemonic), walletSize: 50);
   LoggingContext().setLogLevel(LogLevel.low);
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
 
-  final fullNode =
-      EnhancedChiaFullNodeInterface.fromUrl('https://chia.irulast-prod.com');
+  final fullNode = EnhancedChiaFullNodeInterface.fromUrl('https://chia.irulast-prod.com');
 
   final nfts = await fullNode.getNftRecordsByHints(keychain.puzzlehashes);
 

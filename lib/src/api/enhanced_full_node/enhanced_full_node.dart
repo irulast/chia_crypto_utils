@@ -4,8 +4,7 @@ import 'package:chia_crypto_utils/src/api/enhanced_full_node/models/responses/co
 abstract class EnhancedFullNode extends FullNode {
   EnhancedFullNode(super.baseURL);
 
-  Future<CoinRecordsWithCoinSpendsResponse>
-      getCoinRecordsByPuzzleHashesPaginated(
+  Future<CoinRecordsWithCoinSpendsResponse> getCoinRecordsByPuzzleHashesPaginated(
     List<Puzzlehash> puzzlehashes,
     int maxNumberOfCoins, {
     int? startHeight,
@@ -30,8 +29,7 @@ abstract class EnhancedFullNode extends FullNode {
     bool includeSpentCoins = false,
   });
 
-  Future<GetAdditionsAndRemovalsWithHintsResponse>
-      getAdditionsAndRemovalsWithHints(
+  Future<GetAdditionsAndRemovalsWithHintsResponse> getAdditionsAndRemovalsWithHints(
     Bytes headerHash,
   );
 

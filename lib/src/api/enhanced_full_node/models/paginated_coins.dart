@@ -11,15 +11,13 @@ class PaginatedCoins with ToJsonMixin {
 
     final unspentCoins = (json['unspent_coins'] as List)
         .map(
-          (dynamic value) =>
-              CoinWithParentSpend.fromJson(value as Map<String, dynamic>),
+          (dynamic value) => CoinWithParentSpend.fromJson(value as Map<String, dynamic>),
         )
         .toList();
 
     final lastIdSerialized = json['last_id'] as String?;
 
-    final lastId =
-        (lastIdSerialized != null) ? Bytes.fromHex(lastIdSerialized) : null;
+    final lastId = (lastIdSerialized != null) ? Bytes.fromHex(lastIdSerialized) : null;
 
     final totalCoinCount = json['total_coin_count'] as int?;
     return PaginatedCoins(spentCoins, unspentCoins, lastId, totalCoinCount);

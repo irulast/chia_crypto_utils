@@ -12,8 +12,7 @@ class FullNodeUtils {
 
   static const String defaultUrl = 'https://localhost:8555';
 
-  String get checkNetworkMessage =>
-      'Check if your full node is runing on $network';
+  String get checkNetworkMessage => 'Check if your full node is runing on $network';
 
   String get sslPath =>
       '${Platform.environment['HOME']}/.chia/${network.name}/config/ssl/full_node';

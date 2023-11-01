@@ -13,17 +13,14 @@ class Payment {
             : memos is List<String>
                 ? memos.map((memo) => Memo(utf8.encode(memo))).toList()
                 : memos is List<int>
-                    ? memos
-                        .map((memo) => Memo(utf8.encode(memo.toString())))
-                        .toList()
+                    ? memos.map((memo) => Memo(utf8.encode(memo.toString()))).toList()
                     : memos is List<Bytes>
                         ? memos.map((e) => Memo(e.byteList)).toList()
                         : throw ArgumentError(
                             'Unsupported type for memos. Must be Bytes, String, or int',
                           );
 
-  factory Payment.ofType(int amount, Puzzlehash puzzlehash,
-      {required GeneralCoinType type}) {
+  factory Payment.ofType(int amount, Puzzlehash puzzlehash, {required GeneralCoinType type}) {
     switch (type) {
       case GeneralCoinType.standard:
         return Payment(amount, puzzlehash);
@@ -49,8 +46,7 @@ class Payment {
     return CreateCoinCondition(puzzlehash, amount, memos: memos);
   }
 
-  NotarizedPayment toNotarizedPayment(Bytes nonce) =>
-      NotarizedPayment.fromPayment(this, nonce);
+  NotarizedPayment toNotarizedPayment(Bytes nonce) => NotarizedPayment.fromPayment(this, nonce);
 
   List<String> get memoStrings {
     if (memos == null) {
@@ -79,14 +75,11 @@ class Payment {
   }
 
   @override
-  String toString() =>
-      'Payment(amount: $amount, puzzlehash: $puzzlehash, memos: $memos)';
+  String toString() => 'Payment(amount: $amount, puzzlehash: $puzzlehash, memos: $memos)';
 
   @override
   bool operator ==(Object other) =>
-      other is Payment &&
-      puzzlehash == other.puzzlehash &&
-      amount == other.amount;
+      other is Payment && puzzlehash == other.puzzlehash && amount == other.amount;
 
   @override
   int get hashCode => puzzlehash.hashCode ^ amount.hashCode;
@@ -94,13 +87,12 @@ class Payment {
 
 extension PaymentIterable on Iterable<Payment> {
   int get totalValue {
-    return fold(
-        0, (int previousValue, payment) => previousValue + payment.amount);
+    return fold(0, (int previousValue, payment) => previousValue + payment.amount);
   }
 
-  List<Memo> get memos => fold(<Memo>[],
-      (previousValue, element) => previousValue + (element.memos ?? []));
+  List<Memo> get memos =>
+      fold(<Memo>[], (previousValue, element) => previousValue + (element.memos ?? []));
 
-  List<String> get memoStrings => fold(<String>[],
-      (previousValue, element) => previousValue + (element.memoStrings));
+  List<String> get memoStrings =>
+      fold(<String>[], (previousValue, element) => previousValue + (element.memoStrings));
 }

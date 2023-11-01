@@ -40,8 +40,7 @@ class UploadableValue extends Equatable {
 
   void assertImage() {
     if (_type != StringType.uri && _type != StringType.fileName) {
-      throw ArgumentError(
-          'Expected image but got ${_type.name} for value $_value');
+      throw ArgumentError('Expected image but got ${_type.name} for value $_value');
     }
   }
 

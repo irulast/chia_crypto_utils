@@ -164,8 +164,7 @@ class NftMetadata with ToBytesMixin {
 
   final List<String>? licenseUris;
   final Program? _licenseHashProgram;
-  Bytes? get licenseHash =>
-      getBytesFromTypeAmbiguousProgram(_licenseHashProgram);
+  Bytes? get licenseHash => getBytesFromTypeAmbiguousProgram(_licenseHashProgram);
 
   final int? editionNumber;
 
@@ -184,9 +183,7 @@ class NftMetadata with ToBytesMixin {
   }
 
   static Bytes? getBytesFromTypeAmbiguousProgram(Program? program) =>
-      (program != null && program != Program.nil)
-          ? Bytes.fromHex(program.string)
-          : null;
+      (program != null && program != Program.nil) ? Bytes.fromHex(program.string) : null;
 }
 
 class NftMintingDataWithHashes extends NftMintingData with ToJsonMixin {
@@ -302,9 +299,7 @@ class NftMintingData with ToJsonMixin {
     final editionMintEnd = editionMintStart + totalNftsToMint;
 
     final nftMintData = [
-      for (var editionNumber = editionMintStart;
-          editionNumber < editionMintEnd;
-          editionNumber++)
+      for (var editionNumber = editionMintStart; editionNumber < editionMintEnd; editionNumber++)
         NftMintingData.editioned(
           dataUri: dataUri,
           metaUri: metadataUri,
@@ -336,19 +331,15 @@ class NftMintingData with ToJsonMixin {
         Program.fromInt(mintNumber),
       ]).hash();
 
-  Future<NftMintingDataWithHashes> attachHashes(
-      UriHashProvider hashProvider) async {
+  Future<NftMintingDataWithHashes> attachHashes(UriHashProvider hashProvider) async {
     return NftMintingDataWithHashes(
       dataUri: dataUri,
       dataHash: await hashProvider.getHashForUri(dataUri),
       metaUri: metaUri,
       mintNumber: mintNumber,
-      metaHash:
-          (metaUri != null) ? await hashProvider.getHashForUri(metaUri!) : null,
+      metaHash: (metaUri != null) ? await hashProvider.getHashForUri(metaUri!) : null,
       licenseUri: licenseUri,
-      licenseHash: licenseUri == null
-          ? null
-          : await hashProvider.getHashForUri(licenseUri!),
+      licenseHash: licenseUri == null ? null : await hashProvider.getHashForUri(licenseUri!),
       isEditioned: isEditioned,
     );
   }
@@ -360,8 +351,7 @@ class NftMintingData with ToJsonMixin {
       'meta_uri': metaUri,
       if (licenseUri != null) 'license_uri': licenseUri,
       'edition_number': editionNumber,
-      if (targetPuzzlehash != null)
-        'target_puzzlehash': targetPuzzlehash?.toHex(),
+      if (targetPuzzlehash != null) 'target_puzzlehash': targetPuzzlehash?.toHex(),
     };
   }
 }

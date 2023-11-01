@@ -4,8 +4,7 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 /// Creates a mapping of walletId to [ChiaWalletInfo] in order to conform to Chia's standard and holds
 /// functionality for command execution methods that is shared between implementations of [WalletConnectRequestHandler].
-mixin IrulastWalletConnectRequestHandlerMixin
-    implements WalletConnectRequestHandler {
+mixin IrulastWalletConnectRequestHandlerMixin implements WalletConnectRequestHandler {
   OfferService get offerService;
   Wallet get wallet;
   ChiaFullNodeInterface get fullNode;
@@ -23,8 +22,7 @@ mixin IrulastWalletConnectRequestHandlerMixin
 
     final walletVector = keychain.getWalletVector(puzzlehash);
 
-    final syntheticSecretKey =
-        calculateSyntheticPrivateKey(walletVector!.childPrivateKey);
+    final syntheticSecretKey = calculateSyntheticPrivateKey(walletVector!.childPrivateKey);
 
     final message = constructChip002Message(command.message);
 
@@ -54,8 +52,7 @@ mixin IrulastWalletConnectRequestHandlerMixin
 
     final walletVector = keychain.getWalletVector(p2Puzzlehash);
 
-    final syntheticSecretKey =
-        calculateSyntheticPrivateKey(walletVector!.childPrivateKey);
+    final syntheticSecretKey = calculateSyntheticPrivateKey(walletVector!.childPrivateKey);
 
     final message = constructChip002Message(command.message);
 
@@ -76,8 +73,7 @@ mixin IrulastWalletConnectRequestHandlerMixin
     );
   }
 
-  Future<VerifySignatureResponse> executeVerifySignature(
-      VerifySignatureCommand command) async {
+  Future<VerifySignatureResponse> executeVerifySignature(VerifySignatureCommand command) async {
     final startedTimestamp = DateTime.now().unixTimestamp;
 
     // default to CHIP-002 because that is how messages are signed with the sign methods on this handler
@@ -167,8 +163,8 @@ mixin IrulastWalletConnectRequestHandlerMixin
       }
     }
 
-    final offeredAmounts = MixedAmounts(
-        standard: offeredXch, cat: offeredCat, nft: offeredNftLauncherIds);
+    final offeredAmounts =
+        MixedAmounts(standard: offeredXch, cat: offeredCat, nft: offeredNftLauncherIds);
 
     final requestedPayments = RequestedMixedPayments(
       standard: requestedStandard,
@@ -221,8 +217,7 @@ mixin IrulastWalletConnectRequestHandlerMixin
     );
   }
 
-  Future<SignSpendBundleResponse> executeSignSpendBundle(
-      SignSpendBundleCommand command) async {
+  Future<SignSpendBundleResponse> executeSignSpendBundle(SignSpendBundleCommand command) async {
     final startedTimestamp = DateTime.now().unixTimestamp;
 
     final keychain = await wallet.getKeychain();

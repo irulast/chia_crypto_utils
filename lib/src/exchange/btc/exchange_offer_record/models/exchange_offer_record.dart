@@ -147,8 +147,7 @@ class ExchangeOfferRecord {
   DateTime get offerExpirationDateTime =>
       DateTime.fromMillisecondsSinceEpoch(offerValidityTime * 1000);
 
-  String get offerExpirationDate =>
-      DateFormat.yMd().add_jm().format(offerExpirationDateTime);
+  String get offerExpirationDate => DateFormat.yMd().add_jm().format(offerExpirationDateTime);
 
   bool get offerExpired => DateTime.now().isAfter(offerExpirationDateTime);
 
@@ -156,8 +155,7 @@ class ExchangeOfferRecord {
     if (escrowTransferCompletedTime != null && exchangeValidityTime != null) {
       // the earliest you can spend a time-locked coin is 2 blocks later, since the time is checked
       // against the timestamp of the previous block
-      return escrowTransferCompletedTime!
-          .add(Duration(seconds: exchangeValidityTime! + (2 * 19)));
+      return escrowTransferCompletedTime!.add(Duration(seconds: exchangeValidityTime! + (2 * 19)));
     }
     return null;
   }
@@ -183,9 +181,7 @@ class ExchangeOfferRecord {
   DateTime? get paymentRequestExpirationDateTime {
     if (lightningPaymentRequest != null) {
       return DateTime.fromMillisecondsSinceEpoch(
-        (lightningPaymentRequest!.timestamp +
-                lightningPaymentRequest!.tags.timeout!) *
-            1000,
+        (lightningPaymentRequest!.timestamp + lightningPaymentRequest!.tags.timeout!) * 1000,
       );
     }
     return null;
@@ -207,10 +203,8 @@ class ExchangeOfferRecord {
         (role == ExchangeRole.taker && type == ExchangeType.btcToXch)) {
       return XchToBtcMakerOfferFile(
         initializationCoinId: initializationCoinId,
-        offeredAmount:
-            ExchangeAmount(type: ExchangeAmountType.XCH, amount: mojos),
-        requestedAmount:
-            ExchangeAmount(type: ExchangeAmountType.BTC, amount: satoshis),
+        offeredAmount: ExchangeAmount(type: ExchangeAmountType.XCH, amount: mojos),
+        requestedAmount: ExchangeAmount(type: ExchangeAmountType.BTC, amount: satoshis),
         messageAddress: messagePuzzlehash.toAddressWithContext(),
         validityTime: offerValidityTime,
         publicKey: requestorPublicKey,
@@ -219,10 +213,8 @@ class ExchangeOfferRecord {
     } else {
       return BtcToXchMakerOfferFile(
         initializationCoinId: initializationCoinId,
-        offeredAmount:
-            ExchangeAmount(type: ExchangeAmountType.BTC, amount: satoshis),
-        requestedAmount:
-            ExchangeAmount(type: ExchangeAmountType.XCH, amount: mojos),
+        offeredAmount: ExchangeAmount(type: ExchangeAmountType.BTC, amount: satoshis),
+        requestedAmount: ExchangeAmount(type: ExchangeAmountType.XCH, amount: mojos),
         messageAddress: messagePuzzlehash.toAddressWithContext(),
         validityTime: offerValidityTime,
         publicKey: requestorPublicKey,
@@ -239,16 +231,14 @@ class ExchangeOfferRecord {
         initializationCoinId: initializationCoinId,
         validityTime: exchangeValidityTime!,
         publicKey: fulfillerPublicKey!,
-        acceptedOfferHash:
-            Bytes.encodeFromString(serializedMakerOfferFile).sha256Hash(),
+        acceptedOfferHash: Bytes.encodeFromString(serializedMakerOfferFile).sha256Hash(),
       ).toJson();
     } else {
       return XchToBtcTakerOfferFile(
         initializationCoinId: initializationCoinId,
         validityTime: exchangeValidityTime!,
         publicKey: fulfillerPublicKey!,
-        acceptedOfferHash:
-            Bytes.encodeFromString(serializedMakerOfferFile).sha256Hash(),
+        acceptedOfferHash: Bytes.encodeFromString(serializedMakerOfferFile).sha256Hash(),
         lightningPaymentRequest: lightningPaymentRequest!,
       ).toJson();
     }
@@ -294,31 +284,23 @@ class ExchangeOfferRecord {
       messagePuzzlehash: messagePuzzlehash ?? this.messagePuzzlehash,
       requestorPublicKey: requestorPublicKey ?? this.requestorPublicKey,
       offerValidityTime: offerValidityTime ?? this.offerValidityTime,
-      serializedMakerOfferFile:
-          serializedMakerOfferFile ?? this.serializedMakerOfferFile,
+      serializedMakerOfferFile: serializedMakerOfferFile ?? this.serializedMakerOfferFile,
       submittedToDexie: submittedToDexie ?? this.submittedToDexie,
-      serializedTakerOfferFile:
-          serializedTakerOfferFile ?? this.serializedTakerOfferFile,
-      lightningPaymentRequest:
-          lightningPaymentRequest ?? this.lightningPaymentRequest,
+      serializedTakerOfferFile: serializedTakerOfferFile ?? this.serializedTakerOfferFile,
+      lightningPaymentRequest: lightningPaymentRequest ?? this.lightningPaymentRequest,
       fulfillerPublicKey: fulfillerPublicKey ?? this.fulfillerPublicKey,
       exchangeValidityTime: exchangeValidityTime ?? this.exchangeValidityTime,
       escrowPuzzlehash: escrowPuzzlehash ?? this.escrowPuzzlehash,
       escrowCoinId: escrowCoinId ?? this.escrowCoinId,
       messageCoinId: messageCoinId ?? this.messageCoinId,
       initializedTime: initializedTime ?? this.initializedTime,
-      messageCoinReceivedTime:
-          messageCoinReceivedTime ?? this.messageCoinReceivedTime,
-      messageCoinDeclinedTime:
-          messageCoinDeclinedTime ?? this.messageCoinDeclinedTime,
-      messageCoinAcceptedTime:
-          messageCoinAcceptedTime ?? this.messageCoinAcceptedTime,
-      escrowTransferCompletedTime:
-          escrowTransferCompletedTime ?? this.escrowTransferCompletedTime,
-      escrowTransferConfirmedBlockIndex: escrowTransferConfirmedBlockIndex ??
-          this.escrowTransferConfirmedBlockIndex,
-      escrowTransferConfirmedTime:
-          escrowTransferConfirmedTime ?? this.escrowTransferConfirmedTime,
+      messageCoinReceivedTime: messageCoinReceivedTime ?? this.messageCoinReceivedTime,
+      messageCoinDeclinedTime: messageCoinDeclinedTime ?? this.messageCoinDeclinedTime,
+      messageCoinAcceptedTime: messageCoinAcceptedTime ?? this.messageCoinAcceptedTime,
+      escrowTransferCompletedTime: escrowTransferCompletedTime ?? this.escrowTransferCompletedTime,
+      escrowTransferConfirmedBlockIndex:
+          escrowTransferConfirmedBlockIndex ?? this.escrowTransferConfirmedBlockIndex,
+      escrowTransferConfirmedTime: escrowTransferConfirmedTime ?? this.escrowTransferConfirmedTime,
       sweepTime: sweepTime ?? this.sweepTime,
       clawbackTime: clawbackTime ?? this.clawbackTime,
       canceledTime: canceledTime ?? this.canceledTime,

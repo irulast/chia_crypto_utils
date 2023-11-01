@@ -75,11 +75,9 @@ class JacobianPoint with ToBytesMixin, ToProgramMixin {
       ).toJacobian();
 
   factory JacobianPoint.generateG1() =>
-      AffinePoint(defaultEc.gx, defaultEc.gy, false, ec: defaultEc)
-          .toJacobian();
+      AffinePoint(defaultEc.gx, defaultEc.gy, false, ec: defaultEc).toJacobian();
 
-  factory JacobianPoint.fromHex(String hex, bool isExtension, {EC? ec}) =>
-      JacobianPoint.fromBytes(
+  factory JacobianPoint.fromHex(String hex, bool isExtension, {EC? ec}) => JacobianPoint.fromBytes(
         const HexDecoder().convert(hex),
         isExtension,
         ec: ec,
@@ -132,8 +130,7 @@ class JacobianPoint with ToBytesMixin, ToProgramMixin {
         ec: ec,
       ).toJacobian();
     }
-    final x =
-        isExtension ? Fq2.fromBytes(bytes, ec.q) : Fq.fromBytes(bytes, ec.q);
+    final x = isExtension ? Fq2.fromBytes(bytes, ec.q) : Fq.fromBytes(bytes, ec.q);
     final yValue = yForX(x, ec: ec);
     bool sign;
     if (isExtension) {
@@ -212,8 +209,7 @@ class JacobianPoint with ToBytesMixin, ToProgramMixin {
     return JacobianPoint(X_p, Y_p, Z_p, false, ec: ec);
   }
 
-  int getFingerprint() =>
-      bytesToInt(sha256.convert(toBytes()).bytes.sublist(0, 4), Endian.big);
+  int getFingerprint() => bytesToInt(sha256.convert(toBytes()).bytes.sublist(0, 4), Endian.big);
 
   JacobianPoint operator -() => (-toAffine()).toJacobian();
 
@@ -259,8 +255,7 @@ class JacobianPoint with ToBytesMixin, ToProgramMixin {
   }
 
   @override
-  bool operator ==(Object other) =>
-      other is JacobianPoint && toAffine() == other.toAffine();
+  bool operator ==(Object other) => other is JacobianPoint && toAffine() == other.toAffine();
 
   @override
   int get hashCode => toBytes().hashCode;
@@ -268,8 +263,7 @@ class JacobianPoint with ToBytesMixin, ToProgramMixin {
   @override
   String toString() => 'JacobianPoint(0x${toHex()})';
 
-  JacobianPoint clone() =>
-      JacobianPoint(x.clone(), y.clone(), z.clone(), infinity, ec: ec);
+  JacobianPoint clone() => JacobianPoint(x.clone(), y.clone(), z.clone(), infinity, ec: ec);
 
   @override
   Program toProgram() {

@@ -9,8 +9,7 @@ Future<void> createColdWallet() async {
 
   final fingerprint = keychainSecret.masterPublicKey.getFingerprint();
   final masterPublicKeyHex = keychainSecret.masterPublicKey.toHex();
-  final farmerPublicKeyHex =
-      masterSkToFarmerSk(masterPrivateKey).getG1().toHex();
+  final farmerPublicKeyHex = masterSkToFarmerSk(masterPrivateKey).getG1().toHex();
   final poolPublicKeyHex = masterSkToPoolSk(masterPrivateKey).getG1().toHex();
 
   print('Fingerprint: $fingerprint');
@@ -29,8 +28,7 @@ Future<void> createColdWallet() async {
     final set = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, i);
     walletSet.add(set);
 
-    final address =
-        Address.fromPuzzlehash(set.hardened.puzzlehash, 'xch').address;
+    final address = Address.fromPuzzlehash(set.hardened.puzzlehash, 'xch').address;
     print(' $address');
   }
 }

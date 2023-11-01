@@ -3,14 +3,14 @@ import 'package:test/test.dart';
 
 void main() {
   // CreateWalletWithPlotNFTCommand used to generate test values
-  final launcherId = Bytes.fromHex(
-      '08f65801d644b71f1388d269c284f48ad5ce0a7b3cc83a3a13f54708f88dea78');
-  final targetPuzzlehash = Puzzlehash.fromHex(
-      '6bde1e0c6f9d3b93dc5e7e878723257ede573deeed59e3b4a90f5c86de1a0bd3');
+  final launcherId =
+      Bytes.fromHex('08f65801d644b71f1388d269c284f48ad5ce0a7b3cc83a3a13f54708f88dea78');
+  final targetPuzzlehash =
+      Puzzlehash.fromHex('6bde1e0c6f9d3b93dc5e7e878723257ede573deeed59e3b4a90f5c86de1a0bd3');
   const authenticationToken = 5553478;
 
-  final authenticationSecretKey = PrivateKey.fromHex(
-      '4405803e8ee6473da0d3d316a2bfa12bdf0fb03ab321872fbd258b536613a865');
+  final authenticationSecretKey =
+      PrivateKey.fromHex('4405803e8ee6473da0d3d316a2bfa12bdf0fb03ab321872fbd258b536613a865');
 
   final authenticationPayload = AuthenticationPayload(
     endpoint: AuthenticationEndpoint.get_farmer,

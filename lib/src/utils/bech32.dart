@@ -42,8 +42,7 @@ List<int> convertBits(List<int> data, int from, int to, {required bool pad}) {
 }
 
 // conversion to arbitrarily long bit length
-List<BigInt> convertBitsBigInt(List<int> data, int from, int to,
-    {required bool pad}) {
+List<BigInt> convertBitsBigInt(List<int> data, int from, int to, {required bool pad}) {
   var acc = BigInt.zero;
   var bits = 0;
   final result = <BigInt>[];

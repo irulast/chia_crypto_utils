@@ -8,8 +8,8 @@ Future<void> main() async {
     expect(
       coinMarketCapApi.getLatestQuoteById,
       throwsA(
-        isA<CoinMarketCapApiException>().having(
-            (e) => e.message, 'an error message', equals('API key missing.')),
+        isA<CoinMarketCapApiException>()
+            .having((e) => e.message, 'an error message', equals('API key missing.')),
       ),
     );
   });
@@ -19,8 +19,8 @@ Future<void> main() async {
     expect(
       coinMarketCapApi.getLatestQuoteById,
       throwsA(
-        isA<CoinMarketCapApiException>().having((e) => e.message,
-            'an error message', equals('This API Key is invalid.')),
+        isA<CoinMarketCapApiException>()
+            .having((e) => e.message, 'an error message', equals('This API Key is invalid.')),
       ),
     );
   });

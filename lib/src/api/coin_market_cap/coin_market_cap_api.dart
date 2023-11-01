@@ -16,19 +16,14 @@ class CoinMarketCapApi {
 
   Client get client => Client(baseURL);
 
-  Future<Cryptocurrency> getLatestQuoteById(
-      [String convertSymbol = 'USD']) async {
+  Future<Cryptocurrency> getLatestQuoteById([String convertSymbol = 'USD']) async {
     final response = await client.get(
       Uri.parse('v2/cryptocurrency/quotes/latest'),
-      queryParameters: <String, dynamic>{
-        'id': xchCoinMarketCapId,
-        'convert': convertSymbol
-      },
+      queryParameters: <String, dynamic>{'id': xchCoinMarketCapId, 'convert': convertSymbol},
       additionalHeaders: {'X-CMC_PRO_API_KEY': apiKey},
     );
     final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
-    final status =
-        Status.fromJson(responseJson['status'] as Map<String, dynamic>);
+    final status = Status.fromJson(responseJson['status'] as Map<String, dynamic>);
     if (status.errorCode == 0) {
       final data = responseJson['data'] as Map<String, dynamic>;
       final crypto = data[xchCoinMarketCapId] as Map<String, dynamic>;

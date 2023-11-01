@@ -41,9 +41,8 @@ Future<void> mintEverythingWithSignatureCatAndNft({
 
   final netAdditions = catIssuanceSpendBundle.netAdditions.toSet();
 
-  final resultingCat =
-      (await fullNode.getCatCoinsByHints([destinationPuzzleHash]))
-          .singleWhere(netAdditions.contains);
+  final resultingCat = (await fullNode.getCatCoinsByHints([destinationPuzzleHash]))
+      .singleWhere(netAdditions.contains);
 
   print('asset id:${resultingCat.assetId}');
 
@@ -52,8 +51,8 @@ Future<void> mintEverythingWithSignatureCatAndNft({
 
   coins = await fullNode.getCoinsByPuzzleHashes(nonSwitchPuzzleHashes);
 
-  final didInfo = await fullNode.getDidRecordsByHints(
-      [getPuzzleFromPk(didPrivateKey.getG1()).hash()]).then(
+  final didInfo =
+      await fullNode.getDidRecordsByHints([getPuzzleFromPk(didPrivateKey.getG1()).hash()]).then(
     (value) => value.singleWhere((element) => element.did == did),
   );
 

@@ -67,10 +67,8 @@ void main() {
   };
 
   test('should correctly calculate number of binary splits', () {
-    binarySplittingInputToExpectedOutputMap
-        .forEach((desiredNumberOfCoins, expectedNumberOfSplits) {
-      final numberOfSplits =
-          CoinSplittingService.calculateNumberOfNWidthSplitsRequired(
+    binarySplittingInputToExpectedOutputMap.forEach((desiredNumberOfCoins, expectedNumberOfSplits) {
+      final numberOfSplits = CoinSplittingService.calculateNumberOfNWidthSplitsRequired(
         desiredNumberOfCoins: desiredNumberOfCoins,
         initialSplitWidth: 2,
       );
@@ -78,8 +76,7 @@ void main() {
 
       final resultingCoinsFromNWidthSplits = pow(2, numberOfSplits).toInt();
 
-      final numberOfDecaSplits =
-          CoinSplittingService.calculateNumberOfDecaSplitsRequired(
+      final numberOfDecaSplits = CoinSplittingService.calculateNumberOfDecaSplitsRequired(
         resultingCoinsFromNWidthSplits,
         desiredNumberOfCoins,
       );
@@ -88,10 +85,8 @@ void main() {
   });
 
   test('should correctly calculate number of 7 splits', () {
-    septSplittingInputToExpectedOutputMap
-        .forEach((desiredNumberOfCoins, expectedNumberOfSplits) {
-      final numberOfSplits =
-          CoinSplittingService.calculateNumberOfNWidthSplitsRequired(
+    septSplittingInputToExpectedOutputMap.forEach((desiredNumberOfCoins, expectedNumberOfSplits) {
+      final numberOfSplits = CoinSplittingService.calculateNumberOfNWidthSplitsRequired(
         desiredNumberOfCoins: desiredNumberOfCoins,
         initialSplitWidth: 7,
       );
@@ -99,8 +94,7 @@ void main() {
 
       final resultingCoinsFromNWidthSplits = pow(7, numberOfSplits).toInt();
 
-      final numberOfDecaSplits =
-          CoinSplittingService.calculateNumberOfDecaSplitsRequired(
+      final numberOfDecaSplits = CoinSplittingService.calculateNumberOfDecaSplitsRequired(
         resultingCoinsFromNWidthSplits,
         desiredNumberOfCoins,
       );
@@ -111,8 +105,7 @@ void main() {
   test('should correctly calculate number of 400 splits', () {
     forHundredSplittingInputToExpectedOutputMap
         .forEach((desiredNumberOfCoins, expectedNumberOfSplits) {
-      final numberOfSplits =
-          CoinSplittingService.calculateNumberOfNWidthSplitsRequired(
+      final numberOfSplits = CoinSplittingService.calculateNumberOfNWidthSplitsRequired(
         desiredNumberOfCoins: desiredNumberOfCoins,
         initialSplitWidth: 400,
       );
@@ -120,8 +113,7 @@ void main() {
 
       final resultingCoinsFromNWidthSplits = pow(400, numberOfSplits).toInt();
 
-      final numberOfDecaSplits =
-          CoinSplittingService.calculateNumberOfDecaSplitsRequired(
+      final numberOfDecaSplits = CoinSplittingService.calculateNumberOfDecaSplitsRequired(
         resultingCoinsFromNWidthSplits,
         desiredNumberOfCoins,
       );

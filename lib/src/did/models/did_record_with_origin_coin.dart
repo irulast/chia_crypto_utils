@@ -1,8 +1,7 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class DidRecordWithOriginCoin {
-  const DidRecordWithOriginCoin(
-      {required this.didRecord, required this.originCoin});
+  const DidRecordWithOriginCoin({required this.didRecord, required this.originCoin});
 
   final DidRecord didRecord;
   final CoinPrototype originCoin;
@@ -17,8 +16,7 @@ class DidRecordWithOriginCoin {
     return null;
   }
 
-  Future<DidInfoWithOriginCoin?> toDidInfoWithOriginCoinAsync(
-      WalletKeychain keychain) async {
+  Future<DidInfoWithOriginCoin?> toDidInfoWithOriginCoinAsync(WalletKeychain keychain) async {
     final didInfo = await didRecord.toDidInfoAsync(keychain);
 
     if (didInfo != null) {

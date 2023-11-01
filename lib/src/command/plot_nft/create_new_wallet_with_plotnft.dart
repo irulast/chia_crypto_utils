@@ -111,8 +111,7 @@ Future<PlotNFTDetails> createNewWalletWithPlotNFT({
         attempts = attempts + 1;
         await Future<void>.delayed(const Duration(seconds: 15));
         farmerInfo = await poolService.getFarmerInfo(
-          authenticationPrivateKey:
-              singletonWalletVector.poolingAuthenticationPrivateKey,
+          authenticationPrivateKey: singletonWalletVector.poolingAuthenticationPrivateKey,
           launcherId: launcherId,
         );
       } on PoolResponseException catch (e) {

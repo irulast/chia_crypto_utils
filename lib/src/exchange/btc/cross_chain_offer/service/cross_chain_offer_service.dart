@@ -10,10 +10,8 @@ class CrossChainOfferFileService {
     required JacobianPoint requestorPublicKey,
     required LightningPaymentRequest paymentRequest,
   }) {
-    final offeredAmount =
-        ExchangeAmount(type: ExchangeAmountType.XCH, amount: amountMojos);
-    final requestedAmount =
-        ExchangeAmount(type: ExchangeAmountType.BTC, amount: amountSatoshis);
+    final offeredAmount = ExchangeAmount(type: ExchangeAmountType.XCH, amount: amountMojos);
+    final requestedAmount = ExchangeAmount(type: ExchangeAmountType.BTC, amount: amountSatoshis);
 
     return XchToBtcMakerOfferFile(
       initializationCoinId: initializationCoinId,
@@ -34,10 +32,8 @@ class CrossChainOfferFileService {
     required int validityTime,
     required JacobianPoint requestorPublicKey,
   }) {
-    final offeredAmount =
-        ExchangeAmount(type: ExchangeAmountType.BTC, amount: amountSatoshis);
-    final requestedAmount =
-        ExchangeAmount(type: ExchangeAmountType.XCH, amount: amountMojos);
+    final offeredAmount = ExchangeAmount(type: ExchangeAmountType.BTC, amount: amountSatoshis);
+    final requestedAmount = ExchangeAmount(type: ExchangeAmountType.XCH, amount: amountMojos);
 
     return BtcToXchMakerOfferFile(
       initializationCoinId: initializationCoinId,
@@ -50,8 +46,7 @@ class CrossChainOfferFileService {
   }
 
   static void checkValidity(CrossChainOfferFile offerFile) {
-    if (offerFile.validityTime <
-        (DateTime.now().millisecondsSinceEpoch / 1000)) {
+    if (offerFile.validityTime < (DateTime.now().millisecondsSinceEpoch / 1000)) {
       throw ExpiredCrossChainOfferFile();
     }
   }
@@ -63,8 +58,7 @@ class CrossChainOfferFileService {
     required JacobianPoint requestorPublicKey,
     required LightningPaymentRequest paymentRequest,
   }) {
-    final acceptedOfferHash =
-        Bytes.encodeFromString(serializedMakerOfferFile).sha256Hash();
+    final acceptedOfferHash = Bytes.encodeFromString(serializedMakerOfferFile).sha256Hash();
 
     return XchToBtcTakerOfferFile(
       initializationCoinId: initializationCoinId,
@@ -81,8 +75,7 @@ class CrossChainOfferFileService {
     required int validityTime,
     required JacobianPoint requestorPublicKey,
   }) {
-    final acceptedOfferHash =
-        Bytes.encodeFromString(serializedMakerOfferFile).sha256Hash();
+    final acceptedOfferHash = Bytes.encodeFromString(serializedMakerOfferFile).sha256Hash();
 
     return BtcToXchTakerOfferFile(
       initializationCoinId: initializationCoinId,

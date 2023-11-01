@@ -2,8 +2,7 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:deep_pick/deep_pick.dart';
 
 class SignMessageByAddressCommand implements WalletConnectCommand {
-  const SignMessageByAddressCommand(
-      {required this.address, required this.message});
+  const SignMessageByAddressCommand({required this.address, required this.message});
   factory SignMessageByAddressCommand.fromParams(Map<String, dynamic> params) {
     return SignMessageByAddressCommand(
       address: Address(pick(params, 'address').asStringOrThrow()),
@@ -12,8 +11,7 @@ class SignMessageByAddressCommand implements WalletConnectCommand {
   }
 
   @override
-  WalletConnectCommandType get type =>
-      WalletConnectCommandType.signMessageByAddress;
+  WalletConnectCommandType get type => WalletConnectCommandType.signMessageByAddress;
 
   final Address address;
   final String message;
@@ -62,12 +60,9 @@ class SignMessageByAddressData {
   });
   factory SignMessageByAddressData.fromJson(Map<String, dynamic> json) {
     return SignMessageByAddressData(
-      publicKey:
-          JacobianPoint.fromHexG1(pick(json, 'pubkey').asStringOrThrow()),
-      signature:
-          JacobianPoint.fromHexG2(pick(json, 'signature').asStringOrThrow()),
-      signingMode:
-          SigningMode.fromString(pick(json, 'signingMode').asStringOrThrow()),
+      publicKey: JacobianPoint.fromHexG1(pick(json, 'pubkey').asStringOrThrow()),
+      signature: JacobianPoint.fromHexG2(pick(json, 'signature').asStringOrThrow()),
+      signingMode: SigningMode.fromString(pick(json, 'signingMode').asStringOrThrow()),
       success: pick(json, 'success').asBoolOrThrow(),
     );
   }

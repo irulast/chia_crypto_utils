@@ -9,10 +9,8 @@ class ParsedOffer with ToJsonMixin {
 
   factory ParsedOffer.fromJson(Map<String, dynamic> json) {
     return ParsedOffer(
-      offeredAmounts: pick(json, 'offeredAmounts')
-          .letJsonOrThrow(ParsedMixedAmounts.fromJson),
-      requestedAmounts: pick(json, 'requestedAmounts')
-          .letJsonOrThrow(ParsedMixedAmounts.fromJson),
+      offeredAmounts: pick(json, 'offeredAmounts').letJsonOrThrow(ParsedMixedAmounts.fromJson),
+      requestedAmounts: pick(json, 'requestedAmounts').letJsonOrThrow(ParsedMixedAmounts.fromJson),
     );
   }
   final ParsedMixedAmounts offeredAmounts;

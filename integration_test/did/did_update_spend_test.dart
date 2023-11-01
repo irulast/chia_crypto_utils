@@ -26,8 +26,8 @@ Future<void> main() async {
   await fullNodeSimulator.farmCoins(recoveryDidAddress);
   await fullNodeSimulator.moveToNextBlock();
 
-  final recoveryDidStandardCoins = await fullNodeSimulator
-      .getCoinsByPuzzleHashes([recoveryDidWv.puzzlehash]);
+  final recoveryDidStandardCoins =
+      await fullNodeSimulator.getCoinsByPuzzleHashes([recoveryDidWv.puzzlehash]);
 
   final didRecoverySpendBundle = didWalletService.createGenerateDIDSpendBundle(
     standardCoins: [recoveryDidStandardCoins[0]],
@@ -40,8 +40,8 @@ Future<void> main() async {
 
   await fullNodeSimulator.moveToNextBlock();
 
-  final recoveryDidInfos = await fullNodeSimulator
-      .getDidRecordsByPuzzleHashes([recoveryDidWv.puzzlehash]);
+  final recoveryDidInfos =
+      await fullNodeSimulator.getDidRecordsByPuzzleHashes([recoveryDidWv.puzzlehash]);
   final recoveryDidWallet = DidWallet(
     recoveryDidWv,
     recoveryDidInfos[0].toDidInfoForPkOrThrow(recoveryDidWv.childPublicKey),
@@ -55,8 +55,8 @@ Future<void> main() async {
   await fullNodeSimulator.farmCoins(didToUpdateAddress);
   await fullNodeSimulator.moveToNextBlock();
 
-  final didToUpdateStandardCoins = await fullNodeSimulator
-      .getCoinsByPuzzleHashes([didToUpdateWv.puzzlehash]);
+  final didToUpdateStandardCoins =
+      await fullNodeSimulator.getCoinsByPuzzleHashes([didToUpdateWv.puzzlehash]);
 
   final didToUpdateSpendBundle = didWalletService.createGenerateDIDSpendBundle(
     standardCoins: [didToUpdateStandardCoins[0]],
@@ -68,10 +68,8 @@ Future<void> main() async {
   await fullNodeSimulator.pushTransaction(didToUpdateSpendBundle);
   await fullNodeSimulator.moveToNextBlock();
 
-  final didInfos = await fullNodeSimulator
-      .getDidRecordsByPuzzleHashes([didToUpdateWv.puzzlehash]);
-  final didToUpdateInfo =
-      didInfos[0].toDidInfoForPkOrThrow(didToUpdateWv.childPublicKey);
+  final didInfos = await fullNodeSimulator.getDidRecordsByPuzzleHashes([didToUpdateWv.puzzlehash]);
+  final didToUpdateInfo = didInfos[0].toDidInfoForPkOrThrow(didToUpdateWv.childPublicKey);
 
   test('should recover did with single backup id', () async {
     var newInnerPuzzlehash = DIDWalletService.createInnerPuzzle(
@@ -90,8 +88,7 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(updateSpend);
     await fullNodeSimulator.moveToNextBlock();
 
-    final recoverableDidInfo =
-        await fullNodeSimulator.getDidRecordForDid(didToUpdateInfo.did);
+    final recoverableDidInfo = await fullNodeSimulator.getDidRecordForDid(didToUpdateInfo.did);
 
     final keychainSecret = KeychainCoreSecret.generate();
 

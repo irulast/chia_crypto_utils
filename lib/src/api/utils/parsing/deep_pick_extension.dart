@@ -14,15 +14,13 @@ extension CustomLets on Pick {
 
   Bytes asBytesOrThrow() {
     final bytes = asBytesOrNull();
-    if (bytes == null)
-      throw Exception('failed parsing as bytes: $value at $path');
+    if (bytes == null) throw Exception('failed parsing as bytes: $value at $path');
     return bytes;
   }
 
   R letBytesOrThrow<R>(R Function(Bytes bytes) parseBytes) {
     final item = letBytesOrNull(parseBytes);
-    if (item == null)
-      throw Exception('failed parsing as bytes: $value at $path');
+    if (item == null) throw Exception('failed parsing as bytes: $value at $path');
     return item;
   }
 
@@ -45,8 +43,7 @@ extension CustomLets on Pick {
 
   Map<String, dynamic> asJsonOrThrow() {
     final json = asJsonOrNull();
-    if (json == null)
-      throw Exception('failed parsing as json: $value at $path');
+    if (json == null) throw Exception('failed parsing as json: $value at $path');
     return json;
   }
 
@@ -60,21 +57,17 @@ extension CustomLets on Pick {
 
   R letJsonOrThrow<R>(R Function(Map<String, dynamic> json) parseJson) {
     final item = _parsePossibleXFromJson(value, parseJson);
-    if (item == null)
-      throw Exception('failed parsing as json: $value at $path');
+    if (item == null) throw Exception('failed parsing as json: $value at $path');
     return item;
   }
 
-  List<R>? letJsonListOrNull<R>(
-      R Function(Map<String, dynamic> json) parseJson) {
+  List<R>? letJsonListOrNull<R>(R Function(Map<String, dynamic> json) parseJson) {
     return _parsePossibleListOfXFromListOfJson(value, parseJson);
   }
 
-  List<R> letJsonListOrThrow<R>(
-      R Function(Map<String, dynamic> json) parseJson) {
+  List<R> letJsonListOrThrow<R>(R Function(Map<String, dynamic> json) parseJson) {
     final list = _parsePossibleListOfXFromListOfJson(value, parseJson);
-    if (list == null)
-      throw Exception('failed parsing as list of json: $value at $path');
+    if (list == null) throw Exception('failed parsing as list of json: $value at $path');
     return list;
   }
 
@@ -84,8 +77,7 @@ extension CustomLets on Pick {
 
   R letStringOrThrow<R>(R Function(String string) parseString) {
     final item = _parsePossibleXFromString(value, parseString);
-    if (item == null)
-      throw Exception('failed parsing as string: $value at $path');
+    if (item == null) throw Exception('failed parsing as string: $value at $path');
     return item;
   }
 
@@ -99,8 +91,7 @@ extension CustomLets on Pick {
 
   List<R> letStringListOrThrow<R>(R Function(String string) parseString) {
     final item = _parsePossibleListOfXFromListOfStrings(value, parseString);
-    if (item == null)
-      throw Exception('failed parsing as list of strings: $value at $path');
+    if (item == null) throw Exception('failed parsing as list of strings: $value at $path');
     return item;
   }
 }

@@ -4,25 +4,25 @@ import 'package:test/test.dart';
 void main() {
   // CreateWalletWithPlotNFTCommand used to generate test values
   final singletonCoin = CoinPrototype(
-    parentCoinInfo: Puzzlehash.fromHex(
-        '17ff3c80192a7e616926e9194d69fd3fa0def1827964b1bf4f05d6b7de3f43c9'),
-    puzzlehash: Puzzlehash.fromHex(
-        '01178c847be8e6766954ebf9db5c20dc263d02d0bb3cc057a1412fd1d7158daf'),
+    parentCoinInfo:
+        Puzzlehash.fromHex('17ff3c80192a7e616926e9194d69fd3fa0def1827964b1bf4f05d6b7de3f43c9'),
+    puzzlehash:
+        Puzzlehash.fromHex('01178c847be8e6766954ebf9db5c20dc263d02d0bb3cc057a1412fd1d7158daf'),
     amount: 1,
   );
 
   final lineageProof = LineageProof(
-    parentCoinInfo: Puzzlehash.fromHex(
-        'e453b4a08681ec44f5b4a35af34e96de1ac8b70b28f22a32274100729a7d7f23'),
-    innerPuzzlehash: Puzzlehash.fromHex(
-        '58533d495d2c2157cc607011288e844438bea09237b634bd40c40e42730b4862'),
+    parentCoinInfo:
+        Puzzlehash.fromHex('e453b4a08681ec44f5b4a35af34e96de1ac8b70b28f22a32274100729a7d7f23'),
+    innerPuzzlehash:
+        Puzzlehash.fromHex('58533d495d2c2157cc607011288e844438bea09237b634bd40c40e42730b4862'),
     amount: 1,
   );
 
   final poolState = PoolState(
     poolSingletonState: PoolSingletonState.farmingToPool,
-    targetPuzzlehash: Puzzlehash.fromHex(
-        '6bde1e0c6f9d3b93dc5e7e878723257ede573deeed59e3b4a90f5c86de1a0bd3'),
+    targetPuzzlehash:
+        Puzzlehash.fromHex('6bde1e0c6f9d3b93dc5e7e878723257ede573deeed59e3b4a90f5c86de1a0bd3'),
     ownerPublicKey: JacobianPoint.fromHexG1(
       '0x95b96e957115f0bc3858163c9d89b948b895d1296dc660030f635ebc62d5d99cbdb38c6e0c995d5d92ef907e34195e8e',
     ),
@@ -30,13 +30,13 @@ void main() {
   );
 
   final plotNft = PlotNft(
-    launcherId: Puzzlehash.fromHex(
-        '17ff3c80192a7e616926e9194d69fd3fa0def1827964b1bf4f05d6b7de3f43c9'),
+    launcherId:
+        Puzzlehash.fromHex('17ff3c80192a7e616926e9194d69fd3fa0def1827964b1bf4f05d6b7de3f43c9'),
     singletonCoin: singletonCoin,
     poolState: poolState,
     delayTime: 604800,
-    delayPuzzlehash: Puzzlehash.fromHex(
-        'a229c30fba7b35557ec417fbce1fc9eaf2bac74e574b2f0b079c03bde3c99d16'),
+    delayPuzzlehash:
+        Puzzlehash.fromHex('a229c30fba7b35557ec417fbce1fc9eaf2bac74e574b2f0b079c03bde3c99d16'),
     lineageProof: lineageProof,
   );
 

@@ -67,27 +67,23 @@ Program tokenizeCons(String source, Iterator<Token> tokens) {
   final consStart = token.index;
   final first = tokenizeExpr(source, tokens);
   if (!tokens.moveNext()) {
-    throw StateError(
-        'Unexpected end of source at ${Position(source, token.index)}.');
+    throw StateError('Unexpected end of source at ${Position(source, token.index)}.');
   }
   token = tokens.current;
   Program rest;
   if (token.text == '.') {
     final dotStart = token.index;
     if (!tokens.moveNext()) {
-      throw StateError(
-          'Unexpected end of source at ${Position(source, token.index)}.');
+      throw StateError('Unexpected end of source at ${Position(source, token.index)}.');
     }
     token = tokens.current;
     rest = tokenizeExpr(source, tokens);
     if (!tokens.moveNext()) {
-      throw StateError(
-          'Unexpected end of source at ${Position(source, token.index)}.');
+      throw StateError('Unexpected end of source at ${Position(source, token.index)}.');
     }
     token = tokens.current;
     if (token.text != ')') {
-      throw StateError(
-          'Illegal dot expression at ${Position(source, dotStart)}.');
+      throw StateError('Illegal dot expression at ${Position(source, dotStart)}.');
     }
   } else {
     rest = tokenizeCons(source, tokens);
@@ -103,8 +99,7 @@ Program? tokenizeInt(String source, Token token) {
 }
 
 Program? tokenizeHex(String source, Token token) {
-  if (token.text.length >= 2 &&
-      token.text.substring(0, 2).toUpperCase() == '0X') {
+  if (token.text.length >= 2 && token.text.substring(0, 2).toUpperCase() == '0X') {
     var hex = token.text.substring(2);
     if (hex.length % 2 == 1) {
       hex = '0$hex';
@@ -128,8 +123,7 @@ Program? tokenizeQuotes(String source, Token token) {
     return null;
   }
   if (token.text[token.text.length - 1] != quote) {
-    throw StateError(
-        'Unterminated string ${token.text} at ${Position(source, token.index)}.');
+    throw StateError('Unterminated string ${token.text} at ${Position(source, token.index)}.');
   }
   return Program.fromString(token.text.substring(1, token.text.length - 1))
     ..at(Position(source, token.index));
@@ -141,9 +135,7 @@ Program? tokenizeSymbol(String source, Token token) {
     text = text.substring(1);
   }
   final keyword = keywords[text];
-  return (keyword != null
-      ? Program.fromBigInt(keyword)
-      : Program.fromString(text))
+  return (keyword != null ? Program.fromBigInt(keyword) : Program.fromString(text))
     ..at(Position(source, token.index));
 }
 
@@ -151,8 +143,7 @@ Program tokenizeExpr(String source, Iterator<Token> tokens) {
   final token = tokens.current;
   if (token.text == '(') {
     if (!tokens.moveNext()) {
-      throw StateError(
-          'Unexpected end of source at ${Position(source, token.index)}.');
+      throw StateError('Unexpected end of source at ${Position(source, token.index)}.');
     }
     return tokenizeCons(source, tokens);
   }

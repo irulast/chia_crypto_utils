@@ -9,9 +9,7 @@ void main() {
   final mixedNotarizedPayments = MixedNotarizedPayments(
     {
       GeneralCoinType.standard: {null: notarizedPayments},
-      GeneralCoinType.cat: {
-        TestData.standardCoin.puzzlehash: notarizedPayments
-      },
+      GeneralCoinType.cat: {TestData.standardCoin.puzzlehash: notarizedPayments},
     },
   );
 

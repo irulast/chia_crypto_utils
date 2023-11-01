@@ -22,8 +22,7 @@ class NameRegistrationPrice extends Equatable {
       }
     }
 
-    return NameRegistrationPrice(
-        xch: pick(json, _xchKey).asDoubleOrThrow(), catPrices: catPrices);
+    return NameRegistrationPrice(xch: pick(json, _xchKey).asDoubleOrThrow(), catPrices: catPrices);
   }
 
   static const _xchKey = 'XCH';

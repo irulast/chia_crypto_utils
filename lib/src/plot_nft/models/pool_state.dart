@@ -16,9 +16,7 @@ class PoolState with ToBytesMixin {
   });
   factory PoolState.fromExtraDataProgram(Program extraDataProgram) {
     final extraDataConsBoxes = extraDataProgram.toList().where(
-          (p) =>
-              String.fromCharCode(p.first().toInt()) ==
-              PlotNftExtraData.poolStateIdentifier,
+          (p) => String.fromCharCode(p.first().toInt()) == PlotNftExtraData.poolStateIdentifier,
         );
     if (extraDataConsBoxes.isEmpty || extraDataConsBoxes.length > 1) {
       throw InvalidPlotNftException();
@@ -49,8 +47,7 @@ class PoolState with ToBytesMixin {
     final poolUrlIsPresentBytes = iterator.extractBytesAndAdvance(1);
     if (poolUrlIsPresentBytes[0] == 1) {
       final lengthBytes = iterator.extractBytesAndAdvance(4);
-      final poolUrlBytes =
-          iterator.extractBytesAndAdvance(bytesToInt(lengthBytes, Endian.big));
+      final poolUrlBytes = iterator.extractBytesAndAdvance(bytesToInt(lengthBytes, Endian.big));
       poolUrl = utf8.decode(poolUrlBytes);
     } else if (poolUrlIsPresentBytes[0] != 0) {
       throw ArgumentError('invalid isPresent bytes');

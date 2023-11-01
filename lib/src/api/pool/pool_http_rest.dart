@@ -27,15 +27,13 @@ class PoolHttpREST {
     );
   }
 
-  Future<AddFarmerResponse> addFarmer(
-      PostFarmerPayload payload, JacobianPoint signature) async {
+  Future<AddFarmerResponse> addFarmer(PostFarmerPayload payload, JacobianPoint signature) async {
     final response = await client.post(Uri.parse('farmer'), <String, dynamic>{
       'payload': payload.toJson(),
       'signature': signature.toHexWithPrefix(),
     });
     mapResponseToError(response);
-    return AddFarmerResponse.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>);
+    return AddFarmerResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   Future<GetFarmerResponse> getFarmer(
@@ -52,8 +50,7 @@ class PoolHttpREST {
       },
     );
     mapResponseToError(response);
-    return GetFarmerResponse.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>);
+    return GetFarmerResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   void mapResponseToError(Response response) {

@@ -10,18 +10,15 @@ class MempoolItem {
   });
 
   factory MempoolItem.fromJson(Map<String, dynamic> json) {
-    final additions =
-        List<Map<String, dynamic>>.from(json['additions'] as Iterable)
-            .map(CoinPrototype.fromJson)
-            .toList();
-    final removals =
-        List<Map<String, dynamic>>.from(json['removals'] as Iterable)
-            .map(CoinPrototype.fromJson)
-            .toList();
+    final additions = List<Map<String, dynamic>>.from(json['additions'] as Iterable)
+        .map(CoinPrototype.fromJson)
+        .toList();
+    final removals = List<Map<String, dynamic>>.from(json['removals'] as Iterable)
+        .map(CoinPrototype.fromJson)
+        .toList();
 
     final fee = json['fee'] as int;
-    final spendBundle =
-        SpendBundle.fromJson(json['spend_bundle'] as Map<String, dynamic>);
+    final spendBundle = SpendBundle.fromJson(json['spend_bundle'] as Map<String, dynamic>);
     final spendBundleId = Bytes.fromHex(json['spend_bundle_name'] as String);
 
     return MempoolItem(

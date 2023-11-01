@@ -10,8 +10,7 @@ class GetWalletsCommand implements WalletConnectCommand {
     final typeIndex = pick(params, 'type').asIntOrNull();
     return GetWalletsCommand(
       includeData: pick(params, 'includeData').asBoolOrFalse(),
-      walletType:
-          typeIndex != null ? ChiaWalletType.fromIndex(typeIndex) : null,
+      walletType: typeIndex != null ? ChiaWalletType.fromIndex(typeIndex) : null,
     );
   }
 
@@ -37,8 +36,7 @@ class GetWalletsResponse
   factory GetWalletsResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
-    final wallets =
-        pick(json, 'data').letJsonListOrThrow(ChiaWalletInfoImp.fromJson);
+    final wallets = pick(json, 'data').letJsonListOrThrow(ChiaWalletInfoImp.fromJson);
 
     return GetWalletsResponse(baseResponse, wallets);
   }

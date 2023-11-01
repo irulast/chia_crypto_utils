@@ -35,8 +35,8 @@ void main() async {
 
     print('offer maker first puzzlehash: ${offerMaker.firstPuzzlehash}');
 
-    final takeOffer = await offerTaker.offerService.createTakeOffer(makeOffer,
-        fee: 100, targetPuzzlehash: offerTaker.firstPuzzlehash);
+    final takeOffer = await offerTaker.offerService
+        .createTakeOffer(makeOffer, fee: 100, targetPuzzlehash: offerTaker.firstPuzzlehash);
 
     print('offer taker first puzzlehash: ${offerTaker.firstPuzzlehash}');
 
@@ -52,8 +52,7 @@ void main() async {
     print('settlementProgramHashes: $settlementProgramHashes');
 
     for (final addition in additionsWithParents) {
-      final puzzleDriver =
-          PuzzleDriver.match(addition.parentSpend!.puzzleReveal);
+      final puzzleDriver = PuzzleDriver.match(addition.parentSpend!.puzzleReveal);
 
       if (puzzleDriver == null) {
         print('null puzzle driver');

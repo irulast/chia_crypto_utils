@@ -56,8 +56,7 @@ class KeychainCoreSecret with ToBytesMixin {
     return KeychainCoreSecret(mnemonic, masterPrivateKey);
   }
 
-  static Future<KeychainCoreSecret> fromMnemonicAsync(
-      List<String> mnemonic) async {
+  static Future<KeychainCoreSecret> fromMnemonicAsync(List<String> mnemonic) async {
     final seed = await generateSeedFromMnemonicAsync(mnemonic);
     final privateKey = PrivateKey.fromSeed(seed);
 
@@ -69,8 +68,7 @@ class KeychainCoreSecret with ToBytesMixin {
 
   @override
   Bytes toBytes() {
-    return serializeItem(mnemonic.join(mnemonicWordSeperator)) +
-        masterPrivateKey.toBytes();
+    return serializeItem(mnemonic.join(mnemonicWordSeperator)) + masterPrivateKey.toBytes();
   }
 
   static const mnemonicWordSeperator = ' ';
@@ -110,21 +108,18 @@ class KeychainCoreSecret with ToBytesMixin {
     );
   }
 
-  static Map<String, dynamic> _generatesSeedFromMnemonicTask(
-      List<String> mnemonic) {
+  static Map<String, dynamic> _generatesSeedFromMnemonicTask(List<String> mnemonic) {
     final seed = bip39.mnemonicToSeed(mnemonic.join(mnemonicWordSeperator));
     return <String, dynamic>{
       'seed': Bytes(seed).toHex(),
     };
   }
 
-  static Future<Bytes> generateSeedFromMnemonicAsync(
-      List<String> mnemonic) async {
+  static Future<Bytes> generateSeedFromMnemonicAsync(List<String> mnemonic) async {
     return spawnAndWaitForIsolate(
       taskArgument: mnemonic,
       isolateTask: _generatesSeedFromMnemonicTask,
-      handleTaskCompletion: (taskResultJson) =>
-          Bytes.fromHex(taskResultJson['seed'] as String),
+      handleTaskCompletion: (taskResultJson) => Bytes.fromHex(taskResultJson['seed'] as String),
     );
   }
 

@@ -32,20 +32,16 @@ Future<void> main() async {
     senderPuzzlehash,
     walletService.blockchainNetwork.addressPrefix,
   );
-  final receiverPuzzlehash =
-      keychain.unhardenedMap.values.toList()[1].puzzlehash;
+  final receiverPuzzlehash = keychain.unhardenedMap.values.toList()[1].puzzlehash;
   await fullNodeSimulator.farmCoins(senderAddress, blocks: nTests);
   await fullNodeSimulator.moveToNextBlock();
 
-  final coins =
-      await fullNodeSimulator.getCoinsByPuzzleHashes([senderPuzzlehash]);
+  final coins = await fullNodeSimulator.getCoinsByPuzzleHashes([senderPuzzlehash]);
 
   test('Should push transaction with fee', () async {
-    final startingSenderBalance =
-        await fullNodeSimulator.getBalance([senderPuzzlehash]);
+    final startingSenderBalance = await fullNodeSimulator.getBalance([senderPuzzlehash]);
 
-    final startingReceiverBalance =
-        await fullNodeSimulator.getBalance([receiverPuzzlehash]);
+    final startingReceiverBalance = await fullNodeSimulator.getBalance([receiverPuzzlehash]);
 
     final coinsToSend = coins.sublist(0, 2);
     coins.removeWhere(coinsToSend.contains);
@@ -68,21 +64,17 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final endingSenderBalance =
-        await fullNodeSimulator.getBalance([senderPuzzlehash]);
+    final endingSenderBalance = await fullNodeSimulator.getBalance([senderPuzzlehash]);
     expect(startingSenderBalance - endingSenderBalance, amountToSend + fee);
 
-    final endingReceiverBalance =
-        await fullNodeSimulator.getBalance([receiverPuzzlehash]);
+    final endingReceiverBalance = await fullNodeSimulator.getBalance([receiverPuzzlehash]);
     expect(endingReceiverBalance - startingReceiverBalance, amountToSend);
   });
 
   test('Should push transaction without fee', () async {
-    final startingSenderBalance =
-        await fullNodeSimulator.getBalance([senderPuzzlehash]);
+    final startingSenderBalance = await fullNodeSimulator.getBalance([senderPuzzlehash]);
 
-    final startingReceiverBalance =
-        await fullNodeSimulator.getBalance([receiverPuzzlehash]);
+    final startingReceiverBalance = await fullNodeSimulator.getBalance([receiverPuzzlehash]);
 
     final coinsToSend = coins.sublist(0, 2);
     coins.removeWhere(coinsToSend.contains);
@@ -103,18 +95,15 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final endingSenderBalance =
-        await fullNodeSimulator.getBalance([senderPuzzlehash]);
+    final endingSenderBalance = await fullNodeSimulator.getBalance([senderPuzzlehash]);
     expect(startingSenderBalance - endingSenderBalance, amountToSend);
 
-    final endingReceiverBalance =
-        await fullNodeSimulator.getBalance([receiverPuzzlehash]);
+    final endingReceiverBalance = await fullNodeSimulator.getBalance([receiverPuzzlehash]);
     expect(endingReceiverBalance - startingReceiverBalance, amountToSend);
   });
 
   test('Should push transaction with multiple payments', () async {
-    final startingSenderBalance =
-        await fullNodeSimulator.getBalance([senderPuzzlehash]);
+    final startingSenderBalance = await fullNodeSimulator.getBalance([senderPuzzlehash]);
 
     final startingReceiverCoins =
         await fullNodeSimulator.getCoinsByPuzzleHashes([receiverPuzzlehash]);
@@ -130,15 +119,10 @@ Future<void> main() async {
       0,
       (int previousValue, element) => previousValue + element.amount,
     );
-    final amountsToSend = [
-      (coinsValue * 0.2).round(),
-      (coinsValue * 0.6).round()
-    ];
-    final totalAmountToSend =
-        amountsToSend.fold(0, (int previousValue, a) => previousValue + a);
+    final amountsToSend = [(coinsValue * 0.2).round(), (coinsValue * 0.6).round()];
+    final totalAmountToSend = amountsToSend.fold(0, (int previousValue, a) => previousValue + a);
 
-    final payments =
-        amountsToSend.map((a) => Payment(a, receiverPuzzlehash)).toList();
+    final payments = amountsToSend.map((a) => Payment(a, receiverPuzzlehash)).toList();
 
     final spendBundle = walletService.createSpendBundle(
       payments: payments,
@@ -150,14 +134,13 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final endingSenderBalance =
-        await fullNodeSimulator.getBalance([senderPuzzlehash]);
+    final endingSenderBalance = await fullNodeSimulator.getBalance([senderPuzzlehash]);
     expect(startingSenderBalance - endingSenderBalance, totalAmountToSend);
 
     final endingReceiverCoins =
         await fullNodeSimulator.getCoinsByPuzzleHashes([receiverPuzzlehash]);
-    final newReceiverCoins = endingReceiverCoins
-        .where((coin) => !startingReceiverCoins.contains(coin));
+    final newReceiverCoins =
+        endingReceiverCoins.where((coin) => !startingReceiverCoins.contains(coin));
     expect(newReceiverCoins.length == 2, true);
     expect(
       () {
@@ -177,11 +160,9 @@ Future<void> main() async {
   });
 
   test('Should push transaction with origin', () async {
-    final startingSenderBalance =
-        await fullNodeSimulator.getBalance([senderPuzzlehash]);
+    final startingSenderBalance = await fullNodeSimulator.getBalance([senderPuzzlehash]);
 
-    final startingReceiverBalance =
-        await fullNodeSimulator.getBalance([receiverPuzzlehash]);
+    final startingReceiverBalance = await fullNodeSimulator.getBalance([receiverPuzzlehash]);
 
     final coinsToSend = coins.sublist(0, 2);
     coins.removeWhere(coinsToSend.contains);
@@ -203,12 +184,10 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final endingSenderBalance =
-        await fullNodeSimulator.getBalance([senderPuzzlehash]);
+    final endingSenderBalance = await fullNodeSimulator.getBalance([senderPuzzlehash]);
     expect(startingSenderBalance - endingSenderBalance, amountToSend);
 
-    final endingReceiverBalance =
-        await fullNodeSimulator.getBalance([receiverPuzzlehash]);
+    final endingReceiverBalance = await fullNodeSimulator.getBalance([receiverPuzzlehash]);
     expect(endingReceiverBalance - startingReceiverBalance, amountToSend);
   });
 
@@ -242,8 +221,8 @@ Future<void> main() async {
     print(coinsByMemo);
     final expectedAdditions = spendBundle.additions;
 
-    final expectedOutgoingAdditions = expectedAdditions
-        .where((element) => element.puzzlehash == receiverPuzzlehash);
+    final expectedOutgoingAdditions =
+        expectedAdditions.where((element) => element.puzzlehash == receiverPuzzlehash);
 
     for (final expectedAddition in expectedOutgoingAdditions) {
       expect(

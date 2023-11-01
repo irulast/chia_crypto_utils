@@ -9,8 +9,7 @@ class NftWalletService {
   final DIDWalletService didWalletService = DIDWalletService();
 
   static List<Payment> getPaymentsForCoinSpend(CoinSpend coinSpend) {
-    final unCurriedNft =
-        UncurriedNftPuzzle.fromProgramSync(coinSpend.puzzleReveal);
+    final unCurriedNft = UncurriedNftPuzzle.fromProgramSync(coinSpend.puzzleReveal);
     return BaseWalletService.extractPaymentsFromSolution(
       unCurriedNft!.getInnerSolution(coinSpend.solution),
     );
@@ -36,8 +35,7 @@ class NftWalletService {
       innerPuzzle: innerPuzzle,
     );
 
-    final fullPuzzle = singletonTopLayerV1Program
-        .curry([singletonStructure, singletonInnerPuzzle]);
+    final fullPuzzle = singletonTopLayerV1Program.curry([singletonStructure, singletonInnerPuzzle]);
 
     return fullPuzzle;
   }
@@ -111,8 +109,7 @@ class NftWalletService {
     DidInfo? targetDidInfo,
     PrivateKey? didPrivateKey,
   }) {
-    if ((royaltyPercentagePoints != 0 || royaltyPuzzleHash != null) &&
-        targetDidInfo == null) {
+    if ((royaltyPercentagePoints != 0 || royaltyPuzzleHash != null) && targetDidInfo == null) {
       throw Exception('Royalty info is provided without initial DID');
     }
     final did = targetDidInfo?.did;
@@ -125,8 +122,7 @@ class NftWalletService {
     final launcherCoin = makeLauncherCoin(originCoin.id);
     final launcherCoinId = launcherCoin.id;
 
-    final minterPublicKey =
-        keychain.getWalletVector(minterPuzzlehash)?.childPublicKey;
+    final minterPublicKey = keychain.getWalletVector(minterPuzzlehash)?.childPublicKey;
     if (minterPublicKey == null) {
       throw Exception('Minter puzzle hash is not in keychain');
     }
@@ -169,11 +165,7 @@ class NftWalletService {
     );
 
     final genesisLauncherSolution = Program.list(
-      [
-        Program.fromAtom(eveCoin.puzzlehash),
-        Program.fromInt(nftAmount),
-        Program.list([])
-      ],
+      [Program.fromAtom(eveCoin.puzzlehash), Program.fromInt(nftAmount), Program.list([])],
     );
 
     final announcements = [
@@ -195,9 +187,7 @@ class NftWalletService {
 
     if (targetDidInfo != null) {
       final privateKeyToUse = didPrivateKey ??
-          keychain
-              .getWalletVectorOrThrow(targetDidInfo.p2Puzzle.hash())
-              .childPrivateKey;
+          keychain.getWalletVectorOrThrow(targetDidInfo.p2Puzzle.hash()).childPrivateKey;
       final didApprovalInfo = getDidApprovalInfo(
         didInfo: targetDidInfo,
         launcherIds: [launcherCoinId],
@@ -240,8 +230,7 @@ class NftWalletService {
         hasUneditioned = true;
       }
       if (hasUneditioned && hasEditioned) {
-        throw InvalidNftDataException(
-            'Either all or none of the NFTs must have edition numbers');
+        throw InvalidNftDataException('Either all or none of the NFTs must have edition numbers');
       }
     }
 
@@ -280,18 +269,13 @@ class NftWalletService {
     );
 
     final didPrivateKeyToUse = didPrivatKey ??
-        keychain
-            .getWalletVectorOrThrow(targetDidInfo.p2Puzzle.hash())
-            .childPrivateKey;
+        keychain.getWalletVectorOrThrow(targetDidInfo.p2Puzzle.hash()).childPrivateKey;
     return bundles.totalBundle +
-        bundles.unsignedDidSpendBundle
-            .signWithPrivateKey(didPrivateKeyToUse)
-            .signedBundle;
+        bundles.unsignedDidSpendBundle.signWithPrivateKey(didPrivateKeyToUse).signedBundle;
   }
 
   /// throws [InvalidNftDataException]
-  UnsignedDidSpendBundleWithTotalBundle
-      createUnsignedDidNftBulkMintSpendBundle({
+  UnsignedDidSpendBundleWithTotalBundle createUnsignedDidNftBulkMintSpendBundle({
     required Puzzlehash targetPuzzlehash,
     Puzzlehash? minterPuzzlehash,
     Puzzlehash? changePuzzlehash,
@@ -307,9 +291,8 @@ class NftWalletService {
     _validateNftDatas(nftMintData);
     final additionalDidPayments = <Payment>[];
 
-    final minterPublicKey = keychain
-        .getWalletVector(minterPuzzlehash ?? keychain.puzzlehashes.random)
-        ?.childPublicKey;
+    final minterPublicKey =
+        keychain.getWalletVector(minterPuzzlehash ?? keychain.puzzlehashes.random)?.childPublicKey;
     if (minterPublicKey == null) {
       throw Exception('Minter puzzle hash is not in keychain');
     }
@@ -357,8 +340,7 @@ class NftWalletService {
       intermediateCoinSpends.add(intermediateCoinSpend);
 
       final intermediateAnnouncementMessage =
-          (encodeInt(uniqueMintNumber) + encodeInt(totalNftsToMint))
-              .sha256Hash();
+          (encodeInt(uniqueMintNumber) + encodeInt(totalNftsToMint)).sha256Hash();
 
       didAnnouncements.add(
         AssertCoinAnnouncementCondition(
@@ -410,15 +392,11 @@ class NftWalletService {
       );
 
       final genesisLauncherSolution = Program.list(
-        [
-          Program.fromAtom(eveCoin.puzzlehash),
-          Program.fromInt(nftAmount),
-          Program.list([])
-        ],
+        [Program.fromAtom(eveCoin.puzzlehash), Program.fromInt(nftAmount), Program.list([])],
       );
 
-      didAnnouncements.add(AssertCoinAnnouncementCondition(
-          launcherId, genesisLauncherSolution.hash()));
+      didAnnouncements
+          .add(AssertCoinAnnouncementCondition(launcherId, genesisLauncherSolution.hash()));
 
       final launcherCoinSpend = CoinSpend(
         coin: launcherCoin,
@@ -437,15 +415,13 @@ class NftWalletService {
       );
 
       final conditionPrograms = nftSpendBundle.outputConditions;
-      final createPuzzleAnnouncements =
-          BaseWalletService.extractConditionsFromProgramList(
+      final createPuzzleAnnouncements = BaseWalletService.extractConditionsFromProgramList(
         conditionPrograms,
         CreatePuzzleAnnouncementCondition.isThisCondition,
         CreatePuzzleAnnouncementCondition.fromProgram,
       );
       final evePuzzleAnnouncement = createPuzzleAnnouncements.first;
-      final announcementHash =
-          (fullPuzzle.hash() + evePuzzleAnnouncement.message).sha256Hash();
+      final announcementHash = (fullPuzzle.hash() + evePuzzleAnnouncement.message).sha256Hash();
       puzzleAssertions.add(AssertPuzzleAnnouncementCondition(announcementHash));
       eveSpendBundles.add(nftSpendBundle);
     }
@@ -468,19 +444,15 @@ class NftWalletService {
       didInfo: targetDidInfo,
       puzzlesToAnnounce: launcherIds,
       additionalPayments: additionalDidPayments,
-      createCoinAnnouncements: [
-        CreateCoinAnnouncementCondition(standardMessage)
-      ],
+      createCoinAnnouncements: [CreateCoinAnnouncementCondition(standardMessage)],
       assertCoinAnnouncements: didAnnouncements,
       assertPuzzleAnnouncements: puzzleAssertions,
     );
 
-    final unsignedBundle =
-        SpendBundle(coinSpends: intermediateCoinSpends + launcherCoinSpends);
+    final unsignedBundle = SpendBundle(coinSpends: intermediateCoinSpends + launcherCoinSpends);
 
-    final totalSpendBundle = standardSpendBundle +
-        unsignedBundle +
-        SpendBundle.aggregate(eveSpendBundles);
+    final totalSpendBundle =
+        standardSpendBundle + unsignedBundle + SpendBundle.aggregate(eveSpendBundles);
 
     return UnsignedDidSpendBundleWithTotalBundle(
       unsignedDidSpendBundle: unsignedDidBundle,
@@ -513,8 +485,7 @@ class NftWalletService {
     DidInfo? targetDidInfo,
     List<TradePrice>? tradePricesList,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
-        const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
   }) async {
     final result = await compute(
       _makeNftSpendBundleTask,
@@ -531,8 +502,7 @@ class NftWalletService {
         coinAnnouncementsToAssert: coinAnnouncementsToAssert,
         puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
         nftWalletService: this,
-        network:
-            stringToNetwork(ChiaNetworkContextWrapper().blockchainNetwork.name),
+        network: stringToNetwork(ChiaNetworkContextWrapper().blockchainNetwork.name),
       ),
     );
     return SpendBundle.fromJson(result);
@@ -549,15 +519,13 @@ class NftWalletService {
     DidInfo? targetDidInfo,
     List<TradePrice>? tradePricesList,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
-        const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
     List<Condition> additionalConditions = const [],
   }) {
     final createCoinAnnouncements = <CreateCoinAnnouncementCondition>[];
     SpendBundle? feeSpendBundle;
     if (fee > 0) {
-      createCoinAnnouncements
-          .add(CreateCoinAnnouncementCondition(nftCoin.coin.id));
+      createCoinAnnouncements.add(CreateCoinAnnouncementCondition(nftCoin.coin.id));
       feeSpendBundle = standardWalletService.createFeeSpendBundle(
         fee: fee,
         standardCoins: coinsForFee,
@@ -592,8 +560,7 @@ class NftWalletService {
           Program.list([]),
           Program.cons(
             Program.fromInt(1),
-            Program.cons(magicCondition.toProgram(),
-                standardInnerSolution.rest().first().rest()),
+            Program.cons(magicCondition.toProgram(), standardInnerSolution.rest().first().rest()),
           ),
           Program.list([]),
         ]),
@@ -699,8 +666,7 @@ class CreateNftSpendBundleArgument {
   final Network network;
 }
 
-Map<String, dynamic> _makeNftSpendBundleTask(
-    CreateNftSpendBundleArgument argument) {
+Map<String, dynamic> _makeNftSpendBundleTask(CreateNftSpendBundleArgument argument) {
   ChiaNetworkContextWrapper().registerNetworkContext(
     argument.network,
   );

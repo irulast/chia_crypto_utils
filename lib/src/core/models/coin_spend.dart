@@ -150,9 +150,7 @@ class CoinSpend extends Equatable with ToBytesMixin, ToJsonMixin {
 
   @override
   Bytes toBytes() {
-    return coin.toBytes() +
-        Bytes(puzzleReveal.toBytes()) +
-        Bytes(solution.toBytes());
+    return coin.toBytes() + Bytes(puzzleReveal.toBytes()) + Bytes(solution.toBytes());
   }
 
   SpendType? get type {
@@ -177,8 +175,7 @@ class CoinSpend extends Equatable with ToBytesMixin, ToJsonMixin {
     final payments = await paymentsAsync;
     final memoStrings = payments.fold(
       <String>[],
-      (List<String> previousValue, payment) =>
-          previousValue + payment.memoStrings,
+      (List<String> previousValue, payment) => previousValue + payment.memoStrings,
     );
     return memoStrings;
   }
@@ -201,8 +198,7 @@ class CoinSpend extends Equatable with ToBytesMixin, ToJsonMixin {
   }
 
   @override
-  String toString() =>
-      'CoinSpend(coin: $coin, puzzleReveal: $puzzleReveal, solution: $solution)';
+  String toString() => 'CoinSpend(coin: $coin, puzzleReveal: $puzzleReveal, solution: $solution)';
 
   @override
   List<Object?> get props => [coin, puzzleReveal, solution];

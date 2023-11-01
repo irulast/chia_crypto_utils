@@ -19,8 +19,7 @@ Puzzlehash shatreePair(Bytes leftHash, Bytes rightHash) {
 }
 
 Puzzlehash curryAndTreeHash(Program mod, List<Puzzlehash> hashedArguments) {
-  final quotedModHash =
-      Program.cons(Program.fromBigInt(keywords['q']!), mod).hash();
+  final quotedModHash = Program.cons(Program.fromBigInt(keywords['q']!), mod).hash();
   final curedValues = curriedValuesTreeHash(hashedArguments);
   return shatreePair(
     A_KW_TREEHASH,

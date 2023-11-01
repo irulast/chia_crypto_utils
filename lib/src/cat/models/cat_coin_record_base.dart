@@ -13,8 +13,7 @@ class CatFullCoin with CoinPrototypeDecoratorMixin implements CatCoin, Coin {
     required CoinSpend parentCoinSpend,
     required Coin coin,
   }) {
-    final catCoinBase =
-        CatCoin.fromParentSpend(parentCoinSpend: parentCoinSpend, coin: coin);
+    final catCoinBase = CatCoin.fromParentSpend(parentCoinSpend: parentCoinSpend, coin: coin);
     return CatFullCoin(
       parentCoinSpend: parentCoinSpend,
       catProgram: catCoinBase.catProgram,
@@ -28,8 +27,8 @@ class CatFullCoin with CoinPrototypeDecoratorMixin implements CatCoin, Coin {
     required CoinSpend parentCoinSpend,
     required Coin coin,
   }) async {
-    final catCoinBase = await CatCoin.fromParentSpendAsync(
-        parentCoinSpend: parentCoinSpend, coin: coin);
+    final catCoinBase =
+        await CatCoin.fromParentSpendAsync(parentCoinSpend: parentCoinSpend, coin: coin);
     return CatFullCoin(
       parentCoinSpend: parentCoinSpend,
       catProgram: catCoinBase.catProgram,

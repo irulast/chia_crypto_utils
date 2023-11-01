@@ -29,8 +29,7 @@ class HkdfIn {
   final String prkExpected;
   final String okmExpected;
   int L;
-  HkdfIn(this.ikm, this.salt, this.info, this.prkExpected, this.okmExpected,
-      this.L);
+  HkdfIn(this.ikm, this.salt, this.info, this.prkExpected, this.okmExpected, this.L);
 }
 
 class Eip2333In {
@@ -145,14 +144,8 @@ void main() {
         var child = BasicSchemeMPL.deriveChildSk(master, item.childIndex);
         expect(master.toBytes().length == 32, isTrue);
         expect(child.toBytes().length == 32, isTrue);
-        expect(
-            bytesEqual(
-                master.toBytes(), const HexDecoder().convert(item.masterSk)),
-            isTrue);
-        expect(
-            bytesEqual(
-                child.toBytes(), const HexDecoder().convert(item.childSk)),
-            isTrue);
+        expect(bytesEqual(master.toBytes(), const HexDecoder().convert(item.masterSk)), isTrue);
+        expect(bytesEqual(child.toBytes(), const HexDecoder().convert(item.childSk)), isTrue);
       });
     }
   });
@@ -168,31 +161,24 @@ void main() {
     test('Multiplication', () => expect(f == e, isFalse));
     var e_sq = e * e as Fq2;
     var e_sqrt = e_sq.modSqrt();
-    test('Square and Root',
-        () => expect(e_sqrt.pow(BigInt.two) == e_sq, isTrue));
+    test('Square and Root', () => expect(e_sqrt.pow(BigInt.two) == e_sq, isTrue));
     var a2 = Fq(
       BigInt.parse('172487123095712930573140951348'),
-      BigInt.parse(
-          '3012492130751239573498573249085723940848571098237509182375'),
+      BigInt.parse('3012492130751239573498573249085723940848571098237509182375'),
     );
     var b2 = Fq(BigInt.parse('172487123095712930573140951348'),
         BigInt.parse('3432984572394572309458723045723849'));
     var c2 = Fq2(BigInt.parse('172487123095712930573140951348'), [a2, b2]);
     test('Inequality', () => expect(b2 == c2, isFalse));
     var g = Fq6(seventeen, [c, d, d * d * c]);
-    var h = Fq6(seventeen,
-        [a + a * c, c * b * a, b * b * d * Fq(seventeen, BigInt.from(21))]);
+    var h = Fq6(seventeen, [a + a * c, c * b * a, b * b * d * Fq(seventeen, BigInt.from(21))]);
     var i = Fq12(seventeen, [g, h]);
     test('Double Negation', () => expect(~(~i) == i, isTrue));
-    test('Inverse Root Identity',
-        () => expect(~i.root * i.root == Fq6.one(seventeen), isTrue));
+    test('Inverse Root Identity', () => expect(~i.root * i.root == Fq6.one(seventeen), isTrue));
     var x = Fq12(seventeen, [Fq6.zero(seventeen), i.root]);
-    test('Inverse Identity',
-        () => expect(~x * x == Fq12.one(seventeen), isTrue));
-    var j =
-        Fq6(seventeen, [a + a * c, Fq2.zero(seventeen), Fq2.zero(seventeen)]);
-    var j2 =
-        Fq6(seventeen, [a + a * c, Fq2.zero(seventeen), Fq2.one(seventeen)]);
+    test('Inverse Identity', () => expect(~x * x == Fq12.one(seventeen), isTrue));
+    var j = Fq6(seventeen, [a + a * c, Fq2.zero(seventeen), Fq2.zero(seventeen)]);
+    var j2 = Fq6(seventeen, [a + a * c, Fq2.zero(seventeen), Fq2.one(seventeen)]);
     test('Extension Equaliy', () {
       expect(j == (a + a * c), isTrue);
       expect(j2 == (a + a * c), isFalse);
@@ -206,10 +192,7 @@ void main() {
       var c3 = Fq12(defaultEc.q, [b3, b3]);
       for (var base in [a3, b3, c3]) {
         for (var expo in range(1, base.extension)) {
-          expect(
-              base.qiPower(expo.toInt()) ==
-                  base.pow(defaultEc.q.pow(expo.toInt())),
-              isTrue);
+          expect(base.qiPower(expo.toInt()) == base.pow(defaultEc.q.pow(expo.toInt())), isTrue);
         }
       }
     });
@@ -228,19 +211,14 @@ void main() {
     });
     var g2 = JacobianPoint.generateG2();
     test('Commutative', () {
-      expect(
-          g2.x * (Fq(q, BigInt.two) * g2.y) ==
-              Fq(q, BigInt.two) * (g2.x * g2.y),
-          isTrue);
+      expect(g2.x * (Fq(q, BigInt.two) * g2.y) == Fq(q, BigInt.two) * (g2.x * g2.y), isTrue);
       expect(g2.isOnCurve, isTrue);
     });
     var s = g2 + g2;
     test('Twist', () {
       expect(s.toAffine().twist().untwist() == s.toAffine(), isTrue);
-      expect((s.toAffine().twist() * five).untwist() == (s * five).toAffine(),
-          isTrue);
-      expect(
-          s.toAffine().twist() * five == (s * five).toAffine().twist(), isTrue);
+      expect((s.toAffine().twist() * five).untwist() == (s * five).toAffine(), isTrue);
+      expect(s.toAffine().twist() * five == (s * five).toAffine().twist(), isTrue);
     });
     test('G2 Multiplication', () {
       expect(s.isOnCurve, isTrue);
@@ -257,8 +235,7 @@ void main() {
     var g2_j2 = JacobianPoint.generateG2() * BigInt.two;
     test('Conversions', () {
       expect(g.toAffine().toJacobian() == g, isTrue);
-      expect(
-          (g_j * BigInt.two).toAffine() == g.toAffine() * BigInt.two, isTrue);
+      expect((g_j * BigInt.two).toAffine() == g.toAffine() * BigInt.two, isTrue);
       expect((g2_j + g2_j2).toAffine() == g2.toAffine() * three, isTrue);
     });
   });
@@ -291,8 +268,7 @@ void main() {
   });
 
   test('SWU', () {
-    var dst_1 =
-        utf8.encode("QUUX-V01-CS02-with-BLS12381G2_XMD:SHA-256_SSWU_RO_");
+    var dst_1 = utf8.encode("QUUX-V01-CS02-with-BLS12381G2_XMD:SHA-256_SSWU_RO_");
     var msg_1 = utf8.encode('abcdef0123456789');
     var res = g2Map(msg_1, dst_1).toAffine();
     expect(
@@ -374,8 +350,7 @@ void main() {
       expect(pair == copy3, isTrue);
       var sk = BigInt.parse('728934712938472938472398074');
       var pk = g1 * sk;
-      var Hm = y2 * BigInt.from(12371928312) +
-          y2 * BigInt.parse('12903812903891023');
+      var Hm = y2 * BigInt.from(12371928312) + y2 * BigInt.parse('12903812903891023');
       var sig = Hm * sk;
       expect(atePairing(g1, sig) == atePairing(pk, Hm), isTrue);
     });
@@ -389,9 +364,7 @@ void main() {
     var sk1 = BasicSchemeMPL.keyGen(seed1);
     var sk2 = BasicSchemeMPL.keyGen(seed2);
     test('Private and Public Key', () {
-      expect(
-          sk1.toHex() ==
-              '4a353be3dac091a0a7e640620372f5e1e2e4401717c1e79cac6ffba8f6905604',
+      expect(sk1.toHex() == '4a353be3dac091a0a7e640620372f5e1e2e4401717c1e79cac6ffba8f6905604',
           isTrue);
       expect(
           sk1.getG1().toHex() ==
@@ -416,9 +389,7 @@ void main() {
           aggSig1.toHex() ==
               'aee003c8cdaf3531b6b0ca354031b0819f7586b5846796615aee8108fec75ef838d181f9d244a94d195d7b0231d4afcf06f27f0cc4d3c72162545c240de7d5034a7ef3a2a03c0159de982fbc2e7790aeb455e27beae91d64e077c70b5506dea3',
           isTrue);
-      expect(
-          BasicSchemeMPL.aggregateVerify(
-              [sk1.getG1(), sk2.getG1()], [msg1, msg2], aggSig1),
+      expect(BasicSchemeMPL.aggregateVerify([sk1.getG1(), sk2.getG1()], [msg1, msg2], aggSig1),
           isTrue);
     });
     var msg3 = [1, 2, 3];
@@ -435,9 +406,7 @@ void main() {
           isTrue);
       expect(
           BasicSchemeMPL.aggregateVerify(
-              [sk1.getG1(), sk1.getG1(), sk2.getG1()],
-              [msg3, msg4, msg5],
-              aggSig2),
+              [sk1.getG1(), sk1.getG1(), sk2.getG1()], [msg3, msg4, msg5], aggSig2),
           isTrue);
     });
   });
@@ -589,8 +558,7 @@ void main() {
     var pk = sk.getG1();
     var message = [1, 2, 3, 4, 5];
     var signature = AugSchemeMPL.sign(sk, message);
-    test('AugSchemeMPL Verify',
-        () => expect(AugSchemeMPL.verify(pk, message, signature), isTrue));
+    test('AugSchemeMPL Verify', () => expect(AugSchemeMPL.verify(pk, message, signature), isTrue));
     var sk_bytes = sk.toBytes();
     var pk_bytes = pk.toBytes();
     var signature_bytes = signature.toBytes();
@@ -614,10 +582,8 @@ void main() {
     var agg_sig = AugSchemeMPL.aggregate([sig1, sig2]);
     test(
         'AugSchemeMPL Aggregate Verify 1',
-        () => expect(
-            AugSchemeMPL.aggregateVerify(
-                [pk1, pk2], [message, message2], agg_sig),
-            isTrue));
+        () =>
+            expect(AugSchemeMPL.aggregateVerify([pk1, pk2], [message, message2], agg_sig), isTrue));
     var seed3 = [3] + seed.sublist(1);
     var sk3 = AugSchemeMPL.keyGen(seed3);
     var pk3 = sk3.getG1();
@@ -645,19 +611,13 @@ void main() {
     test(
         'PopSchemeMPL Fast Aggregate Verify',
         () => expect(
-            PopSchemeMPL.fastAggregateVerify(
-                [pk1, pk2, pk3], message, pop_sig_agg),
-            isTrue));
+            PopSchemeMPL.fastAggregateVerify([pk1, pk2, pk3], message, pop_sig_agg), isTrue));
     var pop_agg_pk = pk1 + pk2 + pk3;
-    test(
-        'PopSchemeMPL Verify',
-        () => expect(
-            PopSchemeMPL.verify(pop_agg_pk, message, pop_sig_agg), isTrue));
+    test('PopSchemeMPL Verify',
+        () => expect(PopSchemeMPL.verify(pop_agg_pk, message, pop_sig_agg), isTrue));
     var pop_agg_sk = PrivateKey.aggregate([sk1, sk2, sk3]);
-    test(
-        'PopSchemeMPL Aggregate Sign',
-        () => expect(
-            PopSchemeMPL.sign(pop_agg_sk, message) == pop_sig_agg, isTrue));
+    test('PopSchemeMPL Aggregate Sign',
+        () => expect(PopSchemeMPL.sign(pop_agg_sk, message) == pop_sig_agg, isTrue));
     var master_sk = AugSchemeMPL.keyGen(seed);
     var child = AugSchemeMPL.deriveChildSk(master_sk, 152);
     AugSchemeMPL.deriveChildSk(child, 952);
@@ -666,8 +626,7 @@ void main() {
     var grandchild_u = AugSchemeMPL.deriveChildSkUnhardened(child_u, 0);
     var child_u_pk = AugSchemeMPL.deriveChildPkUnhardened(master_pk, 22);
     var grandchild_u_pk = AugSchemeMPL.deriveChildPkUnhardened(child_u_pk, 0);
-    test('AugSchemeMPL Child Keys',
-        () => expect(grandchild_u_pk == grandchild_u.getG1(), isTrue));
+    test('AugSchemeMPL Child Keys', () => expect(grandchild_u_pk == grandchild_u.getG1(), isTrue));
   });
 
   test('Current', () {

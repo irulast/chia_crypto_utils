@@ -5,8 +5,7 @@ void main() {
   final secret = KeychainCoreSecret.generate();
 
   test('should correctly parse mnemonic', () {
-    final fromString =
-        KeychainCoreSecret.fromMnemonicString(secret.mnemonicString);
+    final fromString = KeychainCoreSecret.fromMnemonicString(secret.mnemonicString);
     expect(fromString.fingerprint, secret.fingerprint);
     expect(fromString.mnemonicString, secret.mnemonicString);
     expect(fromString.mnemonic, secret.mnemonic);

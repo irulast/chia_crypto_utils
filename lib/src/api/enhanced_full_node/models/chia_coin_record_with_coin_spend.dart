@@ -28,8 +28,7 @@ class ChiaCoinRecordWithCoinSpend extends ChiaCoinRecord {
           : CoinSpend.fromJson(json['coin_spend'] as Map<String, dynamic>),
       parentSpend: (json['parent_coin_spend'] == null)
           ? null
-          : CoinSpend.fromJson(
-              json['parent_coin_spend'] as Map<String, dynamic>),
+          : CoinSpend.fromJson(json['parent_coin_spend'] as Map<String, dynamic>),
     );
   }
   final CoinSpend? coinSpend;

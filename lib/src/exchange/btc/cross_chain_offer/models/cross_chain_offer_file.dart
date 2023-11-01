@@ -8,10 +8,8 @@ import 'package:compute/compute.dart';
 /// The most general abstraction that all cross chain offer files implement and holds parameters
 /// that are common to all of concrete cross chain offer file classes.
 abstract class CrossChainOfferFile {
-  factory CrossChainOfferFile.fromSerializedOfferFile(
-      String serializedOfferFile) {
-    final deserializedOfferFile =
-        maybeFromSerializedOfferFile(serializedOfferFile);
+  factory CrossChainOfferFile.fromSerializedOfferFile(String serializedOfferFile) {
+    final deserializedOfferFile = maybeFromSerializedOfferFile(serializedOfferFile);
 
     if (deserializedOfferFile == null) {
       throw InvalidCrossChainOfferFile();
@@ -19,8 +17,7 @@ abstract class CrossChainOfferFile {
     return deserializedOfferFile;
   }
 
-  factory CrossChainOfferFile._fromSerializedOfferFileTask(
-      String serializedOfferFile) {
+  factory CrossChainOfferFile._fromSerializedOfferFileTask(String serializedOfferFile) {
     return CrossChainOfferFile.fromSerializedOfferFile(serializedOfferFile);
   }
   CrossChainOfferFilePrefix get prefix;
@@ -39,8 +36,7 @@ abstract class CrossChainOfferFile {
     required JacobianPoint fulfillerPublicKey,
   });
 
-  static CrossChainOfferFile? maybeFromSerializedOfferFile(
-      String serializedOfferFile) {
+  static CrossChainOfferFile? maybeFromSerializedOfferFile(String serializedOfferFile) {
     try {
       if (!serializedOfferFile.startsWith('ccoffer') &&
           !serializedOfferFile.startsWith('ccoffer_accept')) {
@@ -76,8 +72,8 @@ abstract class CrossChainOfferFile {
           break;
       }
 
-      final verification = AugSchemeMPL.verify(
-          deserializedOfferFile.publicKey, utf8.encode(data), signature);
+      final verification =
+          AugSchemeMPL.verify(deserializedOfferFile.publicKey, utf8.encode(data), signature);
 
       if (verification == false) {
         throw BadSignatureOnOfferFile();
@@ -92,8 +88,8 @@ abstract class CrossChainOfferFile {
   static Future<CrossChainOfferFile> fromSerializedOfferFileAsync(
     String serializedOfferFile,
   ) async {
-    final result = await compute(
-        CrossChainOfferFile._fromSerializedOfferFileTask, serializedOfferFile);
+    final result =
+        await compute(CrossChainOfferFile._fromSerializedOfferFileTask, serializedOfferFile);
 
     return result;
   }
@@ -109,15 +105,14 @@ extension Serialize on CrossChainOfferFile {
       throw FailedSignatureOnOfferFileException();
     }
 
-    final signature =
-        AugSchemeMPL.sign(requestorPrivateKey, utf8.encode(base64EncodedData));
+    final signature = AugSchemeMPL.sign(requestorPrivateKey, utf8.encode(base64EncodedData));
     final signedData = utf8.encode('$base64EncodedData.${signature.toHex()}');
     return bech32Encode(prefix.name, Bytes(signedData));
   }
 
   Future<String> serializeAsync(PrivateKey requestorPrivateKey) async {
-    final result = await compute(_serializeOfferFileTask,
-        _OfferFileWithPrivateKey(this, requestorPrivateKey));
+    final result =
+        await compute(_serializeOfferFileTask, _OfferFileWithPrivateKey(this, requestorPrivateKey));
 
     return result;
   }
@@ -128,33 +123,25 @@ extension Serialize on CrossChainOfferFile {
 }
 
 extension Role on CrossChainOfferFile {
-  ExchangeRole get role => prefix == CrossChainOfferFilePrefix.ccoffer
-      ? ExchangeRole.maker
-      : ExchangeRole.taker;
+  ExchangeRole get role =>
+      prefix == CrossChainOfferFilePrefix.ccoffer ? ExchangeRole.maker : ExchangeRole.taker;
 }
 
 extension ExchangeOfferRecordType on CrossChainOfferFile {
-  ExchangeType get exchangeType => type == CrossChainOfferFileType.xchToBtc ||
-          type == CrossChainOfferFileType.xchToBtcAccept
-      ? ExchangeType.xchToBtc
-      : ExchangeType.btcToXch;
+  ExchangeType get exchangeType =>
+      type == CrossChainOfferFileType.xchToBtc || type == CrossChainOfferFileType.xchToBtcAccept
+          ? ExchangeType.xchToBtc
+          : ExchangeType.btcToXch;
 }
 
-enum CrossChainOfferFileType {
-  xchToBtc,
-  xchToBtcAccept,
-  btcToXch,
-  btcToXchAccept
-}
+enum CrossChainOfferFileType { xchToBtc, xchToBtcAccept, btcToXch, btcToXchAccept }
 
 // ignore: constant_identifier_names
 enum CrossChainOfferFilePrefix { ccoffer, ccoffer_accept }
 
-CrossChainOfferFileType parseCrossChainOfferFileTypeFromJson(
-    Map<String, dynamic> json) {
+CrossChainOfferFileType parseCrossChainOfferFileTypeFromJson(Map<String, dynamic> json) {
   if (json.containsKey('offered')) {
-    final offeredAmount =
-        ExchangeAmount.fromJson(json['offered'] as Map<String, dynamic>);
+    final offeredAmount = ExchangeAmount.fromJson(json['offered'] as Map<String, dynamic>);
     if (offeredAmount.type == ExchangeAmountType.XCH) {
       return CrossChainOfferFileType.xchToBtc;
     } else {

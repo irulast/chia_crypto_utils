@@ -46,10 +46,8 @@ class NftDataCsvParser {
       description: pick(fieldRows[1][1]).asStringOrThrow(),
       twitter: pick(fieldRows[2][1]).asStringOrThrow(),
       website: pick(fieldRows[3][1]).asStringOrThrow(),
-      icon: UploadableValue(pick(fieldRows[4][1]).asStringOrThrow())
-        ..assertImage(),
-      banner: UploadableValue(pick(fieldRows[5][1]).asStringOrThrow())
-        ..assertImage(),
+      icon: UploadableValue(pick(fieldRows[4][1]).asStringOrThrow())..assertImage(),
+      banner: UploadableValue(pick(fieldRows[5][1]).asStringOrThrow())..assertImage(),
       editionTotal: pick(fieldRows[6][1]).asIntOrNull(),
       seriesTotal: pick(fieldRows[7][1]).asIntOrNull(),
       seriesNumber: pick(fieldRows[8][1]).asIntOrNull(),
@@ -89,8 +87,7 @@ class NftDataCsvParser {
             .sublist(7)
             .map(
               (e) => UploadableAttribute(
-                type:
-                    pick(columnNumberToAttributeType[e.key]).asStringOrThrow(),
+                type: pick(columnNumberToAttributeType[e.key]).asStringOrThrow(),
                 value: UploadableValue(e.value.toString()),
               ),
             )
@@ -102,8 +99,8 @@ class NftDataCsvParser {
   NftThemeCsvData parseThemeDataFromFile(File file) {
     final rows = converter.convert(file.readAsStringSync());
 
-    final sizeTableRowIndex = rows
-        .indexWhere((row) => pick(row[0]).asStringOrThrow().contains('size'));
+    final sizeTableRowIndex =
+        rows.indexWhere((row) => pick(row[0]).asStringOrThrow().contains('size'));
 
     final fieldRows = rows.sublist(0, sizeTableRowIndex);
 
@@ -116,9 +113,7 @@ class NftDataCsvParser {
       return ThemeImageData(
         size: size,
         image: (image != null) ? (UploadableValue(image)..assertImage()) : null,
-        background: background != null
-            ? (UploadableValue(background)..assertImage())
-            : null,
+        background: background != null ? (UploadableValue(background)..assertImage()) : null,
       );
     }).toList();
 
@@ -134,8 +129,7 @@ class NftDataCsvParser {
       brightness: pick(fieldMap, 'brightness').asStringOrThrow(),
       buttonColor: pick(fieldMap, 'button_color').asStringOrThrow(),
       buttonOpacity: pick(fieldMap, 'button_opacity').asDoubleOrThrow(),
-      nftTextOutlineColor:
-          pick(fieldMap, 'nft_text_outline_color').asStringOrNull(),
+      nftTextOutlineColor: pick(fieldMap, 'nft_text_outline_color').asStringOrNull(),
       nftTextColor: pick(fieldMap, 'nft_text_color').asStringOrNull(),
       imageData: imageData,
     );

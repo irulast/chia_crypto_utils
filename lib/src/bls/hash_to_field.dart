@@ -20,8 +20,7 @@ List<int> I2OSP(BigInt val, int length) {
   }
   final result = bytes;
   final toBytesVal = bigIntToBytes(val, length, Endian.big);
-  assert(listsEqual(result, toBytesVal),
-      'Expected $toBytesVal, but found $result');
+  assert(listsEqual(result, toBytesVal), 'Expected $toBytesVal, but found $result');
   return result;
 }
 
@@ -39,8 +38,7 @@ Bytes bytesXor(List<int> a, List<int> b) {
   return Bytes(zip([a, b]).map((element) => element[0] ^ element[1]).toList());
 }
 
-Bytes expandMessageXmd(
-    List<int> msg, List<int> DST, int lenInBytes, Hash hash) {
+Bytes expandMessageXmd(List<int> msg, List<int> DST, int lenInBytes, Hash hash) {
   final bInBytes = hash.convert([]).bytes.length;
   final rInBytes = hash.blockSize;
   final ell = (lenInBytes + bInBytes - 1) ~/ bInBytes;
@@ -50,18 +48,12 @@ Bytes expandMessageXmd(
   final DST_prime = DST + I2OSP(BigInt.from(DST.length), 1);
   final Z_pad = I2OSP(BigInt.zero, rInBytes);
   final l_i_b_str = I2OSP(BigInt.from(lenInBytes), 2);
-  final b_0 = hash
-      .convert(Z_pad + msg + l_i_b_str + I2OSP(BigInt.zero, 1) + DST_prime)
-      .bytes;
+  final b_0 = hash.convert(Z_pad + msg + l_i_b_str + I2OSP(BigInt.zero, 1) + DST_prime).bytes;
   final bVals = <List<int>>[];
   bVals.add(hash.convert(b_0 + I2OSP(BigInt.one, 1) + DST_prime).bytes);
   for (var i = 1; i < ell; i++) {
     bVals.add(
-      hash
-          .convert(bytesXor(b_0, bVals[i - 1]) +
-              I2OSP(BigInt.from(i + 1), 1) +
-              DST_prime)
-          .bytes,
+      hash.convert(bytesXor(b_0, bVals[i - 1]) + I2OSP(BigInt.from(i + 1), 1) + DST_prime).bytes,
     );
   }
   final pseudoRandomBytes = <int>[];
@@ -71,8 +63,7 @@ Bytes expandMessageXmd(
   return Bytes(pseudoRandomBytes.sublist(0, lenInBytes));
 }
 
-Bytes expandMessageXof(
-    List<int> msg, List<int> DST, int lenInBytes, Hash hash) {
+Bytes expandMessageXof(List<int> msg, List<int> DST, int lenInBytes, Hash hash) {
   final DST_prime = DST + I2OSP(BigInt.from(DST.length), 1);
   final msg_prime = msg + I2OSP(BigInt.from(lenInBytes), 2) + DST_prime;
   return Bytes(hash.convert(msg_prime).bytes.sublist(0, lenInBytes));

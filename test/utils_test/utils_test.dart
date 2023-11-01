@@ -52,14 +52,11 @@ const chiaFirstAddress = Address(
 
 void main() async {
   // get chia wallet sets generated from testMnemonic
-  var filePath =
-      path.join(path.current, 'test/utils_test/resources/chia_wallet_sets.csv');
+  var filePath = path.join(path.current, 'test/utils_test/resources/chia_wallet_sets.csv');
   filePath = path.normalize(filePath);
   final input = File(filePath).openRead();
-  final chiaWalletSetRows = await input
-      .transform(utf8.decoder)
-      .transform(const CsvToListConverter(eol: '\n'))
-      .toList();
+  final chiaWalletSetRows =
+      await input.transform(utf8.decoder).transform(const CsvToListConverter(eol: '\n')).toList();
 
   test('should generate correct puzzle hashes from mnemonic', () {
     final keychainSecret = KeychainCoreSecret.fromMnemonic(testMnemonic);
@@ -67,8 +64,7 @@ void main() async {
 
     final fingerprint = keychainSecret.masterPublicKey.getFingerprint();
     final masterPublicKeyHex = keychainSecret.masterPublicKey.toHex();
-    final farmerPublicKeyHex =
-        masterSkToFarmerSk(masterPrivateKey).getG1().toHex();
+    final farmerPublicKeyHex = masterSkToFarmerSk(masterPrivateKey).getG1().toHex();
     final poolPublicKeyHex = masterSkToPoolSk(masterPrivateKey).getG1().toHex();
 
     expect(fingerprint, chiaFingerprint);

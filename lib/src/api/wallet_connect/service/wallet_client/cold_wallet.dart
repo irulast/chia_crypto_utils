@@ -14,18 +14,15 @@ class ColdWallet implements Wallet {
   WalletKeychain getKeychain() => keychain;
 
   @override
-  Future<List<CatFullCoin>> getCatCoins() =>
-      fullNode.getCatCoinsByHints(keychain.puzzlehashes);
+  Future<List<CatFullCoin>> getCatCoins() => fullNode.getCatCoinsByHints(keychain.puzzlehashes);
 
   @override
   Future<List<DidInfoWithOriginCoin>> getDidInfosWithOriginCoin() async {
-    final didRecords =
-        await fullNode.getDidRecordsByHints(keychain.puzzlehashes);
+    final didRecords = await fullNode.getDidRecordsByHints(keychain.puzzlehashes);
 
     final didInfosWithOriginCoin = <DidInfoWithOriginCoin>[];
     for (final didRecord in didRecords) {
-      final didInfoWithOriginCoin =
-          await didRecord.toDidInfo(keychain)?.fetchOriginCoin(fullNode);
+      final didInfoWithOriginCoin = await didRecord.toDidInfo(keychain)?.fetchOriginCoin(fullNode);
 
       if (didInfoWithOriginCoin != null) {
         didInfosWithOriginCoin.add(didInfoWithOriginCoin);
@@ -37,8 +34,7 @@ class ColdWallet implements Wallet {
 
   @override
   Future<List<NftRecordWithMintInfo>> getNftRecordsWithMintInfo() async {
-    final nftRecords =
-        await fullNode.getNftRecordsByHints(keychain.puzzlehashes);
+    final nftRecords = await fullNode.getNftRecordsByHints(keychain.puzzlehashes);
 
     final nftRecordsWithMintInfo = <NftRecordWithMintInfo>[];
 
@@ -54,8 +50,7 @@ class ColdWallet implements Wallet {
   }
 
   @override
-  Future<List<CatCoin>> getCatCoinsByAssetId(Puzzlehash assetId,
-      {int catVersion = 2}) {
+  Future<List<CatCoin>> getCatCoinsByAssetId(Puzzlehash assetId, {int catVersion = 2}) {
     if (!keychain.hasAssetId(assetId)) {
       switch (catVersion) {
         case 1:
@@ -66,21 +61,18 @@ class ColdWallet implements Wallet {
           break;
 
         default:
-          throw InvalidCatException(
-              message: 'Invalid cat version: $catVersion');
+          throw InvalidCatException(message: 'Invalid cat version: $catVersion');
       }
     }
     final outerPuzzlehashes = keychain.getOuterPuzzleHashesForAssetId(assetId);
 
-    return fullNode.getCatCoinsByOuterPuzzleHashes(outerPuzzlehashes).then(
-        (value) => value
-            .where((element) => element.catVersion == catVersion)
-            .toList());
+    return fullNode
+        .getCatCoinsByOuterPuzzleHashes(outerPuzzlehashes)
+        .then((value) => value.where((element) => element.catVersion == catVersion).toList());
   }
 
   @override
-  Future<List<Coin>> getCoins() =>
-      fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
+  Future<List<Coin>> getCoins() => fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
   @override
   Future<NftRecord?> getNftRecordByLauncherId(Bytes launcherId) =>
       fullNode.getNftByLauncherId(launcherId);

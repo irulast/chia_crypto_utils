@@ -16,8 +16,7 @@ class BtcExchangeService {
     int fee = 0,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
-        const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
   }) {
     final requestorPublicKey = requestorPrivateKey.getG1();
 
@@ -82,8 +81,7 @@ class BtcExchangeService {
 
     final totalPublicKey = sweepPublicKey + clawbackPublicKey;
 
-    final puzzle =
-        getPuzzleFromPkAndHiddenPuzzle(totalPublicKey, hiddenPuzzleProgram);
+    final puzzle = getPuzzleFromPkAndHiddenPuzzle(totalPublicKey, hiddenPuzzleProgram);
 
     return puzzle;
   }
@@ -130,8 +128,7 @@ class BtcExchangeService {
       p2DelayedOrPreimageSolution =
           Program.list([Program.fromAtom(sweepPreimage), delegatedSolution]);
     } else {
-      p2DelayedOrPreimageSolution =
-          Program.list([Program.fromInt(0), delegatedSolution]);
+      p2DelayedOrPreimageSolution = Program.list([Program.fromInt(0), delegatedSolution]);
     }
 
     final solution = Program.list(
