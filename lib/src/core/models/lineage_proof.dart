@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:meta/meta.dart';
 
@@ -16,6 +18,24 @@ class LineageProof with ToBytesMixin, ToProgramMixin {
     final innerPuzzlehash = Puzzlehash.maybeFromStream(iterator);
 
     final amount = maybeIntFrom64BitsStream(iterator);
+
+    return LineageProof(
+      parentCoinInfo: parentCoinInfo,
+      innerPuzzlehash: innerPuzzlehash,
+      amount: amount,
+    );
+  }
+
+  factory LineageProof.fromStream(Iterator<int> iterator) {
+    final parentCoinInfoBytes = iterator.extractBytesAndAdvance(Puzzlehash.bytesLength);
+    final parentCoinInfo = Bytes(parentCoinInfoBytes);
+
+    final innerPuzzlehashBytes = iterator.extractBytesAndAdvance(Puzzlehash.bytesLength);
+    final innerPuzzlehash = Puzzlehash(innerPuzzlehashBytes);
+
+    // coin amount is encoded with 64 bits
+    final amountBytes = iterator.extractBytesAndAdvance(8);
+    final amount = bytesToInt(amountBytes, Endian.big);
 
     return LineageProof(
       parentCoinInfo: parentCoinInfo,

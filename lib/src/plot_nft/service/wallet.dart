@@ -1,6 +1,5 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/plot_nft/models/exceptions/invalid_pool_singleton_exception.dart';
-import 'package:chia_crypto_utils/src/plot_nft/models/lineage_proof.dart';
 import 'package:chia_crypto_utils/src/singleton/puzzles/singleton_output_inner_puzzle/singleton_output_inner_puzzle.clvm.hex.dart';
 
 class PlotNftWalletService extends BaseWalletService {
@@ -110,7 +109,7 @@ class PlotNftWalletService extends BaseWalletService {
     }
 
     final uncurriedInnerPuzzle = currentInnerPuzzle.uncurry();
-    final uncurriedInnerPuzzleProgram = uncurriedInnerPuzzle.program;
+    final uncurriedInnerPuzzleProgram = uncurriedInnerPuzzle.mod;
 
     Program? innerSolution;
     if (uncurriedInnerPuzzleProgram == poolMemberInnerpuzProgram) {
@@ -266,7 +265,7 @@ class PlotNftWalletService extends BaseWalletService {
     }
 
     final uncurriedInnerPuzzle = currentInnerPuzzle.uncurry();
-    final uncurriedInnerPuzzleProgram = uncurriedInnerPuzzle.program;
+    final uncurriedInnerPuzzleProgram = uncurriedInnerPuzzle.mod;
 
     if (uncurriedInnerPuzzleProgram != poolWaitingRoomInnerpuzProgram) {
       throw Exception('wrong inner puzzle');
@@ -305,12 +304,12 @@ class PlotNftWalletService extends BaseWalletService {
             newWaitingRoomInnerPuzzle.hash(),
             intermediaryCoin.amount,
             memos: [receiverPuzzlehash],
-          ).program,
+          ).toProgram(),
           CreateCoinCondition(
             Puzzlehash(launcherId),
             2,
             memos: [receiverPuzzlehash],
-          ).program,
+          ).toProgram(),
         ],
       )
     ]);

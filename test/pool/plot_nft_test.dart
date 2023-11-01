@@ -1,5 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/plot_nft/models/lineage_proof.dart';
 import 'package:test/test.dart';
 
 void main() {

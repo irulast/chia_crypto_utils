@@ -359,7 +359,7 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await nathan.refreshCoins();
 
-    final plotNftTreasureMapCoin = (await fullNodeSimulator.getCoinsByMemo(
+    final plotNftTreasureMapCoin = (await fullNodeSimulator.getCoinsByHint(
       meeraSingletonWalletVector.plotNftHint,
     ))
         .single;
@@ -447,7 +447,7 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
     await nathan.refreshCoins();
 
-    final plotNftTreasureMapCoin = (await fullNodeSimulator.getCoinsByMemo(
+    final plotNftTreasureMapCoin = (await fullNodeSimulator.getCoinsByHint(
       meeraSingletonWalletVector.plotNftHint,
     ))
         .single;
@@ -538,7 +538,7 @@ Future<void> main() async {
     //     SingletonService.puzzleForSingleton(plotNft.launcherId, singletonOutputInnerPuzzleProgram)
     //         .hash();
 
-    final sibling = await fullNodeSimulator.getCoinsByMemo(meera.firstPuzzlehash);
+    final sibling = await fullNodeSimulator.getCoinsByHint(meera.firstPuzzlehash);
 
     final transferredPlotNft =
         await fullNodeSimulator.getPlotNftByLauncherId(sibling.single.puzzlehash);

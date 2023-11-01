@@ -1,5 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/plot_nft/models/lineage_proof.dart';
 
 class PlotNft with ToBytesMixin {
   PlotNft({
@@ -8,6 +7,7 @@ class PlotNft with ToBytesMixin {
     required this.poolState,
     required this.delayTime,
     required this.delayPuzzlehash,
+    required this.lineageProof,
   });
 
   final Bytes launcherId;
@@ -36,12 +36,6 @@ class PlotNft with ToBytesMixin {
       lineageProof: lineageProof,
     );
   }
-
-  final Bytes launcherId;
-  final CoinPrototype singletonCoin;
-  final PoolState poolState;
-  final int delayTime;
-  final Puzzlehash delayPuzzlehash;
 
   Puzzlehash get p2Puzzlehash =>
       PlotNftWalletService.launcherIdToP2Puzzlehash(launcherId, delayTime, delayPuzzlehash);
