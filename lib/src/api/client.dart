@@ -10,6 +10,7 @@ class Client {
     this.baseURL, {
     Bytes? certBytes,
     Bytes? keyBytes,
+    this.baseHeadersGetter,
     this.timeout = const Duration(seconds: 7),
   }) {
     final context = (certBytes != null && keyBytes != null)
@@ -26,7 +27,11 @@ class Client {
 
   late HttpClient httpClient;
   final String baseURL;
+  final HeadersGetter? baseHeadersGetter;
+
   final Duration timeout;
+
+  final _invalidHeaders = <String>{};
 
   Future<Response> get(
     Uri url, {
@@ -44,6 +49,22 @@ class Client {
     additionalHeaders.forEach((key, value) {
       request.headers.add(key, value);
     });
+
+    if (baseHeadersGetter != null) {
+      final baseHeaders = await baseHeadersGetter!();
+
+      baseHeaders.forEach((key, value) {
+        if (_invalidHeaders.contains(key)) {
+          return;
+        }
+        try {
+          request.headers.add(key, value);
+        } on FormatException {
+          _invalidHeaders.add(key);
+          LoggingContext().error('invalid header: $key: $value');
+        }
+      });
+    }
     request.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
 
     final response = await request.close().timeout(
@@ -72,6 +93,13 @@ class Client {
       additionalHeaders.forEach((key, value) {
         request.headers.add(key, value);
       });
+
+      if (baseHeadersGetter != null) {
+        final baseHeaders = await baseHeadersGetter!();
+        baseHeaders.forEach((key, value) {
+          request.headers.add(key, value);
+        });
+      }
       request.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
       request.write(jsonEncode(requestBody));
 
@@ -85,7 +113,7 @@ class Client {
       return Response(stringData, response.statusCode);
     } on SocketException catch (e) {
       LoggingContext().api(e.toString());
-      throw NotRunningException(baseURL);
+      throw NotRunningException(url.toString());
     } on HttpException catch (e) {
       LoggingContext().api(e.toString());
 

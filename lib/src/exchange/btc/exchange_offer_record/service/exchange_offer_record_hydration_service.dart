@@ -6,7 +6,7 @@ class ExchangeOfferRecordHydrationService {
   ExchangeOfferRecordHydrationService(this.fullNode);
 
   final ChiaFullNodeInterface fullNode;
-  ExchangeOfferService get exchangeOfferService => ExchangeOfferService(fullNode);
+  late ExchangeOfferService exchangeOfferService = ExchangeOfferService(fullNode);
 
   Future<ExchangeOfferRecord> hydrateExchangeInitializationCoin(
     Coin initializationCoin,
@@ -55,13 +55,7 @@ class ExchangeOfferRecordHydrationService {
     final requestorPublicKey = offerFile.publicKey;
     final requestorLightningPaymentRequest = offerFile.lightningPaymentRequest;
 
-    // check whether offer was submitted to dexie
-    var submittedToDexie = false;
-    final dexieId = generateDexieId(serializedOfferFile);
-    final dexieResponse = await DexieApi().inspectOffer(dexieId);
-    if (dexieResponse.success && dexieResponse.offerJson != null) {
-      submittedToDexie = true;
-    }
+    final submittedToDexie = await getDexieSubmissionStatus(serializedOfferFile);
 
     // check whether the 3 mojo addition from the initialization coin spend was spent, indicating cancelation
     final cancelCoin =
@@ -187,11 +181,14 @@ class ExchangeOfferRecordHydrationService {
     final escrowTransferCompletedTime =
         await fullNode.getDateTimeFromBlockIndex(escrowTransferCompletedBlockIndex);
 
+    final escrowTransferConfirmedBlockIndex =
+        escrowTransferCompletedBlockIndex + blocksForSufficientConfirmation;
     final escrowTransferConfirmedTime = await getConfirmedTime(escrowTransferCompletedBlockIndex);
 
     final exchangeOfferRecordAfterEscrowTransfer = exchangeOfferRecordWithMessageCoin.copyWith(
       escrowCoinId: escrowCoinId,
       escrowTransferCompletedTime: escrowTransferCompletedTime,
+      escrowTransferConfirmedBlockIndex: escrowTransferConfirmedBlockIndex,
       escrowTransferConfirmedTime: escrowTransferConfirmedTime,
     );
 
@@ -206,7 +203,6 @@ class ExchangeOfferRecordHydrationService {
     final completedBlockIndex = spentEscrowCoins.first.spentBlockIndex;
 
     final completedTime = await fullNode.getDateTimeFromBlockIndex(completedBlockIndex);
-    final confirmedTime = await getConfirmedTime(completedBlockIndex);
 
     final requestorSpentEscrowCoins = await didRequestorSpendEscrowCoins(
       spentEscrowCoin: spentEscrowCoins.first,
@@ -216,24 +212,18 @@ class ExchangeOfferRecordHydrationService {
     );
 
     late final DateTime? clawbackTime;
-    late final DateTime? clawbackConfirmedTime;
     late final DateTime? sweepTime;
-    late final DateTime? sweepConfirmedTime;
     if (requestorSpentEscrowCoins) {
       switch (exchangeType) {
         case ExchangeType.xchToBtc:
           // maker clawed back
           clawbackTime = completedTime;
-          clawbackConfirmedTime = confirmedTime;
           sweepTime = null;
-          sweepConfirmedTime = null;
           break;
         case ExchangeType.btcToXch:
           // maker swept
           sweepTime = completedTime;
-          sweepConfirmedTime = confirmedTime;
           clawbackTime = null;
-          clawbackConfirmedTime = null;
           break;
       }
     } else {
@@ -241,25 +231,19 @@ class ExchangeOfferRecordHydrationService {
         case ExchangeType.xchToBtc:
           // taker swept
           sweepTime = completedTime;
-          sweepConfirmedTime = confirmedTime;
           clawbackTime = null;
-          clawbackConfirmedTime = null;
           break;
         case ExchangeType.btcToXch:
           // taker clawed back
           clawbackTime = completedTime;
-          clawbackConfirmedTime = confirmedTime;
           sweepTime = null;
-          sweepConfirmedTime = null;
           break;
       }
     }
 
     return exchangeOfferRecordAfterEscrowTransfer.copyWith(
       clawbackTime: clawbackTime,
-      clawbackConfirmedTime: clawbackConfirmedTime,
       sweepTime: sweepTime,
-      sweepConfirmedTime: sweepConfirmedTime,
     );
   }
 
@@ -336,6 +320,8 @@ class ExchangeOfferRecordHydrationService {
       fulfillerPublicKey: fulfillerPublicKey,
     );
 
+    final submittedToDexie = await getDexieSubmissionStatus(serializedOfferFile);
+
     // check whether the 3 mojo addition from the initialization coin spend was spent, indicating cancelation
     final cancelCoin =
         await exchangeOfferService.getCancelCoin(initializationCoin, messagePuzzlehash);
@@ -363,6 +349,7 @@ class ExchangeOfferRecordHydrationService {
       requestorPublicKey: requestorPublicKey,
       offerValidityTime: offerValidityTime,
       serializedMakerOfferFile: serializedOfferFile,
+      submittedToDexie: submittedToDexie,
       lightningPaymentRequest: lightningPaymentRequest,
       messageCoinId: sentMessageCoin.id,
       serializedTakerOfferFile: serializedOfferAcceptFile,
@@ -425,12 +412,15 @@ class ExchangeOfferRecordHydrationService {
     final escrowTransferCompletedTime =
         await fullNode.getDateTimeFromBlockIndex(escrowTransferCompletedBlockIndex);
 
+    final escrowTransferConfirmedBlockIndex =
+        escrowTransferCompletedBlockIndex + blocksForSufficientConfirmation;
     final escrowTransferConfirmedTime = await getConfirmedTime(escrowTransferCompletedBlockIndex);
 
     final exchangeOfferRecordAfterEscrowTransfer =
         exchangeOfferRecordAfterMessageCoinAcceptance.copyWith(
       escrowCoinId: escrowCoinId,
       escrowTransferCompletedTime: escrowTransferCompletedTime,
+      escrowTransferConfirmedBlockIndex: escrowTransferConfirmedBlockIndex,
       escrowTransferConfirmedTime: escrowTransferConfirmedTime,
     );
 
@@ -445,7 +435,6 @@ class ExchangeOfferRecordHydrationService {
     final completedBlockIndex = spentEscrowCoins.first.spentBlockIndex;
 
     final completedTime = await fullNode.getDateTimeFromBlockIndex(completedBlockIndex);
-    final confirmedTime = await getConfirmedTime(completedBlockIndex);
 
     final requestorSpentEscrowCoins = await didRequestorSpendEscrowCoins(
       spentEscrowCoin: spentEscrowCoins.first,
@@ -455,24 +444,18 @@ class ExchangeOfferRecordHydrationService {
     );
 
     late final DateTime? clawbackTime;
-    late final DateTime? clawbackConfirmedTime;
     late final DateTime? sweepTime;
-    late final DateTime? sweepConfirmedTime;
     if (requestorSpentEscrowCoins) {
       switch (exchangeType) {
         case ExchangeType.xchToBtc:
           // taker clawed back
           clawbackTime = completedTime;
-          clawbackConfirmedTime = confirmedTime;
           sweepTime = null;
-          sweepConfirmedTime = null;
           break;
         case ExchangeType.btcToXch:
           // taker swept
           sweepTime = completedTime;
-          sweepConfirmedTime = confirmedTime;
           clawbackTime = null;
-          clawbackConfirmedTime = null;
           break;
       }
     } else {
@@ -480,30 +463,24 @@ class ExchangeOfferRecordHydrationService {
         case ExchangeType.xchToBtc:
           // maker swept
           sweepTime = completedTime;
-          sweepConfirmedTime = confirmedTime;
           clawbackTime = null;
-          clawbackConfirmedTime = null;
           break;
         case ExchangeType.btcToXch:
           // maker clawed back
           clawbackTime = completedTime;
-          clawbackConfirmedTime = confirmedTime;
           sweepTime = null;
-          sweepConfirmedTime = null;
           break;
       }
     }
 
     return exchangeOfferRecordAfterEscrowTransfer.copyWith(
       clawbackTime: clawbackTime,
-      clawbackConfirmedTime: clawbackConfirmedTime,
       sweepTime: sweepTime,
-      sweepConfirmedTime: sweepConfirmedTime,
     );
   }
 
   Future<DateTime?> getConfirmedTime(int completedBlockIndex) async {
-    final expectedConfirmedBlockIndex = completedBlockIndex + 32;
+    final expectedConfirmedBlockIndex = completedBlockIndex + blocksForSufficientConfirmation;
     final currentBlockIndex = await fullNode.getCurrentBlockIndex();
 
     if (currentBlockIndex != null) {
@@ -577,4 +554,13 @@ class ExchangeOfferRecordHydrationService {
       }
     }
   }
+}
+
+Future<bool> getDexieSubmissionStatus(String serializedOfferFile) async {
+  final dexieId = generateDexieId(serializedOfferFile);
+  final dexieResponse = await DexieExchangeOfferApi().inspectOffer(dexieId);
+  if (dexieResponse.success && dexieResponse.offerJson != null) {
+    return true;
+  }
+  return false;
 }

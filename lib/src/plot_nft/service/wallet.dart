@@ -41,9 +41,9 @@ class PlotNftWalletService extends BaseWalletService {
 
     final announcementMessage = Program.list(
       [
-        Program.fromBytes(puzzlehash),
+        Program.fromAtom(puzzlehash),
         Program.fromInt(launcherCoin.amount),
-        plotNftExtraData.toProgram()
+        plotNftExtraData.toProgram(),
       ],
     ).hash();
     final assertCoinAnnouncement =
@@ -60,7 +60,7 @@ class PlotNftWalletService extends BaseWalletService {
     );
 
     final genesisLauncherSolution = Program.list([
-      Program.fromBytes(puzzlehash),
+      Program.fromAtom(puzzlehash),
       Program.fromInt(launcherCoin.amount),
       plotNftExtraData.toProgram(),
     ]);
@@ -115,7 +115,7 @@ class PlotNftWalletService extends BaseWalletService {
     if (uncurriedInnerPuzzleProgram == poolMemberInnerpuzProgram) {
       innerSolution = Program.list([
         Program.list(
-          [Program.cons(Program.fromString('p'), Program.fromBytes(targetState.toBytes()))],
+          [Program.cons(Program.fromString('p'), Program.fromAtom(targetState.toBytes()))],
         ),
         Program.nil
       ]);
@@ -123,9 +123,9 @@ class PlotNftWalletService extends BaseWalletService {
       innerSolution = Program.list([
         Program.fromInt(1),
         Program.list(
-          [Program.cons(Program.fromString('p'), Program.fromBytes(targetState.toBytes()))],
+          [Program.cons(Program.fromString('p'), Program.fromAtom(targetState.toBytes()))],
         ),
-        Program.fromBytes(newInnerPuzzle.hash().toBytes())
+        Program.fromAtom(newInnerPuzzle.hash().toBytes())
       ]);
     } else {
       throw ArgumentError();
@@ -151,7 +151,7 @@ class PlotNftWalletService extends BaseWalletService {
     final singletonWalletVector = keychain.getSingletonWalletVector(ownerPublicKey);
     final privateKey = singletonWalletVector!.singletonOwnerPrivateKey;
 
-    final signedSpendBundle = await travelSpendBundle.sign(
+    final signedSpendBundle = travelSpendBundle.signPerCoinSpend(
       (coinSpend) =>
           standardWalletService.makeSignature(privateKey, coinSpend, useSyntheticOffset: false),
     );
@@ -274,9 +274,9 @@ class PlotNftWalletService extends BaseWalletService {
     final toP2ConditionsInnerSolution = Program.list([
       Program.fromInt(1),
       Program.list(
-        [Program.cons(Program.fromString('p'), Program.fromBytes(targetState.toBytes()))],
+        [Program.cons(Program.fromString('p'), Program.fromAtom(targetState.toBytes()))],
       ),
-      Program.fromBytes(singletonOutputInnerPuzzleProgram.hash().toBytes())
+      Program.fromAtom(singletonOutputInnerPuzzleProgram.hash().toBytes())
     ]);
 
     final startingFullPuzzle = SingletonService.puzzleForSingleton(launcherId, currentInnerPuzzle);
@@ -350,7 +350,7 @@ class PlotNftWalletService extends BaseWalletService {
     final singletonWalletVector = keychain.getSingletonWalletVector(ownerPublicKey);
     final privateKey = singletonWalletVector!.singletonOwnerPrivateKey;
 
-    final signedSpendBundle = await toP2ConditionsSpendBundle.sign(
+    final signedSpendBundle = toP2ConditionsSpendBundle.signPerCoinSpend(
       (coinSpend) =>
           standardWalletService.makeSignature(privateKey, coinSpend, useSyntheticOffset: false),
     );
@@ -448,12 +448,12 @@ class PlotNftWalletService extends BaseWalletService {
       Program.list([
         Program.cons(
           Program.fromString('p'),
-          Program.fromBytes(poolState.toBytes()),
+          Program.fromAtom(poolState.toBytes()),
         ),
         Program.cons(Program.fromString('t'), Program.fromInt(delayTime)),
         Program.cons(
           Program.fromString('h'),
-          Program.fromBytes(delayPuzzlehash),
+          Program.fromAtom(delayPuzzlehash),
         ),
       ]);
 
@@ -467,10 +467,10 @@ class PlotNftWalletService extends BaseWalletService {
   }) {
     final p2SingletonPuzzlehash = launcherIdToP2Puzzlehash(launcherId, delayTime, delayPuzzlehash);
     return poolWaitingRoomInnerpuzProgram.curry([
-      Program.fromBytes(targetPuzzlehash),
-      Program.fromBytes(p2SingletonPuzzlehash),
-      Program.fromBytes(ownerPublicKey.toBytes()),
-      Program.fromBytes(poolRewardPrefix),
+      Program.fromAtom(targetPuzzlehash),
+      Program.fromAtom(p2SingletonPuzzlehash),
+      Program.fromAtom(ownerPublicKey.toBytes()),
+      Program.fromAtom(poolRewardPrefix),
       Program.fromInt(relativeLockHeight),
     ]);
   }
@@ -485,11 +485,11 @@ class PlotNftWalletService extends BaseWalletService {
   }) {
     final p2SingletonPuzzlehash = launcherIdToP2Puzzlehash(launcherId, delayTime, delayPuzzlehash);
     return poolMemberInnerpuzProgram.curry([
-      Program.fromBytes(targetPuzzlehash),
-      Program.fromBytes(p2SingletonPuzzlehash),
-      Program.fromBytes(ownerPublicKey.toBytes()),
-      Program.fromBytes(poolRewardPrefix),
-      Program.fromBytes(poolWaitingRoomInnerHash),
+      Program.fromAtom(targetPuzzlehash),
+      Program.fromAtom(p2SingletonPuzzlehash),
+      Program.fromAtom(ownerPublicKey.toBytes()),
+      Program.fromAtom(poolRewardPrefix),
+      Program.fromAtom(poolWaitingRoomInnerHash),
     ]);
   }
 

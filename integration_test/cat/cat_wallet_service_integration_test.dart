@@ -11,12 +11,7 @@ Future<void> main() async {
     return;
   }
 
-  final simulatorHttpRpc = SimulatorHttpRpc(
-    SimulatorUtils.simulatorUrl,
-    certBytes: SimulatorUtils.certBytes,
-    keyBytes: SimulatorUtils.keyBytes,
-  );
-  final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
+  final fullNodeSimulator = SimulatorFullNodeInterface.withDefaultUrl();
 
   final secret = KeychainCoreSecret.generate();
 
@@ -41,12 +36,11 @@ Future<void> main() async {
 
   // issue cat
   final curriedTail =
-      delegatedTailProgram.curry([Program.fromBytes(senderWalletSet.childPublicKey.toBytes())]);
+      delegatedTailProgram.curry([Program.fromAtom(senderWalletSet.childPublicKey.toBytes())]);
   final assetId = Puzzlehash(curriedTail.hash());
-  keychain.addOuterPuzzleHashesForAssetId(assetId);
 
   final curriedGenesisByCoinIdPuzzle =
-      genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id)]);
+      genesisByCoinIdProgram.curry([Program.fromAtom(originCoin.id)]);
   final tailSolution = Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
 
   final signature = AugSchemeMPL.sign(

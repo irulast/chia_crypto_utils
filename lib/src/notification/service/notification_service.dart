@@ -18,7 +18,7 @@ class NotificationWalletService {
     List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
   }) {
     final notificationPuzzle =
-        notificationProgram.curry([Program.fromBytes(targetPuzzlehash), Program.fromInt(amount)]);
+        notificationProgram.curry([Program.fromAtom(targetPuzzlehash), Program.fromInt(amount)]);
     final notificationPuzzlehash = notificationPuzzle.hash();
 
     final originCoin = originId != null
@@ -50,7 +50,7 @@ class NotificationWalletService {
             Memo(targetPuzzlehash),
             ...message,
           ],
-        )
+        ),
       ],
       coinsInput: coinsInput,
       keychain: keychain,

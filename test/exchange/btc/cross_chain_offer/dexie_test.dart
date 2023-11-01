@@ -1,8 +1,9 @@
+@Skip('Interacts with Dexie API')
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
-  final dexieApi = DexieApi();
+  final dexieApi = DexieExchangeOfferApi();
 
   final initializationCoinId =
       Bytes.fromHex('5db0138082bf1aa2144b736d67bdbcaa7d2cd9b07bab3bba15c8cd3d97df7eb4');
@@ -44,7 +45,7 @@ Future<void> main() async {
   test('should successfully inspect offer', () async {
     const dexieId = 'DBdWjDnnbZDzwLFKwB3XKUvvECtKhZ3rTbHCqVvwRsbS';
     final response = await dexieApi.inspectOffer(dexieId);
-
+    print(response.offerJson);
     expect(response.success, equals(true));
     expect(response.offerJson, isNotNull);
     expect(response.offerJson!['id'], equals(dexieId));
@@ -70,7 +71,7 @@ Future<void> main() async {
     final response = await dexieApi.inspectOffer(dexieId);
 
     expect(response.success, equals(false));
-    expect(response.errorMessage, equals('Offer not found'));
+    expect(response.errorMessage, equals('Not Found'));
   });
 
   test('should correctly generate dexie id from serialized offer file', () {

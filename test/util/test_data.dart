@@ -48,13 +48,13 @@ class TestData {
     'coin': {
       'amount': 250000000000,
       'parent_coin_info': '0x27ae41e4649b934ca495991b7852b855000000000000000000000000000000d8',
-      'puzzle_hash': '0x0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad'
+      'puzzle_hash': '0x0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad',
     },
     'coinbase': true,
     'confirmed_block_index': 217,
     'spent': false,
     'spent_block_index': 0,
-    'timestamp': 1653407000
+    'timestamp': 1653407000,
   };
   static final chiaCoinRecordFromJson = ChiaCoinRecord.fromJson(chiaCoinRecordJson);
   static final coinFromChiaCoinRecordJson = Coin.fromChiaCoinRecordJson(chiaCoinRecordJson);
@@ -125,6 +125,10 @@ class TestData {
     cat1Message,
     morphBytes: Bytes.fromHex('ca'),
   );
+  static final cat1NotarizedPayment = NotarizedPayment.fromPayment(
+    Payment(1000, validCat1Coin0.puzzlehash, memos: const <String>['test', 'test2', 'test3']),
+    Puzzlehash.zeros(),
+  );
 
   // CAT2 Data
   static const catHex = '0ed71c399419b16df76ae7cde9fa257f1dbf845bef462b7f9ea6de8d181cdf97';
@@ -169,5 +173,9 @@ class TestData {
   static final catAssertCoinAnnouncementCondition = AssertCoinAnnouncementCondition(
     TestData.validCatCoin0.id,
     catMessage,
+  );
+  static final catNotarizedPayment = NotarizedPayment.fromPayment(
+    Payment(1000, validCatCoin0.puzzlehash, memos: const <String>['test', 'test2', 'test3']),
+    Puzzlehash.zeros(),
   );
 }

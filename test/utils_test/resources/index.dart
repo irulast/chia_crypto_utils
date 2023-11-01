@@ -5,6 +5,7 @@ class ChiaWalletSet {
     required this.hardened,
     required this.unhardened,
   });
+
   factory ChiaWalletSet.fromRow(List<dynamic> row) {
     final hardenedVector = ChiaWalletVector(
       childPublicKeyHex: row[0] as String,
@@ -20,8 +21,8 @@ class ChiaWalletSet {
       unhardened: unhardenedVector,
     );
   }
-  ChiaWalletVector hardened;
-  ChiaWalletVector unhardened;
+  final ChiaWalletVector hardened;
+  final ChiaWalletVector unhardened;
 }
 
 class ChiaWalletVector {

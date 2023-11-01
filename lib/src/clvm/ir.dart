@@ -4,7 +4,7 @@ import 'package:chia_crypto_utils/src/clvm/program.dart';
 Program deserialize(Iterator<int> program) {
   final sizeBytes = <int>[];
   if (program.current <= 0x7f) {
-    return Program.fromBytes([program.current]);
+    return Program.fromAtom([program.current]);
   } else if (program.current <= 0xbf) {
     sizeBytes.add(program.current & 0x3f);
   } else if (program.current <= 0xdf) {
@@ -58,5 +58,5 @@ Program deserialize(Iterator<int> program) {
     }
     bytes.add(program.current);
   }
-  return Program.fromBytes(bytes);
+  return Program.fromAtom(bytes);
 }

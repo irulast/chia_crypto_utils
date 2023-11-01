@@ -7,8 +7,11 @@ class RunTailCondition implements Condition {
   static int conditionCode = 51;
   static int magicCatNumber = -113;
 
-  Program tail;
-  Program tailSolution;
+  @override
+  int get code => conditionCode;
+
+  final Program tail;
+  final Program tailSolution;
 
   @override
   Program toProgram() {
@@ -17,7 +20,7 @@ class RunTailCondition implements Condition {
       Program.fromInt(0),
       Program.fromInt(magicCatNumber),
       tail,
-      tailSolution
+      tailSolution,
     ]);
   }
 

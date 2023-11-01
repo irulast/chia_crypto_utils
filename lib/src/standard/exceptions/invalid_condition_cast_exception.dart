@@ -2,7 +2,7 @@
 
 class InvalidConditionCastException implements Exception {
   InvalidConditionCastException(this.intendedCondition);
-  Type intendedCondition;
+  final Type intendedCondition;
 
   @override
   String toString() {

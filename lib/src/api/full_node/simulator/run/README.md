@@ -18,42 +18,7 @@ docker build -f Dockerfile.enhanced . -t chia-simulator-enhanced
 ```
 
 ```bash
-export FULL_NODE_SIMULATOR_GEN_PATH=$(pwd)
-docker run -e TARGET_UID="$(id -u)" -e TARGET_GID="$(id -g)" -e CLIENT_CONFIG_DIR="/temp/config/" \
- -p 5000:8555 \
- -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/test-plots":/root/.chia/test-plots \
- -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/config:/temp/config" \
- chia-simulator-enhanced
-```
-
-### Evergreen
-```bash
-export FULL_NODE_SIMULATOR_GEN_PATH=$(pwd)
-docker run -e TARGET_UID="$(id -u)" -e TARGET_GID="$(id -g)" -e CLIENT_CONFIG_DIR="/temp/config/" \
- -p 5000:8555 \
- -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/test-plots":/root/.chia/test-plots \
- -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/config:/temp/config" \
-irulast/chia-simulator:evg-enhanced-latest
-```
-
-### Intel Mac
-```bash
-export FULL_NODE_SIMULATOR_GEN_PATH=$(pwd)
-docker run -e TARGET_UID="$(id -u)" -e TARGET_GID="$(id -g)" -e CLIENT_CONFIG_DIR="/temp/config/" \
- -p 5000:8555 \
- -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/test-plots":/root/.chia/mainnet/test-plots \
- -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/config:/temp/config" \
- irulast/chia-simulator:latest
-```
-
-### M1 Mac
-```bash
-export FULL_NODE_SIMULATOR_GEN_PATH=$(pwd)
-docker run -e TARGET_UID="$(id -u)" -e TARGET_GID="$(id -g)" -e CLIENT_CONFIG_DIR="/temp/config/" \
- -p 5000:8555 \
- -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/test-plots":/root/.chia/mainnet/test-plots \
- -v "$FULL_NODE_SIMULATOR_GEN_PATH/temp/config:/temp/config" \
- irulast/chia-simulator:m1-latest
+docker run -p 5000:80 chia-simulator-enhanced
 ```
 
 The simulator can be interacted with from the host system.
@@ -61,19 +26,18 @@ The simulator can be interacted with from the host system.
 Use this command to farm a block.
 
 ```bash
-curl --insecure --cert temp/config/ssl/full_node/private_full_node.crt \
- --key temp/config/ssl/full_node/private_full_node.key \
- -d '{"address": "xch1jln3f7eg65s63khmartj0t6ufsamqnm4xqqzrm7z3t0lux5v6m4spe8ef6"}' \
- -H "Content-Type: application/json" -X POST https://localhost:5000/farm_tx_block
+curl -d '{
+  "address": "xch1etymwk6cgrf2uk56qj8s78xl0nks05sg9nfncs77qh4m0hg7tsuq4d60yx",
+  "guarantee_tx_block": true
+}' \
+ -H "Content-Type: application/json" -X POST http://localhost:5000/farm_block
 ```
 
 Use this command to get the blockchain state. You may verify that the previous command successfully farmed a block by checking the height property in the JSON output.
 
 ```bash
-curl --insecure --cert temp/config/ssl/full_node/private_full_node.crt \
- --key temp/config/ssl/full_node/private_full_node.key \
- -d '{}' -H "Content-Type: application/json" \
- -X POST https://localhost:5000/get_blockchain_state
+curl -d '{}' -H "Content-Type: application/json" \
+ -X POST http://localhost:5000/get_blockchain_state
 ```
 
 Install and use JQ for a more readable output.
@@ -81,10 +45,8 @@ Install and use JQ for a more readable output.
 brew install jq
 ```
 ```bash
-curl --insecure --cert temp/config/ssl/full_node/private_full_node.crt \
- --key temp/config/ssl/full_node/private_full_node.key \
- -d '{}' -H "Content-Type: application/json" \
- -X POST https://localhost:5000/get_blockchain_state | jq
+curl -d '{}' -H "Content-Type: application/json" \
+ -X POST http://localhost:5000/get_blockchain_state | jq
 ```
 
 ## Debugging
@@ -106,10 +68,13 @@ docker exec -it 0c929e41a294 bash
 
 You can now run commands in the container:
 ```bash
-root@0c929e41a294:/chia-blockchain# curl --insecure --cert ~/.chia/mainnet/config/ssl/full_node/private_full_node.crt \
-                                         --key ~/.chia/mainnet/config/ssl/full_node/private_full_node.key \
-                                         -d '{"address": "xch1jln3f7eg65s63khmartj0t6ufsamqnm4xqqzrm7z3t0lux5v6m4spe8ef6"}' \
-                                         -H "Content-Type: application/json" -X POST https://localhost:5000/farm_tx_block
+root@0c929e41a294:/chia-blockchain# curl --insecure --cert /root/.chia/simulator/main/config/ssl/daemon/private_daemon.crt \
+                                         --key /root/.chia/simulator/main/config/ssl/daemon/private_daemon.key \
+                                         -d '{
+                                            "address": "xch1etymwk6cgrf2uk56qj8s78xl0nks05sg9nfncs77qh4m0hg7tsuq4d60yx",
+                                            "guarantee_tx_block": true
+                                            }' \
+                                         -H "Content-Type: application/json" -X POST https://0.0.0.0:8555/farm_block
 
 ```
 

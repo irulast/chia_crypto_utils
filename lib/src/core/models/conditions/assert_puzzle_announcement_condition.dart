@@ -5,7 +5,6 @@ import 'package:chia_crypto_utils/src/standard/exceptions/invalid_condition_cast
 
 class AssertPuzzleAnnouncementCondition implements Condition {
   AssertPuzzleAnnouncementCondition(this.announcementHash);
-
   factory AssertPuzzleAnnouncementCondition.fromProgram(Program program) {
     final programList = program.toList();
     if (!isThisCondition(program)) {
@@ -13,15 +12,19 @@ class AssertPuzzleAnnouncementCondition implements Condition {
     }
     return AssertPuzzleAnnouncementCondition(Bytes(programList[1].atom));
   }
-  static int conditionCode = 63;
 
-  Bytes announcementHash;
+  static const conditionCode = 63;
+
+  final Bytes announcementHash;
+
+  @override
+  int get code => conditionCode;
 
   @override
   Program toProgram() {
     return Program.list([
       Program.fromInt(conditionCode),
-      Program.fromBytes(announcementHash),
+      Program.fromAtom(announcementHash),
     ]);
   }
 

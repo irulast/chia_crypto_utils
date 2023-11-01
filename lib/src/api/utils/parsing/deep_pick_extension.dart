@@ -1,10 +1,58 @@
 // ignore_for_file: avoid_catching_errors
 
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:deep_pick/deep_pick.dart';
 
 extension CustomLets on Pick {
   R? letJsonOrNull<R>(R Function(Map<String, dynamic> json) parseJson) {
     return _parsePossibleXFromJson(value, parseJson);
+  }
+
+  Bytes? asBytesOrNull() {
+    return _parsePossibleBytes(value);
+  }
+
+  Bytes asBytesOrThrow() {
+    final bytes = asBytesOrNull();
+    if (bytes == null) throw Exception('failed parsing as bytes: $value at $path');
+    return bytes;
+  }
+
+  R letBytesOrThrow<R>(R Function(Bytes bytes) parseBytes) {
+    final item = letBytesOrNull(parseBytes);
+    if (item == null) throw Exception('failed parsing as bytes: $value at $path');
+    return item;
+  }
+
+  R? letBytesOrNull<R>(R Function(Bytes bytes) parseBytes) {
+    final bytes = _parsePossibleBytes(value);
+    if (bytes == null) {
+      return null;
+    }
+    try {
+      final x = parseBytes(bytes);
+      return x;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Map<String, dynamic>? asJsonOrNull() {
+    return _parsePossibleJson(value);
+  }
+
+  Map<String, dynamic> asJsonOrThrow() {
+    final json = asJsonOrNull();
+    if (json == null) throw Exception('failed parsing as json: $value at $path');
+    return json;
+  }
+
+  String? asNonEmptyStringOrNull() {
+    final result = asStringOrNull()?.trim();
+    if (result == null || result.isEmpty) {
+      return null;
+    }
+    return result;
   }
 
   R letJsonOrThrow<R>(R Function(Map<String, dynamic> json) parseJson) {
@@ -35,6 +83,10 @@ extension CustomLets on Pick {
 
   List<R>? letStringListOrNull<R>(R Function(String string) parseString) {
     return _parsePossibleListOfXFromListOfStrings(value, parseString);
+  }
+
+  List<R>? letListOrNull<R>(R Function(dynamic listItem) parseItem) {
+    return _parsePossibleListOfXFromListOfDynamic(value, parseItem);
   }
 
   List<R> letStringListOrThrow<R>(R Function(String string) parseString) {
@@ -98,6 +150,42 @@ List<T>? _parsePossibleListOfXFromListOfStrings<T>(
     if (item is String) {
       try {
         final x = xFromString(item);
+        listOfx.add(x);
+      } catch (_) {}
+    }
+  }
+  return listOfx;
+}
+
+Bytes? _parsePossibleBytes(dynamic list) {
+  if (list is! List<dynamic>) {
+    return null;
+  }
+  final bytesList = <int>[];
+
+  for (final item in list) {
+    if (item is int) {
+      bytesList.add(item);
+    } else {
+      return null;
+    }
+  }
+  return Bytes(bytesList);
+}
+
+List<T>? _parsePossibleListOfXFromListOfDynamic<T>(
+  dynamic list,
+  T Function(dynamic any) xFromDynamic,
+) {
+  if (list is! List<dynamic>) {
+    return null;
+  }
+  final listOfx = <T>[];
+
+  for (final item in list) {
+    if (item is String) {
+      try {
+        final x = xFromDynamic(item);
         listOfx.add(x);
       } catch (_) {}
     }

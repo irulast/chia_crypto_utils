@@ -17,11 +17,15 @@ class ChiaEnthusiastBase {
       plotNftWalletSize: plotNftWalletSize,
     );
   }
-  final Cat1WalletService cat1WalletService = Cat1WalletService();
-  final Cat2WalletService catWalletService = Cat2WalletService();
+  final DIDWalletService didWalletService = DIDWalletService();
+
   List<Coin> standardCoins = [];
-  List<CatCoin> cat1Coins = [];
   List<CatCoin> catCoins = [];
+
+  List<CatCoin> get cat1Coins => catCoins.where((c) => c.catVersion == 1).toList();
+  List<CatCoin> get cat2Coins => catCoins.where((c) => c.catVersion == 2).toList();
+
+  DidInfo? didInfo;
   late WalletKeychain keychain;
   late KeychainCoreSecret keychainSecret;
 

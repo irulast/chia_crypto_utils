@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/api/full_node/exceptions/full_node_error.dart';
 import 'package:chia_crypto_utils/src/api/full_node/exceptions/gateway_timeout_exception.dart';
+import 'package:deep_pick/deep_pick.dart';
 
 import 'package:meta/meta.dart';
 
@@ -12,6 +13,7 @@ import 'package:meta/meta.dart';
 class FullNodeHttpRpc implements FullNode {
   const FullNodeHttpRpc(
     this.baseURL, {
+    this.baseHeadersGetter,
     this.certBytes,
     this.keyBytes,
     this.timeout = const Duration(seconds: 15),
@@ -30,7 +32,7 @@ class FullNodeHttpRpc implements FullNode {
   final String baseURL;
   final Bytes? certBytes;
   final Bytes? keyBytes;
-
+  final HeadersGetter? baseHeadersGetter;
   final Duration timeout;
 
   Client get client => Client(
@@ -38,6 +40,7 @@ class FullNodeHttpRpc implements FullNode {
         certBytes: certBytes,
         keyBytes: keyBytes,
         timeout: timeout,
+        baseHeadersGetter: baseHeadersGetter,
       );
 
   @override
@@ -85,12 +88,21 @@ class FullNodeHttpRpc implements FullNode {
   @override
   Future<CoinRecordsResponse> getCoinsByHint(
     Bytes hint, {
+    int? startHeight,
+    int? endHeight,
     bool includeSpentCoins = false,
   }) async {
-    final response = await client.post(Uri.parse('get_coin_records_by_hint'), {
+    final body = <String, dynamic>{
       'hint': hint.toHex(),
       'include_spent_coins': includeSpentCoins,
-    });
+    };
+    if (startHeight != null) {
+      body['start_height'] = startHeight;
+    }
+    if (endHeight != null) {
+      body['end_height'] = endHeight;
+    }
+    final response = await client.post(Uri.parse('get_coin_records_by_hint'), body);
     mapResponseToError(response);
 
     return CoinRecordsResponse.fromJson(
@@ -261,6 +273,42 @@ class FullNodeHttpRpc implements FullNode {
     mapResponseToError(response);
     return MempoolItemsResponse.fromJson(
       jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
+  @override
+  Future<GetBlocksResponse> getBlocks(
+    int start,
+    int end, {
+    bool excludeHeaderHash = false,
+    bool excludeReorged = false,
+  }) async {
+    final response = await client.post(
+      Uri.parse('get_blocks'),
+      {
+        'start': start,
+        'end': end,
+        'exclude_header_hash': excludeHeaderHash,
+        'exclude_reorged': excludeReorged,
+      },
+    );
+    mapResponseToError(response);
+    return GetBlocksResponse.fromJson(
+      pick(jsonDecode(response.body)).asJsonOrThrow(),
+    );
+  }
+
+  @override
+  Future<GetBlockResponse> getBlock(Bytes headerHash) async {
+    final response = await client.post(
+      Uri.parse('get_block'),
+      {
+        'header_hash': headerHash.toHex(),
+      },
+    );
+    mapResponseToError(response);
+    return GetBlockResponse.fromJson(
+      pick(jsonDecode(response.body)).asJsonOrThrow(),
     );
   }
 }

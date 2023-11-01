@@ -7,13 +7,8 @@ Future<void> main() async {
     print(SimulatorUtils.simulatorNotRunningWarning);
     return;
   }
-  final simulatorHttpRpc = SimulatorHttpRpc(
-    SimulatorUtils.simulatorUrl,
-    certBytes: SimulatorUtils.certBytes,
-    keyBytes: SimulatorUtils.keyBytes,
-  );
 
-  final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
+  final fullNodeSimulator = SimulatorFullNodeInterface.withDefaultUrl();
 
   // set up context, services
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);

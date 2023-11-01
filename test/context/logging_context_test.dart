@@ -33,7 +33,9 @@ void main() {
       LoggingContext().api,
     ]) {
       final functionString = logFunction.toString();
-      test('with logging function ${functionString.substring(functionString.indexOf("'"), functionString.lastIndexOf("'") + 1)}', () {
+      test(
+          'with logging function ${functionString.substring(functionString.indexOf("'"), functionString.lastIndexOf("'") + 1)}',
+          () {
         void fileLogger(String text) {
           createdFile.writeAsStringSync('$text\n', mode: FileMode.append);
         }
@@ -182,5 +184,13 @@ void main() {
     loggedText = createdFile.readAsLinesSync();
     expect(loggedText.length, equals(7));
     expect(loggedText[6], equals(errorText));
+  });
+
+  test('with timestamp', () {
+    LoggingContext().setLogLevel(LogLevel.low);
+    LoggingContext().setShouldIncludeTimestamp(true);
+    LoggingContext().setLogger(print);
+
+    LoggingContext().error('yo');
   });
 }

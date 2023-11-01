@@ -18,6 +18,9 @@ mixin CoinPrototypeDecoratorMixin implements CoinPrototype {
   Bytes toBytes() => delegate.toBytes();
 
   @override
+  Future<Bytes> toBytesAsync() => delegate.toBytesAsync();
+
+  @override
   String toHex() => delegate.toHex();
 
   @override
@@ -25,6 +28,9 @@ mixin CoinPrototypeDecoratorMixin implements CoinPrototype {
 
   @override
   Map<String, dynamic> toJson() => delegate.toJson();
+
+  @override
+  Map<String, dynamic> toCamelJson() => delegate.toCamelJson();
 
   @override
   Program toProgram() => delegate.toProgram();

@@ -18,6 +18,28 @@ class PrivateKey with ToBytesMixin {
   factory PrivateKey.fromBytes(List<int> bytes) =>
       PrivateKey(bytesToBigInt(bytes, Endian.big) % defaultEc.n);
 
+  static PrivateKey? maybeFromBytes(List<int>? bytes) {
+    if (bytes == null) {
+      return null;
+    }
+    try {
+      return PrivateKey.fromBytes(bytes);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static PrivateKey? maybeFromHex(String? hex) {
+    if (hex == null) {
+      return null;
+    }
+    try {
+      return PrivateKey.fromHex(hex);
+    } catch (e) {
+      return null;
+    }
+  }
+
   factory PrivateKey.fromHex(String hex) => PrivateKey.fromBytes(const HexDecoder().convert(hex));
 
   factory PrivateKey.fromSeed(List<int> seed) {

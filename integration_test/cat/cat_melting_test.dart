@@ -11,13 +11,7 @@ Future<void> main() async {
     return;
   }
 
-  final simulatorHttpRpc = SimulatorHttpRpc(
-    SimulatorUtils.simulatorUrl,
-    certBytes: SimulatorUtils.certBytes,
-    keyBytes: SimulatorUtils.keyBytes,
-  );
-
-  final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
+  final fullNodeSimulator = SimulatorFullNodeInterface.withDefaultUrl();
 
   // set up context, services
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
@@ -56,7 +50,6 @@ Future<void> main() async {
 
   final tailRunningInfo = issuanceResult.tailRunningInfo;
 
-  keychain.addOuterPuzzleHashesForAssetId(Puzzlehash(tailRunningInfo.assetId));
 
   await fullNodeSimulator.pushTransaction(issuanceResult.spendBundle);
   await fullNodeSimulator.moveToNextBlock();

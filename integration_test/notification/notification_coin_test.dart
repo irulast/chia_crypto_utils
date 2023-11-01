@@ -11,13 +11,7 @@ Future<void> main() async {
     return;
   }
 
-  final simulatorHttpRpc = SimulatorHttpRpc(
-    SimulatorUtils.simulatorUrl,
-    certBytes: SimulatorUtils.certBytes,
-    keyBytes: SimulatorUtils.keyBytes,
-  );
-
-  final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
+  final fullNodeSimulator = SimulatorFullNodeInterface.withDefaultUrl();
 
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
   final notificationService = NotificationWalletService();
@@ -61,8 +55,8 @@ Future<void> main() async {
     final notificationCoin = coinsByHint.single;
 
     final expectedNotificationPuzzlehash = notificationProgram.curry([
-      Program.fromBytes(targetPuzzlehash),
-      Program.fromInt(minimumNotificationCoinAmount)
+      Program.fromAtom(targetPuzzlehash),
+      Program.fromInt(minimumNotificationCoinAmount),
     ]).hash();
 
     expect(notificationCoin.isSpent, isTrue);
@@ -85,7 +79,7 @@ Future<void> main() async {
           minimumNotificationCoinAmount,
           targetPuzzlehash,
           memos: <Memo>[Memo(targetPuzzlehash)],
-        )
+        ),
       ],
       coinsInput: [coinForNotificationSpend],
       keychain: sender.keychain,
@@ -163,8 +157,8 @@ Future<void> main() async {
     final notificationCoin = coinsByHint.single;
 
     final expectedNotificationPuzzlehash = notificationProgram.curry([
-      Program.fromBytes(targetPuzzlehash),
-      Program.fromInt(minimumNotificationCoinAmount)
+      Program.fromAtom(targetPuzzlehash),
+      Program.fromInt(minimumNotificationCoinAmount),
     ]).hash();
 
     expect(notificationCoin.isSpent, isTrue);

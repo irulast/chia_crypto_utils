@@ -16,7 +16,7 @@ class WalletSet {
     int derivationIndex,
   ) {
     return WalletSet(
-      hardened: WalletVector.fromPrivateKey(
+      hardened: WalletVector.fromMasterPrivateKey(
         masterPrivateKey,
         derivationIndex,
       ),

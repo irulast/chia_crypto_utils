@@ -26,7 +26,7 @@ Future<void> main() async {
     final coins = await fullNode.getCoinsByPuzzleHashes([
       Puzzlehash.fromHex(
         '0b7a3d5e723e0b046fd51f95cabf2d3e2616f05d9d1833e8166052b43d9454ad',
-      )
+      ),
     ]);
     expect(coins.length == 2, true);
   });

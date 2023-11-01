@@ -12,13 +12,7 @@ Future<void> main() async {
     return;
   }
 
-  final simulatorHttpRpc = SimulatorHttpRpc(
-    SimulatorUtils.simulatorUrl,
-    certBytes: SimulatorUtils.certBytes,
-    keyBytes: SimulatorUtils.keyBytes,
-  );
-
-  final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
+  final fullNodeSimulator = SimulatorFullNodeInterface.withDefaultUrl();
 
   // set up context, services
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
@@ -56,8 +50,6 @@ Future<void> main() async {
   );
 
   final tailRunningInfo = issuanceResult.tailRunningInfo;
-
-  keychain.addCat1OuterPuzzleHashesForAssetId(Puzzlehash(tailRunningInfo.assetId));
 
   final outerPuzzlehash = WalletKeychain.makeCat1OuterPuzzleHash(
     address.toPuzzlehash(),

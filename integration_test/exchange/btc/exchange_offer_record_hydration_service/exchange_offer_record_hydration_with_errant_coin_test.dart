@@ -11,14 +11,8 @@ Future<void> main() async {
     print(SimulatorUtils.simulatorNotRunningWarning);
     return;
   }
+  final fullNodeSimulator = SimulatorFullNodeInterface.withDefaultUrl();
 
-  final simulatorHttpRpc = SimulatorHttpRpc(
-    SimulatorUtils.simulatorUrl,
-    certBytes: SimulatorUtils.certBytes,
-    keyBytes: SimulatorUtils.keyBytes,
-  );
-
-  final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
   final crossChainOfferFileService = CrossChainOfferFileService();
   final exchangeOfferService = ExchangeOfferService(fullNodeSimulator);
@@ -230,11 +224,16 @@ Future<void> main() async {
         .where((coin) => coin.parentCoinInfo == escrowCoinParent.id)
         .single;
     final spentEscrowCoinParent = await fullNodeSimulator.getCoinById(escrowCoin.parentCoinInfo);
+
+    final escrowTransferCompletedBlockIndex = spentEscrowCoinParent!.spentBlockIndex;
     final expectedEscrowTransferCompletedTime =
-        await fullNodeSimulator.getDateTimeFromBlockIndex(spentEscrowCoinParent!.spentBlockIndex);
+        await fullNodeSimulator.getDateTimeFromBlockIndex(escrowTransferCompletedBlockIndex);
+
+    final expectedEscrowTransferConfirmedBlockIndex =
+        escrowTransferCompletedBlockIndex + blocksForSufficientConfirmation;
 
     // wait for sufficient confirmations
-    await fullNodeSimulator.moveToNextBlock(32);
+    await fullNodeSimulator.moveToNextBlock(blocks: blocksForSufficientConfirmation);
     final expectedEscrowTransferConfirmedTime = await fullNodeSimulator.getCurrentBlockDateTime();
 
     // malicious actor sends an errant coin to the leaked escrow puzzlehash
@@ -368,13 +367,15 @@ Future<void> main() async {
       equals(expectedEscrowTransferCompletedTime),
     );
     expect(
+      hydratedExchangeOfferRecord.escrowTransferConfirmedBlockIndex,
+      equals(expectedEscrowTransferConfirmedBlockIndex),
+    );
+    expect(
       hydratedExchangeOfferRecord.escrowTransferConfirmedTime,
       expectedEscrowTransferConfirmedTime,
     );
     expect(hydratedExchangeOfferRecord.sweepTime, equals(expectedSweepTime));
-    expect(hydratedExchangeOfferRecord.sweepConfirmedTime, isNull);
     expect(hydratedExchangeOfferRecord.clawbackTime, isNull);
-    expect(hydratedExchangeOfferRecord.clawbackConfirmedTime, isNull);
     expect(hydratedExchangeOfferRecord.canceledTime, isNull);
   });
 }

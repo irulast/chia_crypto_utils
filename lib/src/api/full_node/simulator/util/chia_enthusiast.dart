@@ -5,23 +5,23 @@ class ChiaEnthusiast extends ChiaEnthusiastBase {
   ChiaEnthusiast(
     this.fullNodeSimulator, {
     super.mnemonic,
+    CatWalletService? catWalletService,
     super.walletSize,
     super.plotNftWalletSize,
-  });
+  }) : catWalletService = catWalletService ?? Cat2WalletService();
+
+  final CatWalletService catWalletService;
+
+  SpendType get catType => catWalletService.spendType;
+
+  Wallet get wallet => ColdWallet(fullNode: fullNode, keychain: keychain);
+
+  OfferService get offerService => OfferService(wallet, OfferWalletService(catWalletService));
+
+  EnhancedChiaFullNodeInterface get fullNode =>
+      EnhancedChiaFullNodeInterface.fromUrl(fullNodeSimulator.fullNode.baseURL);
 
   final SimulatorFullNodeInterface fullNodeSimulator;
-
-  Map<Puzzlehash, List<CatCoin>> get cat1CoinMap {
-    final catCoinMap = <Puzzlehash, List<CatCoin>>{};
-    for (final cat1Coin in cat1Coins) {
-      if (catCoinMap.containsKey(cat1Coin.assetId)) {
-        catCoinMap[cat1Coin.assetId]!.add(cat1Coin);
-      } else {
-        catCoinMap[cat1Coin.assetId] = [cat1Coin];
-      }
-    }
-    return catCoinMap;
-  }
 
   Map<Puzzlehash, List<CatCoin>> get catCoinMap {
     final catCoinMap = <Puzzlehash, List<CatCoin>>{};
@@ -35,21 +35,11 @@ class ChiaEnthusiast extends ChiaEnthusiastBase {
     return catCoinMap;
   }
 
-  void addCat1AssetIdToKeychain(Puzzlehash assetId) {
-    keychain.addCat1OuterPuzzleHashesForAssetId(assetId);
-  }
-
-  void addAssetIdToKeychain(Puzzlehash assetId) {
-    keychain.addOuterPuzzleHashesForAssetId(assetId);
-  }
-
   Future<void> refreshCoins() async {
     standardCoins = await fullNodeSimulator.getCoinsByPuzzleHashes(puzzlehashes);
-    cat1Coins = (await fullNodeSimulator.getCatCoinsByOuterPuzzleHashes(outerPuzzlehashes))
-        .where((element) => element.type == SpendType.cat1)
-        .toList();
-    catCoins = (await fullNodeSimulator.getCatCoinsByOuterPuzzleHashes(outerPuzzlehashes))
-        .where((element) => element.type == SpendType.cat)
+
+    catCoins = (await fullNode.getCatCoinsByHints(puzzlehashes))
+        .where((element) => element.type == catType)
         .toList();
   }
 
@@ -61,24 +51,23 @@ class ChiaEnthusiast extends ChiaEnthusiastBase {
     await refreshCoins();
   }
 
-  Future<void> issueMultiIssuanceCat1([PrivateKey? privateKey]) async {
+  Future<Puzzlehash> issueMultiIssuanceCat([PrivateKey? privateKey]) async {
     await refreshCoins();
     final privateKeyForCat = privateKey ?? firstWalletVector.childPrivateKey;
 
     final curriedTail =
-        delegatedTailProgram.curry([Program.fromBytes(privateKeyForCat.getG1().toBytes())]);
+        delegatedTailProgram.curry([Program.fromAtom(privateKeyForCat.getG1().toBytes())]);
     final assetId = Puzzlehash(curriedTail.hash());
-    addCat1AssetIdToKeychain(assetId);
 
     final originCoin = standardCoins[0];
 
     final curriedGenesisByCoinIdPuzzle =
-        genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id)]);
+        genesisByCoinIdProgram.curry([Program.fromAtom(originCoin.id)]);
     final tailSolution = Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
 
     final signature = AugSchemeMPL.sign(privateKeyForCat, curriedGenesisByCoinIdPuzzle.hash());
 
-    final spendBundle = cat1WalletService.makeIssuanceSpendbundle(
+    final spendBundle = catWalletService.makeIssuanceSpendbundle(
       tail: curriedTail,
       solution: tailSolution,
       standardCoins: [standardCoins.firstWhere((coin) => coin.amount >= 10000)],
@@ -93,40 +82,42 @@ class ChiaEnthusiast extends ChiaEnthusiastBase {
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
     await refreshCoins();
+    return assetId;
   }
 
-  Future<Puzzlehash> issueMultiIssuanceCat([PrivateKey? privateKey]) async {
+  Future<void> issueDid([List<Bytes> recoveryIds = const []]) async {
     await refreshCoins();
-    final privateKeyForCat = privateKey ?? firstWalletVector.childPrivateKey;
-
-    final curriedTail =
-        delegatedTailProgram.curry([Program.fromBytes(privateKeyForCat.getG1().toBytes())]);
-    final assetId = Puzzlehash(curriedTail.hash());
-    addAssetIdToKeychain(assetId);
-
-    final originCoin = standardCoins[0];
-
-    final curriedGenesisByCoinIdPuzzle =
-        genesisByCoinIdProgram.curry([Program.fromBytes(originCoin.id)]);
-    final tailSolution = Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
-
-    final signature = AugSchemeMPL.sign(privateKeyForCat, curriedGenesisByCoinIdPuzzle.hash());
-
-    final spendBundle = catWalletService.makeIssuanceSpendbundle(
-      tail: curriedTail,
-      solution: tailSolution,
-      standardCoins: [standardCoins.firstWhere((coin) => coin.amount >= 10000)],
-      destinationPuzzlehash: firstWalletVector.puzzlehash,
-      changePuzzlehash: firstWalletVector.puzzlehash,
-      amount: 100000000,
-      makeSignature: (_) => signature,
+    final didRecoverySpendBundle = didWalletService.createGenerateDIDSpendBundle(
+      standardCoins: [standardCoins[0]],
+      targetPuzzleHash: firstWalletVector.puzzlehash,
       keychain: keychain,
-      originId: originCoin.id,
+      changePuzzlehash: firstWalletVector.puzzlehash,
+      backupIds: recoveryIds,
+      metadata: const DidMetadata({'name': 'test_did', 'role': 'admin'}),
     );
 
-    await fullNodeSimulator.pushTransaction(spendBundle);
+    await fullNodeSimulator.pushTransaction(didRecoverySpendBundle);
+
     await fullNodeSimulator.moveToNextBlock();
+
+    final didInfos = await fullNodeSimulator.getDidRecordsFromHint(firstWalletVector.puzzlehash);
+
+    if (didInfos.length > 1) {
+      throw Exception('Chia enthusiast can only have one did');
+    }
+
+    didInfo = didInfos[0].toDidInfo(keychain);
     await refreshCoins();
-    return assetId;
+  }
+
+  Future<void> refreshDidInfo() async {
+    if (didInfo == null) {
+      throw Exception('Did must be issued before it can be refreshed');
+    }
+    didInfo = (await fullNodeSimulator.getDidRecordForDid(didInfo!.did))?.toDidInfo(keychain);
+  }
+
+  Future<void> recoverDid(Bytes did) async {
+    didInfo = (await fullNodeSimulator.getDidRecordForDid(did))?.toDidInfo(keychain);
   }
 }

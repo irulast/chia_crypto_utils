@@ -8,6 +8,7 @@ class GetBlockRecordsResponse extends ChiaBaseResponse {
     required super.success,
     required super.error,
   });
+
   factory GetBlockRecordsResponse.fromJson(Map<String, dynamic> json) {
     final chiaBaseResponse = ChiaBaseResponse.fromJson(json);
 

@@ -36,8 +36,7 @@ Future<T> spawnAndWaitForIsolateWithProgressUpdates<T, R>({
   required FutureOr<Map<String, dynamic>> Function(
     R taskArgument,
     void Function(double progress) onProgressUpdate,
-  )
-      isolateTask,
+  ) isolateTask,
   required FutureOr<T> Function(Map<String, dynamic> taskResultJson) handleTaskCompletion,
 }) async {
   final receivePort = ReceivePort();
@@ -60,10 +59,13 @@ Future<T> spawnAndWaitForIsolateWithProgressUpdates<T, R>({
           final resultMessage = ResultMessage.fromJson(messageJson);
           result = await handleTaskCompletion(resultMessage.body);
           receivePort.close();
-          errorPort.close();
       }
     },
-    onDone: completer.complete,
+    onDone: () {
+      if (!completer.isCompleted) {
+        completer.complete();
+      }
+    },
   );
 
   errorPort.listen((dynamic message) {
@@ -71,7 +73,10 @@ Future<T> spawnAndWaitForIsolateWithProgressUpdates<T, R>({
     // second is stacktrace which is not needed
     final errors = message as List<dynamic>;
     errorPort.close();
-    completer.completeError(errors.first as Object, StackTrace.fromString(errors[1].toString()));
+    if (!completer.isCompleted) {
+      completer.completeError(errors.first as Object, StackTrace.fromString(errors[1].toString()));
+    }
+    receivePort.close();
   });
 
   final taskArgumentAndSendPort = TaskArgumentAndSendPort(taskArgument, receivePort.sendPort);
@@ -96,8 +101,7 @@ Future<void> Function(TaskArgumentAndSendPort<R> taskArgumentAndSendPort) _makeA
   FutureOr<Map<String, dynamic>> Function(
     R taskArgument,
     void Function(double progress) onProgressUpdate,
-  )
-      task,
+  ) task,
 ) {
   return (TaskArgumentAndSendPort<R> taskArgumentAndSendPort) async {
     final taskResultJson = await task(

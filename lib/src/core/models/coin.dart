@@ -15,8 +15,9 @@ class Coin extends CoinPrototype with ToBytesMixin {
     required super.puzzlehash,
     required super.amount,
   });
-  factory Coin.fromJson(Map<String, dynamic> json) {
-    final coinPrototype = CoinPrototype.fromJson(json);
+
+  factory Coin.fromChiaCoinRecordJson(Map<String, dynamic> json) {
+    final coinPrototype = CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>);
     return Coin(
       confirmedBlockIndex: json['confirmed_block_index'] as int,
       spentBlockIndex: json['spent_block_index'] as int,
@@ -70,8 +71,8 @@ class Coin extends CoinPrototype with ToBytesMixin {
     );
   }
 
-  factory Coin.fromChiaCoinRecordJson(Map<String, dynamic> json) {
-    final coinPrototype = CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>);
+  factory Coin.fromJson(Map<String, dynamic> json) {
+    final coinPrototype = CoinPrototype.fromJson(json);
     return Coin(
       confirmedBlockIndex: json['confirmed_block_index'] as int,
       spentBlockIndex: json['spent_block_index'] as int,

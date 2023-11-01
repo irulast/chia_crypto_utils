@@ -10,9 +10,9 @@ void main() {
       File(path.join(path.current, 'test/clvm/deserialization/image.jpeg')).readAsBytesSync();
 
   test('should correctly serialize and deserialize a big clvm program', () {
-    final bigProgram = Program.fromBytes(imageBytes);
+    final bigProgram = Program.fromAtom(imageBytes);
 
-    final serializedProgram = bigProgram.serializeHex();
+    final serializedProgram = bigProgram.toHex();
     final deserializedProgram = Program.deserializeHex(serializedProgram);
 
     expect(deserializedProgram.atom, equals(Bytes(imageBytes)));

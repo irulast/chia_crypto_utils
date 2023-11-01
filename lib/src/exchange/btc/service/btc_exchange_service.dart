@@ -31,43 +31,39 @@ class BtcExchangeService {
       sweepPublicKey = requestorPublicKey;
     }
 
-    return baseWalletService.createSpendBundleBase(
-      payments: payments,
-      coinsInput: coinsInput,
-      changePuzzlehash: changePuzzlehash,
-      fee: fee,
-      originId: originId,
-      coinAnnouncementsToAssert: coinAnnouncementsToAssert,
-      puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
-      transformStandardSolution: (standardSolution) {
-        final totalPublicKey = sweepPublicKey + clawbackPublicKey;
+    return baseWalletService
+        .createSpendBundleBase(
+          payments: payments,
+          coinsInput: coinsInput,
+          changePuzzlehash: changePuzzlehash,
+          fee: fee,
+          originId: originId,
+          coinAnnouncementsToAssert: coinAnnouncementsToAssert,
+          puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
+          transformStandardSolution: (standardSolution) {
+            final totalPublicKey = sweepPublicKey + clawbackPublicKey;
 
-        return clawbackOrSweepSolution(
-          totalPublicKey: totalPublicKey,
-          clawbackDelaySeconds: clawbackDelaySeconds,
-          clawbackPublicKey: clawbackPublicKey,
-          sweepPaymentHash: sweepPaymentHash,
-          sweepPublicKey: sweepPublicKey,
-          delegatedSolution: standardSolution,
-          sweepPreimage: sweepPreimage,
-        );
-      },
-      makePuzzleRevealFromPuzzlehash: (puzzlehash) {
-        return generateEscrowPuzzle(
-          clawbackDelaySeconds: clawbackDelaySeconds,
-          clawbackPublicKey: clawbackPublicKey,
-          sweepPaymentHash: sweepPaymentHash,
-          sweepPublicKey: sweepPublicKey,
-        );
-      },
-      makeSignatureForCoinSpend: (coinSpend) {
-        return baseWalletService.makeSignature(
-          requestorPrivateKey,
-          coinSpend,
-          useSyntheticOffset: false,
-        );
-      },
-    );
+            return clawbackOrSweepSolution(
+              totalPublicKey: totalPublicKey,
+              clawbackDelaySeconds: clawbackDelaySeconds,
+              clawbackPublicKey: clawbackPublicKey,
+              sweepPaymentHash: sweepPaymentHash,
+              sweepPublicKey: sweepPublicKey,
+              delegatedSolution: standardSolution,
+              sweepPreimage: sweepPreimage,
+            );
+          },
+          makePuzzleRevealFromPuzzlehash: (puzzlehash) {
+            return generateEscrowPuzzle(
+              clawbackDelaySeconds: clawbackDelaySeconds,
+              clawbackPublicKey: clawbackPublicKey,
+              sweepPaymentHash: sweepPaymentHash,
+              sweepPublicKey: sweepPublicKey,
+            );
+          },
+        )
+        .signWithPrivateKey(requestorPrivateKey)
+        .signedBundle;
   }
 
   static Program generateEscrowPuzzle({
@@ -99,12 +95,12 @@ class BtcExchangeService {
     final hiddenPuzzleProgram = p2DelayedOrPreimageProgram.curry([
       Program.cons(
         Program.fromInt(clawbackDelaySeconds),
-        Program.fromBytes(clawbackPublicKey.toBytes()),
+        Program.fromAtom(clawbackPublicKey.toBytes()),
       ),
       Program.cons(
-        Program.fromBytes(sweepPaymentHash),
-        Program.fromBytes(sweepPublicKey.toBytes()),
-      )
+        Program.fromAtom(sweepPaymentHash),
+        Program.fromAtom(sweepPublicKey.toBytes()),
+      ),
     ]);
 
     return hiddenPuzzleProgram;
@@ -130,16 +126,16 @@ class BtcExchangeService {
 
     if (sweepPreimage != null) {
       p2DelayedOrPreimageSolution =
-          Program.list([Program.fromBytes(sweepPreimage), delegatedSolution]);
+          Program.list([Program.fromAtom(sweepPreimage), delegatedSolution]);
     } else {
       p2DelayedOrPreimageSolution = Program.list([Program.fromInt(0), delegatedSolution]);
     }
 
     final solution = Program.list(
       [
-        Program.fromBytes(totalPublicKey.toBytes()),
+        Program.fromAtom(totalPublicKey.toBytes()),
         hiddenPuzzleProgram,
-        p2DelayedOrPreimageSolution
+        p2DelayedOrPreimageSolution,
       ],
     );
 

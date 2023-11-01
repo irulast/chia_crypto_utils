@@ -13,15 +13,18 @@ class AssertMyCoinIdCondition implements Condition {
     }
     return AssertMyCoinIdCondition(Bytes(programList[1].atom));
   }
-  static int conditionCode = 70;
+  static const conditionCode = 70;
 
   Bytes coinId;
+
+  @override
+  int get code => conditionCode;
 
   @override
   Program toProgram() {
     return Program.list([
       Program.fromInt(conditionCode),
-      Program.fromBytes(coinId),
+      Program.fromAtom(coinId),
     ]);
   }
 

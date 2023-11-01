@@ -1,22 +1,17 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/standard/puzzles/p2_delegated_puzzle_or_hidden_puzzle/p2_delegated_puzzle_or_hidden_puzzle.clvm.hex.dart';
-import 'package:hex/hex.dart';
+import 'package:equatable/equatable.dart';
 
-class CoinSpend with ToBytesMixin {
-  CoinSpend({
+class CoinSpend extends Equatable with ToBytesMixin, ToJsonMixin {
+  const CoinSpend({
     required this.coin,
     required this.puzzleReveal,
     required this.solution,
   });
-
-  factory CoinSpend.fromJson(Map<String, dynamic> json) {
-    return CoinSpend(
-      coin: CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>),
-      puzzleReveal: Program.deserializeHex(json['puzzle_reveal'] as String),
-      solution: Program.deserializeHex(json['solution'] as String),
-    );
+  factory CoinSpend.fromBytes(Bytes bytes) {
+    final iterator = bytes.iterator;
+    return CoinSpend.fromStream(iterator);
   }
   factory CoinSpend.fromStream(Iterator<int> iterator) {
     final coin = CoinPrototype.fromStream(iterator);
@@ -29,18 +24,62 @@ class CoinSpend with ToBytesMixin {
     );
   }
 
-  factory CoinSpend.fromBytes(Bytes bytes) {
-    final iterator = bytes.iterator;
-    return CoinSpend.fromStream(iterator);
+  factory CoinSpend.fromJson(Map<String, dynamic> json) {
+    return CoinSpend(
+      coin: CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>),
+      puzzleReveal: Program.deserializeHex(json['puzzle_reveal'] as String),
+      solution: Program.deserializeHex(json['solution'] as String),
+    );
   }
-  CoinPrototype coin;
-  Program puzzleReveal;
-  Program solution;
+
+  factory CoinSpend.fromCamelJson(Map<String, dynamic> json) {
+    return CoinSpend(
+      coin: CoinPrototype.fromCamelJson(json['coin'] as Map<String, dynamic>),
+      puzzleReveal: Program.deserializeHex(json['puzzleReveal'] as String),
+      solution: Program.deserializeHex(json['solution'] as String),
+    );
+  }
+
+  factory CoinSpend.fromGeneratorCoinProgram(Program coinProgram) {
+    final programList = coinProgram.toList();
+
+    final parentCoinInfo = programList[0].atom;
+
+    final puzzle = programList[1];
+
+    final amount = programList[2].toInt();
+
+    final solution = programList[3];
+
+    final puzzlehash = puzzle.hash();
+
+    return CoinSpend(
+      coin: CoinPrototype(
+        parentCoinInfo: parentCoinInfo,
+        puzzlehash: puzzlehash,
+        amount: amount,
+      ),
+      puzzleReveal: puzzle,
+      solution: solution,
+    );
+  }
+
+  final CoinPrototype coin;
+  final Program puzzleReveal;
+  final Program solution;
 
   Program get outputProgram => puzzleReveal.run(solution).program;
 
   Future<Program> get outputProgramAsync async {
     return puzzleReveal.runAsync(solution).then((value) => value.program);
+  }
+
+  List<Condition> get conditions {
+    return BaseWalletService.extractConditionsFromResult(
+      outputProgram,
+      (_) => true,
+      GeneralCondition.new,
+    );
   }
 
   List<CoinPrototype> get additions {
@@ -59,6 +98,18 @@ class CoinSpend with ToBytesMixin {
           ),
         )
         .toList();
+  }
+
+  int get fee {
+    final reserveFeeConditions = BaseWalletService.extractConditionsFromResult(
+      outputProgram,
+      ReserveFeeCondition.isThisCondition,
+      ReserveFeeCondition.fromProgram,
+    );
+    return reserveFeeConditions.fold(
+      0,
+      (previousValue, element) => previousValue + element.feeAmount,
+    );
   }
 
   Future<List<CoinPrototype>> get additionsAsync async {
@@ -84,31 +135,26 @@ class CoinSpend with ToBytesMixin {
         .toList();
   }
 
+  @override
   Map<String, dynamic> toJson() => <String, dynamic>{
         'coin': coin.toJson(),
-        'puzzle_reveal': const HexEncoder().convert(puzzleReveal.serialize()),
-        'solution': const HexEncoder().convert(solution.serialize())
+        'puzzle_reveal': puzzleReveal.toBytes().toHexWithPrefix(),
+        'solution': solution.toBytes().toHexWithPrefix(),
+      };
+
+  Map<String, dynamic> toCamelJson() => <String, dynamic>{
+        'coin': coin.toCamelJson(),
+        'puzzleReveal': puzzleReveal.toBytes().toHexWithPrefix(),
+        'solution': solution.toBytes().toHexWithPrefix(),
       };
 
   @override
   Bytes toBytes() {
-    return coin.toBytes() + Bytes(puzzleReveal.serialize()) + Bytes(solution.serialize());
+    return coin.toBytes() + Bytes(puzzleReveal.toBytes()) + Bytes(solution.toBytes());
   }
 
   SpendType? get type {
-    final uncurriedPuzzleSource = puzzleReveal.uncurry().mod.toSource();
-    if (uncurriedPuzzleSource == p2DelegatedPuzzleOrHiddenPuzzleProgram.toSource()) {
-      return SpendType.standard;
-    }
-    if (uncurriedPuzzleSource == cat1Program.toSource()) {
-      return SpendType.cat1;
-    }
-
-    if (uncurriedPuzzleSource == cat2Program.toSource()) {
-      return SpendType.cat;
-    }
-
-    return null;
+    return PuzzleDriver.match(puzzleReveal)?.type;
   }
 
   // TODO(nvjoshi2): make async the default
@@ -153,9 +199,12 @@ class CoinSpend with ToBytesMixin {
 
   @override
   String toString() => 'CoinSpend(coin: $coin, puzzleReveal: $puzzleReveal, solution: $solution)';
+
+  @override
+  List<Object?> get props => [coin, puzzleReveal, solution];
 }
 
-enum SpendType { standard, cat, cat1 }
+enum SpendType { standard, cat, cat1, nft, did }
 
 class PaymentsAndAdditions {
   PaymentsAndAdditions(this.payments, this.additions);

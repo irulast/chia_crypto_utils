@@ -234,7 +234,7 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
     stdout.write('> ');
     confirmation = stdin.readLineSync()!.trim().toLowerCase();
     if (confirmation.startsWith('y')) {
-      final response = await DexieApi().postOffer(serializedOfferFile);
+      final response = await DexieExchangeOfferApi().postOffer(serializedOfferFile);
       if (response.success == true) {
         print('\nOffer has been successfully added to Dexie. Your offer ID is:');
         print(response.id);

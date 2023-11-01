@@ -1,5 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/api/namesdao/exceptions/invalid_namesdao_name.dart';
 
 class XchService {
   XchService({

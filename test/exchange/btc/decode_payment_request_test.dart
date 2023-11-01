@@ -104,7 +104,7 @@ void main() {
 
     expect(
       decodedPaymentRequest.tags.featureBits,
-      equals(00001000001000000000),
+      equals('00001000001000000000'),
     );
 
     expect(
@@ -168,7 +168,7 @@ void main() {
 
     expect(
       decodedPaymentRequest.tags.featureBits,
-      equals(100000100000000),
+      equals('100000100000000'),
     );
 
     expect(
@@ -241,5 +241,17 @@ void main() {
     final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
 
     expect(decodedPaymentRequest.amount, equals(20));
+  });
+
+  test('should decode lightning payment request from Phoenix wallet', () {
+    const paymentRequest =
+        'lnbc10n1pjxlcurpp597p98dywykkczrhtejfe0vnzennv9wkhcnfxlu7dpnpkp3wwpvqqdqqcqpjsp53cpzzepgej9ern2nw7z7gukpz2yrywy43vmnk23d9txlxcqcrehs9q7sqqqqqqqqqqqqqqqqqqqsqqqqqysgqmqz9gxqyjw5qrzjqwryaup9lh50kkranzgcdnn2fgvx390wgj5jd07rwr3vxeje0glclleyvyj257ehxcqqqqlgqqqqqeqqjqv9uf7kt4ysu2gg7fpk8xllsxp3adx0m5950dtvhj06ej59xy34wzuqyrh4egg6c64ve5sce28f344w0fcjercyn0n0eatwtqdwpq29sq0u02qr';
+
+    expect(
+      () {
+        decodeLightningPaymentRequest(paymentRequest);
+      },
+      returnsNormally,
+    );
   });
 }

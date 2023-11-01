@@ -8,10 +8,6 @@ import 'package:compute/compute.dart';
 /// The most general abstraction that all cross chain offer files implement and holds parameters
 /// that are common to all of concrete cross chain offer file classes.
 abstract class CrossChainOfferFile {
-  factory CrossChainOfferFile._fromSerializedOfferFileTask(String serializedOfferFile) {
-    return CrossChainOfferFile.fromSerializedOfferFile(serializedOfferFile);
-  }
-
   factory CrossChainOfferFile.fromSerializedOfferFile(String serializedOfferFile) {
     final deserializedOfferFile = maybeFromSerializedOfferFile(serializedOfferFile);
 
@@ -19,6 +15,10 @@ abstract class CrossChainOfferFile {
       throw InvalidCrossChainOfferFile();
     }
     return deserializedOfferFile;
+  }
+
+  factory CrossChainOfferFile._fromSerializedOfferFileTask(String serializedOfferFile) {
+    return CrossChainOfferFile.fromSerializedOfferFile(serializedOfferFile);
   }
   CrossChainOfferFilePrefix get prefix;
   CrossChainOfferFileType get type;

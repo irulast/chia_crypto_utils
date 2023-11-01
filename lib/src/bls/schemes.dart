@@ -4,6 +4,7 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/bls/hd_keys.dart' as hd_keys;
 import 'package:chia_crypto_utils/src/bls/op_swu_g2.dart';
 import 'package:chia_crypto_utils/src/bls/pairing.dart';
+import 'package:deep_pick/deep_pick.dart';
 import 'package:quiver/collection.dart';
 
 final basicSchemeDst = utf8.encode('BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_');
@@ -30,9 +31,9 @@ JacobianPoint coreAggregateMpl(List<JacobianPoint> signatures) {
     throw ArgumentError('Must aggregate at least 1 signature.');
   }
   var aggregate = signatures[0];
-  assert(aggregate.isValid, 'base signature is invalid');
+  assert(aggregate.isValid);
   for (final signature in signatures.sublist(1)) {
-    assert(signature.isValid, 'subsequent signature in aggregate signature is invalid');
+    assert(signature.isValid);
     aggregate += signature;
   }
   return aggregate;
@@ -141,6 +142,28 @@ class AugSchemeMPL {
     return coreVerifyMpl(pk, pk.toBytes() + message, signature, augSchemeDst);
   }
 
+  static Future<bool> verifyAsync(
+    JacobianPoint pk,
+    List<int> message,
+    JacobianPoint signature,
+  ) async {
+    return spawnAndWaitForIsolate(
+      taskArgument: VerifyArguments(pk, message, signature),
+      isolateTask: _verifyTask,
+      handleTaskCompletion: (taskResultJson) => pick(taskResultJson, 'valid').asBoolOrThrow(),
+    );
+  }
+
+  static Map<String, dynamic> _verifyTask(
+    VerifyArguments args,
+  ) {
+    final valid =
+        coreVerifyMpl(args.pk, args.pk.toBytes() + args.message, args.signature, augSchemeDst);
+    return <String, dynamic>{
+      'valid': valid,
+    };
+  }
+
   static JacobianPoint aggregate(List<JacobianPoint> signatures) {
     return coreAggregateMpl(signatures);
   }
@@ -215,13 +238,13 @@ class PopSchemeMPL {
 
   static bool popVerify(JacobianPoint pk, JacobianPoint proof) {
     try {
-      assert(proof.isValid, 'invalid proof');
-      assert(pk.isValid, 'invalid primary key');
+      assert(proof.isValid);
+      assert(pk.isValid);
       final q = g2Map(pk.toBytes(), popSchemePopDst);
       final one = Fq12.one(defaultEc.q);
       final pairingResult = atePairingMulti([pk, -JacobianPoint.generateG1()], [q, proof]);
       return pairingResult == one;
-    } on Exception {
+    } on AssertionError {
       return false;
     }
   }
@@ -259,4 +282,14 @@ class SignArguments {
 
   final PrivateKey sk;
   final List<int> message;
+}
+
+class VerifyArguments {
+  VerifyArguments(this.pk, this.message, this.signature);
+
+  final JacobianPoint pk;
+
+  final List<int> message;
+
+  final JacobianPoint signature;
 }

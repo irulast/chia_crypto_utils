@@ -1,10 +1,16 @@
 export './chia_price/chia_price_provider.dart';
 export './chia_price/xch_scan/index.dart';
 export './client.dart';
+export './coin_market_cap/coin_market_cap_api.dart';
 export './coin_splitting/service/coin_splitting_service.dart';
+export './dexie/dexie_api.dart';
+export './enhanced_full_node/index.dart';
 export './full_node/index.dart';
 export './namesdao/index.dart';
+export './nft_minting/uri_hash_provider.dart';
 export './pool/index.dart';
+export './remote_storage/nft_storage_api.dart';
 export './standard/xch_service.dart';
 export './tail_database/index.dart';
 export './utils/index.dart';
+export './wallet_connect/index.dart';

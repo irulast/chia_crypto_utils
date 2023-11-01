@@ -86,7 +86,7 @@ void main() {
     0,
     0,
     0,
-    3
+    3,
   ]);
   final parentInfo1 = Bytes([
     227,
@@ -120,7 +120,7 @@ void main() {
     0,
     0,
     0,
-    6
+    6,
   ]);
   final parentInfo2 = Bytes([
     227,
@@ -154,7 +154,7 @@ void main() {
     0,
     0,
     0,
-    6
+    6,
   ]);
   final coin0 = Coin(
     spentBlockIndex: 0,

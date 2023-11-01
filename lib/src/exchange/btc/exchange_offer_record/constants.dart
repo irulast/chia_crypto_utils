@@ -1,0 +1,1 @@
+const blocksForSufficientConfirmation = 32;

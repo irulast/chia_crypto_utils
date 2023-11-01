@@ -1,0 +1,3 @@
+(mod (ASSERTION_CONDITION conditions)
+    (c ASSERTION_CONDITION conditions)
+)

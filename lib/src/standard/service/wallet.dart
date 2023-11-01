@@ -20,6 +20,7 @@ class StandardWalletService extends BaseWalletService {
     bool allowLeftOver = false,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
     List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<Condition> additionalConditions = const [],
     List<Bytes> coinIdsToAssert = const [],
     void Function(Bytes message)? useCoinMessage,
   }) {
@@ -33,14 +34,45 @@ class StandardWalletService extends BaseWalletService {
       coinIdsToAssert: coinIdsToAssert,
       coinAnnouncementsToAssert: coinAnnouncementsToAssert,
       puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
+      additionalConditions: additionalConditions,
       makePuzzleRevealFromPuzzlehash: (puzzlehash) {
         final walletVector = keychain.getWalletVector(puzzlehash);
         final publicKey = walletVector!.childPublicKey;
         return getPuzzleFromPk(publicKey);
       },
-      makeSignatureForCoinSpend: (coinSpend) {
-        final walletVector = keychain.getWalletVector(coinSpend.coin.puzzlehash);
-        return makeSignature(walletVector!.childPrivateKey, coinSpend);
+      useCoinMessage: useCoinMessage,
+    ).sign(keychain).signedBundle;
+  }
+
+  SpendBundle createUnsignedSpendBundle({
+    required List<Payment> payments,
+    required List<CoinPrototype> coinsInput,
+    required WalletKeychain keychain,
+    Puzzlehash? changePuzzlehash,
+    int fee = 0,
+    int surplus = 0,
+    Bytes? originId,
+    List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<Condition> additionalConditions = const [],
+    List<Bytes> coinIdsToAssert = const [],
+    void Function(Bytes message)? useCoinMessage,
+  }) {
+    return createSpendBundleBase(
+      payments: payments,
+      coinsInput: coinsInput,
+      changePuzzlehash: changePuzzlehash,
+      fee: fee,
+      surplus: surplus,
+      originId: originId,
+      coinIdsToAssert: coinIdsToAssert,
+      coinAnnouncementsToAssert: coinAnnouncementsToAssert,
+      puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
+      additionalConditions: additionalConditions,
+      makePuzzleRevealFromPuzzlehash: (puzzlehash) {
+        final walletVector = keychain.getWalletVector(puzzlehash);
+        final publicKey = walletVector!.childPublicKey;
+        return getPuzzleFromPk(publicKey);
       },
       useCoinMessage: useCoinMessage,
     );
@@ -52,6 +84,8 @@ class StandardWalletService extends BaseWalletService {
     required WalletKeychain keychain,
     required Puzzlehash? changePuzzlehash,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAsset = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<Condition> additionalConditions = const [],
   }) {
     assert(
       standardCoins.isNotEmpty,
@@ -74,6 +108,43 @@ class StandardWalletService extends BaseWalletService {
       keychain: keychain,
       fee: fee,
       coinAnnouncementsToAssert: coinAnnouncementsToAsset,
+      puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
+      additionalConditions: additionalConditions,
+    );
+  }
+
+  SpendBundle createUnsignedFeeSpendBundle({
+    required int fee,
+    required List<CoinPrototype> standardCoins,
+    required WalletKeychain keychain,
+    required Puzzlehash? changePuzzlehash,
+    List<AssertCoinAnnouncementCondition> coinAnnouncementsToAsset = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<Condition> additionalConditions = const [],
+  }) {
+    assert(
+      standardCoins.isNotEmpty,
+      'If passing in a fee, you must also pass in standard coins to use for that fee.',
+    );
+
+    final totalStandardCoinsValue = standardCoins.fold(
+      0,
+      (int previousValue, standardCoin) => previousValue + standardCoin.amount,
+    );
+    assert(
+      totalStandardCoinsValue >= fee,
+      'Total value of passed in standad coins is not enough to cover fee.',
+    );
+
+    return createUnsignedSpendBundle(
+      payments: [],
+      coinsInput: standardCoins,
+      changePuzzlehash: changePuzzlehash,
+      keychain: keychain,
+      fee: fee,
+      coinAnnouncementsToAssert: coinAnnouncementsToAsset,
+      puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
+      additionalConditions: additionalConditions,
     );
   }
 

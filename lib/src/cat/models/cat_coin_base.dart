@@ -22,6 +22,16 @@ abstract class CatCoin implements CoinPrototype {
       delegate: delegate,
     );
   }
+  factory CatCoin.fromBytes(Bytes bytes) {
+    final iterator = bytes.iterator;
+    final parentSpend = CoinSpend.fromStream(iterator);
+    final coin = CoinPrototype.fromStream(iterator);
+    return CatCoin.fromParentSpend(
+      parentCoinSpend: parentSpend,
+      coin: coin,
+    );
+  }
+
   factory CatCoin.eve({
     required CoinSpend parentCoinSpend,
     required Puzzlehash assetId,
@@ -35,16 +45,6 @@ abstract class CatCoin implements CoinPrototype {
         catProgram: catProgram,
         delegate: coin,
       );
-
-  factory CatCoin.fromBytes(Bytes bytes) {
-    final iterator = bytes.iterator;
-    final parentSpend = CoinSpend.fromStream(iterator);
-    final coin = CoinPrototype.fromStream(iterator);
-    return CatCoin.fromParentSpend(
-      parentCoinSpend: parentSpend,
-      coin: coin,
-    );
-  }
 
   factory CatCoin.fromParentSpend({
     required CoinSpend parentCoinSpend,
@@ -108,14 +108,14 @@ class _CatCoin with CoinPrototypeDecoratorMixin implements CatCoin {
 
     final assetId = Puzzlehash(uncurriedArguments[1].atom);
     final lineageProof = Program.list([
-      Program.fromBytes(
+      Program.fromAtom(
         parentCoinSpend.coin.parentCoinInfo,
       ),
       // third argument to the cat puzzle is the inner puzzle
-      Program.fromBytes(
+      Program.fromAtom(
         uncurriedArguments[2].hash(),
       ),
-      Program.fromInt(parentCoinSpend.coin.amount)
+      Program.fromInt(parentCoinSpend.coin.amount),
     ]);
     return _CatCoin(
       parentCoinSpend: parentCoinSpend,
@@ -148,6 +148,16 @@ extension CatFunctionality on CatCoin {
     }
     if (catProgram == cat1Program) {
       return SpendType.cat1;
+    }
+    throw InvalidCatException();
+  }
+
+  int get catVersion {
+    if (catProgram == cat2Program) {
+      return 2;
+    }
+    if (catProgram == cat1Program) {
+      return 1;
     }
     throw InvalidCatException();
   }

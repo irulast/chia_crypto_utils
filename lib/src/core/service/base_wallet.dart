@@ -22,9 +22,10 @@ class BaseWalletService {
     List<Bytes> coinIdsToAssert = const [],
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
     List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<Condition> additionalConditions = const [],
     required Program Function(Puzzlehash puzzlehash) makePuzzleRevealFromPuzzlehash,
     Program Function(Program standardSolution)? transformStandardSolution,
-    required JacobianPoint Function(CoinSpend coinSpend) makeSignatureForCoinSpend,
+    // required JacobianPoint Function(CoinSpend coinSpend) makeSignatureForCoinSpend,
     void Function(Bytes message)? useCoinMessage,
   }) {
     Program makeSolutionFromConditions(List<Condition> conditions) {
@@ -49,7 +50,6 @@ class BaseWalletService {
       throw ChangePuzzlehashNeededException();
     }
 
-    final signatures = <JacobianPoint>[];
     final spends = <CoinSpend>[];
 
     // returns -1 if originId is given but is not in coins
@@ -106,7 +106,8 @@ class BaseWalletService {
 
         conditions
           ..addAll(coinAnnouncementsToAssert)
-          ..addAll(puzzleAnnouncementsToAssert);
+          ..addAll(puzzleAnnouncementsToAssert)
+          ..addAll(additionalConditions);
 
         // generate message for coin announcements by appending coin_ids
         // see https://github.com/Chia-Network/chia-blockchain/blob/4bd5c53f48cb049eff36c87c00d21b1f2dd26b27/chia/wallet/wallet.py#L383
@@ -140,47 +141,226 @@ class BaseWalletService {
       final puzzle = makePuzzleRevealFromPuzzlehash(coin.puzzlehash);
       final coinSpend = CoinSpend(coin: coin, puzzleReveal: puzzle, solution: solution);
       spends.add(coinSpend);
-
-      final signature = makeSignatureForCoinSpend(coinSpend);
-      signatures.add(signature);
     }
 
-    final aggregate = AugSchemeMPL.aggregate(signatures);
-
-    return SpendBundle(coinSpends: spends, aggregatedSignature: aggregate);
+    return SpendBundle(coinSpends: spends);
   }
+
+  SpendBundleSignResult signSpendBundleWithPrivateKey(
+    SpendBundle spendBundle,
+    PrivateKey privateKey, {
+    bool Function(CoinSpend coinSpend)? filterCoinSpends,
+  }) {
+    final privateKeyPuzzlehash = getPuzzleFromPk(privateKey.getG1()).hash();
+
+    return _signSpendBundle(
+      spendBundle,
+      getPrivateKeyForPuzzlehash: (puzzlehash) {
+        if (puzzlehash == privateKeyPuzzlehash) {
+          return privateKey;
+        }
+        return null;
+      },
+      filterCoinSpends: filterCoinSpends,
+    );
+  }
+
+  SpendBundleSignResult signSpendBundle(
+    SpendBundle spendBundle,
+    WalletKeychain keychain, {
+    bool Function(CoinSpend coinSpend)? filterCoinSpends,
+  }) {
+    // final publicKeyToPrivateKey = <JacobianPoint, PrivateKey>{};
+
+    // for (final walletVector in [
+    //   ...keychain.unhardenedWalletVectors,
+    //   ...keychain.hardenedWalletVectors
+    // ]) {
+    //   final privateKey = walletVector.childPrivateKey;
+    //   final publicKey = privateKey.getG1();
+
+    //   final syntheticPrivateKey = calculateSyntheticPrivateKey(privateKey);
+    //   final syntheticPublicKey = syntheticPrivateKey.getG1();
+
+    //   publicKeyToPrivateKey[publicKey] = privateKey;
+    //   publicKeyToPrivateKey[syntheticPublicKey] = syntheticPrivateKey;
+    // }
+
+    return _signSpendBundle(
+      spendBundle,
+      getPrivateKeyForPuzzlehash: (puzzlehash) {
+        return keychain.getWalletVector(puzzlehash)?.childPrivateKey;
+      },
+      filterCoinSpends: filterCoinSpends,
+    );
+  }
+
+  SpendBundleSignResult _signSpendBundle(
+    SpendBundle spendBundle, {
+    required PrivateKey? Function(Puzzlehash puzzlehash) getPrivateKeyForPuzzlehash,
+    bool Function(CoinSpend coinSpend)? filterCoinSpends,
+  }) {
+    PrivateKey? getPrivateKeyForPublicKey(JacobianPoint publicKey) {
+      final puzzlehashAssumingSyntheticPk = getPuzzleForSyntheticPk(publicKey).hash();
+
+      final privateKey = getPrivateKeyForPuzzlehash(puzzlehashAssumingSyntheticPk);
+
+      if (privateKey != null) {
+        return calculateSyntheticPrivateKey(privateKey);
+      }
+
+      final puzzlehashAssumingNonSyntheticPk = getPuzzleFromPk(publicKey).hash();
+
+      return getPrivateKeyForPuzzlehash(puzzlehashAssumingNonSyntheticPk);
+    }
+
+    var totalSpendBundle = spendBundle;
+
+    final aggSigMeConditionsWithFullMessages = <AggSigMeConditionWithFullMessage>[];
+
+    final spendsToSign = filterCoinSpends != null
+        ? spendBundle.coinSpends.where(filterCoinSpends)
+        : spendBundle.coinSpends;
+
+    for (final coinSpend in spendsToSign) {
+      final output = coinSpend.outputProgram;
+      final aggSigMeConditions = BaseWalletService.extractConditionsFromResult(
+        output,
+        AggSigMeCondition.isThisCondition,
+        AggSigMeCondition.fromProgram,
+      );
+
+      for (final aggSigMeCondition in aggSigMeConditions) {
+        final fullMessage =
+            constructFullAggSigMeMessage(aggSigMeCondition.message, coinSpend.coin.id);
+        aggSigMeConditionsWithFullMessages
+            .add(AggSigMeConditionWithFullMessage(aggSigMeCondition, fullMessage));
+
+        final privateKey = getPrivateKeyForPublicKey(aggSigMeCondition.publicKey);
+
+        if (privateKey == null) {
+          continue;
+        }
+
+        final signature = AugSchemeMPL.sign(privateKey, fullMessage);
+        totalSpendBundle = totalSpendBundle.withSignature(signature);
+      }
+    }
+
+    return SpendBundleSignResult(
+      totalSpendBundle,
+      aggSigMeConditionWithMessages: aggSigMeConditionsWithFullMessages,
+    );
+  }
+
+  // SpendBundle signSpendBundleWithPrivateKey(SpendBundle spendBundle, PrivateKey privateKey) {
+  //   final puzzleHash = getPuzzleFromPk(privateKey.getG1()).hash();
+  //   return spendBundle.signPerCoinSpend((coinSpend) {
+  //     final puzzleDriver = PuzzleDriver.match(coinSpend.puzzleReveal);
+  //     if (puzzleDriver == null) {
+  //       LoggingContext().error('Unsuported coin spend:${coinSpend.toSerializedJson()}');
+  //       return null;
+  //     }
+  //     if (puzzleDriver.getP2Puzzle(coinSpend).hash() != puzzleHash) {
+  //       throw SignException(
+  //         'Private key $privateKey does not match coin spend p2Puzzlle: $puzzleHash',
+  //       );
+  //     }
+
+  //     return makeSignature(privateKey, coinSpend);
+  //   });
+  // }
+
+  // SpendBundle signSpendBundleFromSkUsingConditions(
+  //   SpendBundle spendBundle,
+  //   PrivateKey privateKey, {
+  //   bool useSyntheticOffset = true,
+  // }) {
+  //   return spendBundle.signPerCoinSpend((coinSpend) {
+  //     final output = coinSpend.outputProgram;
+  //     final aggSigMeConditions = BaseWalletService.extractConditionsFromResult(
+  //       output,
+  //       AggSigMeCondition.isThisCondition,
+  //       AggSigMeCondition.fromProgram,
+  //     );
+  //     final privateKey_ =
+  //         useSyntheticOffset ? calculateSyntheticPrivateKey(privateKey) : privateKey;
+
+  //     final publicKey = privateKey_.getG1();
+
+  //     for (final aggSigMeCondition in aggSigMeConditions) {
+  //       if (aggSigMeCondition.publicKey != publicKey) {
+  //         continue;
+  //       }
+  //       final fullMessage =
+  //           constructFullAggSigMeMessage(aggSigMeCondition.message, coinSpend.coin.id);
+
+  //       final isMet = AugSchemeMPL.verify(
+  //         aggSigMeConditions.first.publicKey,
+  //         fullMessage,
+  //         spendBundle.aggregatedSignature!,
+  //       );
+
+  //       if (!isMet) {
+  //         spendBundle.addSignature(AugSchemeMPL.sign(privateKey0, fullMessage));
+  //       }
+  //     }
+  //   });
+  // }
 
   JacobianPoint makeSignature(
     PrivateKey privateKey,
     CoinSpend coinSpend, {
     bool useSyntheticOffset = true,
   }) {
-    final result = coinSpend.puzzleReveal.run(coinSpend.solution);
-
-    final addsigmessage = getAddSigMeMessageFromResult(result.program, coinSpend.coin);
-
     final privateKey0 = useSyntheticOffset ? calculateSyntheticPrivateKey(privateKey) : privateKey;
-    final signature = AugSchemeMPL.sign(privateKey0, addsigmessage);
 
-    return signature;
+    final messagesToSign = getAddSigMeMessage(coinSpend, privateKey0);
+
+    final signatures = <JacobianPoint>[];
+
+    for (final message in messagesToSign) {
+      final signature = AugSchemeMPL.sign(privateKey0, message);
+      signatures.add(signature);
+    }
+
+    return AugSchemeMPL.aggregate(signatures);
   }
 
-  Bytes getAddSigMeMessageFromResult(Program result, CoinPrototype coin) {
-    final aggSigMeCondition = result.toList().where(AggSigMeCondition.isThisCondition);
-    // TODO(nvjoshi2): figure out more robust way to get correct AggSigMeCondition.
-    // this works because tail AggSigMeConditions come before standard ones
-    return Bytes(aggSigMeCondition.last.toList()[2].atom) +
-        coin.id +
-        Bytes.fromHex(
-          blockchainNetwork.aggSigMeExtraData,
-        );
+  Bytes constructFullAggSigMeMessage(Bytes baseMessage, Bytes coinId) {
+    return baseMessage + coinId + Bytes.fromHex(blockchainNetwork.aggSigMeExtraData);
+  }
+
+  List<Bytes> getAddSigMeMessage(CoinSpend coinSpend, PrivateKey privateKey) {
+    final result = coinSpend.puzzleReveal.run(coinSpend.solution).program;
+    final coin = coinSpend.coin;
+
+    final aggSigMeConditions = result.toList().where((conditionProgram) {
+      return AggSigMeCondition.isThisCondition(conditionProgram) &&
+          AggSigMeCondition.fromProgram(conditionProgram).publicKey == privateKey.getG1();
+    }).map(AggSigMeCondition.fromProgram);
+
+    if (aggSigMeConditions.length > 1) {
+      print('multiple agg sig me conditions: ${aggSigMeConditions.map((e) => e.toProgram())}');
+      return [
+        constructFullAggSigMeMessage(aggSigMeConditions.last.message, coin.id),
+      ];
+    }
+
+    return aggSigMeConditions
+        .map(
+          (e) => constructFullAggSigMeMessage(e.message, coin.id),
+        )
+        .toList();
+
+    // return constructFullAggSigMeMessage(aggSigMeConditions.first.message, coin.id);
   }
 
   static Program makeSolutionFromConditions(List<Condition> conditions) {
     return makeSolutionFromProgram(
       Program.list([
         Program.fromBigInt(keywords['q']!),
-        ...conditions.map((condition) => condition.toProgram())
+        ...conditions.map((condition) => condition.toProgram()),
       ]),
     );
   }

@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/clvm/exceptions/invalid_puzzle_hash_exception.dart';
+import 'package:chia_crypto_utils/src/utils/serialization.dart';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 
@@ -15,25 +16,33 @@ class Puzzlehash extends Bytes {
       throw InvalidPuzzleHashException();
     }
   }
-
-  Puzzlehash.zeros() : super(List.filled(bytesLength, 0));
+  factory Puzzlehash.fromHex(String phHex) {
+    return Puzzlehash(Bytes.fromHex(phHex));
+  }
 
   factory Puzzlehash.fromStream(Iterator<int> iterator) {
     return Puzzlehash(iterator.extractBytesAndAdvance(bytesLength));
   }
 
-  factory Puzzlehash.fromHex(String phHex) {
-    return Puzzlehash(Bytes.fromHex(phHex));
-  }
+  Puzzlehash.zeros() : super(List.filled(bytesLength, 0));
 
   static Puzzlehash? maybe(List<int>? maybeBytesList) {
     if (maybeBytesList == null) return null;
+    if (maybeBytesList.length != bytesLength) {
+      return null;
+    }
+
     return Puzzlehash(maybeBytesList);
   }
 
   static Puzzlehash? maybeFromHex(String? phHex) {
     if (phHex == null) return null;
-    return Puzzlehash(Bytes.fromHex(phHex));
+
+    try {
+      return maybe(Bytes.fromHex(phHex));
+    } catch (_) {
+      return null;
+    }
   }
 
   static Puzzlehash? maybeFromStream(Iterator<int> iterator) {
@@ -49,10 +58,47 @@ class Puzzlehash extends Bytes {
 
   static const bytesLength = 32;
   static const hexLength = 64;
+
+  static List<Puzzlehash> deserializePuzzlehashes(Bytes puzzlehashesBytes) {
+    final puzzlehashes = <Puzzlehash>[];
+
+    final iterator = puzzlehashesBytes.iterator;
+
+    final nhints = intFrom32BitsStream(iterator);
+    for (var _ = 0; _ < nhints; _++) {
+      final hint = Puzzlehash.fromStream(iterator);
+      puzzlehashes.add(hint);
+    }
+
+    return puzzlehashes;
+  }
+}
+
+extension SerializePuzzlehashes on Iterable<Puzzlehash> {
+  Bytes serialize() {
+    return serializeListChia(toList());
+  }
 }
 
 class Bytes extends Comparable<Bytes> with ToBytesMixin, ToProgramMixin implements List<int> {
   Bytes(List<int> bytesList) : _byteList = Uint8List.fromList(bytesList);
+
+  factory Bytes.zeros(int size) {
+    return Bytes(List.generate(size, (index) => 0));
+  }
+
+  factory Bytes.random(int size) {
+    final random = Random();
+    return Bytes(List.generate(size, (index) => random.nextInt(256)));
+  }
+
+  factory Bytes.fromStream(Iterator<int> iterator) {
+    final lengthBytes = iterator.extractBytesAndAdvance(4);
+    final length = bytesToInt(lengthBytes, Endian.big);
+    return iterator.extractBytesAndAdvance(length);
+  }
+
+  Bytes.encodeFromString(String text) : _byteList = Uint8List.fromList(utf8.encode(text));
 
   factory Bytes.fromHex(String hex) {
     if (hex.startsWith(bytesPrefix)) {
@@ -61,23 +107,6 @@ class Bytes extends Comparable<Bytes> with ToBytesMixin, ToProgramMixin implemen
       );
     }
     return Bytes(const HexDecoder().convert(hex));
-  }
-
-  Bytes.encodeFromString(String text) : _byteList = Uint8List.fromList(utf8.encode(text));
-
-  factory Bytes.fromStream(Iterator<int> iterator) {
-    final lengthBytes = iterator.extractBytesAndAdvance(4);
-    final length = bytesToInt(lengthBytes, Endian.big);
-    return iterator.extractBytesAndAdvance(length);
-  }
-
-  factory Bytes.random(int size) {
-    final random = Random();
-    return Bytes(List.generate(size, (index) => random.nextInt(256)));
-  }
-
-  factory Bytes.zeros(int size) {
-    return Bytes(List.generate(size, (index) => 0));
   }
   final Uint8List _byteList;
 
@@ -98,8 +127,21 @@ class Bytes extends Comparable<Bytes> with ToBytesMixin, ToProgramMixin implemen
     return this;
   }
 
+  bool get isPuzzlehash {
+    try {
+      Puzzlehash(this).toAddress('xch');
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Puzzlehash toPuzzlehash() {
+    return Puzzlehash(this);
+  }
+
   @override
-  Program toProgram() => Program.fromBytes(this);
+  Program toProgram() => Program.fromAtom(this);
 
   static Bytes get empty => Bytes([]);
 
