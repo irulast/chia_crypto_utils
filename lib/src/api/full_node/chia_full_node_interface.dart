@@ -7,7 +7,6 @@ import 'package:chia_crypto_utils/src/api/full_node/exceptions/full_node_error.d
 import 'package:chia_crypto_utils/src/core/models/block_with_reference_blocks.dart';
 import 'package:chia_crypto_utils/src/core/models/blockchain_state.dart';
 import 'package:chia_crypto_utils/src/core/models/full_block.dart';
-import 'package:chia_crypto_utils/src/plot_nft/models/exceptions/invalid_pool_singleton_exception.dart';
 import 'package:collection/collection.dart';
 
 class ChiaFullNodeInterface {

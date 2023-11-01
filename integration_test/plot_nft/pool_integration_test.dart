@@ -1,5 +1,4 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/singleton/puzzles/singleton_output_inner_puzzle/singleton_output_inner_puzzle.clvm.hex.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {

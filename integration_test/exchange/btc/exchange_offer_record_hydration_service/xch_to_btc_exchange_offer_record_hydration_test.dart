@@ -226,88 +226,92 @@ Future<void> main() async {
       expect(hydratedExchangeOfferRecord.canceledTime, isNull);
     });
 
-    test('after offer is submitted to dexie', () async {
-      final response = await dexieApi.postOffer(serializedOfferFile);
+    test(
+      'after offer is submitted to dexie',
+      () async {
+        final response = await dexieApi.postOffer(serializedOfferFile);
 
-      expect(response.success, isTrue);
+        expect(response.success, isTrue);
 
-      // restoring exchange offer record
-      final initializationCoins =
-          await fullNodeSimulator.scroungeForExchangeInitializationCoins(maker.puzzlehashes);
+        // restoring exchange offer record
+        final initializationCoins =
+            await fullNodeSimulator.scroungeForExchangeInitializationCoins(maker.puzzlehashes);
 
-      expect(initializationCoins.length, equals(1));
-      expect(initializationCoins.contains(initializationCoin), isTrue);
+        expect(initializationCoins.length, equals(1));
+        expect(initializationCoins.contains(initializationCoin), isTrue);
 
-      final hydratedExchangeOfferRecord =
-          await exchangeOfferRecordHydrationService.hydrateExchangeInitializationCoin(
-        initializationCoins.single,
-        makerMasterPrivateKey,
-        maker.keychain,
-      );
+        final hydratedExchangeOfferRecord =
+            await exchangeOfferRecordHydrationService.hydrateExchangeInitializationCoin(
+          initializationCoins.single,
+          makerMasterPrivateKey,
+          maker.keychain,
+        );
 
-      expect(hydratedExchangeOfferRecord, isNotNull);
-      expect(
-        hydratedExchangeOfferRecord.initializationCoinId,
-        equals(initializationCoinId),
-      );
-      expect(
-        hydratedExchangeOfferRecord.derivationIndex,
-        equals(makerDerivationIndex),
-      );
-      expect(
-        hydratedExchangeOfferRecord.type.name,
-        equals(makerExchangeType.name),
-      );
-      expect(
-        hydratedExchangeOfferRecord.role.name,
-        equals(ExchangeRole.maker.name),
-      );
-      expect(
-        hydratedExchangeOfferRecord.mojos,
-        equals(mojos),
-      );
-      expect(
-        hydratedExchangeOfferRecord.satoshis,
-        equals(satoshis),
-      );
-      expect(
-        hydratedExchangeOfferRecord.messagePuzzlehash,
-        equals(messagePuzzlehash),
-      );
-      expect(
-        hydratedExchangeOfferRecord.requestorPublicKey,
-        equals(makerPublicKey),
-      );
-      expect(
-        hydratedExchangeOfferRecord.offerValidityTime,
-        equals(offerValidityTime),
-      );
-      expect(
-        hydratedExchangeOfferRecord.serializedMakerOfferFile,
-        equals(serializedOfferFile),
-      );
-      expect(
-        hydratedExchangeOfferRecord.lightningPaymentRequest!.paymentRequest,
-        equals(paymentRequest),
-      );
-      expect(
-        hydratedExchangeOfferRecord.initializedTime,
-        equals(initializedTime),
-      );
-      expect(hydratedExchangeOfferRecord.submittedToDexie, isTrue);
-      expect(hydratedExchangeOfferRecord.messageCoinId, isNull);
-      expect(hydratedExchangeOfferRecord.serializedTakerOfferFile, isNull);
-      expect(hydratedExchangeOfferRecord.fulfillerPublicKey, isNull);
-      expect(hydratedExchangeOfferRecord.exchangeValidityTime, isNull);
-      expect(hydratedExchangeOfferRecord.escrowPuzzlehash, isNull);
-      expect(hydratedExchangeOfferRecord.escrowCoinId, isNull);
-      expect(hydratedExchangeOfferRecord.messageCoinReceivedTime, isNull);
-      expect(hydratedExchangeOfferRecord.messageCoinAcceptedTime, isNull);
-      expect(hydratedExchangeOfferRecord.escrowTransferCompletedTime, isNull);
-      expect(hydratedExchangeOfferRecord.sweepTime, isNull);
-      expect(hydratedExchangeOfferRecord.clawbackTime, isNull);
-      expect(hydratedExchangeOfferRecord.canceledTime, isNull);
-    }, skip: 'sends post request to dexie');
+        expect(hydratedExchangeOfferRecord, isNotNull);
+        expect(
+          hydratedExchangeOfferRecord.initializationCoinId,
+          equals(initializationCoinId),
+        );
+        expect(
+          hydratedExchangeOfferRecord.derivationIndex,
+          equals(makerDerivationIndex),
+        );
+        expect(
+          hydratedExchangeOfferRecord.type.name,
+          equals(makerExchangeType.name),
+        );
+        expect(
+          hydratedExchangeOfferRecord.role.name,
+          equals(ExchangeRole.maker.name),
+        );
+        expect(
+          hydratedExchangeOfferRecord.mojos,
+          equals(mojos),
+        );
+        expect(
+          hydratedExchangeOfferRecord.satoshis,
+          equals(satoshis),
+        );
+        expect(
+          hydratedExchangeOfferRecord.messagePuzzlehash,
+          equals(messagePuzzlehash),
+        );
+        expect(
+          hydratedExchangeOfferRecord.requestorPublicKey,
+          equals(makerPublicKey),
+        );
+        expect(
+          hydratedExchangeOfferRecord.offerValidityTime,
+          equals(offerValidityTime),
+        );
+        expect(
+          hydratedExchangeOfferRecord.serializedMakerOfferFile,
+          equals(serializedOfferFile),
+        );
+        expect(
+          hydratedExchangeOfferRecord.lightningPaymentRequest!.paymentRequest,
+          equals(paymentRequest),
+        );
+        expect(
+          hydratedExchangeOfferRecord.initializedTime,
+          equals(initializedTime),
+        );
+        expect(hydratedExchangeOfferRecord.submittedToDexie, isTrue);
+        expect(hydratedExchangeOfferRecord.messageCoinId, isNull);
+        expect(hydratedExchangeOfferRecord.serializedTakerOfferFile, isNull);
+        expect(hydratedExchangeOfferRecord.fulfillerPublicKey, isNull);
+        expect(hydratedExchangeOfferRecord.exchangeValidityTime, isNull);
+        expect(hydratedExchangeOfferRecord.escrowPuzzlehash, isNull);
+        expect(hydratedExchangeOfferRecord.escrowCoinId, isNull);
+        expect(hydratedExchangeOfferRecord.messageCoinReceivedTime, isNull);
+        expect(hydratedExchangeOfferRecord.messageCoinAcceptedTime, isNull);
+        expect(hydratedExchangeOfferRecord.escrowTransferCompletedTime, isNull);
+        expect(hydratedExchangeOfferRecord.sweepTime, isNull);
+        expect(hydratedExchangeOfferRecord.clawbackTime, isNull);
+        expect(hydratedExchangeOfferRecord.canceledTime, isNull);
+      },
+      skip: 'sends post request to dexie',
+    );
 
     test('after maker cancels exchange offer', () async {
       await exchangeOfferService.cancelExchangeOffer(
@@ -1646,115 +1650,119 @@ Future<void> main() async {
       expect(hydratedExchangeOfferRecord.canceledTime, isNull);
     });
 
-    test('after taker sends message coin and maker has submitted offer to dexie', () async {
-      // taker sends message coin
-      await dexieApi.postOffer(serializedOfferFile);
+    test(
+      'after taker sends message coin and maker has submitted offer to dexie',
+      () async {
+        // taker sends message coin
+        await dexieApi.postOffer(serializedOfferFile);
 
-      final coinForMessageSpend = taker.standardCoins.first;
+        final coinForMessageSpend = taker.standardCoins.first;
 
-      await exchangeOfferService.sendMessageCoin(
-        initializationCoinId: initializationCoinId,
-        messagePuzzlehash: messagePuzzlehash,
-        coinsInput: [coinForMessageSpend],
-        keychain: taker.keychain,
-        serializedTakerOfferFile: serializedTakerOfferFile,
-        changePuzzlehash: taker.firstPuzzlehash,
-      );
+        await exchangeOfferService.sendMessageCoin(
+          initializationCoinId: initializationCoinId,
+          messagePuzzlehash: messagePuzzlehash,
+          coinsInput: [coinForMessageSpend],
+          keychain: taker.keychain,
+          serializedTakerOfferFile: serializedTakerOfferFile,
+          changePuzzlehash: taker.firstPuzzlehash,
+        );
 
-      await fullNodeSimulator.moveToNextBlock();
-      await taker.refreshCoins();
+        await fullNodeSimulator.moveToNextBlock();
+        await taker.refreshCoins();
 
-      final expectedMessageCoin =
-          (await fullNodeSimulator.scroungeForReceivedNotificationCoins([messagePuzzlehash]))
-              .single;
+        final expectedMessageCoin =
+            (await fullNodeSimulator.scroungeForReceivedNotificationCoins([messagePuzzlehash]))
+                .single;
 
-      final expectedMessageCoinReceivedTime =
-          await fullNodeSimulator.getDateTimeFromBlockIndex(expectedMessageCoin.spentBlockIndex);
+        final expectedMessageCoinReceivedTime =
+            await fullNodeSimulator.getDateTimeFromBlockIndex(expectedMessageCoin.spentBlockIndex);
 
-      // restoring exchange offer record
-      final sentMessageCoins =
-          await fullNodeSimulator.scroungeForSentNotificationCoins(taker.puzzlehashes);
+        // restoring exchange offer record
+        final sentMessageCoins =
+            await fullNodeSimulator.scroungeForSentNotificationCoins(taker.puzzlehashes);
 
-      expect(sentMessageCoins.length, equals(1));
+        expect(sentMessageCoins.length, equals(1));
 
-      final hydratedExchangeOfferRecord =
-          await exchangeOfferRecordHydrationService.hydrateSentMessageCoin(
-        sentMessageCoins.first,
-        taker.keychain,
-      );
+        final hydratedExchangeOfferRecord =
+            await exchangeOfferRecordHydrationService.hydrateSentMessageCoin(
+          sentMessageCoins.first,
+          taker.keychain,
+        );
 
-      expect(hydratedExchangeOfferRecord, isNotNull);
-      expect(
-        hydratedExchangeOfferRecord.initializationCoinId,
-        equals(initializationCoinId),
-      );
-      expect(
-        hydratedExchangeOfferRecord.derivationIndex,
-        equals(takerDerivationIndex),
-      );
-      expect(
-        hydratedExchangeOfferRecord.type.name,
-        equals(takerExchangeType.name),
-      );
-      expect(
-        hydratedExchangeOfferRecord.role.name,
-        equals(ExchangeRole.taker.name),
-      );
-      expect(
-        hydratedExchangeOfferRecord.mojos,
-        equals(mojos),
-      );
-      expect(
-        hydratedExchangeOfferRecord.satoshis,
-        equals(satoshis),
-      );
-      expect(
-        hydratedExchangeOfferRecord.messagePuzzlehash,
-        equals(messagePuzzlehash),
-      );
-      expect(
-        hydratedExchangeOfferRecord.requestorPublicKey,
-        equals(takerPublicKey),
-      );
-      expect(
-        hydratedExchangeOfferRecord.offerValidityTime,
-        equals(offerValidityTime),
-      );
-      expect(
-        hydratedExchangeOfferRecord.serializedMakerOfferFile,
-        equals(serializedOfferFile),
-      );
-      expect(hydratedExchangeOfferRecord.submittedToDexie, isTrue);
-      expect(
-        hydratedExchangeOfferRecord.lightningPaymentRequest!.paymentRequest,
-        equals(paymentRequest),
-      );
-      expect(hydratedExchangeOfferRecord.messageCoinId, equals(expectedMessageCoin.id));
-      expect(
-        hydratedExchangeOfferRecord.messageCoinReceivedTime,
-        equals(expectedMessageCoinReceivedTime),
-      );
-      expect(
-        hydratedExchangeOfferRecord.serializedTakerOfferFile,
-        equals(serializedTakerOfferFile),
-      );
-      expect(
-        hydratedExchangeOfferRecord.exchangeValidityTime,
-        equals(exchangeValidityTime),
-      );
-      expect(hydratedExchangeOfferRecord.fulfillerPublicKey, equals(makerPublicKey));
-      expect(
-        hydratedExchangeOfferRecord.escrowPuzzlehash,
-        equals(escrowPuzzlehash),
-      );
-      expect(hydratedExchangeOfferRecord.messageCoinAcceptedTime, isNull);
-      expect(hydratedExchangeOfferRecord.messageCoinDeclinedTime, isNull);
-      expect(hydratedExchangeOfferRecord.escrowTransferCompletedTime, isNull);
-      expect(hydratedExchangeOfferRecord.escrowCoinId, isNull);
-      expect(hydratedExchangeOfferRecord.sweepTime, isNull);
-      expect(hydratedExchangeOfferRecord.clawbackTime, isNull);
-      expect(hydratedExchangeOfferRecord.canceledTime, isNull);
-    }, skip: 'sends post request to dexie');
+        expect(hydratedExchangeOfferRecord, isNotNull);
+        expect(
+          hydratedExchangeOfferRecord.initializationCoinId,
+          equals(initializationCoinId),
+        );
+        expect(
+          hydratedExchangeOfferRecord.derivationIndex,
+          equals(takerDerivationIndex),
+        );
+        expect(
+          hydratedExchangeOfferRecord.type.name,
+          equals(takerExchangeType.name),
+        );
+        expect(
+          hydratedExchangeOfferRecord.role.name,
+          equals(ExchangeRole.taker.name),
+        );
+        expect(
+          hydratedExchangeOfferRecord.mojos,
+          equals(mojos),
+        );
+        expect(
+          hydratedExchangeOfferRecord.satoshis,
+          equals(satoshis),
+        );
+        expect(
+          hydratedExchangeOfferRecord.messagePuzzlehash,
+          equals(messagePuzzlehash),
+        );
+        expect(
+          hydratedExchangeOfferRecord.requestorPublicKey,
+          equals(takerPublicKey),
+        );
+        expect(
+          hydratedExchangeOfferRecord.offerValidityTime,
+          equals(offerValidityTime),
+        );
+        expect(
+          hydratedExchangeOfferRecord.serializedMakerOfferFile,
+          equals(serializedOfferFile),
+        );
+        expect(hydratedExchangeOfferRecord.submittedToDexie, isTrue);
+        expect(
+          hydratedExchangeOfferRecord.lightningPaymentRequest!.paymentRequest,
+          equals(paymentRequest),
+        );
+        expect(hydratedExchangeOfferRecord.messageCoinId, equals(expectedMessageCoin.id));
+        expect(
+          hydratedExchangeOfferRecord.messageCoinReceivedTime,
+          equals(expectedMessageCoinReceivedTime),
+        );
+        expect(
+          hydratedExchangeOfferRecord.serializedTakerOfferFile,
+          equals(serializedTakerOfferFile),
+        );
+        expect(
+          hydratedExchangeOfferRecord.exchangeValidityTime,
+          equals(exchangeValidityTime),
+        );
+        expect(hydratedExchangeOfferRecord.fulfillerPublicKey, equals(makerPublicKey));
+        expect(
+          hydratedExchangeOfferRecord.escrowPuzzlehash,
+          equals(escrowPuzzlehash),
+        );
+        expect(hydratedExchangeOfferRecord.messageCoinAcceptedTime, isNull);
+        expect(hydratedExchangeOfferRecord.messageCoinDeclinedTime, isNull);
+        expect(hydratedExchangeOfferRecord.escrowTransferCompletedTime, isNull);
+        expect(hydratedExchangeOfferRecord.escrowCoinId, isNull);
+        expect(hydratedExchangeOfferRecord.sweepTime, isNull);
+        expect(hydratedExchangeOfferRecord.clawbackTime, isNull);
+        expect(hydratedExchangeOfferRecord.canceledTime, isNull);
+      },
+      skip: 'sends post request to dexie',
+    );
 
     test('after maker cancels exchange offer', () async {
       // taker sends message coin

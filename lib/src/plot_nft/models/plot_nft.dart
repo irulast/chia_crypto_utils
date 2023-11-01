@@ -10,13 +10,6 @@ class PlotNft with ToBytesMixin {
     required this.lineageProof,
   });
 
-  final Bytes launcherId;
-  final CoinPrototype singletonCoin;
-  final PoolState poolState;
-  final int delayTime;
-  final Puzzlehash delayPuzzlehash;
-  final LineageProof lineageProof;
-
   factory PlotNft.fromBytes(Bytes bytes) {
     final iterator = bytes.iterator;
 
@@ -36,6 +29,13 @@ class PlotNft with ToBytesMixin {
       lineageProof: lineageProof,
     );
   }
+
+  final Bytes launcherId;
+  final CoinPrototype singletonCoin;
+  final PoolState poolState;
+  final int delayTime;
+  final Puzzlehash delayPuzzlehash;
+  final LineageProof lineageProof;
 
   Puzzlehash get p2Puzzlehash =>
       PlotNftWalletService.launcherIdToP2Puzzlehash(launcherId, delayTime, delayPuzzlehash);

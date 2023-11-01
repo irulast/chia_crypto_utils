@@ -331,8 +331,8 @@ class PlotNftWalletService extends BaseWalletService {
       Program.fromInt(currentSingleton.amount),
       innerInnerSolution,
     ]);
-    final p2FullPuzzle =
-        SingletonService.puzzleForSingleton(launcherId, singletonOutputInnerPuzzleProgram);
+    // final p2FullPuzzle =
+    //     SingletonService.puzzleForSingleton(launcherId, singletonOutputInnerPuzzleProgram);
     // print('expected full puzzle hash: ${p2FullPuzzle.hash()}');
     // print('expected inner puzzle hash: ${returnConditionsProgram.hash()}');
     final p2SpendBundle = SpendBundle(
@@ -601,7 +601,7 @@ class PlotNftWalletService extends BaseWalletService {
         default:
           throw Exception('unexpected number of program arguments');
       }
-    } on Exception catch (e) {
+    } on Exception {
       return null;
     }
   }
