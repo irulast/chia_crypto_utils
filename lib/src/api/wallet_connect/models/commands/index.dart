@@ -1,3 +1,4 @@
+export './add_cat_token_command.dart';
 export './check_offer_validity_command.dart';
 export './create_offer_for_ids_command.dart';
 export './get_current_address_command.dart';
@@ -13,6 +14,7 @@ export './log_in_command.dart';
 export './send_transaction_command.dart';
 export './sign_message_by_address_command.dart';
 export './sign_message_by_id_command.dart';
+export './sign_spend_bundle.dart';
 export './spend_cat_command.dart';
 export './take_offer_command.dart';
 export './transfer_nft_command.dart';

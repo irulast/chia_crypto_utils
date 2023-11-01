@@ -51,8 +51,6 @@ Future<void> main() async {
 
   final tailRunningInfo = issuanceResult.tailRunningInfo;
 
-  keychain.addCat1OuterPuzzleHashesForAssetId(Puzzlehash(tailRunningInfo.assetId));
-
   final outerPuzzlehash = WalletKeychain.makeCat1OuterPuzzleHash(
     address.toPuzzlehash(),
     Puzzlehash(tailRunningInfo.assetId),

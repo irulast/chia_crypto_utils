@@ -12,9 +12,11 @@ class DidExitCondition implements Condition {
     }
     return DidExitCondition();
   }
-
   static int conditionCode = 51;
   static int magicNumber = -113;
+
+  @override
+  int get code => conditionCode;
 
   @override
   Program toProgram() {

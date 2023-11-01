@@ -5,7 +5,6 @@ class GetNftsCountCommand implements WalletConnectCommand {
   const GetNftsCountCommand({
     required this.walletIds,
   });
-
   factory GetNftsCountCommand.fromParams(Map<String, dynamic> params) {
     return GetNftsCountCommand(
       walletIds: pick(params, 'walletIds').asListOrThrow<int>((json) => json.asIntOrThrow()),
@@ -27,7 +26,6 @@ class GetNftCountResponse
     with ToJsonMixin, WalletConnectCommandResponseDecoratorMixin
     implements WalletConnectCommandBaseResponse {
   const GetNftCountResponse(this.delegate, this.countData);
-
   factory GetNftCountResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 

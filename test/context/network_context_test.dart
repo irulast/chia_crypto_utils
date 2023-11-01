@@ -42,7 +42,6 @@ void main() {
 
     ChiaNetworkContextWrapper().registerNetworkContext(
       Network.testnet10,
-      environment: Environment.flutter,
     );
 
     blockchainNetwork = ChiaNetworkContextWrapper().blockchainNetwork;

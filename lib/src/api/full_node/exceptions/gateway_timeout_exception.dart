@@ -1,6 +1,6 @@
 class GatewayTimeoutErrorException implements Exception {
   GatewayTimeoutErrorException([this.message]);
-  String? message;
+  final String? message;
 
   @override
   String toString() {

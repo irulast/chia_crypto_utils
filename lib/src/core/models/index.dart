@@ -1,6 +1,6 @@
 export './additions_and_removals.dart';
 export './additions_and_removals_with_hints.dart';
-export './address.dart';
+export './address/index.dart';
 export './block_record.dart';
 export './blockchain_network.dart';
 export './blockchain_network_loader.dart';
@@ -14,6 +14,7 @@ export './keychain_core_secret.dart';
 export './lineage_proof.dart';
 export './memo.dart';
 export './payment.dart';
+export './sign_result.dart';
 export './singleton_wallet_vector.dart';
 export './spend_bundle.dart';
 export './spent_coin.dart';

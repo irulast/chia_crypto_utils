@@ -25,6 +25,12 @@ class CoinWithParentSpend with CoinPrototypeDecoratorMixin implements Coin {
     required this.delegate,
     required this.parentSpend,
   });
+  factory CoinWithParentSpend.fromCoin(Coin coin, CoinSpend? parentSpend) {
+    return CoinWithParentSpend(
+      delegate: coin,
+      parentSpend: parentSpend,
+    );
+  }
 
   factory CoinWithParentSpend.fromJson(Map<String, dynamic> json) {
     final coin = Coin.fromJson(json);
@@ -32,13 +38,6 @@ class CoinWithParentSpend with CoinPrototypeDecoratorMixin implements Coin {
     final parentSpend = pick(json, 'parent_coin_spend').letJsonOrNull(CoinSpend.fromJson);
 
     return CoinWithParentSpend.fromCoin(coin, parentSpend);
-  }
-
-  factory CoinWithParentSpend.fromCoin(Coin coin, CoinSpend? parentSpend) {
-    return CoinWithParentSpend(
-      delegate: coin,
-      parentSpend: parentSpend,
-    );
   }
 
   @override

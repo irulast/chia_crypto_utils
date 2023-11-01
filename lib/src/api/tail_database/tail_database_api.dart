@@ -19,6 +19,13 @@ class _TailDatabaseApi implements TailDatabaseApi {
       Uri.parse(assetId.toHex()),
       // additionalHeaders: additionalHeaders,
     );
-    return TailInfo.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+
+    try {
+      return TailInfo.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    } on FormatException catch (e) {
+      throw FormatException(
+        'Could not to parse response from tail database for asset id $assetId: ${e.message}',
+      );
+    }
   }
 }

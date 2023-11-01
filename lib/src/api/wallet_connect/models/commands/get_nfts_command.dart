@@ -7,7 +7,6 @@ class GetNftsCommand implements WalletConnectCommand {
     this.startIndex,
     this.num,
   });
-
   factory GetNftsCommand.fromParams(Map<String, dynamic> params) {
     return GetNftsCommand(
       walletIds: pick(params, 'walletIds').asListOrThrow<int>((json) => json.asIntOrThrow()),
@@ -37,7 +36,6 @@ class GetNftsResponse
     with ToJsonMixin, WalletConnectCommandResponseDecoratorMixin
     implements WalletConnectCommandBaseResponse {
   const GetNftsResponse(this.delegate, this.nfts);
-
   factory GetNftsResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 

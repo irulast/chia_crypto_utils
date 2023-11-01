@@ -1,6 +1,9 @@
+import 'package:deep_pick/deep_pick.dart';
+
 class DexieInspectOfferResponse {
-  DexieInspectOfferResponse({
+  const DexieInspectOfferResponse({
     required this.success,
+    required this.serializedOffer,
     this.offerJson,
     this.errorMessage,
   });
@@ -16,13 +19,15 @@ class DexieInspectOfferResponse {
     }
 
     return DexieInspectOfferResponse(
-      success: json['success'] as bool,
+      success: pick(json, 'success').asBoolOrTrue(),
       offerJson: offerJson,
       errorMessage: errorMessage,
+      serializedOffer: pick(json, 'offer', 'offer').asStringOrNull(),
     );
   }
 
-  bool success;
-  Map<String, dynamic>? offerJson;
-  String? errorMessage;
+  final bool success;
+  final Map<String, dynamic>? offerJson;
+  final String? errorMessage;
+  final String? serializedOffer;
 }

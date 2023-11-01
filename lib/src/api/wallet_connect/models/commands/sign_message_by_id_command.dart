@@ -3,7 +3,6 @@ import 'package:deep_pick/deep_pick.dart';
 
 class SignMessageByIdCommand implements WalletConnectCommand {
   const SignMessageByIdCommand({required this.id, required this.message});
-
   factory SignMessageByIdCommand.fromParams(Map<String, dynamic> params) {
     return SignMessageByIdCommand(
       id: DidInfo.parseDidFromEitherFormat(pick(params, 'id').asStringOrThrow()),
@@ -21,7 +20,7 @@ class SignMessageByIdCommand implements WalletConnectCommand {
   Map<String, dynamic> paramsToJson() {
     return <String, dynamic>{
       'id': Address.fromPuzzlehash(Puzzlehash(id), didPrefix).address,
-      'message': message
+      'message': message,
     };
   }
 }
@@ -30,7 +29,6 @@ class SignMessageByIdResponse
     with ToJsonMixin, WalletConnectCommandResponseDecoratorMixin
     implements WalletConnectCommandBaseResponse {
   const SignMessageByIdResponse(this.delegate, this.signData);
-
   factory SignMessageByIdResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
@@ -61,7 +59,6 @@ class SignMessageByIdData {
     required this.signingMode,
     required this.success,
   });
-
   factory SignMessageByIdData.fromJson(Map<String, dynamic> json) {
     return SignMessageByIdData(
       latestCoinId: pick(json, 'latestCoinId').asStringOrThrow().hexToBytes(),

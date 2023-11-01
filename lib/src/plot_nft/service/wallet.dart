@@ -40,9 +40,9 @@ class PlotNftWalletService extends BaseWalletService {
 
     final announcementMessage = Program.list(
       [
-        Program.fromBytes(puzzlehash),
+        Program.fromAtom(puzzlehash),
         Program.fromInt(launcherCoin.amount),
-        plotNftExtraData.toProgram()
+        plotNftExtraData.toProgram(),
       ],
     ).hash();
     final assertCoinAnnouncement =
@@ -59,7 +59,7 @@ class PlotNftWalletService extends BaseWalletService {
     );
 
     final genesisLauncherSolution = Program.list([
-      Program.fromBytes(puzzlehash),
+      Program.fromAtom(puzzlehash),
       Program.fromInt(launcherCoin.amount),
       plotNftExtraData.toProgram(),
     ]);
@@ -126,12 +126,12 @@ class PlotNftWalletService extends BaseWalletService {
       Program.list([
         Program.cons(
           Program.fromString('p'),
-          Program.fromBytes(poolState.toBytes()),
+          Program.fromAtom(poolState.toBytes()),
         ),
         Program.cons(Program.fromString('t'), Program.fromInt(delayTime)),
         Program.cons(
           Program.fromString('h'),
-          Program.fromBytes(delayPuzzlehash),
+          Program.fromAtom(delayPuzzlehash),
         ),
       ]);
 
@@ -145,10 +145,10 @@ class PlotNftWalletService extends BaseWalletService {
   }) {
     final p2SingletonPuzzlehash = launcherIdToP2Puzzlehash(launcherId, delayTime, delayPuzzlehash);
     return poolWaitingRoomInnerpuzProgram.curry([
-      Program.fromBytes(targetPuzzlehash),
-      Program.fromBytes(p2SingletonPuzzlehash),
-      Program.fromBytes(ownerPublicKey.toBytes()),
-      Program.fromBytes(poolRewardPrefix),
+      Program.fromAtom(targetPuzzlehash),
+      Program.fromAtom(p2SingletonPuzzlehash),
+      Program.fromAtom(ownerPublicKey.toBytes()),
+      Program.fromAtom(poolRewardPrefix),
       Program.fromInt(relativeLockHeight),
     ]);
   }
@@ -163,11 +163,11 @@ class PlotNftWalletService extends BaseWalletService {
   }) {
     final p2SingletonPuzzlehash = launcherIdToP2Puzzlehash(launcherId, delayTime, delayPuzzlehash);
     return poolMemberInnerpuzProgram.curry([
-      Program.fromBytes(targetPuzzlehash),
-      Program.fromBytes(p2SingletonPuzzlehash),
-      Program.fromBytes(ownerPublicKey.toBytes()),
-      Program.fromBytes(poolRewardPrefix),
-      Program.fromBytes(poolWaitingRoomInnerHash),
+      Program.fromAtom(targetPuzzlehash),
+      Program.fromAtom(p2SingletonPuzzlehash),
+      Program.fromAtom(ownerPublicKey.toBytes()),
+      Program.fromAtom(poolRewardPrefix),
+      Program.fromAtom(poolWaitingRoomInnerHash),
     ]);
   }
 

@@ -9,7 +9,7 @@ void main() {
   test('should return the desired string form', () {
     final Iterable<Puzzlehash> mixedAssetIds = [
       TestData.standardCoin.puzzlehash,
-      TestData.coinFromChiaCoinRecordJson.puzzlehash
+      TestData.coinFromChiaCoinRecordJson.puzzlehash,
     ];
     expect(
       MixedAssetIdsException(mixedAssetIds).toString(),

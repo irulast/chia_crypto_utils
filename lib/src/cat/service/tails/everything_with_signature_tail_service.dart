@@ -53,15 +53,15 @@ class EverythingWithSignatureTailService {
       changePuzzlehash: changePuzzlehash,
       amount: amount,
       makeSignature: (eveCoin) {
-        final sig = AugSchemeMPL.sign(
+        // ignore: join_return_with_assignment
+        signature = AugSchemeMPL.sign(
           syntheticPrivateKey,
           eveCoin.id +
               Bytes.fromHex(
                 standardWalletService.blockchainNetwork.aggSigMeExtraData,
               ),
         );
-        signature = sig;
-        return sig;
+        return signature;
       },
       keychain: keychain,
       fee: fee,

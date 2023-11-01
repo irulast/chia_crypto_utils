@@ -13,15 +13,18 @@ class CreatePuzzleAnnouncementCondition implements Condition {
     }
     return CreatePuzzleAnnouncementCondition(Bytes(programList[1].atom));
   }
-  static int conditionCode = 62;
+  static const conditionCode = 62;
 
-  Bytes message;
+  final Bytes message;
+
+  @override
+  int get code => conditionCode;
 
   @override
   Program toProgram() {
     return Program.list([
       Program.fromInt(conditionCode),
-      Program.fromBytes(message),
+      Program.fromAtom(message),
     ]);
   }
 

@@ -43,25 +43,21 @@ Future<void> main() async {
   await fullNodeSimulator.pushTransaction(didSpendBundle);
   await fullNodeSimulator.moveToNextBlock();
 
-  final didRecords = await fullNodeSimulator.getDidRecordsByPuzzleHashes([walletVector.puzzlehash]);
-  assert(didRecords.length == 1, 'should creste one did');
-  final origionalDidRecord = didRecords[0];
+  final didInfos = await fullNodeSimulator.getDidRecordsByPuzzleHashes([walletVector.puzzlehash]);
+  assert(didInfos.length == 1, 'should creste one did');
+  final did = didInfos[0].did;
 
   test('should correctly verify did signature', () async {
-    final didInfo = origionalDidRecord.toDidInfoOrThrow(keychain);
-
-    final walletVector = keychain.getWalletVectorOrThrow(didInfo.p2Puzzle.hash());
     final message = Bytes.encodeFromString('sup');
     final signature = AugSchemeMPL.sign(
       calculateSyntheticPrivateKey(walletVector.childPrivateKey),
       message,
     );
 
-    // send synethetic public key, message, and signature
-
+    final didInfo = await fullNodeSimulator.getDidRecordForDid(did);
     expect(
       AugSchemeMPL.verify(
-        didInfo.syntheticPublicKey,
+        didInfo!.toDidInfoFromParentInfoOrThrow().syntheticPublicKey,
         message,
         signature,
       ),

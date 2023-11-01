@@ -16,7 +16,7 @@ extension ToJson on ChiaWalletInfo {
       'name': name,
       'type': type.chiaIndex,
       'data': data,
-      'meta': meta
+      'meta': meta,
     };
   }
 }
@@ -97,7 +97,6 @@ enum ChiaWalletType {
   dataLayerOffer(12);
 
   const ChiaWalletType(this.chiaIndex);
-
   factory ChiaWalletType.fromString(String typeString) {
     return ChiaWalletType.values.where((type) => typeString.split('_').first == type.name).single;
   }

@@ -12,7 +12,6 @@ Future<void> main() async {
   }
 
   final fullNodeSimulator = SimulatorFullNodeInterface.withDefaultUrl();
-
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
   final exchangeOfferRecordHydrationService =
       ExchangeOfferRecordHydrationService(fullNodeSimulator);

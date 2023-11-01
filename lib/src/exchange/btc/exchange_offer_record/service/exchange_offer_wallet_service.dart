@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_collection_literals
+
 import 'dart:collection';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
@@ -28,7 +30,7 @@ class ExchangeOfferWalletService {
             Memo(encodeInt(derivationIndex)),
             Memo(Bytes.encodeFromString(serializedOfferFile)),
           ],
-        )
+        ),
       ],
       coinsInput: coinsInput,
       keychain: keychain,
@@ -93,7 +95,7 @@ class ExchangeOfferWalletService {
       targetPuzzlehash: messagePuzzlehash,
       message: <Memo>[
         Memo(initializationCoinId),
-        Memo(Bytes.encodeFromString(serializedTakerOfferFile))
+        Memo(Bytes.encodeFromString(serializedTakerOfferFile)),
       ],
       amount: amount,
       coinsInput: coinsInput,
@@ -192,7 +194,7 @@ class ExchangeOfferWalletService {
           mojos,
           escrowPuzzlehash,
           memos: memos,
-        )
+        ),
       ],
       coinsInput: coinsInput,
       keychain: keychain,
@@ -231,7 +233,7 @@ class ExchangeOfferWalletService {
           escrowCoins.totalValue,
           requestorPuzzlehash,
           memos: memos,
-        )
+        ),
       ],
       coinsInput: escrowCoins,
       requestorPrivateKey: requestorPrivateKey,
@@ -281,7 +283,6 @@ class ExchangeOfferWalletService {
   }
 
   static WalletKeychain makeKeychainFromWalletVector(WalletVector walletVector) {
-    // ignore: prefer_collection_literals
     final hardenedMap = LinkedHashMap<Puzzlehash, WalletVector>();
     hardenedMap[walletVector.puzzlehash] = walletVector;
 

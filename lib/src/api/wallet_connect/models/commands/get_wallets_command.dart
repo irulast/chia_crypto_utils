@@ -6,7 +6,6 @@ class GetWalletsCommand implements WalletConnectCommand {
     this.includeData = false,
     this.walletType,
   });
-
   factory GetWalletsCommand.fromParams(Map<String, dynamic> params) {
     final typeIndex = pick(params, 'type').asIntOrNull();
     return GetWalletsCommand(
@@ -34,7 +33,6 @@ class GetWalletsResponse
     with ToJsonMixin, WalletConnectCommandResponseDecoratorMixin
     implements WalletConnectCommandBaseResponse {
   const GetWalletsResponse(this.delegate, this.wallets);
-
   factory GetWalletsResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 

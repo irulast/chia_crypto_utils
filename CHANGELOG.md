@@ -1,4 +1,10 @@
 # Changelog
+## 1.0.19
+
+- Add NFT support
+- Add Offer support
+- Bug fixing and code cleanup
+
 ## 1.0.18
 
 - Fixes for pub.dev

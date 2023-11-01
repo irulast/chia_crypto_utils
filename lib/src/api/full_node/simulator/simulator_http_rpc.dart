@@ -6,12 +6,7 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/api/full_node/simulator/responses/auto_farm_response.dart';
 
 class SimulatorHttpRpc extends FullNodeHttpRpc {
-  const SimulatorHttpRpc(
-    super.baseUrl, {
-    super.certBytes,
-    super.keyBytes,
-    super.timeout,
-  });
+  const SimulatorHttpRpc(super.baseUrl, {super.certBytes, super.keyBytes,super.timeout,});
 
   Future<ChiaBaseResponse> farmTransactionBlocks(
     Address address, {

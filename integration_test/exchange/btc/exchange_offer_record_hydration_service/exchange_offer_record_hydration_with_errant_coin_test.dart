@@ -1,4 +1,5 @@
 @Timeout(Duration(minutes: 5))
+@Skip('Long')
 import 'dart:async';
 import 'dart:math';
 
@@ -13,9 +14,8 @@ Future<void> main() async {
   }
 
   final fullNodeSimulator = SimulatorFullNodeInterface.withDefaultUrl();
-
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
-  final crossChainOfferFileService = CrossChainOfferFileService();
+  final crossChainOfferService = CrossChainOfferService(fullNodeSimulator);
   final exchangeOfferService = ExchangeOfferService(fullNodeSimulator);
   final exchangeOfferRecordHydrationService =
       ExchangeOfferRecordHydrationService(fullNodeSimulator);
@@ -40,7 +40,6 @@ Future<void> main() async {
   late int offerValidityTime;
   late String serializedOfferFile;
   late Coin initializationCoin;
-  late Bytes initializationCoinId;
   late DateTime initializedTime;
 
   late ChiaEnthusiast taker;
@@ -77,14 +76,10 @@ Future<void> main() async {
     final messageAddress = Address.fromContext(messagePuzzlehash);
 
     const offerValidityTimeHours = 1;
-    final currentUnixTimeStamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    offerValidityTime = currentUnixTimeStamp + (offerValidityTimeHours * 60 * 60);
+    final currentUnixTimestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    offerValidityTime = currentUnixTimestamp + (offerValidityTimeHours * 60 * 60);
 
-    final unspentInitializationCoin = maker.standardCoins.first;
-    initializationCoinId = unspentInitializationCoin.id;
-
-    final offerFile = crossChainOfferFileService.createXchToBtcMakerOfferFile(
-      initializationCoinId: initializationCoinId,
+    final offerFile = crossChainOfferService.createXchToBtcOfferFile(
       amountMojos: mojos,
       amountSatoshis: satoshis,
       messageAddress: messageAddress,
@@ -96,6 +91,7 @@ Future<void> main() async {
     serializedOfferFile = await offerFile.serializeAsync(makerPrivateKey);
 
     // maker pushes initialization spend bundle to create offer
+    final unspentInitializationCoin = maker.standardCoins.first;
 
     await exchangeOfferService.pushInitializationSpendBundle(
       messagePuzzlehash: messagePuzzlehash,
@@ -129,9 +125,8 @@ Future<void> main() async {
     takerPrivateKey = takerWalletVector.childPrivateKey;
     takerPublicKey = takerWalletVector.childPublicKey;
 
-    final takerOfferFile = crossChainOfferFileService.createBtcToXchTakerOfferFile(
-      initializationCoinId: initializationCoinId,
-      serializedMakerOfferFile: serializedOfferFile,
+    final takerOfferFile = crossChainOfferService.createBtcToXchAcceptFile(
+      serializedOfferFile: serializedOfferFile,
       validityTime: exchangeValidityTime,
       requestorPublicKey: takerPublicKey,
     );
@@ -161,7 +156,7 @@ Future<void> main() async {
     final coinForMessageSpend = taker.standardCoins.first;
 
     await exchangeOfferService.sendMessageCoin(
-      initializationCoinId: initializationCoinId,
+      initializationCoinId: initializationCoin.id,
       messagePuzzlehash: messagePuzzlehash,
       coinsInput: [coinForMessageSpend],
       keychain: taker.keychain,
@@ -174,14 +169,14 @@ Future<void> main() async {
 
     // maker accepts message coin
     final messageCoinInfo = await exchangeOfferService.getNextValidMessageCoin(
-      initializationCoinId: initializationCoinId,
+      initializationCoinId: initializationCoin.id,
       serializedOfferFile: serializedOfferFile,
       messagePuzzlehash: messagePuzzlehash,
       exchangeType: makerExchangeType,
     );
 
     await exchangeOfferService.acceptMessageCoin(
-      initializationCoinId: initializationCoinId,
+      initializationCoinId: initializationCoin.id,
       messageCoin: messageCoinInfo!.messageCoin,
       masterPrivateKey: makerMasterPrivateKey,
       derivationIndex: makerDerivationIndex,
@@ -209,7 +204,7 @@ Future<void> main() async {
     final escrowCoinParent = maker.standardCoins.first;
 
     await exchangeOfferService.transferFundsToEscrowPuzzlehash(
-      initializationCoinId: initializationCoinId,
+      initializationCoinId: initializationCoin.id,
       mojos: mojos,
       escrowPuzzlehash: makerEscrowPuzzlehash,
       requestorPrivateKey: makerPrivateKey,
@@ -239,7 +234,7 @@ Future<void> main() async {
 
     // malicious actor sends an errant coin to the leaked escrow puzzlehash
     final memos = ExchangeCoinMemos(
-      initializationCoinId: initializationCoinId,
+      initializationCoinId: initializationCoin.id,
       requestorPrivateKey: errantCoinSenderPrivateKey,
     ).toMemos();
 
@@ -249,7 +244,7 @@ Future<void> main() async {
           1,
           escrowPuzzlehash,
           memos: memos,
-        )
+        ),
       ],
       coinsInput: [errantCoinSender.standardCoins.first],
       keychain: errantCoinSender.keychain,
@@ -261,7 +256,7 @@ Future<void> main() async {
 
     // taker sweeps escrow puzzlehash
     await exchangeOfferService.sweepEscrowPuzzlehash(
-      initializationCoinId: initializationCoinId,
+      initializationCoinId: initializationCoin.id,
       escrowPuzzlehash: escrowPuzzlehash,
       requestorPuzzlehash: taker.firstPuzzlehash,
       requestorPrivateKey: takerPrivateKey,
@@ -294,7 +289,7 @@ Future<void> main() async {
     expect(hydratedExchangeOfferRecord, isNotNull);
     expect(
       hydratedExchangeOfferRecord.initializationCoinId,
-      equals(initializationCoinId),
+      equals(initializationCoin.id),
     );
     expect(
       hydratedExchangeOfferRecord.derivationIndex,

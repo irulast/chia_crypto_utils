@@ -13,9 +13,12 @@ class ReserveFeeCondition implements Condition {
     }
     return ReserveFeeCondition(programList[1].toInt());
   }
-  static int conditionCode = 52;
+  static const conditionCode = 52;
 
-  int feeAmount;
+  final int feeAmount;
+
+  @override
+  int get code => conditionCode;
 
   static bool isThisCondition(Program condition) {
     final conditionParts = condition.toList();

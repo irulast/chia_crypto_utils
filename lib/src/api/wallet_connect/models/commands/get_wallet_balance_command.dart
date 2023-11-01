@@ -3,7 +3,6 @@ import 'package:deep_pick/deep_pick.dart';
 
 class GetWalletBalanceCommand implements WalletConnectCommand {
   const GetWalletBalanceCommand({this.walletId = 1});
-
   factory GetWalletBalanceCommand.fromParams(Map<String, dynamic> params) {
     return GetWalletBalanceCommand(walletId: pick(params, 'walletId').asIntOrNull());
   }
@@ -23,7 +22,6 @@ class GetWalletBalanceResponse
     with ToJsonMixin, WalletConnectCommandResponseDecoratorMixin
     implements WalletConnectCommandBaseResponse {
   const GetWalletBalanceResponse(this.delegate, this.balance);
-
   factory GetWalletBalanceResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
@@ -57,7 +55,6 @@ class WalletBalance {
     required this.walletId,
     required this.walletType,
   });
-
   factory WalletBalance.fromJson(Map<String, dynamic> json) {
     return WalletBalance(
       confirmedWalletBalance: pick(json, 'confirmedWalletBalance').asIntOrThrow(),

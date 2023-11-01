@@ -4,11 +4,11 @@ import 'package:test/scaffolding.dart';
 
 void main() {
   test('should return the desired string form without message', () {
-    expect(InvalidCatException().toString(), 'Coin is not a cat');
+    expect(InvalidCatException().toString(), 'Invalid CAT');
   });
 
   test('should return the desired string form with message', () {
     const message = 'Invalid CAT exception message';
-    expect(InvalidCatException(message: message).toString(), 'Coin is not a cat: $message');
+    expect(InvalidCatException(message: message).toString(), 'Invalid CAT: $message');
   });
 }

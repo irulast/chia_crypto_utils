@@ -9,19 +9,19 @@ class SingletonService extends BaseWalletService {
   ) =>
       singletonTopLayerProgram.curry([
         Program.cons(
-          Program.fromBytes(singletonTopLayerProgram.hash()),
+          Program.fromAtom(singletonTopLayerProgram.hash()),
           Program.cons(
-            Program.fromBytes(launcherId),
-            Program.fromBytes(singletonLauncherProgram.hash()),
+            Program.fromAtom(launcherId),
+            Program.fromAtom(singletonLauncherProgram.hash()),
           ),
         ),
-        innerPuzzle
+        innerPuzzle,
       ]);
   static Program makeSingletonStructureProgram(Bytes coinId) => Program.cons(
-        Program.fromBytes(singletonTopLayerV1Program.hash()),
+        Program.fromAtom(singletonTopLayerV1Program.hash()),
         Program.cons(
-          Program.fromBytes(coinId),
-          Program.fromBytes(singletonLauncherProgram.hash()),
+          Program.fromAtom(coinId),
+          Program.fromAtom(singletonLauncherProgram.hash()),
         ),
       );
 
@@ -30,9 +30,9 @@ class SingletonService extends BaseWalletService {
     Puzzlehash puzzlehash,
   ) =>
       Program.list([
-        Program.fromBytes(puzzlehash),
+        Program.fromAtom(puzzlehash),
         Program.fromInt(amount),
-        Program.fromBytes(List.filled(128, 0)),
+        Program.fromAtom(List.filled(128, 0)),
       ]);
 
   static Program createP2SingletonPuzzle({
@@ -42,11 +42,11 @@ class SingletonService extends BaseWalletService {
     required Puzzlehash delayedPuzzlehash,
   }) {
     return p2SingletonOrDelayedPuzhashProgram.curry([
-      Program.fromBytes(singletonModHash),
-      Program.fromBytes(launcherId),
-      Program.fromBytes(singletonLauncherProgram.hash()),
+      Program.fromAtom(singletonModHash),
+      Program.fromAtom(launcherId),
+      Program.fromAtom(singletonLauncherProgram.hash()),
       Program.fromInt(secondsDelay),
-      Program.fromBytes(delayedPuzzlehash),
+      Program.fromAtom(delayedPuzzlehash),
     ]);
   }
 
@@ -57,11 +57,11 @@ class SingletonService extends BaseWalletService {
     required Puzzlehash delayedPuzzlehash,
   }) {
     return p2SingletonOrDelayedPuzhashProgram.curryAsync([
-      Program.fromBytes(singletonModHash),
-      Program.fromBytes(launcherId),
-      Program.fromBytes(singletonLauncherProgram.hash()),
+      Program.fromAtom(singletonModHash),
+      Program.fromAtom(launcherId),
+      Program.fromAtom(singletonLauncherProgram.hash()),
       Program.fromInt(secondsDelay),
-      Program.fromBytes(delayedPuzzlehash),
+      Program.fromAtom(delayedPuzzlehash),
     ]);
   }
 

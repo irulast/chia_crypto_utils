@@ -4,15 +4,18 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class CreateCoinAnnouncementCondition implements Condition {
   CreateCoinAnnouncementCondition(this.message);
-  static int conditionCode = 60;
+  static const conditionCode = 60;
 
-  Bytes message;
+  final Bytes message;
+
+  @override
+  int get code => conditionCode;
 
   @override
   Program toProgram() {
     return Program.list([
       Program.fromInt(conditionCode),
-      Program.fromBytes(message),
+      Program.fromAtom(message),
     ]);
   }
 

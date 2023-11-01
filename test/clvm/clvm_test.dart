@@ -1918,7 +1918,7 @@ void main() {
 
           var expected = item.value!;
           var output = item.value!.dump
-              ? HexEncoder().convert(result.program.serialize())
+              ? HexEncoder().convert(result.program.toBytes())
               : result.program.toSource(showKeywords: item.value!.showKeywords);
           expect(output, equals(expected.output), reason: 'Wrong output');
           if (expected.cost != null) {
@@ -1943,7 +1943,7 @@ void main() {
               options: RunOptions(maxCost: cost, strict: item.key.strict));
           var expected = item.value!;
           var output = item.value!.dump
-              ? HexEncoder().convert(result.program.serialize())
+              ? HexEncoder().convert(result.program.toBytes())
               : result.program.toSource(showKeywords: item.value!.showKeywords);
           expect(output, equals(expected.output), reason: 'Wrong output');
           if (expected.cost != null) {
@@ -1961,12 +1961,12 @@ void main() {
         if (item.value == null) {
           expect(() {
             var puzzleProgram = Program.parse(puzzle);
-            puzzleProgram.serialize();
+            puzzleProgram.toBytes();
           }, throwsA(isA<dynamic>()));
         } else {
           var puzzleProgram = Program.parse(puzzle);
           var expected = item.value!;
-          expect(puzzleProgram.serializeHex(), equals(expected.output), reason: 'Wrong output');
+          expect(puzzleProgram.toHex(), equals(expected.output), reason: 'Wrong output');
         }
       });
     }

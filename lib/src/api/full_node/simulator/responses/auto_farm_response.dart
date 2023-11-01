@@ -19,7 +19,6 @@ class AutofarmResponse extends ChiaBaseResponse {
       error: chiaBaseResponse.error,
     );
   }
-
   final bool isAutofarming;
 
   @override

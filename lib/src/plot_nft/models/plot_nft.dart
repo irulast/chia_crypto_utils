@@ -8,7 +8,6 @@ class PlotNft with ToBytesMixin {
     required this.delayTime,
     required this.delayPuzzlehash,
   });
-
   factory PlotNft.fromBytes(Bytes bytes) {
     final iterator = bytes.iterator;
 

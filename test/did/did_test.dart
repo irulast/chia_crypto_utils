@@ -54,6 +54,15 @@ void main() {
     );
   });
 
+  test('should correctly construct DID record from parent spend asynchronously', () async {
+    final didRecordAsync = await DidRecord.fromParentCoinSpendAsync(parentSpend, coin);
+
+    expect(
+      didRecordAsync!.toDidInfoOrThrow(ownerKeychain),
+      equals(didRecord!.toDidInfoOrThrow(ownerKeychain)),
+    );
+  });
+
   test('should return normally async', () async {
     final didInfoAsync = await didRecord!.toDidInfoAsync(ownerKeychain);
     final didInfo = didRecord.toDidInfo(ownerKeychain);

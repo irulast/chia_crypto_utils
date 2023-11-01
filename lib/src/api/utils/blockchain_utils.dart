@@ -6,6 +6,8 @@ abstract class BlockchainUtils {
 
   factory BlockchainUtils.fromContext({LoggingFunction? logger}) =>
       _BlockchainUtils(ChiaFullNodeInterface.fromContext(), logger: logger);
+
+  LoggingFunction get logger;
   Future<List<Coin>> waitForTransactions(
     List<Bytes> parentCoinIds, {
     Duration coinSearchWaitPeriod = const Duration(seconds: 19),
@@ -20,14 +22,15 @@ abstract class BlockchainUtils {
 }
 
 class _BlockchainUtils implements BlockchainUtils {
-  _BlockchainUtils(this.fullNode, {this.logger});
+  _BlockchainUtils(this.fullNode, {LoggingFunction? logger}) : _logger = logger;
 
   final ChiaFullNodeInterface fullNode;
   final _defaultLogger = print;
 
-  final LoggingFunction? logger;
+  final LoggingFunction? _logger;
 
-  LoggingFunction get _logger => logger ?? _defaultLogger;
+  @override
+  LoggingFunction get logger => _logger ?? _defaultLogger;
 
   @override
   Future<List<Coin>> waitForTransactions(
@@ -39,7 +42,7 @@ class _BlockchainUtils implements BlockchainUtils {
     final allSpentCoins = <Coin>[];
 
     while (unspentIds.isNotEmpty) {
-      _logger(logMessage);
+      logger(logMessage);
 
       final coins = await fullNode.getCoinsByIds(unspentIds.toList(), includeSpentCoins: true);
 
@@ -77,7 +80,7 @@ class _BlockchainUtils implements BlockchainUtils {
       unconfirmedIds.removeWhere(confirmedIds.contains);
 
       if (unconfirmedIds.isNotEmpty) {
-        _logger(logMessage);
+        logger(logMessage);
         await Future<void>.delayed(coinSearchWaitPeriod);
       }
     }
@@ -90,10 +93,13 @@ extension WaitForSpendBundle on BlockchainUtils {
     SpendBundle spendBundle, {
     Duration coinSearchWaitPeriod = const Duration(seconds: 19),
     String logMessage = 'waiting for spend bundle to be included',
-  }) =>
-      waitForAdditions(
-        spendBundle.additions,
-        coinSearchWaitPeriod: coinSearchWaitPeriod,
-        logMessage: logMessage,
-      );
+  }) async {
+    final additions = await waitForAdditions(
+      spendBundle.additions,
+      coinSearchWaitPeriod: coinSearchWaitPeriod,
+      logMessage: logMessage,
+    );
+    logger.call('spendbundle ${spendBundle.id} confirmed');
+    return additions;
+  }
 }

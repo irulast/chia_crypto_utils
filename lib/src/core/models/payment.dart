@@ -20,6 +20,18 @@ class Payment {
                             'Unsupported type for memos. Must be Bytes, String, or int',
                           );
 
+  factory Payment.ofType(int amount, Puzzlehash puzzlehash, {required GeneralCoinType type}) {
+    switch (type) {
+      case GeneralCoinType.standard:
+        return Payment(amount, puzzlehash);
+      case GeneralCoinType.cat:
+        return CatPayment(amount, puzzlehash);
+      case GeneralCoinType.nft:
+        return NftPayment(puzzlehash);
+    }
+  }
+  const Payment.withRawMemos(this.amount, this.puzzlehash, this.memos);
+
   Payment.fromProgram(Program program)
       : amount = program.toList()[1].toInt(),
         puzzlehash = Puzzlehash(program.toList()[0].atom),
@@ -33,6 +45,8 @@ class Payment {
   CreateCoinCondition toCreateCoinCondition() {
     return CreateCoinCondition(puzzlehash, amount, memos: memos);
   }
+
+  NotarizedPayment toNotarizedPayment(Bytes nonce) => NotarizedPayment.fromPayment(this, nonce);
 
   List<String> get memoStrings {
     if (memos == null) {
@@ -52,10 +66,10 @@ class Payment {
 
   Program toProgram() {
     return Program.list([
-      Program.fromBytes(puzzlehash),
+      Program.fromAtom(puzzlehash),
       Program.fromInt(amount),
       Program.list(
-        memos?.map(Program.fromBytes).toList() ?? [],
+        memos?.map(Program.fromAtom).toList() ?? [],
       ),
     ]);
   }

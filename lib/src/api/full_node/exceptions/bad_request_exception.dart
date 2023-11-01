@@ -1,6 +1,6 @@
 class BadRequestException implements Exception {
   BadRequestException({this.message});
-  String? message;
+  final String? message;
 
   @override
   String toString() {

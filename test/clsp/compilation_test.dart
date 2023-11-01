@@ -178,6 +178,80 @@ Future<void> main() async {
     expect(check, isTrue);
   });
 
+  test('should check that hex of compiled curried_condition.clsp is correct', () async {
+    final check = await checkCompilation(
+      'lib/src/custom_coins/dependent_coin/puzzles/curried_condition/curried_condition.clsp',
+      'lib/src/custom_coins/dependent_coin/puzzles/curried_condition/curried_condition.clvm.hex',
+    );
+
+    expect(check, isTrue);
+  });
+
+  test('should check that hex of compiled did_innerpuz.clsp is correct', () async {
+    final check = await checkCompilation(
+      'lib/src/did/puzzles/did_innerpuz/did_innerpuz.clsp',
+      'lib/src/did/puzzles/did_innerpuz/did_innerpuz.clvm.hex',
+    );
+
+    expect(check, isTrue);
+  });
+
+  test('should check that hex of compiled nft_intermediate_launcher.clsp is correct', () async {
+    final check = await checkCompilation(
+      'lib/src/nft/puzzles/nft_intermediate_launcher/nft_intermediate_launcher.clsp',
+      'lib/src/nft/puzzles/nft_intermediate_launcher/nft_intermediate_launcher.clvm.hex',
+    );
+
+    expect(check, isTrue);
+  });
+
+  test('should check that hex of compiled nft_metadata_updater_default.clsp is correct', () async {
+    final check = await checkCompilation(
+      'lib/src/nft/puzzles/nft_metadata_updater_default/nft_metadata_updater_default.clsp',
+      'lib/src/nft/puzzles/nft_metadata_updater_default/nft_metadata_updater_default.clvm.hex',
+    );
+
+    expect(check, isTrue);
+  });
+
+  test('should check that hex of compiled nft_ownership_layer.clsp is correct', () async {
+    final check = await checkCompilation(
+      'lib/src/nft/puzzles/nft_metadata_updater_default/nft_ownership_layer.clsp',
+      'lib/src/nft/puzzles/nft_intermediate_launcher/nft_ownership_layer.clvm.hex',
+    );
+
+    expect(check, isTrue);
+  });
+
+  test(
+      'should check that hex of compiled nft_ownership_transfer_program_one_way_claim_with_royalties.clsp is correct',
+      () async {
+    final check = await checkCompilation(
+      'lib/src/nft/puzzles/nft_metadata_updater_default/nft_ownership_transfer_program_one_way_claim_with_royalties.clsp',
+      'lib/src/nft/puzzles/nft_intermediate_launcher/nft_ownership_transfer_program_one_way_claim_with_royalties.clvm.hex',
+    );
+
+    expect(check, isTrue);
+  });
+
+  test('should check that hex of compiled nft_state_layer.clsp is correct', () async {
+    final check = await checkCompilation(
+      'lib/src/nft/puzzles/nft_metadata_updater_default/nft_state_layer.clsp',
+      'lib/src/nft/puzzles/nft_intermediate_launcher/nft_state_layer.clvm.hex',
+    );
+
+    expect(check, isTrue);
+  });
+
+  test('should check that hex of compiled settlement_payments.clsp is correct', () async {
+    final check = await checkCompilation(
+      'lib/src/offer/puzzles/settlement_payments/settlement_payments.clsp',
+      'lib/src/offer/puzzles/settlement_payments/settlement_payments.clvm.hex',
+    );
+
+    expect(check, isTrue);
+  });
+
   test('should check that hex of compiled default_hidden_puzzle.clsp is correct', () async {
     // chia-dev-tools won't compile (=) due to error '= takes exactly 2 arguments'
     // comparing to hex value used in chia-blockchain/chia/wallet/puzzles/p2_delegated_puzzle_or_hidden_puzzle.py instead

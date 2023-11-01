@@ -1,3 +1,4 @@
+@Skip('Interacts with Namesdao API')
 import 'package:chia_crypto_utils/src/api/namesdao/namesdao_api.dart';
 import 'package:test/test.dart';
 

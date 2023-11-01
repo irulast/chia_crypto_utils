@@ -1,4 +1,3 @@
-@Timeout(Duration(minutes: 5))
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:test/test.dart';
 
@@ -35,8 +34,6 @@ void main() async {
       keychain: nathan.keychain,
     );
 
-    nathan.keychain.addOuterPuzzleHashesForAssetId(issuanceResult.tailRunningInfo.assetId);
-
     await fullNodeSimulator.pushTransaction(issuanceResult.spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
@@ -53,8 +50,6 @@ void main() async {
 
     await fullNodeSimulator.pushTransaction(meltBundle);
     await fullNodeSimulator.moveToNextBlock();
-
-    grant.addAssetIdToKeychain(issuanceResult.tailRunningInfo.assetId);
 
     await grant.refreshCoins();
     expect(grant.standardCoins.totalValue, 10000);

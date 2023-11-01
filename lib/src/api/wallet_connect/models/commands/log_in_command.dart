@@ -5,7 +5,6 @@ class LogInCommand implements WalletConnectCommand {
   const LogInCommand({
     required this.fingerprint,
   });
-
   factory LogInCommand.fromParams(Map<String, dynamic> params) {
     return LogInCommand(fingerprint: pick(params, 'fingerprint').asIntOrThrow());
   }
@@ -25,7 +24,6 @@ class LogInResponse
     with ToJsonMixin, WalletConnectCommandResponseDecoratorMixin
     implements WalletConnectCommandBaseResponse {
   const LogInResponse(this.delegate, this.logInData);
-
   factory LogInResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
@@ -47,7 +45,6 @@ class LogInResponse
 
 class LogInData with ToJsonMixin {
   const LogInData({required this.fingerprint, required this.success});
-
   factory LogInData.fromJson(Map<String, dynamic> json) {
     return LogInData(
       fingerprint: pick(json, 'fingerprint').asIntOrThrow(),

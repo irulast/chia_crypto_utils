@@ -4,6 +4,37 @@ import 'package:intl/intl.dart';
 
 /// A record of all values relevant to an exchange offer that can be restored.
 class ExchangeOfferRecord {
+  ExchangeOfferRecord({
+    required this.initializationCoinId,
+    required this.derivationIndex,
+    required this.type,
+    required this.role,
+    required this.mojos,
+    required this.satoshis,
+    required this.messagePuzzlehash,
+    required this.requestorPublicKey,
+    required this.offerValidityTime,
+    required this.serializedMakerOfferFile,
+    required this.submittedToDexie,
+    this.lightningPaymentRequest,
+    this.messageCoinId,
+    this.serializedTakerOfferFile,
+    this.fulfillerPublicKey,
+    this.exchangeValidityTime,
+    this.escrowPuzzlehash,
+    this.escrowCoinId,
+    this.initializedTime,
+    this.messageCoinReceivedTime,
+    this.messageCoinAcceptedTime,
+    this.messageCoinDeclinedTime,
+    this.escrowTransferCompletedTime,
+    this.escrowTransferConfirmedBlockIndex,
+    this.escrowTransferConfirmedTime,
+    this.sweepTime,
+    this.clawbackTime,
+    this.canceledTime,
+  });
+
   /// The ID of the coin that was spent to create a 3 mojo coin at the message puzzlehash.
   final Bytes initializationCoinId;
 
@@ -106,37 +137,6 @@ class ExchangeOfferRecord {
   /// indicating cancelation.
   final DateTime? canceledTime;
 
-  ExchangeOfferRecord({
-    required this.initializationCoinId,
-    required this.derivationIndex,
-    required this.type,
-    required this.role,
-    required this.mojos,
-    required this.satoshis,
-    required this.messagePuzzlehash,
-    required this.requestorPublicKey,
-    required this.offerValidityTime,
-    required this.serializedMakerOfferFile,
-    required this.submittedToDexie,
-    this.lightningPaymentRequest,
-    this.messageCoinId,
-    this.serializedTakerOfferFile,
-    this.fulfillerPublicKey,
-    this.exchangeValidityTime,
-    this.escrowPuzzlehash,
-    this.escrowCoinId,
-    this.initializedTime,
-    this.messageCoinReceivedTime,
-    this.messageCoinAcceptedTime,
-    this.messageCoinDeclinedTime,
-    this.escrowTransferCompletedTime,
-    this.escrowTransferConfirmedBlockIndex,
-    this.escrowTransferConfirmedTime,
-    this.sweepTime,
-    this.clawbackTime,
-    this.canceledTime,
-  });
-
   Bytes? get paymentHash {
     if (lightningPaymentRequest != null) {
       return lightningPaymentRequest!.tags.paymentHash;
@@ -153,18 +153,16 @@ class ExchangeOfferRecord {
 
   DateTime? get exchangeExpirationDateTime {
     if (escrowTransferCompletedTime != null && exchangeValidityTime != null) {
-      return escrowTransferCompletedTime!.add(Duration(seconds: exchangeValidityTime!));
+      // the earliest you can spend a time-locked coin is 2 blocks later, since the time is checked
+      // against the timestamp of the previous block
+      return escrowTransferCompletedTime!.add(Duration(seconds: exchangeValidityTime! + (2 * 19)));
     }
     return null;
   }
 
   bool? get exchangeExpired {
     if (exchangeExpirationDateTime != null) {
-      if (DateTime.now().isAfter(exchangeExpirationDateTime!)) {
-        return true;
-      } else {
-        return false;
-      }
+      return DateTime.now().isAfter(exchangeExpirationDateTime!);
     }
     return null;
   }
@@ -191,11 +189,7 @@ class ExchangeOfferRecord {
 
   bool? get lightningPaymentRequestExpired {
     if (paymentRequestExpirationDateTime != null) {
-      if (paymentRequestExpirationDateTime!.isBefore(DateTime.now())) {
-        return true;
-      } else {
-        return false;
-      }
+      return DateTime.now().isAfter(paymentRequestExpirationDateTime!);
     }
     return null;
   }

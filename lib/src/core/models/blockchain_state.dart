@@ -15,8 +15,8 @@ class BlockchainState {
       peak: json['peak'] != null ? Peak.fromJson(json['peak'] as Map<String, dynamic>) : null,
     );
   }
-  int difficulty;
-  Peak? peak;
+  final int difficulty;
+  final Peak? peak;
 }
 
 class Peak {

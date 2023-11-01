@@ -32,7 +32,6 @@ class Output {
 
 class RunOptions {
   RunOptions({this.maxCost, bool? strict}) : strict = strict ?? false;
-
   final BigInt? maxCost;
   final bool strict;
 }
@@ -57,11 +56,15 @@ typedef Validator = bool Function(Program);
 /// program.get_tree_hash() => program.hash()
 /// ```
 class Program with ToBytesMixin, ToProgramMixin {
-  factory Program.fromBytesOrNil(List<int>? atom) {
+  Program.cons(ToProgramMixin left, ToProgramMixin right)
+      : _cons = [left.toProgram(), right.toProgram()];
+  Program.fromAtom(List<int> atom) : _atom = Bytes(atom);
+
+  factory Program.fromAtomOrNil(List<int>? atom) {
     if (atom == null) return Program.nil;
-    return Program.fromBytes(atom);
+    return Program.fromAtom(atom);
   }
-  Program.fromHex(String hex) : _atom = Bytes(const HexDecoder().convert(hex));
+  Program.fromAtomHex(String hex) : _atom = Bytes(const HexDecoder().convert(hex));
   // ignore: avoid_positional_boolean_parameters
   Program.fromBool(bool value) : _atom = Bytes(value ? [1] : []);
   Program.fromInt(int number) : _atom = encodeInt(number);
@@ -121,23 +124,15 @@ class Program with ToBytesMixin, ToProgramMixin {
     }
   }
 
-  factory Program.deserializeHex(String inputSource) {
-    return Program.deserialize(Bytes.fromHex(inputSource));
+  factory Program.deserializeHex(String source) {
+    return Program.deserialize(Bytes.fromHex(source));
   }
-  Program.cons(ToProgramMixin left, ToProgramMixin right)
-      : _cons = [left.toProgram(), right.toProgram()];
-  Program.fromBytes(List<int> atom) : _atom = Bytes(atom);
-  static Program? maybeFromBytes(List<int>? atom) {
-    if (atom == null) return null;
-    return Program.fromBytes(atom);
-  }
-
   List<Program>? _cons;
   Bytes? _atom;
   Position? position;
 
   static int cost = 11000000000;
-  static Program nil = Program.fromBytes([]);
+  static Program nil = Program.fromAtom([]);
 
   @override
   Program toProgram() => this;
@@ -157,10 +152,13 @@ class Program with ToBytesMixin, ToProgramMixin {
   bool get isAtom => _atom != null;
   bool get isCons => _cons != null;
   Bytes get atom => _atom!;
-  // ignore: use_if_null_to_convert_nulls_to_bools
-  Bytes? get maybeAtom => _atom?.isNotEmpty == true ? _atom : null;
+  Bytes? get maybeAtom => (_atom?.isNotEmpty ?? false) ? _atom : null;
   List<Program> get cons => _cons!;
   String get positionSuffix => position == null ? '' : ' at $position';
+  static Program? maybeFromBytes(List<int>? atom) {
+    if (atom == null) return null;
+    return Program.fromAtom(atom);
+  }
 
   static Output runProgramIsolateTask(PuzzleAndSolution puzzleAndSolution) {
     final puzzle = puzzleAndSolution.puzzle;
@@ -209,14 +207,13 @@ class Program with ToBytesMixin, ToProgramMixin {
         ),
       );
     }
-    // ignore: noop_primitive_operations
-    return Program.parse('(a (q . ${toString()}) ${current.toString()})');
+    return Program.parse('(a (q . ${toString()}) $current)');
   }
 
   static Map<String, dynamic> _curryIsolateTask(CurryIsolateArguments arguments) {
     final curriedProgram = arguments.programToCurryTo.curry(arguments.programsToCurryIn);
     return <String, dynamic>{
-      'program': curriedProgram.serializeHex(),
+      'program': curriedProgram.toHex(),
     };
   }
 
@@ -232,8 +229,8 @@ class Program with ToBytesMixin, ToProgramMixin {
   static Map<String, dynamic> _uncurryIsolateTask(Program program) {
     final modAndArguments = program.uncurry();
     return <String, dynamic>{
-      'mod': modAndArguments.mod.serializeHex(),
-      'arguments': modAndArguments.arguments.map((e) => e.serializeHex()).toList()
+      'mod': modAndArguments.mod.toHex(),
+      'arguments': modAndArguments.arguments.map((e) => e.toHex()).toList(),
     };
   }
 
@@ -332,11 +329,10 @@ class Program with ToBytesMixin, ToProgramMixin {
     }
   }
 
-  String serializeHex() => const HexEncoder().convert(serialize());
-
   @override
-  Bytes toBytes() => serialize();
-  Bytes serialize() {
+  Bytes toBytes() => _serialize();
+
+  Bytes _serialize() {
     if (isAtom) {
       if (atom.isEmpty) {
         return Bytes([0x80]);
@@ -381,8 +377,8 @@ class Program with ToBytesMixin, ToProgramMixin {
     } else {
       return Bytes([
         0xff,
-        ...cons[0].serialize(),
-        ...cons[1].serialize(),
+        ...cons[0]._serialize(),
+        ...cons[1]._serialize(),
       ]);
     }
   }
@@ -594,7 +590,7 @@ class ModAndArguments {
   Program mod;
 
   Map<String, dynamic> toJson() =>
-      <String, dynamic>{'mod': mod, 'arguments': arguments.map((e) => e.serializeHex()).toList()};
+      <String, dynamic>{'mod': mod, 'arguments': arguments.map((e) => e.toHex()).toList()};
 }
 
 class PuzzleAndSolution {

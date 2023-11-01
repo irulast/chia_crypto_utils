@@ -1,9 +1,9 @@
 class InvalidCatException implements Exception {
   InvalidCatException({this.message});
-  String? message;
+  final String? message;
 
   @override
   String toString() {
-    return 'Coin is not a cat${message != null ? ': $message' : ''}';
+    return 'Invalid CAT${message != null ? ': $message' : ''}';
   }
 }

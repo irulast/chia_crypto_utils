@@ -1,7 +1,7 @@
 class FullNodeErrorException implements Exception {
   FullNodeErrorException(this.code, [this.message]);
-  String? message;
-  int code;
+  final String? message;
+  final int code;
 
   @override
   String toString() {

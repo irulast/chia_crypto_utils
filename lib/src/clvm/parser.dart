@@ -105,7 +105,7 @@ Program? tokenizeHex(String source, Token token) {
       hex = '0$hex';
     }
     try {
-      return Program.fromHex(hex)..at(Position(source, token.index));
+      return Program.fromAtomHex(hex)..at(Position(source, token.index));
     } catch (e) {
       throw StateError('Invalid hex at ${token.index}: ${token.text}.');
     }

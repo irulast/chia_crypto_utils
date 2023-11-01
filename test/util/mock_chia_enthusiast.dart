@@ -3,8 +3,6 @@ import 'dart:convert';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/api/full_node/simulator/util/chia_enthusiast_base.dart';
 
-
-
 class MockChiaEnthusiast extends ChiaEnthusiastBase {
   MockChiaEnthusiast({super.mnemonic, super.walletSize});
 
@@ -61,7 +59,7 @@ class MockChiaEnthusiast extends ChiaEnthusiastBase {
       parentCoinSpend: parentCoinSpend,
     );
 
-    cat1Coins.addAll([catCoin0, catCoin1]);
+    catCoins.addAll([catCoin0, catCoin1]);
   }
 
   void addCatCoins() {

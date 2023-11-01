@@ -6,7 +6,6 @@ class GetTransactionCommand implements WalletConnectCommand {
   const GetTransactionCommand({
     required this.transactionId,
   });
-
   factory GetTransactionCommand.fromParams(Map<String, dynamic> params) {
     return GetTransactionCommand(
       transactionId: Bytes.fromHex(pick(params, 'transactionId').asStringOrThrow()),
@@ -31,7 +30,6 @@ class GetTransactionResponse
     this.delegate,
     this.transactionRecord,
   );
-
   factory GetTransactionResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
@@ -73,7 +71,6 @@ class TransactionRecord {
     required this.type,
     required this.walletId,
   });
-
   factory TransactionRecord.fromJson(Map<String, dynamic> json) {
     // Chia Lite Wallet might return memos as Map<String, List<String>> or Map<String, String>
     // here we always convert it to Map<Bytes, List<Bytes>>
@@ -118,7 +115,7 @@ class TransactionRecord {
       type: ChiaTransactionType.values[pick(json, 'type').asIntOrThrow()],
       walletId: pick(json, 'walletId').asIntOrThrow(),
       spendBundle: pick(json, 'spendBundle').letJsonOrNull(SpendBundle.fromCamelJson),
-      tradeId: (pick(json, 'tradeId').asStringOrNull())?.hexToBytes(),
+      tradeId: pick(json, 'tradeId').asStringOrNull()?.hexToBytes(),
     );
   }
 

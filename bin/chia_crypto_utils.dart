@@ -5,9 +5,12 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:bip39/bip39.dart';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+
+import 'package:chia_crypto_utils/src/command/core/nuke_keychain.dart';
 import 'package:chia_crypto_utils/src/command/exchange/cross_chain_offer_exchange.dart';
 import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
 import 'package:chia_crypto_utils/src/command/plot_nft/create_new_wallet_with_plotnft.dart';
+import 'package:chia_crypto_utils/src/core/resources/bip_39_words.dart';
 
 late final ChiaFullNodeInterface fullNode;
 
@@ -18,7 +21,7 @@ Future<void> main(List<String> args) async {
   )
     ..argParser.addOption(
       'log-level',
-      defaultsTo: 'none',
+      defaultsTo: 'low',
       allowed: ['none', 'low', 'high'],
     )
     ..argParser.addOption('network', defaultsTo: 'mainnet')
@@ -30,6 +33,9 @@ Future<void> main(List<String> args) async {
     ..addCommand(GetCoinRecords())
     ..addCommand(ExchangeBtcCommand())
     ..addCommand(CrossChainOfferExchangeCommand())
+    ..addCommand(BurnDid())
+    ..addCommand(NukeKeychain())
+    ..addCommand(InspectDid())
     ..addCommand(TransferDidCommand());
 
   final results = runner.argParser.parse(args);
@@ -43,8 +49,14 @@ Future<void> main(List<String> args) async {
   }
 
   // Configure environment based on user selections
-  LoggingContext().setLogLevel(stringToLogLevel(results['log-level'] as String));
-  ChiaNetworkContextWrapper().registerNetworkContext(stringToNetwork(results['network'] as String));
+  LoggingContext().setLogLevel(LogLevel.fromString(results['log-level'] as String));
+  LoggingContext().setLogger((text) {
+    stderr.write('$text\n');
+  });
+
+  ChiaNetworkContextWrapper().registerNetworkContext(
+    stringToNetwork(results['network'] as String),
+  );
 
   // construct the Chia full node interface
   var fullNodeUrl = results['full-node-url'] as String;
@@ -55,7 +67,8 @@ Future<void> main(List<String> args) async {
 
   if ((certBytesPath.isEmpty && keyBytesPath.isNotEmpty) ||
       (certBytesPath.isNotEmpty && keyBytesPath.isEmpty)) {
-    print('\nTo use options cert-path and key-path both parameters must be provided.');
+    LoggingContext()
+        .info('\nTo use options cert-path and key-path both parameters must be provided.');
   } else if (certBytesPath.isNotEmpty && keyBytesPath.isNotEmpty) {
     try {
       fullNode = ChiaFullNodeInterface.fromURL(
@@ -64,9 +77,13 @@ Future<void> main(List<String> args) async {
         keyBytes: Bytes(File(keyBytesPath).readAsBytesSync()),
       );
     } catch (e) {
-      print('\nThere is a problem with the full node information you provided. Please try again.');
-      print('\nThe full node should be in the form https://<SERVER_NAME>.\n');
-      print('\nex: When using a locally synced full node you can specify https://localhost:8555');
+      LoggingContext().error(
+        '\nThere is a problem with the full node information you provided. Please try again.',
+      );
+      LoggingContext().error('\nThe full node should be in the form https://<SERVER_NAME>.\n');
+      LoggingContext().error(
+        '\nex: When using a locally synced full node you can specify https://localhost:8555',
+      );
       exit(126);
     }
   } else {
@@ -76,7 +93,8 @@ Future<void> main(List<String> args) async {
   try {
     await fullNode.getBlockchainState();
   } catch (e) {
-    print("\nCouldn't verify full node running at URL you provided. Please try again.");
+    LoggingContext()
+        .error("\nCouldn't verify full node running at URL you provided. Please try again.");
     exit(126);
   }
 
@@ -113,11 +131,11 @@ class GetCoinRecords extends Command<Future<void>> {
     final includeSpentCoinsArg = argResults?['includeSpentCoins'] as String;
 
     if (puzzlehashArg.isEmpty && addressArg.isEmpty) {
-      exitWithMessage('Must supply either a puzzlehash or address');
+      throw ArgumentError('Must supply either a puzzlehash or address');
     }
 
     if (puzzlehashArg.isNotEmpty && addressArg.isNotEmpty) {
-      exitWithMessage('Must not supply both puzzlehash and address');
+      throw ArgumentError('Must not supply both puzzlehash and address');
     }
 
     final includeSpentCoins = includeSpentCoinsArg == 'true';
@@ -128,7 +146,7 @@ class GetCoinRecords extends Command<Future<void>> {
           ? Address(addressArg).toPuzzlehash()
           : Puzzlehash.fromHex(puzzlehashArg);
     } catch (e) {
-      exitWithMessage('Invalid address or puzzlehash: $puzzlehashArg');
+      throw ArgumentError('Invalid address or puzzlehash');
     }
 
     var coins = <Coin>[];
@@ -280,7 +298,18 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
 
   @override
   Future<void> run() async {
-    final mnemonic = getUserMnemonic();
+    final mnemonicPhrase = stdin.readLineSync();
+    if (mnemonicPhrase == null) {
+      throw ArgumentError('Must supply a mnemonic phrase to check');
+    }
+
+    final mnemonic = mnemonicPhrase.split(' ');
+
+    if (mnemonic.length != 12 && mnemonic.length != 24) {
+      throw ArgumentError(
+        'Invalid mnemonic phrase. Must contain either 12 or 24 seed words',
+      );
+    }
 
     final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
     final keychain = WalletKeychain.fromCoreSecret(
@@ -339,23 +368,186 @@ class CrossChainOfferExchangeCommand extends Command<Future<void>> {
 
   @override
   Future<void> run() async {
-    print('\nAre you making a new cross chain offer or taking an existing offer?');
-    print('\n1. Making offer');
-    print('2. Taking offer');
+    print('\nAre you making a new cross chain offer, accepting an existing one, or');
+    print('continuing an ongoing exchange?');
+    print('\n1. Making cross chain offer');
+    print('2. Accepting cross chain offer');
+    print('3. Continuing ongoing exchange');
 
     String? choice;
-    while (choice != '1' && choice != '2') {
+
+    while (choice != '1' && choice != '2' && choice != '3') {
       stdout.write('> ');
       choice = stdin.readLineSync()!.trim();
 
       if (choice == '1') {
         await makeCrossChainOffer(fullNode);
       } else if (choice == '2') {
-        await takeCrossChainOffer(fullNode);
+        await acceptCrossChainOffer(fullNode);
+      } else if (choice == '3') {
+        await resumeCrossChainOfferExchange(fullNode);
       } else {
         print('\nNot a valid choice.');
       }
     }
+  }
+}
+
+class NukeKeychain extends Command<Future<void>> {
+  NukeKeychain() {
+    argParser
+      ..addOption('mnemonic')
+      ..addOption('wallet-size', defaultsTo: '50')
+      ..addOption('burn-bundle-size', defaultsTo: '25')
+      ..addOption('fee-per-coin', defaultsTo: '100');
+  }
+
+  @override
+  String get description => 'Send all coins on keychain to burn address';
+
+  @override
+  String get name => 'NukeKeychain';
+
+  @override
+  Future<void> run() async {
+    final mnemonic = argResults!['mnemonic'] as String;
+    final walletSize = parseArgument(argResults!['wallet-size'], int.parse)!;
+    final burnBundleSize = parseArgument(argResults!['burn-bundle-size'], int.parse)!;
+    final feePerCoin = parseArgument(argResults!['fee-per-coin'], int.parse)!;
+
+    final keychain = WalletKeychain.fromCoreSecret(
+      KeychainCoreSecret.fromMnemonicString(mnemonic),
+      walletSize: walletSize,
+    );
+    final enhancedFullNode = EnhancedChiaFullNodeInterface.fromUrl(fullNode.fullNode.baseURL);
+    await nukeKeychain(
+      keychain: keychain,
+      fullNode: enhancedFullNode,
+      blockchainUtils: BlockchainUtils(enhancedFullNode, logger: print),
+      feePerCoin: feePerCoin,
+      burnBundleSize: burnBundleSize,
+    );
+  }
+}
+
+class BurnDid extends Command<Future<void>> {
+  BurnDid() {
+    argParser
+      ..addOption('mnemonic')
+      ..addOption('did')
+      ..addOption('wallet-size', defaultsTo: '50')
+      ..addOption('fee', defaultsTo: '100');
+  }
+
+  @override
+  String get description => 'Send DID to burn address';
+
+  @override
+  String get name => 'BurnDid';
+
+  @override
+  Future<void> run() async {
+    final mnemonic = argResults!['mnemonic'] as String;
+    final did = parseArgument(argResults!['did'], DidInfo.parseDidFromEitherFormat)!;
+    final walletSize = parseArgument(argResults!['wallet-size'], int.parse)!;
+    final fee = parseArgument(argResults!['fee'], int.parse)!;
+    final keychain = WalletKeychain.fromCoreSecret(
+      KeychainCoreSecret.fromMnemonicString(mnemonic),
+      walletSize: walletSize,
+    );
+    final enhancedFullNode = EnhancedChiaFullNodeInterface.fromUrl(fullNode.fullNode.baseURL);
+
+    final didWalletService = DIDWalletService();
+    print('searching for DID');
+    final didInfos = await enhancedFullNode.getDidRecordsByHints(keychain.puzzlehashes);
+    final matchingDids = didInfos.where((element) => element.did == did);
+    if (matchingDids.isEmpty) {
+      print("couldn't find did by keychain hints");
+      exit(1);
+    }
+    final standardCoins = await enhancedFullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
+
+    final coinsForFee = selectCoinsForAmount(standardCoins, fee);
+
+    final spendBundle = didWalletService.createSpendBundle(
+      didInfo: matchingDids.single.toDidInfoOrThrow(keychain),
+      keychain: keychain,
+    );
+    final feeSpendBundle = StandardWalletService().createFeeSpendBundle(
+      fee: fee,
+      standardCoins: coinsForFee,
+      keychain: keychain,
+      changePuzzlehash: keychain.puzzlehashes.last,
+    );
+
+    final combinedSpendBundle = spendBundle + feeSpendBundle;
+
+    await enhancedFullNode.pushTransaction(combinedSpendBundle);
+    print('pushed DID burn spend bundle');
+    await BlockchainUtils(enhancedFullNode, logger: print).waitForSpendBundle(combinedSpendBundle);
+    exit(0);
+  }
+}
+
+class InspectDid extends Command<Future<void>> {
+  InspectDid() {
+    argParser
+      ..addOption('mnemonic')
+      ..addOption('did')
+      ..addOption('search-by', defaultsTo: 'hints')
+      ..addOption('wallet-size', defaultsTo: '50');
+  }
+
+  @override
+  String get description => 'Inspect did and parse did private key';
+
+  @override
+  String get name => 'InspectDid';
+
+  @override
+  Future<void> run() async {
+    final mnemonic = argResults!['mnemonic'] as String;
+    final searchTypeName = argResults!['search-by'] as String;
+
+    final did = parseArgument(argResults!['did'], DidInfo.parseDidFromEitherFormat)!;
+
+    final walletSize = parseArgument(argResults!['wallet-size'], int.parse)!;
+
+    final keychain = WalletKeychain.fromCoreSecret(
+      KeychainCoreSecret.fromMnemonicString(mnemonic),
+      walletSize: walletSize,
+    );
+
+    final searchType = DidSearchType.fromName(searchTypeName);
+    final enhancedFullNode = EnhancedChiaFullNodeInterface.fromUrl(fullNode.fullNode.baseURL);
+    print('searching for did');
+    final didInfo = (await () async {
+      switch (searchType) {
+        case DidSearchType.hints:
+          final didInfos = await enhancedFullNode.getDidRecordsByHints(keychain.puzzlehashes);
+          final matchingDids = didInfos.where((element) => element.did == did);
+          if (matchingDids.isEmpty) {
+            return null;
+          }
+          return matchingDids.single;
+
+        case DidSearchType.crawl:
+          return fullNode.getDidRecordForDid(did);
+      }
+    }())
+        ?.toDidInfo(keychain);
+
+    if (didInfo == null) {
+      print('No did info found searching by ${searchType.name}');
+      exit(1);
+    }
+
+    print('did: $did');
+    print('p2_puzzle_hash: ${didInfo.p2Puzzle.hash()}');
+
+    final privateKey = keychain.getWalletVectorOrThrow(didInfo.p2Puzzle.hash()).childPrivateKey;
+
+    print('did_private_key: ${privateKey.toHex()}');
   }
 }
 
@@ -536,4 +728,33 @@ List<String> parseValidMnemonic(String mnemonicString) {
 Never exitWithMessage(String message) {
   print('\n$message\n');
   exit(0);
+}
+
+Puzzlehash getUserPuzzlehash() {
+  // get puzzlehash where user would like to receive XCH at
+  while (true) {
+    stdout.write('> ');
+    try {
+      final requestorAddress = stdin.readLineSync()!.trim().toLowerCase();
+      final requestorPuzzlehash = Address(requestorAddress).toPuzzlehash();
+      return requestorPuzzlehash;
+    } catch (e) {
+      print('\nInvalid address. Please try again:');
+    }
+  }
+}
+
+enum DidSearchType {
+  hints,
+  crawl;
+
+  factory DidSearchType.fromName(String name) {
+    final lowerCaseName = name.toLowerCase();
+    for (final searchType in values) {
+      if (searchType.name == lowerCaseName) {
+        return searchType;
+      }
+    }
+    throw Exception('Invalid did search type: $name');
+  }
 }

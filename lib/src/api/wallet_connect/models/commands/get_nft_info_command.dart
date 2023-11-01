@@ -5,10 +5,9 @@ class GetNftInfoCommand implements WalletConnectCommand {
   const GetNftInfoCommand({
     required this.coinId,
   });
-
   factory GetNftInfoCommand.fromParams(Map<String, dynamic> params) {
     return GetNftInfoCommand(
-      coinId: (pick(params, 'coinId').asStringOrThrow()).hexToBytes(),
+      coinId: pick(params, 'coinId').asStringOrThrow().hexToBytes(),
     );
   }
 
@@ -27,7 +26,6 @@ class GetNftInfoResponse
     with ToJsonMixin, WalletConnectCommandResponseDecoratorMixin
     implements WalletConnectCommandBaseResponse {
   const GetNftInfoResponse(this.delegate, this.nftInfo);
-
   factory GetNftInfoResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
@@ -73,18 +71,18 @@ class NftInfo {
 
   factory NftInfo.fromJson(Map<String, dynamic> json) {
     return NftInfo(
-      launcherId: (pick(json, 'launcherId').asStringOrThrow()).hexToBytes(),
+      launcherId: pick(json, 'launcherId').asStringOrThrow().hexToBytes(),
       launcherPuzzlehash: Puzzlehash.fromHex(pick(json, 'launcherPuzhash').asStringOrThrow()),
-      nftCoinId: (pick(json, 'nftCoinId').asStringOrThrow()).hexToBytes(),
-      dataHash: (pick(json, 'dataHash').asStringOrThrow()).hexToBytes(),
+      nftCoinId: pick(json, 'nftCoinId').asStringOrThrow().hexToBytes(),
+      dataHash: pick(json, 'dataHash').asStringOrThrow().hexToBytes(),
       dataUris: pick(json, 'dataUris').letStringListOrThrow((string) => string),
       chainInfo: pick(json, 'chainInfo').asStringOrThrow(),
-      licenseHash: (pick(json, 'licenseHash').asStringOrThrow()).hexToBytes(),
+      licenseHash: pick(json, 'licenseHash').asStringOrThrow().hexToBytes(),
       licenseUris: pick(json, 'licenseUris').letStringListOrThrow((string) => string),
-      metadataHash: (pick(json, 'metadataHash').asStringOrThrow()).hexToBytes(),
+      metadataHash: pick(json, 'metadataHash').asStringOrThrow().hexToBytes(),
       metadataUris: pick(json, 'metadataUris').letStringListOrThrow((string) => string),
       mintHeight: pick(json, 'mintHeight').asIntOrThrow(),
-      ownerDid: (pick(json, 'ownerDid').asStringOrNull())?.hexToBytes(),
+      ownerDid: pick(json, 'ownerDid').asStringOrNull()?.hexToBytes(),
       editionNumber: pick(json, 'editionNumber').asIntOrThrow(),
       editionTotal: pick(json, 'editionTotal').asIntOrThrow(),
       supportsDid: pick(json, 'supportsDid').asBoolOrThrow(),
@@ -96,6 +94,42 @@ class NftInfo {
     );
   }
 
+  factory NftInfo.fromNftRecordWithMintInfo(NftRecordWithMintInfo nftRecord) {
+    final dataHash = nftRecord.metadata.dataHash;
+    final dataUris = nftRecord.metadata.dataUris;
+    final metadataHash = nftRecord.metadata.metaHash ?? Bytes.empty;
+    final metadataUris = nftRecord.metadata.metaUris ?? [];
+    final licenseHash = nftRecord.metadata.licenseHash ?? Bytes.empty;
+    final licenseUris = nftRecord.metadata.licenseUris ?? [];
+
+    return NftInfo(
+      launcherId: nftRecord.launcherId,
+      launcherPuzzlehash: nftRecord.singletonModHash,
+      nftCoinId: nftRecord.coin.id,
+      dataHash: dataHash,
+      dataUris: dataUris,
+      chainInfo: ChainInfo(
+        dataUris: dataUris,
+        dataHash: dataHash,
+        metadataUris: metadataUris,
+        licenseUris: licenseUris,
+        metadataHash: metadataHash,
+        licenseHash: licenseHash,
+      ).toString(),
+      licenseHash: licenseHash,
+      licenseUris: licenseUris,
+      metadataHash: metadataHash,
+      metadataUris: metadataUris,
+      mintHeight: nftRecord.mintInfo.mintHeight,
+      editionNumber: nftRecord.metadata.editionNumber ?? 0,
+      editionTotal: nftRecord.metadata.editionTotal ?? 0,
+      supportsDid: nftRecord.doesSupportDid,
+      updaterPuzzlehash: nftRecord.metadataUpdaterHash,
+      ownerDid: nftRecord.ownershipLayerInfo?.currentDid,
+      royaltyPercentage: nftRecord.ownershipLayerInfo?.royaltyPercentagePoints,
+      royaltyPuzzlehash: nftRecord.ownershipLayerInfo?.royaltyPuzzleHash,
+    );
+  }
   final Bytes launcherId;
   final Puzzlehash launcherPuzzlehash;
   final Bytes nftCoinId;

@@ -9,15 +9,13 @@ import 'package:meta/meta.dart';
 @immutable
 class KeychainCoreSecret with ToBytesMixin {
   const KeychainCoreSecret(this.mnemonic, this.masterPrivateKey);
-
-  factory KeychainCoreSecret.fromBytes(Bytes bytes) {
-    final iterator = bytes.iterator;
-    final mnemonicAsString = stringfromStream(iterator);
-    final masterPrivateKey = PrivateKey.fromStream(iterator);
+  factory KeychainCoreSecret.fromMnemonic(List<String> mnemonic) {
+    final seed = bip39.mnemonicToSeed(mnemonic.join(mnemonicWordSeperator));
+    final privateKey = PrivateKey.fromSeed(seed);
 
     return KeychainCoreSecret(
-      mnemonicAsString.split(mnemonicWordSeperator),
-      masterPrivateKey,
+      mnemonic,
+      privateKey,
     );
   }
 
@@ -31,13 +29,14 @@ class KeychainCoreSecret with ToBytesMixin {
     );
   }
 
-  factory KeychainCoreSecret.fromMnemonic(List<String> mnemonic) {
-    final seed = bip39.mnemonicToSeed(mnemonic.join(mnemonicWordSeperator));
-    final privateKey = PrivateKey.fromSeed(seed);
+  factory KeychainCoreSecret.fromBytes(Bytes bytes) {
+    final iterator = bytes.iterator;
+    final mnemonicAsString = stringfromStream(iterator);
+    final masterPrivateKey = PrivateKey.fromStream(iterator);
 
     return KeychainCoreSecret(
-      mnemonic,
-      privateKey,
+      mnemonicAsString.split(mnemonicWordSeperator),
+      masterPrivateKey,
     );
   }
 

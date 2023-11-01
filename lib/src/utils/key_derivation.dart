@@ -100,13 +100,17 @@ PrivateKey masterSkToPoolingAuthenticationSk(
     blsSpecNumber,
     chiaBlockchainNumber,
     poolingAuthenticationPathNumber,
-    poolWalletIndex * 10000 + index
+    poolWalletIndex * 10000 + index,
   ]);
 }
 
 // cribbed from https://github.com/Chia-Network/chia-blockchain/blob/4bd5c53f48cb049eff36c87c00d21b1f2dd26b27/chia/wallet/puzzles/p2_delegated_puzzle_or_hidden_puzzle.py
 Program getPuzzleFromPk(JacobianPoint publicKey) {
   return getPuzzleFromPkAndHiddenPuzzle(publicKey, defaultHiddenPuzzleProgram);
+}
+
+Program getPuzzleForSyntheticPk(JacobianPoint publicKey) {
+  return p2DelegatedPuzzleOrHiddenPuzzleProgram.curry([publicKey]);
 }
 
 Future<Program> getPuzzleForPkAsync(JacobianPoint publicKey) {
@@ -118,15 +122,15 @@ Future<Program> getPuzzleForPkAsync(JacobianPoint publicKey) {
 }
 
 Map<String, dynamic> _getPuzzleFromPkTask(JacobianPoint publicKey) {
-  return <String, dynamic>{'puzzle': getPuzzleFromPk(publicKey).serializeHex()};
+  return <String, dynamic>{'puzzle': getPuzzleFromPk(publicKey).toHex()};
 }
 
 Program getPuzzleFromPkAndHiddenPuzzle(JacobianPoint publicKey, Program hiddenPuzzleProgram) {
   final syntheticPubKey = calculateSyntheticPublicKeyProgram.run(
     Program.list(
       [
-        Program.fromBytes(publicKey.toBytes()),
-        Program.fromBytes(hiddenPuzzleProgram.hash()),
+        Program.fromAtom(publicKey.toBytes()),
+        Program.fromAtom(hiddenPuzzleProgram.hash()),
       ],
     ),
   );

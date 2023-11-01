@@ -13,7 +13,7 @@ class NftWalletInfo with WalletInfoDecorator implements ChiaWalletInfo {
           type: ChiaWalletType.nft,
           data: jsonEncode(<String, dynamic>{'did_info': did?.toHex()}),
           meta: <String, dynamic>{
-            'did': did != null ? Address.fromPuzzlehash(Puzzlehash(did), didPrefix).address : ''
+            'did': did != null ? Address.fromPuzzlehash(Puzzlehash(did), didPrefix).address : '',
           },
         );
 

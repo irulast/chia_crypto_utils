@@ -5,14 +5,28 @@ import 'dart:typed_data';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/utils/serialization.dart';
+import 'package:collection/collection.dart';
+import 'package:deep_pick/deep_pick.dart';
 import 'package:meta/meta.dart';
 
 @immutable
-class SpendBundle with ToBytesMixin {
+class SpendBundle with ToBytesMixin, ToJsonMixin {
   SpendBundle({
     required this.coinSpends,
-    this.aggregatedSignature,
-  });
+    Set<JacobianPoint> signatures = const {},
+  }) : _signatures = signatures;
+  factory SpendBundle.aggregate(List<SpendBundle> bundles) {
+    var totalBundle = SpendBundle.empty;
+
+    for (final bundle in bundles) {
+      totalBundle += bundle;
+    }
+    return totalBundle;
+  }
+
+  factory SpendBundle.fromHex(String hex) {
+    return SpendBundle.fromBytes(Bytes.fromHex(hex));
+  }
 
   factory SpendBundle.fromBytes(Bytes bytes) {
     final iterator = bytes.toList().iterator;
@@ -38,38 +52,77 @@ class SpendBundle with ToBytesMixin {
       [firstSignatureByte, ...restOfSignatureBytes],
     );
 
-    return SpendBundle(coinSpends: coinSpends, aggregatedSignature: signature);
+    return SpendBundle(coinSpends: coinSpends, signatures: {signature});
   }
 
-  factory SpendBundle.fromHex(String hex) {
-    return SpendBundle.fromBytes(Bytes.fromHex(hex));
+  factory SpendBundle.withNullableSignatures({
+    required List<CoinSpend> coinSpends,
+    required Set<JacobianPoint?> signatures,
+  }) {
+    return SpendBundle(
+      coinSpends: coinSpends,
+      signatures: signatures.whereNotNull().toSet(),
+    );
   }
-  SpendBundle.fromJson(Map<String, dynamic> json)
-      : coinSpends = (json['coin_spends'] as Iterable)
-            .map((dynamic e) => CoinSpend.fromJson(e as Map<String, dynamic>))
-            .toList(),
-        aggregatedSignature = JacobianPoint.fromHexG2(json['aggregated_signature'] as String);
 
-  SpendBundle.fromCamelJson(Map<String, dynamic> json)
-      : coinSpends = ((json['coinSpends'] ?? json['coinSolutions']) as Iterable)
-            .map((dynamic e) => CoinSpend.fromCamelJson(e as Map<String, dynamic>))
-            .toList(),
-        aggregatedSignature = JacobianPoint.fromHexG2(json['aggregatedSignature'] as String);
+  factory SpendBundle.fromJson(Map<String, dynamic> json) {
+    final coinSpends = (json['coin_spends'] as Iterable)
+        .map((dynamic e) => CoinSpend.fromJson(e as Map<String, dynamic>))
+        .toList();
 
-  factory SpendBundle.aggregate(List<SpendBundle> bundles) {
-    var totalBundle = SpendBundle.empty;
+    final aggregatedSignature =
+        pick(json, 'aggregated_signature').letStringOrNull(JacobianPoint.fromHexG2);
 
-    for (final bundle in bundles) {
-      totalBundle += bundle;
-    }
-    return totalBundle;
+    return SpendBundle(
+      coinSpends: coinSpends,
+      signatures: {
+        if (aggregatedSignature != null) aggregatedSignature,
+      },
+    );
   }
+
+  factory SpendBundle.fromCamelJson(Map<String, dynamic> json) {
+    final coinSpends = ((json['coinSpends'] ?? json['coinSolutions']) as Iterable)
+        .map((dynamic e) => CoinSpend.fromCamelJson(e as Map<String, dynamic>))
+        .toList();
+
+    final aggregatedSignature =
+        pick(json, 'aggregatedSignature').letStringOrNull(JacobianPoint.fromHexG2);
+
+    return SpendBundle.withNullableSignatures(
+      coinSpends: coinSpends,
+      signatures: {aggregatedSignature},
+    );
+  }
+
+  SpendBundle withSignature(JacobianPoint signature) {
+    return SpendBundle(
+      coinSpends: coinSpends,
+      signatures: {
+        ..._signatures,
+        signature,
+      },
+    );
+  }
+
   Bytes get id => toBytes().sha256Hash();
 
   final List<CoinSpend> coinSpends;
-  final JacobianPoint? aggregatedSignature;
+
+  final Set<JacobianPoint> _signatures;
+  JacobianPoint? get aggregatedSignature {
+    if (_signatures.isEmpty) {
+      return null;
+    }
+
+    return AugSchemeMPL.aggregate(_signatures.toList());
+  }
 
   bool get isSigned => aggregatedSignature != null;
+
+  static Future<SpendBundle?> ofCoin(Bytes coinId, ChiaFullNodeInterface fullNode) {
+    return constructSpendBundleOfCoin(coinId, fullNode);
+  }
 
   List<Program> get outputConditions {
     final conditions = <Program>[];
@@ -92,9 +145,34 @@ class SpendBundle with ToBytesMixin {
   }
 
   List<CoinPrototype> get netAdditions {
-    final removalsSet = removals.toSet();
+    final removals_ = removals.toSet();
 
-    return additions.where((a) => !removalsSet.contains(a)).toList();
+    return additions.where((a) => !removals_.contains(a)).toList();
+  }
+
+  Map<Bytes, CoinSpend> get coinSpendMap {
+    final coinIdToSpendMap = <Bytes, CoinSpend>{};
+
+    for (final coinSpend in coinSpends) {
+      coinIdToSpendMap[coinSpend.coin.id] = coinSpend;
+    }
+    return coinIdToSpendMap;
+  }
+
+  List<CoinPrototypeWithParentSpend> get netAdditonWithParentSpends {
+    final coinIdToSpendMap = coinSpendMap;
+
+    final result = <CoinPrototypeWithParentSpend>[];
+
+    for (final coin in netAdditions) {
+      result.add(
+        CoinPrototypeWithParentSpend(
+          delegate: coin,
+          parentSpend: coinIdToSpendMap[coin.parentCoinInfo],
+        ),
+      );
+    }
+    return result;
   }
 
   Future<List<CoinPrototype>> get additionsAsync async {
@@ -107,9 +185,17 @@ class SpendBundle with ToBytesMixin {
 
   List<CoinPrototype> get coins => coinSpends.map((cs) => cs.coin).toList();
 
+  int get fee {
+    return coinSpends.fold(
+      0,
+      (previousValue, coinSpend) => previousValue + coinSpend.fee,
+    );
+  }
+
   // ignore: prefer_constructors_over_static_methods
   static SpendBundle get empty => SpendBundle(coinSpends: const []);
 
+  @override
   Map<String, dynamic> toJson() => <String, dynamic>{
         'coin_spends': coinSpends.map((e) => e.toJson()).toList(),
         'aggregated_signature': aggregatedSignature?.toHexWithPrefix(),
@@ -121,16 +207,12 @@ class SpendBundle with ToBytesMixin {
       };
 
   SpendBundle operator +(SpendBundle other) {
-    final signatures = <JacobianPoint>[];
-    if (aggregatedSignature != null) {
-      signatures.add(aggregatedSignature!);
-    }
-    if (other.aggregatedSignature != null) {
-      signatures.add(other.aggregatedSignature!);
-    }
     return SpendBundle(
       coinSpends: coinSpends + other.coinSpends,
-      aggregatedSignature: (signatures.isNotEmpty) ? AugSchemeMPL.aggregate(signatures) : null,
+      signatures: {
+        ..._signatures,
+        ...other._signatures,
+      },
     );
   }
 
@@ -148,55 +230,54 @@ class SpendBundle with ToBytesMixin {
         return false;
       }
     }
+
     if (aggregatedSignature != other.aggregatedSignature) {
       return false;
     }
+
     return true;
   }
 
-  SpendBundle addSignature(JacobianPoint signature) {
-    final signatures = <JacobianPoint>[signature];
-    if (aggregatedSignature != null) {
-      signatures.add(aggregatedSignature!);
-    }
-    final newAggregatedSignature = AugSchemeMPL.aggregate(signatures);
-
-    return SpendBundle(
-      coinSpends: coinSpends,
-      aggregatedSignature: newAggregatedSignature,
+  SpendBundleSignResult sign(
+    WalletKeychain keychain, {
+    bool Function(CoinSpend coinSpend)? filterCoinSpends,
+  }) {
+    return BaseWalletService().signSpendBundle(
+      this,
+      keychain,
+      filterCoinSpends: filterCoinSpends,
     );
   }
 
-  Future<SpendBundle> sign(
-    FutureOr<JacobianPoint> Function(CoinSpend coinSpend) makeSignatureForCoinSpend,
-  ) async {
-    final signatures = <JacobianPoint>[];
-    for (final coinSpend in coinSpends) {
-      signatures.add(await makeSignatureForCoinSpend(coinSpend));
-    }
-    final newAggregatedSignature = AugSchemeMPL.aggregate(signatures);
-
-    return SpendBundle(
-      coinSpends: coinSpends,
-      aggregatedSignature: newAggregatedSignature,
+  SpendBundleSignResult signWithPrivateKey(
+    PrivateKey privateKey, {
+    bool Function(CoinSpend coinSpend)? filterCoinSpends,
+  }) {
+    return BaseWalletService().signSpendBundleWithPrivateKey(
+      this,
+      privateKey,
+      filterCoinSpends: filterCoinSpends,
     );
   }
 
-  SpendBundle signSync(
+  SpendBundle signPerCoinSpend(
     JacobianPoint? Function(CoinSpend coinSpend) makeSignatureForCoinSpend,
   ) {
-    final signatures = <JacobianPoint>[];
+    final signatures = <JacobianPoint>{};
     for (final coinSpend in coinSpends) {
       final signature = makeSignatureForCoinSpend(coinSpend);
       if (signature != null) {
         signatures.add(signature);
       }
     }
-    final newAggregatedSignature = AugSchemeMPL.aggregate(signatures);
+
+    if (signatures.isEmpty) {
+      throw SignException('No signatures were created');
+    }
 
     return SpendBundle(
       coinSpends: coinSpends,
-      aggregatedSignature: newAggregatedSignature,
+      signatures: signatures,
     );
   }
 
@@ -221,13 +302,21 @@ class SpendBundle with ToBytesMixin {
 
   @override
   int get hashCode {
-    var hc = coinSpends.fold(
+    final coinSpendsHashCode = coinSpends.fold(
       0,
       (int previousValue, cs) => previousValue ^ cs.hashCode,
     );
-    if (aggregatedSignature != null) {
-      hc = hc ^ aggregatedSignature.hashCode;
-    }
-    return hc;
+
+    return coinSpendsHashCode ^ aggregatedSignature.hashCode;
+  }
+}
+
+class SignException implements Exception {
+  SignException(this.message);
+  final String message;
+
+  @override
+  String toString() {
+    return 'SignException{message: $message}';
   }
 }

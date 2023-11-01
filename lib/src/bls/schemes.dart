@@ -31,9 +31,9 @@ JacobianPoint coreAggregateMpl(List<JacobianPoint> signatures) {
     throw ArgumentError('Must aggregate at least 1 signature.');
   }
   var aggregate = signatures[0];
-  assert(aggregate.isValid, 'base signature is invalid');
+  assert(aggregate.isValid);
   for (final signature in signatures.sublist(1)) {
-    assert(signature.isValid, 'subsequent signature in aggregate signature is invalid');
+    assert(signature.isValid);
     aggregate += signature;
   }
   return aggregate;
@@ -238,13 +238,13 @@ class PopSchemeMPL {
 
   static bool popVerify(JacobianPoint pk, JacobianPoint proof) {
     try {
-      assert(proof.isValid, 'invalid proof');
-      assert(pk.isValid, 'invalid primary key');
+      assert(proof.isValid);
+      assert(pk.isValid);
       final q = g2Map(pk.toBytes(), popSchemePopDst);
       final one = Fq12.one(defaultEc.q);
       final pairingResult = atePairingMulti([pk, -JacobianPoint.generateG1()], [q, proof]);
       return pairingResult == one;
-    } on Exception {
+    } on AssertionError {
       return false;
     }
   }

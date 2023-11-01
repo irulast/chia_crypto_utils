@@ -9,7 +9,6 @@ class VerifySignatureCommand implements WalletConnectCommand {
     this.address,
     this.signingMode,
   });
-
   factory VerifySignatureCommand.fromParams(Map<String, dynamic> params) {
     return VerifySignatureCommand(
       publicKey: JacobianPoint.fromHexG1(pick(params, 'pubkey').asStringOrThrow()),
@@ -58,7 +57,6 @@ class VerifySignatureResponse
     with ToJsonMixin, WalletConnectCommandResponseDecoratorMixin
     implements WalletConnectCommandBaseResponse {
   const VerifySignatureResponse(this.delegate, this.verifySignatureData);
-
   factory VerifySignatureResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
@@ -86,7 +84,6 @@ class VerifySignatureData {
     required this.isValid,
     required this.success,
   });
-
   factory VerifySignatureData.fromJson(Map<String, dynamic> json) {
     return VerifySignatureData(
       isValid: pick(json, 'isValid').asBoolOrThrow(),
@@ -111,7 +108,6 @@ enum SigningMode {
   blsMessageAugHex('BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_AUG:hexinput_');
 
   const SigningMode(this.fullName);
-
   factory SigningMode.fromString(String modeString) {
     return SigningMode.values.where((value) => value.fullName == modeString).single;
   }

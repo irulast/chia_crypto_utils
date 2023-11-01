@@ -12,6 +12,7 @@ abstract class Memo extends Bytes {
   factory Memo.computed(List<int> bytesList) {
     return PrecomputedMemo(bytesList, decodeStringFromBytes(Bytes(bytesList)));
   }
+
   String? get decodedString;
 }
 

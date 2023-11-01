@@ -3,11 +3,128 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/clvm/keywords.dart';
 import 'package:chia_crypto_utils/src/core/models/conditions/create_puzzle_announcement_condition.dart';
+import 'package:chia_crypto_utils/src/did/models/uncurried_did_puzzle.dart';
 import 'package:chia_crypto_utils/src/utils/curry_and_tree_hash.dart';
 
 class DIDWalletService extends BaseWalletService {
   final StandardWalletService standardWalletService = StandardWalletService();
   static const defaultDidAmount = 1;
+
+  // TODO(nvjoshi2): use chia's did update spending method (intermediary spend for new inner puzzle reveal)
+  SpendBundle createUpdateSpend(
+    DidInfo didInfo,
+    PrivateKey privateKey,
+    Puzzlehash newInnerPuzzlehash,
+  ) {
+    final p2Solution = BaseWalletService.makeSolutionFromConditions([
+      CreateCoinCondition(newInnerPuzzlehash, didInfo.coin.amount, memos: [newInnerPuzzlehash]),
+    ]);
+
+    final innerSolution = makeRunInnerPuzzleModeInnerSolution(p2Solution);
+
+    final fullSolution = Program.list([
+      didInfo.lineageProof.toProgram(),
+      Program.fromInt(didInfo.coin.amount),
+      innerSolution,
+    ]);
+    final coinSpend =
+        CoinSpend(coin: didInfo.coin, puzzleReveal: didInfo.fullPuzzle, solution: fullSolution);
+
+    return SpendBundle(coinSpends: [coinSpend]).signWithPrivateKey(privateKey).signedBundle;
+  }
+
+  SpendBundle createExitSpend(
+    Puzzlehash destinationPuzzlehash,
+    DidInfo didInfo,
+    PrivateKey privateKey,
+  ) {
+    final p2Solution = BaseWalletService.makeSolutionFromConditions([
+      CreateCoinCondition(
+        destinationPuzzlehash,
+        didInfo.coin.amount - 1,
+        memos: [destinationPuzzlehash],
+      ),
+      DidExitCondition(),
+    ]);
+
+    final innerSolution = makeRunInnerPuzzleModeInnerSolution(p2Solution);
+
+    final fullSolution = Program.list([
+      didInfo.lineageProof.toProgram(),
+      Program.fromInt(didInfo.coin.amount),
+      innerSolution,
+    ]);
+    final coinSpend = CoinSpend(
+      coin: didInfo.coin,
+      puzzleReveal: didInfo.fullPuzzle,
+      solution: fullSolution,
+    );
+
+    return SpendBundle(coinSpends: [coinSpend]).signWithPrivateKey(privateKey).signedBundle;
+  }
+
+  SpendBundle createRecoverySpendBundle(
+    DidRecord recoveringDidRecord,
+    PrivateKey newPrivateKey,
+    Puzzlehash newInnerPuzzlehash,
+    List<LineageProof> recoveryInfos,
+    List<Bytes> recoveryIds,
+    SpendBundle messageSpendBundle,
+  ) {
+    final recoveringDidInfo = recoveringDidRecord.toDidInfoFromParentInfoOrThrow();
+    final recoveringCoin = recoveringDidInfo.coin;
+    final newPublicKey = newPrivateKey.getG1();
+
+    final innerSolution = makeRecoveryModeInnerSolution(
+      newAmount: recoveringCoin.amount,
+      newInnerPuzzlehash: newInnerPuzzlehash,
+      recoveryInfos: recoveryInfos,
+      newPublicKey: newPublicKey,
+      recoveryList: recoveryIds,
+      recoveryId: recoveringCoin.id,
+    );
+
+    final innerPuzzle = recoveringDidInfo.innerPuzzle;
+    final fullPuzzle = DIDWalletService.makeFullPuzzle(innerPuzzle, recoveringDidInfo.did);
+
+    final parentInfo = recoveringDidInfo.lineageProof;
+    final fullSolution = Program.list(
+      [parentInfo.toProgram(), Program.fromInt(recoveringCoin.amount), innerSolution],
+    );
+
+    final coinSpend =
+        CoinSpend(coin: recoveringCoin, puzzleReveal: fullPuzzle, solution: fullSolution);
+
+    final message = newInnerPuzzlehash;
+    final sigs = [AugSchemeMPL.sign(newPrivateKey, message)];
+    for (var _ = 0; _ < messageSpendBundle.coinSpends.length; _++) {
+      sigs.add(AugSchemeMPL.sign(newPrivateKey, message));
+    }
+    final aggSigs = AugSchemeMPL.aggregate(sigs);
+
+    return SpendBundle(coinSpends: [coinSpend], signatures: {aggSigs}) + messageSpendBundle;
+  }
+
+  SpendBundle createTransferSpendBundle({
+    required DidInfo didInfo,
+    required Puzzlehash newP2Puzzlehash,
+    Puzzlehash? changePuzzlehash,
+    List<CoinPrototype> coinsForFee = const [],
+    int fee = 0,
+    required WalletKeychain keychain,
+  }) {
+    return createSpendBundle(
+          didInfo: didInfo,
+          newP2Puzzlehash: newP2Puzzlehash,
+          keychain: keychain,
+        ) +
+        standardWalletService.createFeeSpendBundle(
+          fee: fee,
+          standardCoins: coinsForFee,
+          keychain: keychain,
+          changePuzzlehash: changePuzzlehash,
+        );
+  }
 
   SpendBundle createSpendBundle({
     required DidInfo didInfo,
@@ -33,30 +150,35 @@ class DIDWalletService extends BaseWalletService {
     );
   }
 
-  SpendBundle createTransferSpendBundle({
-    required DidInfo didInfo,
-    required Puzzlehash newP2Puzzlehash,
-    Puzzlehash? changePuzzlehash,
-    List<CoinPrototype> coinsForFee = const [],
-    int fee = 0,
-    required WalletKeychain keychain,
-  }) {
-    return createSpendBundle(
-          didInfo: didInfo,
-          newP2Puzzlehash: newP2Puzzlehash,
-          keychain: keychain,
-        ) +
-        standardWalletService.createFeeSpendBundle(
-          fee: fee,
-          standardCoins: coinsForFee,
-          keychain: keychain,
-          changePuzzlehash: changePuzzlehash,
-        );
-  }
-
   SpendBundle createSpendBundleFromPrivateKey({
     required DidInfo didInfo,
     required PrivateKey privateKey,
+    bool revealBackupIds = false,
+    Puzzlehash? newP2Puzzlehash,
+    List<Payment> additionalPayments = const [],
+    List<Bytes> puzzlesToAnnounce = const [],
+    List<CreateCoinAnnouncementCondition> createCoinAnnouncements = const [],
+    List<AssertCoinAnnouncementCondition> assertCoinAnnouncements = const [],
+    List<AssertPuzzleAnnouncementCondition> assertPuzzleAnnouncements = const [],
+  }) {
+    final spendBundle = createUnsignedSpendBundle(
+      didInfo: didInfo,
+      revealBackupIds: revealBackupIds,
+      newP2Puzzlehash: newP2Puzzlehash,
+      additionalPayments: additionalPayments,
+      puzzlesToAnnounce: puzzlesToAnnounce,
+      createCoinAnnouncements: createCoinAnnouncements,
+      assertCoinAnnouncements: assertCoinAnnouncements,
+      assertPuzzleAnnouncements: assertPuzzleAnnouncements,
+    );
+
+    return standardWalletService
+        .signSpendBundleWithPrivateKey(spendBundle, privateKey)
+        .signedBundle;
+  }
+
+  SpendBundle createUnsignedSpendBundle({
+    required DidInfo didInfo,
     bool revealBackupIds = false,
     Puzzlehash? newP2Puzzlehash,
     List<Payment> additionalPayments = const [],
@@ -101,8 +223,8 @@ class DIDWalletService extends BaseWalletService {
         Program.nil,
         Program.nil,
         Program.nil,
-        Program.list(didInfo.backupIds!)
-      ]
+        Program.list(didInfo.backupIds!),
+      ],
     ]);
     final fullSolution = Program.list([
       didInfo.lineageProof.toProgram(),
@@ -117,11 +239,54 @@ class DIDWalletService extends BaseWalletService {
 
     return SpendBundle(
       coinSpends: [coinSpend],
-      aggregatedSignature: makeSignature(
-        privateKey,
-        coinSpend,
-      ),
     );
+  }
+
+  Attestment createAttestment({
+    required DidInfo attestmentMakerDidInfo,
+    required DidRecord recoveringDidInfo,
+    required PrivateKey attestmentMakerPrivateKey,
+    required JacobianPoint newPublicKey,
+    required Puzzlehash newInnerPuzzlehash,
+  }) {
+    final recoveringCoinId = recoveringDidInfo.coin.id;
+
+    final messagePuzzle =
+        makeRecoveryMessagePuzzle(recoveringCoinId, newInnerPuzzlehash, newPublicKey);
+
+    final innerMessage = messagePuzzle.hash();
+    final innerPuzzle = attestmentMakerDidInfo.innerPuzzle;
+
+    final p2Solution = BaseWalletService.makeSolutionFromConditions([
+      CreateCoinCondition(innerPuzzle.hash(), attestmentMakerDidInfo.coin.amount),
+      CreateCoinCondition(innerMessage, 0),
+    ]);
+
+    final innerSolution = makeRunInnerPuzzleModeInnerSolution(p2Solution);
+
+    final fullPuzzle = DIDWalletService.makeFullPuzzle(innerPuzzle, attestmentMakerDidInfo.did);
+
+    final parentInfo = attestmentMakerDidInfo.lineageProof;
+    final fullSolution = Program.list([
+      parentInfo.toProgram(),
+      Program.fromInt(attestmentMakerDidInfo.coin.amount),
+      innerSolution,
+    ]);
+
+    final coinSpend = CoinSpend(
+      coin: attestmentMakerDidInfo.coin,
+      puzzleReveal: fullPuzzle,
+      solution: fullSolution,
+    );
+
+    final messageSpend = createSpendForMessage(attestmentMakerDidInfo.coin.id, messagePuzzle);
+    final messageSpendBundle = SpendBundle(coinSpends: [messageSpend]);
+
+    final spendBundle = SpendBundle(coinSpends: [coinSpend])
+        .signWithPrivateKey(attestmentMakerPrivateKey)
+        .signedBundle;
+
+    return Attestment(attestmentSpendBundle: spendBundle, messageSpendBundle: messageSpendBundle);
   }
 
   static Program makeRecoveryMessagePuzzle(
@@ -134,8 +299,8 @@ class DIDWalletService extends BaseWalletService {
       CreateCoinAnnouncementCondition(recoveringCoinId).toProgram(),
       Program.list([
         Program.fromInt(49),
-        Program.fromBytes(newPublicKey.toBytes()),
-        Program.fromBytes(newPuzzlehash),
+        Program.fromAtom(newPublicKey.toBytes()),
+        Program.fromAtom(newPuzzlehash),
       ]),
     ]);
   }
@@ -177,7 +342,7 @@ class DIDWalletService extends BaseWalletService {
 
     final didInnerPuzzle = createInnerPuzzle(
       p2Puzzle: p2Puzzle,
-      backupIdsHash: Program.list(backupIds.map(Program.fromBytes).toList()).hash(),
+      backupIdsHash: Program.list(backupIds.map(Program.fromAtom).toList()).hash(),
       launcherCoinId: launcherId,
       nVerificationsRequired: nVerificationsRequired ?? backupIds.length,
       metadataProgram: metadata?.toProgram(),
@@ -259,7 +424,7 @@ class DIDWalletService extends BaseWalletService {
         amount: launcherCoin.amount,
       ),
       Program.fromInt(eveCoin.amount),
-      innerSolution
+      innerSolution,
     ]);
 
     final coinSpend = CoinSpend(
@@ -270,9 +435,24 @@ class DIDWalletService extends BaseWalletService {
 
     final walletVector = keychain.getWalletVectorOrThrow(p2PuzzleHash);
 
-    final signature = makeSignature(walletVector.childPrivateKey, coinSpend);
+    return SpendBundle(coinSpends: [coinSpend])
+        .signWithPrivateKey(walletVector.childPrivateKey)
+        .signedBundle;
+  }
 
-    return SpendBundle(coinSpends: [coinSpend], aggregatedSignature: signature);
+  SpendBundle signDidSpend(
+    SpendBundle spendBundle,
+    WalletKeychain keychain,
+  ) {
+    for (final coinSpend in spendBundle.coinSpends) {
+      final unCurriedNftPuzzle = UncurriedDidPuzzle.maybeFromProgram(coinSpend.puzzleReveal);
+      if (unCurriedNftPuzzle != null) {
+        final p2Puzzlehash = unCurriedNftPuzzle.innerPuzzle.p2Puzzle.hash();
+        final privateKey = keychain.getWalletVector(p2Puzzlehash)!.childPrivateKey;
+        return spendBundle.signWithPrivateKey(privateKey).signedBundle;
+      }
+    }
+    throw Exception('No did spend found in spend bundle');
   }
 
   static Program createInnerPuzzle({
@@ -286,7 +466,7 @@ class DIDWalletService extends BaseWalletService {
 
     return constructInnerPuzzle(
       p2Puzzle: p2Puzzle,
-      backupIdsHashProgram: Program.fromBytes(backupIdsHash),
+      backupIdsHashProgram: Program.fromAtom(backupIdsHash),
       nVerificationsRequiredProgram: Program.fromInt(nVerificationsRequired),
       singletonStructure: singletonStructure,
       metadataProgram: metadataProgram ?? Program.nil,
@@ -362,11 +542,11 @@ class DIDWalletService extends BaseWalletService {
     return Program.list([
       Program.fromInt(SpendMode.recovery.code),
       Program.fromInt(newAmount),
-      Program.fromBytes(newInnerPuzzlehash),
+      Program.fromAtom(newInnerPuzzlehash),
       Program.list(recoveryInfos.map((i) => i.toProgram()).toList()),
-      Program.fromBytes(newPublicKey.toBytes()),
-      Program.list(recoveryList.map(Program.fromBytes).toList()),
-      Program.fromBytes(recoveryId),
+      Program.fromAtom(newPublicKey.toBytes()),
+      Program.list(recoveryList.map(Program.fromAtom).toList()),
+      Program.fromAtom(recoveryId),
     ]);
   }
 
