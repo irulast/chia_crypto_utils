@@ -85,7 +85,7 @@ dart bin/chia_crypto_utils.dart Exchange-Btc --full-node-url <FULL_NODE_URL> --c
 
 ## Make Cross Chain Offer File Exchange 
 
-Use the below command to exchange BTC and XCH by creating a new cross chain offer (ccoffer) file or accepting an existing one by creating a ccoffer_accept file. These ccoffer files may be posted to [Dexie](https://dexie.space/markets).
+Use the below command to exchange BTC and XCH by creating a new cross chain offer (ccoffer) file or accepting an existing one by creating a ccoffer_accept file. These ccoffer files may be posted to [Dexie](https://dexie.space/markets). An exchange must be completed within a single session. 
 
 ```console
 dart bin/chia_crypto_utils.dart Make-CrossChainOfferExchange --full-node-url <FULL_NODE_URL>

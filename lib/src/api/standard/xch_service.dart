@@ -1,4 +1,5 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/api/namesdao/exceptions/invalid_namesdao_name.dart';
 
 class XchService {
   XchService({
@@ -42,5 +43,24 @@ class XchService {
     );
     final response = await fullNode.pushTransaction(spendBundle);
     return response;
+  }
+
+  Future<ChiaBaseResponse?> sendXchToNamesdao({
+    required List<Coin> coins,
+    required int amount,
+    required String namesdaoName,
+    int fee = 0,
+    Puzzlehash? changePuzzlehash,
+    required NamesdaoApi namesdaoApi,
+  }) async {
+    final nameInfo = await namesdaoApi.getNameInfo(namesdaoName);
+
+    if (nameInfo == null) {
+      throw InvalidNamesdaoName();
+    } else {
+      final puzzlehash = nameInfo.address.toPuzzlehash();
+      final response = await sendXch(coins: coins, amount: amount, puzzlehash: puzzlehash);
+      return response;
+    }
   }
 }

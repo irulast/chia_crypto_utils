@@ -5,15 +5,37 @@ import 'package:chia_crypto_utils/src/standard/puzzles/p2_delegated_puzzle_or_hi
 import 'package:hex/hex.dart';
 
 class CoinSpend with ToBytesMixin {
-  CoinPrototype coin;
-  Program puzzleReveal;
-  Program solution;
-
   CoinSpend({
     required this.coin,
     required this.puzzleReveal,
     required this.solution,
   });
+
+  factory CoinSpend.fromJson(Map<String, dynamic> json) {
+    return CoinSpend(
+      coin: CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>),
+      puzzleReveal: Program.deserializeHex(json['puzzle_reveal'] as String),
+      solution: Program.deserializeHex(json['solution'] as String),
+    );
+  }
+  factory CoinSpend.fromStream(Iterator<int> iterator) {
+    final coin = CoinPrototype.fromStream(iterator);
+    final puzzleReveal = Program.fromStream(iterator);
+    final solution = Program.fromStream(iterator);
+    return CoinSpend(
+      coin: coin,
+      puzzleReveal: puzzleReveal,
+      solution: solution,
+    );
+  }
+
+  factory CoinSpend.fromBytes(Bytes bytes) {
+    final iterator = bytes.iterator;
+    return CoinSpend.fromStream(iterator);
+  }
+  CoinPrototype coin;
+  Program puzzleReveal;
+  Program solution;
 
   Program get outputProgram => puzzleReveal.run(solution).program;
 
@@ -68,43 +90,25 @@ class CoinSpend with ToBytesMixin {
         'solution': const HexEncoder().convert(solution.serialize())
       };
 
-  factory CoinSpend.fromBytes(Bytes bytes) {
-    final iterator = bytes.iterator;
-    return CoinSpend.fromStream(iterator);
-  }
-  factory CoinSpend.fromStream(Iterator<int> iterator) {
-    final coin = CoinPrototype.fromStream(iterator);
-    final puzzleReveal = Program.fromStream(iterator);
-    final solution = Program.fromStream(iterator);
-    return CoinSpend(
-      coin: coin,
-      puzzleReveal: puzzleReveal,
-      solution: solution,
-    );
-  }
-
   @override
   Bytes toBytes() {
     return coin.toBytes() + Bytes(puzzleReveal.serialize()) + Bytes(solution.serialize());
   }
 
-  factory CoinSpend.fromJson(Map<String, dynamic> json) {
-    return CoinSpend(
-      coin: CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>),
-      puzzleReveal: Program.deserializeHex(json['puzzle_reveal'] as String),
-      solution: Program.deserializeHex(json['solution'] as String),
-    );
-  }
-
-  SpendType get type {
-    final uncurriedPuzzleSource = puzzleReveal.uncurry().program.toSource();
+  SpendType? get type {
+    final uncurriedPuzzleSource = puzzleReveal.uncurry().mod.toSource();
     if (uncurriedPuzzleSource == p2DelegatedPuzzleOrHiddenPuzzleProgram.toSource()) {
       return SpendType.standard;
     }
-    if (uncurriedPuzzleSource == catProgram.toSource()) {
+    if (uncurriedPuzzleSource == cat1Program.toSource()) {
+      return SpendType.cat1;
+    }
+
+    if (uncurriedPuzzleSource == cat2Program.toSource()) {
       return SpendType.cat;
     }
-    throw UnimplementedError('Unimplemented spend type');
+
+    return null;
   }
 
   // TODO(nvjoshi2): make async the default
@@ -114,6 +118,8 @@ class CoinSpend with ToBytesMixin {
     return _getPaymentsFromOutputProgram(await outputProgramAsync);
   }
 
+  List<Memo> get memosSync => payments.memos;
+
   Future<List<Memo>> get memos async {
     final payments = await paymentsAsync;
     return payments.memos;
@@ -121,11 +127,11 @@ class CoinSpend with ToBytesMixin {
 
   Future<List<String>> get memoStrings async {
     final payments = await paymentsAsync;
-    final _memoStrings = payments.fold(
+    final memoStrings = payments.fold(
       <String>[],
       (List<String> previousValue, payment) => previousValue + payment.memoStrings,
     );
-    return _memoStrings;
+    return memoStrings;
   }
 
   List<Payment> _getPaymentsFromOutputProgram(Program outputProgram) {
@@ -149,11 +155,10 @@ class CoinSpend with ToBytesMixin {
   String toString() => 'CoinSpend(coin: $coin, puzzleReveal: $puzzleReveal, solution: $solution)';
 }
 
-enum SpendType { standard, cat, nft }
+enum SpendType { standard, cat, cat1 }
 
 class PaymentsAndAdditions {
+  PaymentsAndAdditions(this.payments, this.additions);
   final List<Payment> payments;
   final List<CoinPrototype> additions;
-
-  PaymentsAndAdditions(this.payments, this.additions);
 }

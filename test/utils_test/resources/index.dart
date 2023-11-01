@@ -1,14 +1,10 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 class ChiaWalletSet {
-  ChiaWalletVector hardened;
-  ChiaWalletVector unhardened;
-
   ChiaWalletSet({
     required this.hardened,
     required this.unhardened,
   });
-
   factory ChiaWalletSet.fromRow(List<dynamic> row) {
     final hardenedVector = ChiaWalletVector(
       childPublicKeyHex: row[0] as String,
@@ -24,14 +20,15 @@ class ChiaWalletSet {
       unhardened: unhardenedVector,
     );
   }
+  ChiaWalletVector hardened;
+  ChiaWalletVector unhardened;
 }
 
 class ChiaWalletVector {
-  String childPublicKeyHex;
-  String puzzlehashHex;
-
   ChiaWalletVector({
     required this.childPublicKeyHex,
     required this.puzzlehashHex,
   });
+  String childPublicKeyHex;
+  String puzzlehashHex;
 }

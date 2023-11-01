@@ -1,5 +1,4 @@
-import 'package:chia_crypto_utils/src/exchange/btc/models/payment_request_signature.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/models/payment_request_tags.dart';
+import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class LightningPaymentRequest {
   LightningPaymentRequest({
@@ -19,4 +18,6 @@ class LightningPaymentRequest {
   int timestamp;
   PaymentRequestTags tags;
   PaymentRequestSignature signature;
+
+  Bytes? get paymentHash => tags.paymentHash;
 }

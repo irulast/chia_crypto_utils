@@ -1,6 +1,4 @@
 class AddFarmerResponse {
-  final String welcomeMessage;
-
   AddFarmerResponse({required this.welcomeMessage});
 
   factory AddFarmerResponse.fromJson(Map<String, dynamic> json) {
@@ -8,6 +6,7 @@ class AddFarmerResponse {
       welcomeMessage: json['welcome_message'] as String,
     );
   }
+  final String welcomeMessage;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'welcome_message': welcomeMessage,

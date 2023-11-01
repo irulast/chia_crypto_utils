@@ -4,9 +4,6 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class BlockchainState {
-  int difficulty;
-  Peak? peak;
-
   BlockchainState({
     required this.difficulty,
     this.peak,
@@ -18,17 +15,16 @@ class BlockchainState {
       peak: json['peak'] != null ? Peak.fromJson(json['peak'] as Map<String, dynamic>) : null,
     );
   }
+  int difficulty;
+  Peak? peak;
 }
 
 class Peak {
-  Puzzlehash farmerPuzzlehash;
-  Bytes headerHash;
-  int height;
-
   Peak({
     required this.farmerPuzzlehash,
     required this.headerHash,
     required this.height,
+    required this.timestamp,
   });
 
   factory Peak.fromJson(Map<String, dynamic> json) {
@@ -36,6 +32,14 @@ class Peak {
       farmerPuzzlehash: Puzzlehash.fromHex(json['farmer_puzzle_hash'] as String),
       headerHash: Bytes.fromHex(json['header_hash'] as String),
       height: json['height'] as int,
+      timestamp: json['timestamp'] as int?,
     );
   }
+  Puzzlehash farmerPuzzlehash;
+  Bytes headerHash;
+  int height;
+  int? timestamp;
+
+  DateTime? get dateTime =>
+      (timestamp != null) ? DateTime.fromMillisecondsSinceEpoch(timestamp! * 1000) : null;
 }

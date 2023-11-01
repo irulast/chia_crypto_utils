@@ -1,13 +1,9 @@
 import 'dart:convert';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/bls/ec/ec.dart';
-import 'package:chia_crypto_utils/src/bls/ec/jacobian_point.dart';
-import 'package:chia_crypto_utils/src/bls/field/extensions/fq12.dart';
 import 'package:chia_crypto_utils/src/bls/hd_keys.dart' as hd_keys;
 import 'package:chia_crypto_utils/src/bls/op_swu_g2.dart';
 import 'package:chia_crypto_utils/src/bls/pairing.dart';
-import 'package:chia_crypto_utils/src/bls/private_key.dart';
 import 'package:quiver/collection.dart';
 
 final basicSchemeDst = utf8.encode('BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_');
@@ -34,9 +30,9 @@ JacobianPoint coreAggregateMpl(List<JacobianPoint> signatures) {
     throw ArgumentError('Must aggregate at least 1 signature.');
   }
   var aggregate = signatures[0];
-  assert(aggregate.isValid);
+  assert(aggregate.isValid, 'base signature is invalid');
   for (final signature in signatures.sublist(1)) {
-    assert(signature.isValid);
+    assert(signature.isValid, 'subsequent signature in aggregate signature is invalid');
     aggregate += signature;
   }
   return aggregate;
@@ -219,13 +215,13 @@ class PopSchemeMPL {
 
   static bool popVerify(JacobianPoint pk, JacobianPoint proof) {
     try {
-      assert(proof.isValid);
-      assert(pk.isValid);
+      assert(proof.isValid, 'invalid proof');
+      assert(pk.isValid, 'invalid primary key');
       final q = g2Map(pk.toBytes(), popSchemePopDst);
       final one = Fq12.one(defaultEc.q);
       final pairingResult = atePairingMulti([pk, -JacobianPoint.generateG1()], [q, proof]);
       return pairingResult == one;
-    } on AssertionError {
+    } on Exception {
       return false;
     }
   }

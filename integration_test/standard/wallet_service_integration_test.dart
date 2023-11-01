@@ -1,5 +1,7 @@
 // ignore_for_file: lines_longer_than_80_chars
 
+import 'dart:math';
+
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
@@ -212,7 +214,7 @@ Future<void> main() async {
     final amountToSend = (coinsValue * 0.8).round();
     final fee = (coinsValue * 0.1).round();
 
-    final memo = Program.fromInt(2382973624).hash();
+    final memo = Program.fromInt(Random().nextInt(1000000000)).hash();
 
     final spendBundle = walletService.createSpendBundle(
       payments: [
@@ -226,12 +228,16 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(spendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final coinsByMemo = await fullNodeSimulator.getCoinsByMemo(memo);
+    final coinsByMemo = await fullNodeSimulator.getCoinsByHint(memo);
+    print(coinsByMemo);
     final expectedAdditions = spendBundle.additions;
 
-    for (final coin in coinsByMemo) {
+    final expectedOutgoingAdditions =
+        expectedAdditions.where((element) => element.puzzlehash == receiverPuzzlehash);
+
+    for (final expectedAddition in expectedOutgoingAdditions) {
       expect(
-        expectedAdditions.where((expectedAddition) => expectedAddition.id == coin.id).length,
+        coinsByMemo.where((coin) => coin.id == expectedAddition.id).length,
         equals(1),
       );
     }

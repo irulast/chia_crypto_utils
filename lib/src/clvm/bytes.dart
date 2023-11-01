@@ -5,56 +5,54 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/clvm/exceptions/unexpected_end_of_bytes_exception.dart';
+import 'package:chia_crypto_utils/src/clvm/exceptions/invalid_puzzle_hash_exception.dart';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 
 class Puzzlehash extends Bytes {
   Puzzlehash(List<int> bytesList) : super(bytesList) {
     if (bytesList.length != bytesLength) {
-      throw ArgumentError('Puzzlehash must have 32 bytes');
+      throw InvalidPuzzleHashException();
     }
+  }
+
+  Puzzlehash.zeros() : super(List.filled(bytesLength, 0));
+
+  factory Puzzlehash.fromStream(Iterator<int> iterator) {
+    return Puzzlehash(iterator.extractBytesAndAdvance(bytesLength));
   }
 
   factory Puzzlehash.fromHex(String phHex) {
     return Puzzlehash(Bytes.fromHex(phHex));
   }
 
-  factory Puzzlehash.fromStream(Iterator<int> iterator) {
+  static Puzzlehash? maybe(List<int>? maybeBytesList) {
+    if (maybeBytesList == null) return null;
+    return Puzzlehash(maybeBytesList);
+  }
+
+  static Puzzlehash? maybeFromHex(String? phHex) {
+    if (phHex == null) return null;
+    return Puzzlehash(Bytes.fromHex(phHex));
+  }
+
+  static Puzzlehash? maybeFromStream(Iterator<int> iterator) {
+    final doesExist = iterator.extractDoesExist();
+    if (!doesExist) {
+      return null;
+    }
     return Puzzlehash(iterator.extractBytesAndAdvance(bytesLength));
   }
 
   Address toAddress(String ticker) => Address.fromPuzzlehash(this, ticker);
   Address toAddressWithContext() => Address.fromContext(this);
 
-  Puzzlehash.zeros() : super(List.filled(bytesLength, 0));
-
   static const bytesLength = 32;
   static const hexLength = 64;
 }
 
-class Bytes extends Comparable<Bytes> with ToBytesMixin implements List<int> {
-  final Uint8List _byteList;
+class Bytes extends Comparable<Bytes> with ToBytesMixin, ToProgramMixin implements List<int> {
   Bytes(List<int> bytesList) : _byteList = Uint8List.fromList(bytesList);
-
-  static String bytesPrefix = '0x';
-
-  @override
-  Bytes toBytes() {
-    return this;
-  }
-
-  static Bytes get empty => Bytes([]);
-
-  Uint8List get byteList => _byteList;
-
-  factory Bytes.fromStream(Iterator<int> iterator) {
-    final lengthBytes = iterator.extractBytesAndAdvance(4);
-    final length = bytesToInt(lengthBytes, Endian.big);
-    return iterator.extractBytesAndAdvance(length);
-  }
-
-  Bytes.encodeFromString(String text) : _byteList = Uint8List.fromList(utf8.encode(text));
 
   factory Bytes.fromHex(String hex) {
     if (hex.startsWith(bytesPrefix)) {
@@ -64,6 +62,48 @@ class Bytes extends Comparable<Bytes> with ToBytesMixin implements List<int> {
     }
     return Bytes(const HexDecoder().convert(hex));
   }
+
+  Bytes.encodeFromString(String text) : _byteList = Uint8List.fromList(utf8.encode(text));
+
+  factory Bytes.fromStream(Iterator<int> iterator) {
+    final lengthBytes = iterator.extractBytesAndAdvance(4);
+    final length = bytesToInt(lengthBytes, Endian.big);
+    return iterator.extractBytesAndAdvance(length);
+  }
+
+  factory Bytes.random(int size) {
+    final random = Random();
+    return Bytes(List.generate(size, (index) => random.nextInt(256)));
+  }
+
+  factory Bytes.zeros(int size) {
+    return Bytes(List.generate(size, (index) => 0));
+  }
+  final Uint8List _byteList;
+
+  static Bytes? maybe(List<int>? maybeBytesList) {
+    if (maybeBytesList == null) return null;
+    return Bytes(maybeBytesList);
+  }
+
+  static Bytes? maybeFromHex(String? phHex) {
+    if (phHex == null) return null;
+    return Bytes.fromHex(phHex);
+  }
+
+  static String bytesPrefix = '0x';
+
+  @override
+  Bytes toBytes() {
+    return this;
+  }
+
+  @override
+  Program toProgram() => Program.fromBytes(this);
+
+  static Bytes get empty => Bytes([]);
+
+  Uint8List get byteList => _byteList;
 
   @override
   bool operator ==(Object other) => other is Bytes && other.toHex() == toHex();
@@ -408,25 +448,4 @@ class Bytes extends Comparable<Bytes> with ToBytesMixin implements List<int> {
   Iterable<T> whereType<T>() {
     throw UnimplementedError();
   }
-}
-
-// TODO(nvjoshi): find a better home for this
-extension ExtractBytesFromIterator on Iterator<int> {
-  Bytes extractBytesAndAdvance(int nBytes) {
-    final extractedBytes = <int>[];
-    for (var i = 0; i < nBytes; i++) {
-      if (!moveNext()) {
-        throw UnexpectedEndOfBytesException();
-      }
-      extractedBytes.add(current);
-    }
-    return Bytes(extractedBytes);
-  }
-}
-
-void decodeRoutingInfo(List<int> data) {
-  // final routeData = convertBits(dataBlob, 5, 8, pad: true);
-  // final publicKeyData = routeData.sublist(0, 33);
-  // final publicKey = convertBitsBigInt(publicKeyData, 8, 264, pad: true)[0].toRadixString(16);
-  // print(publicKey);
 }

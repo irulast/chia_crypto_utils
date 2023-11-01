@@ -3,12 +3,11 @@
 import 'package:chia_crypto_utils/src/clvm/bytes.dart';
 
 class MixedAssetIdsException implements Exception {
-  Iterable<Puzzlehash> mixedAssetIds;
-
   MixedAssetIdsException(this.mixedAssetIds);
+  Iterable<Puzzlehash> mixedAssetIds;
 
   @override
   String toString() {
-    return 'Can not mix cat coins with different asset ids for this opperation: [${mixedAssetIds.map((tail) => tail.toHex())}]';
+    return 'Can not mix cat coins with different asset ids for this operation: [${mixedAssetIds.map((tail) => tail.toHex())}]';
   }
 }

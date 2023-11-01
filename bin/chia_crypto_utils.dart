@@ -688,7 +688,7 @@ class TransferPlotNFTCommand extends Command<Future<void>> {
 
     List<Coin>? coinsByMemo;
     do {
-      coinsByMemo = await fullNode.getCoinsByMemo(newOwnerKeychain.puzzlehashes[3]);
+      coinsByMemo = await fullNode.getCoinsByHint(newOwnerKeychain.puzzlehashes[3]);
       if (coinsByMemo.isEmpty) {
         print('waiting for plot NFT transfer to complete');
         await Future<void>.delayed(const Duration(seconds: 10));
@@ -802,24 +802,19 @@ class CrossChainOfferExchangeCommand extends Command<Future<void>> {
 
   @override
   Future<void> run() async {
-    print('\nAre you making a new cross chain offer, accepting an existing one, or');
-    print('continuing an ongoing exchange?');
-    print('\n1. Making cross chain offer');
-    print('2. Accepting cross chain offer');
-    print('3. Continuing ongoing exchange');
+    print('\nAre you making a new cross chain offer or taking an existing offer?');
+    print('\n1. Making offer');
+    print('2. Taking offer');
 
     String? choice;
-
-    while (choice != '1' && choice != '2' && choice != '3') {
+    while (choice != '1' && choice != '2') {
       stdout.write('> ');
       choice = stdin.readLineSync()!.trim();
 
       if (choice == '1') {
         await makeCrossChainOffer(fullNode);
       } else if (choice == '2') {
-        await acceptCrossChainOffer(fullNode);
-      } else if (choice == '3') {
-        await resumeCrossChainOfferExchange(fullNode);
+        await takeCrossChainOffer(fullNode);
       } else {
         print('\nNot a valid choice.');
       }
@@ -827,7 +822,7 @@ class CrossChainOfferExchangeCommand extends Command<Future<void>> {
   }
 }
 
-void printUsage(CommandRunner runner) {
+void printUsage(CommandRunner<dynamic> runner) {
   print(runner.argParser.usage);
   print('\nAvailable commands:');
   for (final command in runner.commands.keys) {
@@ -835,7 +830,7 @@ void printUsage(CommandRunner runner) {
   }
 }
 
-void parseHelp(ArgResults results, CommandRunner runner) {
+void parseHelp(ArgResults results, CommandRunner<dynamic> runner) {
   if (results.command == null || results.wasParsed('help') || results.command?.name == 'help') {
     if (results.arguments.isEmpty || results.command == null) {
       print('No command was provided.');

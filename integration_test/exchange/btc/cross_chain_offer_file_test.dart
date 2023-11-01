@@ -1,16 +1,8 @@
+@Timeout(Duration(minutes: 3))
 import 'dart:async';
+import 'dart:math';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/command/exchange/cross_chain_offer_exchange.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_accept_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/btc_to_xch_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/exchange_amount.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_accept_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/models/xch_to_btc_offer_file.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/cross_chain_offer/utils/cross_chain_offer_file_serialization.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/service/btc_to_xch.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/service/xch_to_btc.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_payment_request.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
@@ -29,330 +21,389 @@ Future<void> main() async {
   final fullNodeSimulator = SimulatorFullNodeInterface(simulatorHttpRpc);
 
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
-  final walletService = StandardWalletService();
-  final btcToXchService = BtcToXchService();
-  final xchToBtcService = XchToBtcService();
+  final crossChainOfferFileService = CrossChainOfferFileService();
+  final exchangeOfferService = ExchangeOfferService(fullNodeSimulator);
+
+  // constants
+  const mojos = 200000000;
+  const satoshis = 100;
+  const exchangeValidityTime = 600;
+  const paymentRequest =
+      'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
+  final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
+  final paymentHash = decodedPaymentRequest.paymentHash!;
+  final preimage = '5c1f10653dc3ff0531b77351dc6676de2e1f5f53c9f0a8867bcb054648f46a32'.hexToBytes();
 
   test(
-      'should create and accept XCH to BTC offer file and complete exchange by sweeping XCH to BTC holder with preimage',
+      'should make and take XCH to BTC offer and complete exchange by sweeping XCH to BTC holder with preimage',
       () async {
-    final xchHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
-    await xchHolder.farmCoins();
-    await xchHolder.refreshCoins();
+    // maker side
+    final maker = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
+    for (var i = 0; i < 2; i++) {
+      await maker.farmCoins();
+    }
+    await maker.refreshCoins();
 
-    final btcHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
-    await btcHolder.farmCoins();
-    await btcHolder.refreshCoins();
+    final makerMasterPrivateKey = maker.keychainSecret.masterPrivateKey;
+    final makerDerivationIndex = ExchangeOfferService.randomDerivationIndexForExchange();
 
-    // A public/private key pair is generated for the XCH holder to use for the exchange
-    final xchHolderPrivateKey = PrivateKey.generate();
-    final xchHolderPublicKey = xchHolderPrivateKey.getG1();
+    final makerWalletVector = await WalletVector.fromPrivateKeyAsync(
+      makerMasterPrivateKey,
+      makerDerivationIndex,
+    );
 
-    // XCH holder inputs details to create an cross chain offer file
-    const amountMojos = 100000;
-    const amountSatoshis = 100;
+    final makerPrivateKey = makerWalletVector.childPrivateKey;
+    final makerPublicKey = makerPrivateKey.getG1();
 
-    final messageAddress =
-        Address.fromContext(xchHolder.keychain.unhardenedWalletVectors[1].puzzlehash);
+    final messagePuzzlehash = makerWalletVector.puzzlehash;
 
-    const validityTimeHours = 1;
+    final messageAddress = Address.fromContext(messagePuzzlehash);
+
+    const offerValidityTimeHours = 1;
     final currentUnixTimeStamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final validityTime = currentUnixTimeStamp + (validityTimeHours * 60 * 60);
+    final offerValidityTime = currentUnixTimeStamp + (offerValidityTimeHours * 60 * 60);
 
-    const paymentRequest =
-        'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
-    final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
+    final unspentInitializationCoin = maker.standardCoins.first;
+    final initializationCoinId = unspentInitializationCoin.id;
 
-    final offerFile = XchToBtcOfferFile(
-      offeredAmount: const ExchangeAmount(type: ExchangeAmountType.XCH, amount: amountMojos),
-      requestedAmount: const ExchangeAmount(type: ExchangeAmountType.BTC, amount: amountSatoshis),
+    final offerFile = crossChainOfferFileService.createXchToBtcMakerOfferFile(
+      initializationCoinId: initializationCoinId,
+      amountMojos: mojos,
+      amountSatoshis: satoshis,
       messageAddress: messageAddress,
-      validityTime: validityTime,
-      publicKey: xchHolderPublicKey,
-      lightningPaymentRequest: decodedPaymentRequest,
+      validityTime: offerValidityTime,
+      requestorPublicKey: makerPublicKey,
+      paymentRequest: decodedPaymentRequest,
     );
 
-    final serializedOfferFile = serializeCrossChainOfferFile(offerFile, xchHolderPrivateKey);
+    final serializedOfferFile = await offerFile.serializeAsync(makerPrivateKey);
 
-    // A public/private key pair is generated for the BTC holder to use for the exchange
-    final btcHolderPrivateKey = PrivateKey.generate();
-    final btcHolderPublicKey = btcHolderPrivateKey.getG1();
-
-    // BTC holder's side views offer, checks validity, and creates a cross chain offer accept file
-    expect(() => checkValidity(offerFile), returnsNormally);
-
-    const postAcceptValidityTime = 600;
-    final acceptedOfferHash = Bytes.encodeFromString(serializedOfferFile).sha256Hash();
-
-    final offerAcceptFile = BtcToXchOfferAcceptFile(
-      validityTime: postAcceptValidityTime,
-      publicKey: btcHolderPublicKey,
-      acceptedOfferHash: acceptedOfferHash,
+    // maker pushes initialization spend bundle to create offer
+    await exchangeOfferService.pushInitializationSpendBundle(
+      messagePuzzlehash: messagePuzzlehash,
+      coinsInput: [unspentInitializationCoin],
+      initializationCoinId: unspentInitializationCoin.id,
+      keychain: maker.keychain,
+      derivationIndex: makerDerivationIndex,
+      serializedOfferFile: serializedOfferFile,
+      changePuzzlehash: maker.firstPuzzlehash,
     );
-
-    final serializedOfferAcceptFile =
-        serializeCrossChainOfferFile(offerAcceptFile, btcHolderPrivateKey);
-
-    // BTC holder sends a coin with the serialized offer accept file as a memo to the message address
-    // from the XCH holder's offer file and verifies receipt of message coin
-    final messagePuzzlehash = messageAddress.toPuzzlehash();
-
-    final messageSpendBundle = walletService.createSpendBundle(
-      payments: [
-        Payment(50, messagePuzzlehash, memos: <String>[serializedOfferAcceptFile])
-      ],
-      coinsInput: [btcHolder.standardCoins.first],
-      keychain: btcHolder.keychain,
-      changePuzzlehash: btcHolder.firstPuzzlehash,
-      fee: 50,
-    );
-
-    await fullNodeSimulator.pushTransaction(messageSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
+    await maker.refreshCoins();
 
-    final messageVerification = await verifyOfferAcceptFileMemo(
-      messagePuzzlehash,
-      serializedOfferAcceptFile,
-      fullNodeSimulator,
+    // taker side
+    final taker = ChiaEnthusiast(fullNodeSimulator, walletSize: 10);
+    await taker.farmCoins();
+    await taker.refreshCoins();
+
+    final takerMasterPrivateKey = taker.keychainSecret.masterPrivateKey;
+    final takerDerivationIndex = Random.secure().nextInt(10);
+
+    final takerWalletVector = await WalletVector.fromPrivateKeyAsync(
+      takerMasterPrivateKey,
+      takerDerivationIndex,
     );
 
-    expect(messageVerification, equals(true));
+    final takerPrivateKey = takerWalletVector.childPrivateKey;
+    final takerPublicKey = takerWalletVector.childPublicKey;
 
-    // BTC holder's side constructs escrow address from offer file and offer accept file details
-    final deserializedOfferFile =
-        deserializeCrossChainOfferFile(serializedOfferFile) as XchToBtcOfferFile;
+    final takerOfferFile = crossChainOfferFileService.createBtcToXchTakerOfferFile(
+      initializationCoinId: initializationCoinId,
+      serializedMakerOfferFile: serializedOfferFile,
+      validityTime: exchangeValidityTime,
+      requestorPublicKey: takerPublicKey,
+    );
 
-    final paymentHash = deserializedOfferFile.lightningPaymentRequest.tags.paymentHash!;
+    final serializedTakerOfferFile = await takerOfferFile.serializeAsync(takerPrivateKey);
 
-    final btcHolderEscrowPuzzlehash = btcToXchService.generateEscrowPuzzlehash(
-      requestorPrivateKey: btcHolderPrivateKey,
-      clawbackDelaySeconds: postAcceptValidityTime,
+    final escrowPuzzlehash = BtcToXchService.generateEscrowPuzzlehash(
+      requestorPrivateKey: takerPrivateKey,
+      clawbackDelaySeconds: exchangeValidityTime,
       sweepPaymentHash: paymentHash,
-      fulfillerPublicKey: deserializedOfferFile.publicKey,
+      fulfillerPublicKey: makerPublicKey,
     );
 
-    // XCH holder's side deserializes memo from the received coin
-    final offerAcceptFileMemo =
-        await getOfferAcceptFileMemo(messagePuzzlehash, serializedOfferFile, fullNodeSimulator);
+    // taker sends message coin
+    final coinForMessageSpend = taker.standardCoins.first;
 
-    expect(offerAcceptFileMemo, equals(serializedOfferAcceptFile));
-
-    final deserializedOfferAcceptFile =
-        deserializeCrossChainOfferFile(offerAcceptFileMemo!) as BtcToXchOfferAcceptFile;
-
-    // XCH holder's side constructs escrow address from details in offer file and offer accept file
-    final xchHolderEscrowPuzzlehash = xchToBtcService.generateEscrowPuzzlehash(
-      requestorPrivateKey: xchHolderPrivateKey,
-      clawbackDelaySeconds: deserializedOfferAcceptFile.validityTime,
-      sweepPaymentHash: decodedPaymentRequest.tags.paymentHash!,
-      fulfillerPublicKey: deserializedOfferAcceptFile.publicKey,
+    await exchangeOfferService.sendMessageCoin(
+      initializationCoinId: initializationCoinId,
+      messagePuzzlehash: messagePuzzlehash,
+      coinsInput: [coinForMessageSpend],
+      keychain: taker.keychain,
+      serializedTakerOfferFile: serializedTakerOfferFile,
+      changePuzzlehash: taker.firstPuzzlehash,
     );
 
-    // the escrow puzzlehashes on either side should match
-    expect(xchHolderEscrowPuzzlehash, equals(btcHolderEscrowPuzzlehash));
+    await fullNodeSimulator.moveToNextBlock();
+    await taker.refreshCoins();
 
-    // XCH holder transfers XCH to escrow address
-    final coinsForExchange = xchHolder.standardCoins;
-
-    final spendBundle = walletService.createSpendBundle(
-      payments: [Payment(amountMojos, xchHolderEscrowPuzzlehash)],
-      coinsInput: coinsForExchange,
-      changePuzzlehash: xchHolder.firstPuzzlehash,
-      keychain: xchHolder.keychain,
+    // maker accepts message coin
+    final messageCoinInfo = await exchangeOfferService.getNextValidMessageCoin(
+      initializationCoinId: initializationCoinId,
+      serializedOfferFile: serializedOfferFile,
+      messagePuzzlehash: messagePuzzlehash,
+      exchangeType: ExchangeType.xchToBtc,
     );
-    await fullNodeSimulator.pushTransaction(spendBundle);
+
+    await exchangeOfferService.acceptMessageCoin(
+      initializationCoinId: initializationCoinId,
+      messageCoin: messageCoinInfo!.messageCoin,
+      masterPrivateKey: makerMasterPrivateKey,
+      derivationIndex: makerDerivationIndex,
+      serializedOfferFile: serializedOfferFile,
+      targetPuzzlehash: maker.firstPuzzlehash,
+    );
+
     await fullNodeSimulator.moveToNextBlock();
 
-    final escrowCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([xchHolderEscrowPuzzlehash]);
+    final spentMessageCoinChild =
+        await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoinInfo.messageCoin);
 
-    // after the BTC holder sees that XCH has arrived at the escrow address, they pay the lightning invoice.
-    // the BTC holder inputs into the program the preimage that is revealed after payment and the puzzlehash
-    // where they want to receive their XCH, which then creates and pushes a spend bundle to sweep funds
-    final sweepPreimage =
-        '5c1f10653dc3ff0531b77351dc6676de2e1f5f53c9f0a8867bcb054648f46a32'.hexToBytes();
-    final sweepPuzzlehash = btcHolder.firstPuzzlehash;
-    final startingSweepBalance = await fullNodeSimulator.getBalance([sweepPuzzlehash]);
+    expect(spentMessageCoinChild, isNotNull);
 
-    final sweepSpendBundle = btcToXchService.createSweepSpendBundle(
-      payments: [Payment(escrowCoins.totalValue, sweepPuzzlehash)],
-      coinsInput: escrowCoins,
-      requestorPrivateKey: btcHolderPrivateKey,
-      clawbackDelaySeconds: postAcceptValidityTime,
+    // maker transfers funds to escrow puzzlehash
+    final makerEscrowPuzzlehash = XchToBtcService.generateEscrowPuzzlehash(
+      requestorPrivateKey: makerPrivateKey,
+      clawbackDelaySeconds: exchangeValidityTime,
       sweepPaymentHash: paymentHash,
-      sweepPreimage: sweepPreimage,
-      fulfillerPublicKey: xchHolderPublicKey,
+      fulfillerPublicKey: takerPublicKey,
     );
 
-    await fullNodeSimulator.pushTransaction(sweepSpendBundle);
+    await maker.refreshCoins();
+    await taker.refreshCoins();
+    final startingMakerBalance = maker.standardCoins.totalValue;
+    final startingTakerBalance = taker.standardCoins.totalValue;
+
+    var escrowPuzzlehashCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash]);
+    expect(escrowPuzzlehashCoins.totalValue, equals(0));
+
+    await exchangeOfferService.transferFundsToEscrowPuzzlehash(
+      initializationCoinId: initializationCoinId,
+      mojos: mojos,
+      escrowPuzzlehash: makerEscrowPuzzlehash,
+      requestorPrivateKey: makerPrivateKey,
+      coinsInput: [maker.standardCoins.first],
+      keychain: maker.keychain,
+      changePuzzlehash: maker.firstPuzzlehash,
+    );
+
     await fullNodeSimulator.moveToNextBlock();
 
-    final endingSweepBalance = await fullNodeSimulator.getBalance([sweepPuzzlehash]);
+    escrowPuzzlehashCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash]);
+    expect(escrowPuzzlehashCoins.totalValue, equals(mojos));
 
-    expect(
-      endingSweepBalance,
-      equals(startingSweepBalance + escrowCoins.totalValue),
+    // wait for sufficient confirmations
+    await fullNodeSimulator.moveToNextBlock(32);
+
+    // taker sweeps escrow puzzlehash
+    await exchangeOfferService.sweepEscrowPuzzlehash(
+      initializationCoinId: initializationCoinId,
+      escrowPuzzlehash: escrowPuzzlehash,
+      requestorPuzzlehash: taker.firstPuzzlehash,
+      requestorPrivateKey: takerPrivateKey,
+      exchangeValidityTime: exchangeValidityTime,
+      paymentHash: paymentHash,
+      preimage: preimage,
+      fulfillerPublicKey: makerPublicKey,
     );
+
+    await fullNodeSimulator.moveToNextBlock();
+
+    await maker.refreshCoins();
+    await taker.refreshCoins();
+
+    final endingMakerBalance = maker.standardCoins.totalValue;
+    final endingTakerBalance = taker.standardCoins.totalValue;
+
+    expect(endingMakerBalance, equals(startingMakerBalance - mojos));
+    expect(endingTakerBalance, equals(startingTakerBalance + mojos));
   });
 
   test(
-      'should create and accept BTC to XCH offer file and complete exchange by sweeping XCH to BTC holder with preimage',
+      'should make and take BTC to XCH offer and complete exchange by sweeping XCH to BTC holder with preimage',
       () async {
-    final btcHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
-    await btcHolder.farmCoins();
-    await btcHolder.refreshCoins();
+    // maker side
+    final maker = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
+    await maker.farmCoins();
+    await maker.refreshCoins();
 
-    final xchHolder = ChiaEnthusiast(fullNodeSimulator, walletSize: 2);
-    await xchHolder.farmCoins();
-    await xchHolder.refreshCoins();
+    final makerMasterPrivateKey = maker.keychainSecret.masterPrivateKey;
+    final makerDerivationIndex = ExchangeOfferService.randomDerivationIndexForExchange();
 
-    // A public/private key pair is generated for the BTC holder to use for the exchange
-    final btcHolderPrivateKey = PrivateKey.generate();
-    final btcHolderPublicKey = btcHolderPrivateKey.getG1();
+    final makerWalletVector = await WalletVector.fromPrivateKeyAsync(
+      makerMasterPrivateKey,
+      makerDerivationIndex,
+    );
 
-    // BTC holder inputs details to create an cross chain offer file
-    const amountSatoshis = 100;
-    const amountMojos = 100000;
+    final makerPrivateKey = makerWalletVector.childPrivateKey;
+    final makerPublicKey = makerPrivateKey.getG1();
 
-    final messageAddress =
-        Address.fromContext(xchHolder.keychain.unhardenedWalletVectors[1].puzzlehash);
+    final messagePuzzlehash = makerWalletVector.puzzlehash;
 
-    const validityTimeHours = 1;
+    final messageAddress = Address.fromContext(messagePuzzlehash);
+
+    const offerValidityTimeHours = 1;
     final currentUnixTimeStamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final validityTime = currentUnixTimeStamp + (validityTimeHours * 60 * 60);
+    final offerValidityTime = currentUnixTimeStamp + (offerValidityTimeHours * 60 * 60);
 
-    final offerFile = BtcToXchOfferFile(
-      offeredAmount: const ExchangeAmount(type: ExchangeAmountType.BTC, amount: amountSatoshis),
-      requestedAmount: const ExchangeAmount(type: ExchangeAmountType.XCH, amount: amountMojos),
+    final unspentInitializationCoin = maker.standardCoins.first;
+    final initializationCoinId = unspentInitializationCoin.id;
+
+    final offerFile = crossChainOfferFileService.createBtcToXchMakerOfferFile(
+      initializationCoinId: initializationCoinId,
+      amountMojos: mojos,
+      amountSatoshis: satoshis,
       messageAddress: messageAddress,
-      validityTime: validityTime,
-      publicKey: btcHolderPublicKey,
+      validityTime: offerValidityTime,
+      requestorPublicKey: makerPublicKey,
     );
 
-    final serializedOfferFile = serializeCrossChainOfferFile(offerFile, btcHolderPrivateKey);
+    final serializedOfferFile = await offerFile.serializeAsync(makerPrivateKey);
 
-    // A public/private key pair is generated for the XCH holder to use for the exchange
-    final xchHolderPrivateKey = PrivateKey.generate();
-    final xchHolderPublicKey = xchHolderPrivateKey.getG1();
-
-    // XCH holder's side views offer, checks validity, and creates a cross chain offer accept file
-    expect(() => checkValidity(offerFile), returnsNormally);
-
-    const postAcceptValidityTime = 600;
-    final acceptedOfferHash = Bytes.encodeFromString(serializedOfferFile).sha256Hash();
-
-    const paymentRequest =
-        'lnbc1u1p3huyzkpp5vw6fkrw9lr3pvved40zpp4jway4g4ee6uzsaj208dxqxgm2rtkvqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdrxkxglt5qydruqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldrxkxglt5qydruqqqqryqqqqthqqpysp5jzgpj4990chtj9f9g2f6mhvgtzajzckx774yuh0klnr3hmvrqtjq9qypqsqkrvl3sqd4q4dm9axttfa6frg7gffguq3rzuvvm2fpuqsgg90l4nz8zgc3wx7gggm04xtwq59vftm25emwp9mtvmvjg756dyzn2dm98qpakw4u8';
-    final decodedPaymentRequest = decodeLightningPaymentRequest(paymentRequest);
-
-    final offerAcceptFile = XchToBtcOfferAcceptFile(
-      validityTime: postAcceptValidityTime,
-      publicKey: xchHolderPublicKey,
-      acceptedOfferHash: acceptedOfferHash,
-      lightningPaymentRequest: decodedPaymentRequest,
+    // maker pushes initialization spend bundle to create offer
+    await exchangeOfferService.pushInitializationSpendBundle(
+      messagePuzzlehash: messagePuzzlehash,
+      coinsInput: [unspentInitializationCoin],
+      initializationCoinId: unspentInitializationCoin.id,
+      keychain: maker.keychain,
+      derivationIndex: makerDerivationIndex,
+      serializedOfferFile: serializedOfferFile,
+      changePuzzlehash: maker.firstPuzzlehash,
     );
-
-    final serializedOfferAcceptFile =
-        serializeCrossChainOfferFile(offerAcceptFile, xchHolderPrivateKey);
-
-    // XCH holder sends a coin with the serialized offer accept file as a memo to the message address
-    // from the BTC holder's offer file and verifies receipt of message coin
-    final messagePuzzlehash = messageAddress.toPuzzlehash();
-
-    final messageSpendBundle = walletService.createSpendBundle(
-      payments: [
-        Payment(50, messagePuzzlehash, memos: <String>[serializedOfferAcceptFile])
-      ],
-      coinsInput: [xchHolder.standardCoins.first],
-      keychain: xchHolder.keychain,
-      changePuzzlehash: xchHolder.firstPuzzlehash,
-      fee: 50,
-    );
-
-    await fullNodeSimulator.pushTransaction(messageSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
+    await maker.refreshCoins();
 
-    final messageVerification = await verifyOfferAcceptFileMemo(
-      messagePuzzlehash,
-      serializedOfferAcceptFile,
-      fullNodeSimulator,
+    // taker side
+    final taker = ChiaEnthusiast(fullNodeSimulator, walletSize: 10);
+    for (var i = 0; i < 2; i++) {
+      await taker.farmCoins();
+    }
+    await taker.refreshCoins();
+
+    final takerMasterPrivateKey = taker.keychainSecret.masterPrivateKey;
+    final takerDerivationIndex = Random.secure().nextInt(10);
+
+    final takerWalletVector = await WalletVector.fromPrivateKeyAsync(
+      takerMasterPrivateKey,
+      takerDerivationIndex,
     );
 
-    expect(messageVerification, equals(true));
+    final takerPrivateKey = takerWalletVector.childPrivateKey;
+    final takerPublicKey = takerWalletVector.childPublicKey;
 
-    // XCH holder's side constructs escrow address from offer file and offer accept file details
-    final deserializedOfferFile =
-        deserializeCrossChainOfferFile(serializedOfferFile) as BtcToXchOfferFile;
-
-    final xchHolderEscrowPuzzlehash = xchToBtcService.generateEscrowPuzzlehash(
-      requestorPrivateKey: xchHolderPrivateKey,
-      clawbackDelaySeconds: postAcceptValidityTime,
-      sweepPaymentHash: decodedPaymentRequest.tags.paymentHash!,
-      fulfillerPublicKey: deserializedOfferFile.publicKey,
+    final takerOfferFile = crossChainOfferFileService.createXchToBtcTakerOfferFile(
+      initializationCoinId: initializationCoinId,
+      serializedMakerOfferFile: serializedOfferFile,
+      validityTime: exchangeValidityTime,
+      requestorPublicKey: takerPublicKey,
+      paymentRequest: decodedPaymentRequest,
     );
 
-    // BTC holder's side deserializes memo from the received coin
-    final offerAcceptFileMemo =
-        await getOfferAcceptFileMemo(messagePuzzlehash, serializedOfferFile, fullNodeSimulator);
+    final serializedTakerOfferFile = await takerOfferFile.serializeAsync(takerPrivateKey);
 
-    expect(offerAcceptFileMemo, equals(serializedOfferAcceptFile));
-
-    final deserializedOfferAcceptFile =
-        deserializeCrossChainOfferFile(offerAcceptFileMemo!) as XchToBtcOfferAcceptFile;
-
-    // BTC holder's side constructs escrow address from details in offer file and offer accept file
-    final paymentHash = deserializedOfferAcceptFile.lightningPaymentRequest.tags.paymentHash;
-
-    final btcHolderExcrowPuzzle = btcToXchService.generateEscrowPuzzlehash(
-      requestorPrivateKey: btcHolderPrivateKey,
-      clawbackDelaySeconds: postAcceptValidityTime,
-      sweepPaymentHash: paymentHash!,
-      fulfillerPublicKey: deserializedOfferAcceptFile.publicKey,
-    );
-
-    // the escrow puzzlehashes on either side should match
-    expect(btcHolderExcrowPuzzle, equals(xchHolderEscrowPuzzlehash));
-
-    // XCH holder transfers XCH to escrow address
-    await xchHolder.refreshCoins();
-    final coinsForExchange = xchHolder.standardCoins;
-
-    final spendBundle = walletService.createSpendBundle(
-      payments: [Payment(amountMojos, xchHolderEscrowPuzzlehash)],
-      coinsInput: coinsForExchange,
-      changePuzzlehash: xchHolder.firstPuzzlehash,
-      keychain: xchHolder.keychain,
-    );
-    await fullNodeSimulator.pushTransaction(spendBundle);
-    await fullNodeSimulator.moveToNextBlock();
-
-    final escrowCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([xchHolderEscrowPuzzlehash]);
-
-    // after the BTC holder sees that XCH has arrived at the escrow address, they pay the lightning invoice.
-    // the BTC holder inputs into the program the preimage that is revealed after payment and the puzzlehash
-    // where they want to receive their XCH, which then creates and pushes a spend bundle to sweep funds
-    final sweepPreimage =
-        '5c1f10653dc3ff0531b77351dc6676de2e1f5f53c9f0a8867bcb054648f46a32'.hexToBytes();
-    final sweepPuzzlehash = btcHolder.firstPuzzlehash;
-    final startingSweepBalance = await fullNodeSimulator.getBalance([sweepPuzzlehash]);
-
-    final sweepSpendBundle = btcToXchService.createSweepSpendBundle(
-      payments: [Payment(escrowCoins.totalValue, sweepPuzzlehash)],
-      coinsInput: escrowCoins,
-      requestorPrivateKey: btcHolderPrivateKey,
-      clawbackDelaySeconds: postAcceptValidityTime,
+    final escrowPuzzlehash = XchToBtcService.generateEscrowPuzzlehash(
+      requestorPrivateKey: takerPrivateKey,
+      clawbackDelaySeconds: exchangeValidityTime,
       sweepPaymentHash: paymentHash,
-      sweepPreimage: sweepPreimage,
-      fulfillerPublicKey: xchHolderPublicKey,
+      fulfillerPublicKey: makerPublicKey,
     );
 
-    await fullNodeSimulator.pushTransaction(sweepSpendBundle);
+    // taker sends message coin
+    final coinForMessageSpend = taker.standardCoins.first;
+
+    await exchangeOfferService.sendMessageCoin(
+      initializationCoinId: initializationCoinId,
+      messagePuzzlehash: messagePuzzlehash,
+      coinsInput: [coinForMessageSpend],
+      keychain: taker.keychain,
+      serializedTakerOfferFile: serializedTakerOfferFile,
+      changePuzzlehash: taker.firstPuzzlehash,
+    );
+
+    await fullNodeSimulator.moveToNextBlock();
+    await taker.refreshCoins();
+
+    // maker accepts message coin
+    final messageCoinInfo = await exchangeOfferService.getNextValidMessageCoin(
+      initializationCoinId: initializationCoinId,
+      serializedOfferFile: serializedOfferFile,
+      messagePuzzlehash: messagePuzzlehash,
+      exchangeType: ExchangeType.btcToXch,
+      satoshis: satoshis,
+    );
+
+    await exchangeOfferService.acceptMessageCoin(
+      initializationCoinId: initializationCoinId,
+      messageCoin: messageCoinInfo!.messageCoin,
+      masterPrivateKey: makerMasterPrivateKey,
+      derivationIndex: makerDerivationIndex,
+      serializedOfferFile: serializedOfferFile,
+      targetPuzzlehash: maker.firstPuzzlehash,
+    );
+
     await fullNodeSimulator.moveToNextBlock();
 
-    final endingSweepBalance = await fullNodeSimulator.getBalance([sweepPuzzlehash]);
+    final spentMessageCoinChild =
+        await fullNodeSimulator.getSingleChildCoinFromCoin(messageCoinInfo.messageCoin);
 
-    expect(
-      endingSweepBalance,
-      equals(startingSweepBalance + escrowCoins.totalValue),
+    expect(spentMessageCoinChild, isNotNull);
+
+    await maker.refreshCoins();
+    await taker.refreshCoins();
+    final startingMakerBalance = maker.standardCoins.totalValue;
+    final startingTakerBalance = taker.standardCoins.totalValue;
+
+    var escrowPuzzlehashCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash]);
+    expect(escrowPuzzlehashCoins.totalValue, equals(0));
+
+    // taker transfers funds to escrow puzzlehash
+    await exchangeOfferService.transferFundsToEscrowPuzzlehash(
+      initializationCoinId: initializationCoinId,
+      mojos: mojos,
+      escrowPuzzlehash: escrowPuzzlehash,
+      requestorPrivateKey: takerPrivateKey,
+      coinsInput: [taker.standardCoins.first],
+      keychain: taker.keychain,
+      changePuzzlehash: taker.firstPuzzlehash,
     );
+
+    await fullNodeSimulator.moveToNextBlock();
+
+    escrowPuzzlehashCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([escrowPuzzlehash]);
+    expect(escrowPuzzlehashCoins.totalValue, equals(mojos));
+
+    // wait for sufficient confirmations
+    await fullNodeSimulator.moveToNextBlock(32);
+
+    // maker sweeps escrow puzzlehash
+    final makerEscrowPuzzlehash = BtcToXchService.generateEscrowPuzzlehash(
+      requestorPrivateKey: makerPrivateKey,
+      clawbackDelaySeconds: exchangeValidityTime,
+      sweepPaymentHash: paymentHash,
+      fulfillerPublicKey: takerPublicKey,
+    );
+
+    await exchangeOfferService.sweepEscrowPuzzlehash(
+      initializationCoinId: initializationCoinId,
+      escrowPuzzlehash: makerEscrowPuzzlehash,
+      requestorPuzzlehash: maker.firstPuzzlehash,
+      requestorPrivateKey: makerPrivateKey,
+      exchangeValidityTime: exchangeValidityTime,
+      paymentHash: paymentHash,
+      preimage: preimage,
+      fulfillerPublicKey: takerPublicKey,
+    );
+
+    await fullNodeSimulator.moveToNextBlock();
+
+    await maker.refreshCoins();
+    await taker.refreshCoins();
+
+    final endingMakerBalance = maker.standardCoins.totalValue;
+    final endingTakerBalance = taker.standardCoins.totalValue;
+
+    expect(endingMakerBalance, equals(startingMakerBalance + mojos));
+    expect(endingTakerBalance, equals(startingTakerBalance - mojos));
   });
 }

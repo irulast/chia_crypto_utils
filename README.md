@@ -46,13 +46,22 @@ dart test integration_test/ --concurrency=1
 00:47 +14 ~2: All tests passed!
 ```
 
+To run integration tests from VS Code UI, add the following json file to chia-crypto-utils root
+    
+simulator_gen_path.json
+```json
+{
+    "path":"absolute_path_to_simulator_gen_folder"
+}
+```
+
 ## Coverage 
 
 ### Dependencies
 
 Install [Flutter](https://docs.flutter.dev/get-started/install) and add the flutter tool to your path.
 
-[LCOV](http://ltp.sourceforge.net/coverage/lcov.php) is used to create a coverage report in HTML format.
+[LCOV](https://ltp.sourceforge.net/coverage/lcov.php) is used to create a coverage report in HTML format.
 
 ### Generate Coverage Report
 

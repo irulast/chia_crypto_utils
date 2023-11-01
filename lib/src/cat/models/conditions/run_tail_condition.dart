@@ -3,16 +3,15 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class RunTailCondition implements Condition {
+  RunTailCondition(this.tail, this.tailSolution);
   static int conditionCode = 51;
   static int magicCatNumber = -113;
 
   Program tail;
   Program tailSolution;
 
-  RunTailCondition(this.tail, this.tailSolution);
-
   @override
-  Program get program {
+  Program toProgram() {
     return Program.list([
       Program.fromInt(conditionCode),
       Program.fromInt(0),

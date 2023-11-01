@@ -16,5 +16,3 @@ linter:
     library_private_types_in_public_api: false
     one_member_abstracts: false
     public_member_api_docs: false
-    use_decorated_box: true
-    sort_constructors_first: false

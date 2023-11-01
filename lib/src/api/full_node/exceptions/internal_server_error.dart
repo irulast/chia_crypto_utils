@@ -1,7 +1,6 @@
 class InternalServerErrorException implements Exception {
-  String? message;
-
   InternalServerErrorException([this.message]);
+  String? message;
 
   @override
   String toString() {

@@ -1,9 +1,6 @@
 import 'dart:io';
+
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/service/btc_to_xch.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/service/exchange.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/service/xch_to_btc.dart';
-import 'package:chia_crypto_utils/src/exchange/btc/utils/decode_lightning_payment_request.dart';
 
 final exchangeService = BtcExchangeService();
 final xchToBtcService = XchToBtcService();
@@ -24,6 +21,8 @@ class Amounts {
   final int mojos;
   final int satoshis;
 }
+
+const mojoCutoff = 10000000;
 
 Future<File> getLogFile() async {
   // find any log files of previous exchange sessions
@@ -165,7 +164,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
   if (logList.length > 6) {
     escrowPuzzlehash = Puzzlehash.fromHex(logList[6]);
   } else {
-    escrowPuzzlehash = xchToBtcService.generateEscrowPuzzlehash(
+    escrowPuzzlehash = XchToBtcService.generateEscrowPuzzlehash(
       requestorPrivateKey: xchHolderPrivateKey,
       clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash,
@@ -182,7 +181,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
   } else {
     print('\nEnter the address where the XCH will be returned in the event the exchange');
     print('is aborted or fails.');
-    clawbackPuzzlehash = getRequestorPuzzlehash();
+    clawbackPuzzlehash = getUserPuzzlehash();
     await updateLogFile(clawbackPuzzlehash.toHex());
   }
 
@@ -190,7 +189,7 @@ Future<void> exchangeXchForBtc(ChiaFullNodeInterface fullNode) async {
   var escrowCoins = await fullNode.getCoinsByPuzzleHashes([escrowPuzzlehash]);
   if (escrowCoins.isEmpty) {
     print(
-      '\nTransfer ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to the following escrow address:',
+      '\nTransfer ${(amounts.mojos > mojoCutoff) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to the following escrow address:',
     );
     print(escrowAddress.address);
     await Future<void>.delayed(const Duration(seconds: 2));
@@ -371,7 +370,7 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   if (logList.length > 6) {
     escrowPuzzlehash = Puzzlehash.fromHex(logList[6]);
   } else {
-    escrowPuzzlehash = btcToXchService.generateEscrowPuzzlehash(
+    escrowPuzzlehash = BtcToXchService.generateEscrowPuzzlehash(
       requestorPrivateKey: btcHolderPrivateKey,
       clawbackDelaySeconds: clawbackDelaySeconds,
       sweepPaymentHash: sweepPaymentHash,
@@ -387,7 +386,7 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
     sweepPuzzlehash = Puzzlehash.fromHex(logList[7]);
   } else {
     print('\nEnter the address where you would like the XCH delivered.');
-    sweepPuzzlehash = getRequestorPuzzlehash();
+    sweepPuzzlehash = getUserPuzzlehash();
     await updateLogFile(sweepPuzzlehash.toHex());
   }
 
@@ -395,7 +394,7 @@ Future<void> exchangeBtcForXch(ChiaFullNodeInterface fullNode) async {
   var escrowCoins = await fullNode.getCoinsByPuzzleHashes([escrowPuzzlehash]);
   if (escrowCoins.isEmpty) {
     print(
-      '\nYour counter party should be sending ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to an escrow',
+      '\nYour counter party should be sending ${(amounts.mojos > mojoCutoff) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to an escrow',
     );
     print('address, where it will be temporarily held for you until the next step.');
     await Future<void>.delayed(const Duration(seconds: 1));
@@ -668,7 +667,7 @@ Future<Bytes> getPaymentHash() async {
   }
 }
 
-Puzzlehash getRequestorPuzzlehash() {
+Puzzlehash getUserPuzzlehash() {
   // get puzzlehash where user would like to receive XCH at
   while (true) {
     stdout.write('> ');
@@ -800,7 +799,7 @@ Future<List<Coin>> verifyTransferToEscrowPuzzlehash({
           // correct address
           print('\nStill waiting for a transaction sending XCH to the escrow address to be');
           print(
-            'validated. Please double check that you sent ${(amounts.mojos > 10000000) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to the',
+            'validated. Please double check that you sent ${(amounts.mojos > mojoCutoff) ? '${amounts.xch.toStringAsFixed(9)} XCH' : '${amounts.mojos} mojos or ${amounts.xch} XCH'} to the',
           );
           print('following address:');
           print(escrowPuzzlehash.toAddressWithContext().address);

@@ -6,16 +6,11 @@ import 'package:meta/meta.dart';
 
 @immutable
 class BlockchainStateResponse extends ChiaBaseResponse {
-  final BlockchainState? blockchainState;
-
   const BlockchainStateResponse({
     required this.blockchainState,
-    required bool success,
-    required String? error,
-  }) : super(
-          success: success,
-          error: error,
-        );
+    required super.success,
+    required super.error,
+  });
 
   factory BlockchainStateResponse.fromJson(Map<String, dynamic> json) {
     final chiaBaseResponse = ChiaBaseResponse.fromJson(json);
@@ -30,4 +25,5 @@ class BlockchainStateResponse extends ChiaBaseResponse {
       error: chiaBaseResponse.error,
     );
   }
+  final BlockchainState? blockchainState;
 }

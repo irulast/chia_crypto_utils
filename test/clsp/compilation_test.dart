@@ -159,4 +159,34 @@ Future<void> main() async {
 
     expect(check, isTrue);
   });
+
+  test('should check that hex of compiled notification.clsp is correct', () async {
+    final check = await checkCompilation(
+      'lib/src/notification/puzzles/notification/notification.clsp',
+      'lib/src/notification/puzzles/notification/notification.clvm.hex',
+    );
+
+    expect(check, isTrue);
+  });
+
+  test('should check that hex of compiled curry_and_treehash.clsp is correct', () async {
+    final check = await checkCompilation(
+      'lib/src/cat/puzzles/curry_and_treehash/curry_and_treehash.clsp',
+      'lib/src/cat/puzzles/curry_and_treehash/curry_and_treehash.clvm.hex',
+    );
+
+    expect(check, isTrue);
+  });
+
+  test('should check that hex of compiled default_hidden_puzzle.clsp is correct', () async {
+    // chia-dev-tools won't compile (=) due to error '= takes exactly 2 arguments'
+    // comparing to hex value used in chia-blockchain/chia/wallet/puzzles/p2_delegated_puzzle_or_hidden_puzzle.py instead
+
+    final hex =
+        (await File('lib/src/standard/puzzles/default_hidden_puzzle/default_hidden_puzzle.clvm.hex')
+                .readAsString())
+            .trim();
+
+    expect(hex, equals('ff0980'));
+  });
 }

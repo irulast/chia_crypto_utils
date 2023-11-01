@@ -5,16 +5,11 @@ import 'package:meta/meta.dart';
 
 @immutable
 class CoinSpendResponse extends ChiaBaseResponse {
-  final CoinSpend? coinSpend;
-
   const CoinSpendResponse({
     required this.coinSpend,
-    required bool success,
-    required String? error,
-  }) : super(
-          success: success,
-          error: error,
-        );
+    required super.success,
+    required super.error,
+  });
 
   factory CoinSpendResponse.fromJson(Map<String, dynamic> json) {
     final chiaBaseResponse = ChiaBaseResponse.fromJson(json);
@@ -27,6 +22,7 @@ class CoinSpendResponse extends ChiaBaseResponse {
       error: chiaBaseResponse.error,
     );
   }
+  final CoinSpend? coinSpend;
 
   @override
   String toString() => 'CoinSpendResponse(coinSpend: $coinSpend, success: $success, error: $error)';

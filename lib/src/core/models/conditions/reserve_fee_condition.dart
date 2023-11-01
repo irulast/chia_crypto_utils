@@ -4,10 +4,6 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/standard/exceptions/invalid_condition_cast_exception.dart';
 
 class ReserveFeeCondition implements Condition {
-  static int conditionCode = 52;
-
-  int feeAmount;
-
   ReserveFeeCondition(this.feeAmount);
 
   factory ReserveFeeCondition.fromProgram(Program program) {
@@ -17,6 +13,9 @@ class ReserveFeeCondition implements Condition {
     }
     return ReserveFeeCondition(programList[1].toInt());
   }
+  static int conditionCode = 52;
+
+  int feeAmount;
 
   static bool isThisCondition(Program condition) {
     final conditionParts = condition.toList();
@@ -27,7 +26,7 @@ class ReserveFeeCondition implements Condition {
   }
 
   @override
-  Program get program {
+  Program toProgram() {
     return Program.list(
       [Program.fromInt(conditionCode), Program.fromInt(feeAmount)],
     );

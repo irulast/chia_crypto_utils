@@ -7,10 +7,6 @@ import 'package:meta/meta.dart';
 
 @immutable
 class Payment {
-  final int amount;
-  final Puzzlehash puzzlehash;
-  final List<Memo>? memos;
-
   Payment(this.amount, this.puzzlehash, {List<dynamic>? memos})
       : memos = memos == null
             ? null
@@ -24,6 +20,16 @@ class Payment {
                             'Unsupported type for memos. Must be Bytes, String, or int',
                           );
 
+  Payment.fromProgram(Program program)
+      : amount = program.toList()[1].toInt(),
+        puzzlehash = Puzzlehash(program.toList()[0].atom),
+        memos = program.toList().length > 2
+            ? program.toList()[2].toList().map((p) => Memo(p.atom)).toList()
+            : <Memo>[];
+  final int amount;
+  final Puzzlehash puzzlehash;
+  final List<Memo>? memos;
+
   CreateCoinCondition toCreateCoinCondition() {
     return CreateCoinCondition(puzzlehash, amount, memos: memos);
   }
@@ -33,15 +39,15 @@ class Payment {
       return [];
     }
 
-    final _memoStrings = <String>[];
+    final memoStrings = <String>[];
     for (final memo in memos!) {
       final decodedString = memo.decodedString;
       if (decodedString != null) {
-        _memoStrings.add(decodedString);
+        memoStrings.add(decodedString);
       }
     }
 
-    return _memoStrings;
+    return memoStrings;
   }
 
   Program toProgram() {
@@ -54,15 +60,6 @@ class Payment {
     ]);
   }
 
-  factory Payment.fromProgram(Program program) {
-    final programList = program.toList();
-    return Payment(
-      programList[1].toInt(),
-      Puzzlehash(programList[0].atom),
-      memos:
-          programList.length > 2 ? programList[2].toList().map((p) => p.atom).toList() : <Bytes>[],
-    );
-  }
   @override
   String toString() => 'Payment(amount: $amount, puzzlehash: $puzzlehash, memos: $memos)';
 

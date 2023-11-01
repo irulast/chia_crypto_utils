@@ -4,10 +4,6 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/standard/exceptions/invalid_condition_cast_exception.dart';
 
 class AssertMyCoinIdCondition implements Condition {
-  static int conditionCode = 70;
-
-  Bytes coinId;
-
   AssertMyCoinIdCondition(this.coinId);
 
   factory AssertMyCoinIdCondition.fromProgram(Program program) {
@@ -17,9 +13,12 @@ class AssertMyCoinIdCondition implements Condition {
     }
     return AssertMyCoinIdCondition(Bytes(programList[1].atom));
   }
+  static int conditionCode = 70;
+
+  Bytes coinId;
 
   @override
-  Program get program {
+  Program toProgram() {
     return Program.list([
       Program.fromInt(conditionCode),
       Program.fromBytes(coinId),

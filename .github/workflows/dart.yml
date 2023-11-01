@@ -21,7 +21,7 @@ jobs:
       uses: actions/checkout@v1
       with:
         repository: flutter/flutter
-        ref: 2.8.1
+        ref: 3.3.0
         path: flutter
 
     - name: Add the flutter tool to the path

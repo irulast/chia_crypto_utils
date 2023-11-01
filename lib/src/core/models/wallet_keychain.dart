@@ -3,6 +3,7 @@
 import 'dart:collection';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/core/exceptions/keychain_mismatch_exception.dart';
 import 'package:chia_crypto_utils/src/utils/serialization.dart';
 
 class WalletKeychain with ToBytesMixin {
@@ -11,6 +12,85 @@ class WalletKeychain with ToBytesMixin {
     required this.unhardenedMap,
     required this.singletonWalletVectorsMap,
   });
+  factory WalletKeychain.fromHex(String hex) => WalletKeychain.fromBytes(Bytes.fromHex(hex));
+
+  factory WalletKeychain.fromBytes(Bytes bytes) {
+    final iterator = bytes.iterator;
+
+    final hardenedWalletVectorMap = LinkedHashMap<Puzzlehash, WalletVector>();
+    final unhardenedWalletVectorMap = LinkedHashMap<Puzzlehash, UnhardenedWalletVector>();
+    final singletonWalletVectorMap = LinkedHashMap<JacobianPoint, SingletonWalletVector>();
+
+    final nHardenedWalletVectors = intFrom32BitsStream(iterator);
+    for (var _ = 0; _ < nHardenedWalletVectors; _++) {
+      final wv = WalletVector.fromStream(iterator, _);
+      hardenedWalletVectorMap[wv.puzzlehash] = wv;
+    }
+
+    final nUnhardenedWalletVectors = intFrom32BitsStream(iterator);
+    for (var _ = 0; _ < nUnhardenedWalletVectors; _++) {
+      final wv = UnhardenedWalletVector.fromStream(iterator, _);
+      unhardenedWalletVectorMap[wv.puzzlehash] = wv;
+      for (final outerPuzzlehash in wv.assetIdtoOuterPuzzlehash.values) {
+        unhardenedWalletVectorMap[outerPuzzlehash] = wv;
+      }
+    }
+
+    final nSingletonWalletVectors = intFrom32BitsStream(iterator);
+    for (var _ = 0; _ < nSingletonWalletVectors; _++) {
+      final wv = SingletonWalletVector.fromStream(iterator);
+      singletonWalletVectorMap[wv.singletonOwnerPublicKey] = wv;
+    }
+
+    return WalletKeychain(
+      hardenedMap: hardenedWalletVectorMap,
+      unhardenedMap: unhardenedWalletVectorMap,
+      singletonWalletVectorsMap: singletonWalletVectorMap,
+    );
+  }
+
+  factory WalletKeychain.fromCoreSecret(
+    KeychainCoreSecret coreSecret, {
+    int walletSize = 5,
+    int plotNftWalletSize = 2,
+    void Function(double progress)? onProgressUpdate,
+  }) {
+    final totalWalletVectorsToGenerate = (walletSize * 2) + plotNftWalletSize;
+    var totalWalletVectorsGenerated = 0;
+
+    void incrementAndCallUpdate() {
+      totalWalletVectorsGenerated++;
+      onProgressUpdate?.call(totalWalletVectorsGenerated / totalWalletVectorsToGenerate);
+    }
+
+    final masterPrivateKey = coreSecret.masterPrivateKey;
+    final walletVectors = LinkedHashMap<Puzzlehash, WalletVector>();
+    final unhardenedWalletVectors = LinkedHashMap<Puzzlehash, UnhardenedWalletVector>();
+    for (var i = 0; i < walletSize; i++) {
+      final walletVector = WalletVector.fromPrivateKey(masterPrivateKey, i);
+      incrementAndCallUpdate();
+
+      final unhardenedWalletVector = UnhardenedWalletVector.fromPrivateKey(masterPrivateKey, i);
+      incrementAndCallUpdate();
+
+      walletVectors[walletVector.puzzlehash] = walletVector;
+      unhardenedWalletVectors[unhardenedWalletVector.puzzlehash] = unhardenedWalletVector;
+    }
+
+    final singletonVectors = <JacobianPoint, SingletonWalletVector>{};
+    for (var i = 0; i < plotNftWalletSize; i++) {
+      final singletonWalletVector = SingletonWalletVector.fromMasterPrivateKey(masterPrivateKey, i);
+      incrementAndCallUpdate();
+
+      singletonVectors[singletonWalletVector.singletonOwnerPublicKey] = singletonWalletVector;
+    }
+
+    return WalletKeychain(
+      hardenedMap: walletVectors,
+      unhardenedMap: unhardenedWalletVectors,
+      singletonWalletVectorsMap: singletonVectors,
+    );
+  }
 
   factory WalletKeychain.fromWalletSets(List<WalletSet> walletSets) {
     final newHardenedMap = LinkedHashMap<Puzzlehash, WalletVector>();
@@ -61,85 +141,6 @@ class WalletKeychain with ToBytesMixin {
           WalletKeychain.fromHex(taskResultJson['keychain'] as String),
     );
   }
-
-  factory WalletKeychain.fromCoreSecret(
-    KeychainCoreSecret coreSecret, {
-    int walletSize = 5,
-    int plotNftWalletSize = 2,
-    void Function(double progress)? onProgressUpdate,
-  }) {
-    final totalWalletVectorsToGenerate = (walletSize * 2) + plotNftWalletSize;
-    var totalWalletVectorsGenerated = 0;
-
-    void incrementAndCallUpdate() {
-      totalWalletVectorsGenerated++;
-      onProgressUpdate?.call(totalWalletVectorsGenerated / totalWalletVectorsToGenerate);
-    }
-
-    final masterPrivateKey = coreSecret.masterPrivateKey;
-    final walletVectors = LinkedHashMap<Puzzlehash, WalletVector>();
-    final unhardenedWalletVectors = LinkedHashMap<Puzzlehash, UnhardenedWalletVector>();
-    for (var i = 0; i < walletSize; i++) {
-      final walletVector = WalletVector.fromPrivateKey(masterPrivateKey, i);
-      incrementAndCallUpdate();
-
-      final unhardenedWalletVector = UnhardenedWalletVector.fromPrivateKey(masterPrivateKey, i);
-      incrementAndCallUpdate();
-
-      walletVectors[walletVector.puzzlehash] = walletVector;
-      unhardenedWalletVectors[unhardenedWalletVector.puzzlehash] = unhardenedWalletVector;
-    }
-
-    final singletonVectors = <JacobianPoint, SingletonWalletVector>{};
-    for (var i = 0; i < plotNftWalletSize; i++) {
-      final singletonWalletVector = SingletonWalletVector.fromMasterPrivateKey(masterPrivateKey, i);
-      incrementAndCallUpdate();
-
-      singletonVectors[singletonWalletVector.singletonOwnerPublicKey] = singletonWalletVector;
-    }
-
-    return WalletKeychain(
-      hardenedMap: walletVectors,
-      unhardenedMap: unhardenedWalletVectors,
-      singletonWalletVectorsMap: singletonVectors,
-    );
-  }
-
-  factory WalletKeychain.fromBytes(Bytes bytes) {
-    final iterator = bytes.iterator;
-
-    final hardenedWalletVectorMap = LinkedHashMap<Puzzlehash, WalletVector>();
-    final unhardenedWalletVectorMap = LinkedHashMap<Puzzlehash, UnhardenedWalletVector>();
-    final singletonWalletVectorMap = LinkedHashMap<JacobianPoint, SingletonWalletVector>();
-
-    final nHardenedWalletVectors = intFrom32BitsStream(iterator);
-    for (var _ = 0; _ < nHardenedWalletVectors; _++) {
-      final wv = WalletVector.fromStream(iterator, _);
-      hardenedWalletVectorMap[wv.puzzlehash] = wv;
-    }
-
-    final nUnhardenedWalletVectors = intFrom32BitsStream(iterator);
-    for (var _ = 0; _ < nUnhardenedWalletVectors; _++) {
-      final wv = UnhardenedWalletVector.fromStream(iterator, _);
-      unhardenedWalletVectorMap[wv.puzzlehash] = wv;
-      for (final outerPuzzlehash in wv.assetIdtoOuterPuzzlehash.values) {
-        unhardenedWalletVectorMap[outerPuzzlehash] = wv;
-      }
-    }
-
-    final nSingletonWalletVectors = intFrom32BitsStream(iterator);
-    for (var _ = 0; _ < nSingletonWalletVectors; _++) {
-      final wv = SingletonWalletVector.fromStream(iterator);
-      singletonWalletVectorMap[wv.singletonOwnerPublicKey] = wv;
-    }
-
-    return WalletKeychain(
-      hardenedMap: hardenedWalletVectorMap,
-      unhardenedMap: unhardenedWalletVectorMap,
-      singletonWalletVectorsMap: singletonWalletVectorMap,
-    );
-  }
-  factory WalletKeychain.fromHex(String hex) => WalletKeychain.fromBytes(Bytes.fromHex(hex));
 
   @override
   Bytes toBytes() {
@@ -266,6 +267,12 @@ class WalletKeychain with ToBytesMixin {
     return hardenedMap[puzzlehash];
   }
 
+  WalletVector getWalletVectorOrThrow(Puzzlehash puzzlehash) {
+    final walletVector = getWalletVector(puzzlehash);
+    if (walletVector == null) throw KeychainMismatchException(puzzlehash);
+    return walletVector;
+  }
+
   List<Puzzlehash> get puzzlehashes => LinkedHashSet<Puzzlehash>.from(
         unhardenedMap.values.map<Puzzlehash>((wv) => wv.puzzlehash),
       ).toList();
@@ -305,6 +312,13 @@ class WalletKeychain with ToBytesMixin {
       hardenedPuzzlehashes.add(walletVector.walletPuzzlehash);
       unhardenedPuzzlehashes.add(unhardenedWalletVector.walletPuzzlehash);
 
+      for (final assetId in unhardenedWalletVectors.first.assetIdtoOuterPuzzlehash.keys) {
+        final outerPuzzleHash = makeOuterPuzzleHash(walletVector.puzzlehash, assetId);
+
+        unhardenedWalletVector.assetIdtoOuterPuzzlehash[assetId] = outerPuzzleHash;
+        unhardenedMap[outerPuzzleHash] = unhardenedWalletVector;
+      }
+
       hardenedMap[walletVector.puzzlehash] = walletVector;
       unhardenedMap[unhardenedWalletVector.puzzlehash] = unhardenedWalletVector;
     }
@@ -314,22 +328,66 @@ class WalletKeychain with ToBytesMixin {
     );
   }
 
-  void addOuterPuzzleHashesForAssetId(Puzzlehash assetId) {
+  Set<Puzzlehash> get assetIds =>
+      unhardenedWalletVectors.first.assetIdtoOuterPuzzlehash.keys.toSet();
+
+  void addOuterPuzzleHashesForAssetId(
+    Puzzlehash assetId, {
+    void Function(double progress)? onProgressUpdate,
+  }) {
+    _addOuterPuzzleHashesForAssetId(
+      assetId,
+      cat2Program,
+      onProgressUpdate: onProgressUpdate,
+    );
+  }
+
+  void addCat1OuterPuzzleHashesForAssetId(
+    Puzzlehash assetId, {
+    void Function(double progress)? onProgressUpdate,
+  }) {
+    _addOuterPuzzleHashesForAssetId(
+      assetId,
+      cat1Program,
+      onProgressUpdate: onProgressUpdate,
+    );
+  }
+
+  static Puzzlehash makeOuterPuzzleHash(Puzzlehash innerPuzzleHash, Puzzlehash assetId) {
+    return makeOuterPuzzleHashForCatProgram(innerPuzzleHash, assetId, cat2Program);
+  }
+
+  static Puzzlehash makeCat1OuterPuzzleHash(Puzzlehash innerPuzzleHash, Puzzlehash assetId) {
+    return makeOuterPuzzleHashForCatProgram(innerPuzzleHash, assetId, cat1Program);
+  }
+
+  void _addOuterPuzzleHashesForAssetId(
+    Puzzlehash assetId,
+    Program program, {
+    void Function(double progress)? onProgressUpdate,
+  }) {
+    final total = unhardenedMap.length;
+    var added = 0;
     final entriesToAdd = <Puzzlehash, UnhardenedWalletVector>{};
     for (final walletVector in unhardenedMap.values) {
-      final outerPuzzleHash = makeOuterPuzzleHash(walletVector.puzzlehash, assetId);
+      final outerPuzzleHash =
+          makeOuterPuzzleHashForCatProgram(walletVector.puzzlehash, assetId, program);
       walletVector.assetIdtoOuterPuzzlehash[assetId] = outerPuzzleHash;
       entriesToAdd[outerPuzzleHash] = walletVector;
+
+      added++;
+      onProgressUpdate?.call(added / total);
     }
     unhardenedMap.addAll(entriesToAdd);
   }
 
-  static Puzzlehash makeOuterPuzzleHash(
+  static Puzzlehash makeOuterPuzzleHashForCatProgram(
     Puzzlehash innerPuzzleHash,
     Puzzlehash assetId,
+    Program program,
   ) {
     final solution = Program.list([
-      Program.fromBytes(catProgram.hash()),
+      Program.fromBytes(program.hash()),
       Program.fromBytes(assetId),
       Program.fromBytes(innerPuzzleHash)
     ]);
@@ -362,7 +420,7 @@ class HardenedAndUnhardenedPuzzleHashes {
 }
 
 class WalletPuzzlehash extends Puzzlehash {
-  WalletPuzzlehash(List<int> bytesList, this.derivationIndex) : super(bytesList);
+  WalletPuzzlehash(super.bytesList, this.derivationIndex);
 
   WalletPuzzlehash.fromPuzzlehash(Puzzlehash puzzlehash, this.derivationIndex)
       : super(puzzlehash.byteList);
@@ -406,17 +464,9 @@ class AddsSingletonWalletVectorArguments {
 
 class WalletAddress extends Address {
   const WalletAddress(
-    String address, {
+    super.address, {
     required this.derivationIndex,
-  }) : super(address);
-
-  factory WalletAddress.fromContext(Puzzlehash puzzlehash, int derivationIndex) {
-    final addressPrefix = NetworkContext().blockchainNetwork.addressPrefix;
-    return WalletAddress.fromPuzzlehash(puzzlehash, addressPrefix, derivationIndex);
-  }
-
-  final int derivationIndex;
-
+  });
   factory WalletAddress.fromPuzzlehash(
     Puzzlehash puzzlehash,
     String addressPrefix,
@@ -424,5 +474,19 @@ class WalletAddress extends Address {
   ) {
     final address = Address.fromPuzzlehash(puzzlehash, addressPrefix);
     return WalletAddress(address.address, derivationIndex: derivationIndex);
+  }
+
+  factory WalletAddress.fromContext(Puzzlehash puzzlehash, int derivationIndex) {
+    final addressPrefix = NetworkContext().blockchainNetwork.addressPrefix;
+    return WalletAddress.fromPuzzlehash(puzzlehash, addressPrefix, derivationIndex);
+  }
+
+  final int derivationIndex;
+}
+
+extension RandomPuzzleHash on List<Puzzlehash> {
+  /// get random puzzlehash in first half of derivations
+  Puzzlehash get random {
+    return sublist(0, (length ~/ 2) - 1).getRandomItem();
   }
 }

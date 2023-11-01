@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:chia_crypto_utils/src/clvm/exceptions/unexpected_end_of_bytes_exception.dart';
 
 String flip(String binary) {
   return binary.replaceAllMapped(RegExp('[01]'), (match) => match.group(0) == '1' ? '0' : '1');
@@ -41,12 +42,16 @@ int intFrom64BitsStream(Iterator<int> iterator) {
   return bytesToInt(iterator.extractBytesAndAdvance(8), Endian.big);
 }
 
-Bytes intTo8Bits(int value) {
-  return intToBytes(value, 1, Endian.big);
+int? maybeIntFrom64BitsStream(Iterator<int> iterator) {
+  final doesExist = iterator.extractDoesExist();
+  if (!doesExist) {
+    return null;
+  }
+  return bytesToInt(iterator.extractBytesAndAdvance(8), Endian.big);
 }
 
-Bytes intToBytesStandard(int value, Endian endian, {bool signed = false}) {
-  return intToBytes(value, (value.bitLength + 8) >> 3, endian, signed: signed);
+Bytes intTo8Bits(int value) {
+  return intToBytes(value, 1, Endian.big);
 }
 
 Bytes encodeInt(int value) {
@@ -162,4 +167,45 @@ extension StripByItsPrefix on String {
     }
     return this;
   }
+}
+
+extension ExtractBytesFromIterator on Iterator<int> {
+  Bytes extractBytesAndAdvance(int nBytes) {
+    final extractedBytes = <int>[];
+    for (var i = 0; i < nBytes; i++) {
+      if (!moveNext()) {
+        throw UnexpectedEndOfBytesException();
+      }
+      extractedBytes.add(current);
+    }
+    return Bytes(extractedBytes);
+  }
+
+  /// for use in deserializing nullable serialized fields. Checks if next byte is a 1 or a 0
+  bool extractDoesExist() {
+    final doesExistByte = extractBytesAndAdvance(1);
+    return doesExistByte.single == 1;
+  }
+}
+
+void decodeRoutingInfo(List<int> data) {
+  // final routeData = convertBits(dataBlob, 5, 8, pad: true);
+  // final publicKeyData = routeData.sublist(0, 33);
+  // final publicKey = convertBitsBigInt(publicKeyData, 8, 264, pad: true)[0].toRadixString(16);
+  // print(publicKey);
+}
+
+extension OptionalSerialize on ToBytesMixin? {
+  /// for serializing optional fields
+  Bytes optionallySerialize() => Bytes([
+        if (this != null) ...[1, ...this!.toBytes()] else 0,
+      ]);
+}
+
+Bytes optionallySerializeInt(int? integer) {
+  if (integer != null) {
+    return Bytes([1, ...intTo64Bits(integer)]);
+  }
+
+  return Bytes([0]);
 }

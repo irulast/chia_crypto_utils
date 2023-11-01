@@ -83,10 +83,13 @@ class FullNodeHttpRpc implements FullNode {
   }
 
   @override
-  Future<CoinRecordsResponse> getCoinsByHint(Bytes hint) async {
+  Future<CoinRecordsResponse> getCoinsByHint(
+    Bytes hint, {
+    bool includeSpentCoins = false,
+  }) async {
     final response = await client.post(Uri.parse('get_coin_records_by_hint'), {
       'hint': hint.toHex(),
-      'include_spent_coins': true,
+      'include_spent_coins': includeSpentCoins,
     });
     mapResponseToError(response);
 
@@ -218,7 +221,7 @@ class FullNodeHttpRpc implements FullNode {
       case 504:
         throw GatewayTimeoutErrorException(response.body);
       default:
-        throw FullNodeErrorException(response.body);
+        throw FullNodeErrorException(response.statusCode, response.body);
     }
   }
 

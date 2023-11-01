@@ -60,6 +60,7 @@ Future<T> spawnAndWaitForIsolateWithProgressUpdates<T, R>({
           final resultMessage = ResultMessage.fromJson(messageJson);
           result = await handleTaskCompletion(resultMessage.body);
           receivePort.close();
+          errorPort.close();
       }
     },
     onDone: completer.complete,
@@ -112,10 +113,9 @@ Future<void> Function(TaskArgumentAndSendPort<R> taskArgumentAndSendPort) _makeA
 }
 
 class TaskArgumentAndSendPort<T> {
+  TaskArgumentAndSendPort(this.taskArgument, this.sendport);
   final T taskArgument;
   final SendPort sendport;
-
-  TaskArgumentAndSendPort(this.taskArgument, this.sendport);
 }
 
 class IsolateException implements Exception {

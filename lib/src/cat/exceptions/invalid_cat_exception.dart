@@ -1,7 +1,6 @@
 class InvalidCatException implements Exception {
-  String? message;
-
   InvalidCatException({this.message});
+  String? message;
 
   @override
   String toString() {

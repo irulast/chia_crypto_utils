@@ -6,33 +6,17 @@ import 'package:meta/meta.dart';
 
 @immutable
 class Coin extends CoinPrototype with ToBytesMixin {
-  final int confirmedBlockIndex;
-  final int spentBlockIndex;
-  final bool coinbase;
-  final int timestamp;
-
-  DateTime get dateConfirmed => DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
-
-  bool get isSpent => spentBlockIndex != 0;
-
-  double get amountXch => amount / mojosPerXch;
-
   const Coin({
     required this.confirmedBlockIndex,
     required this.spentBlockIndex,
     required this.coinbase,
     required this.timestamp,
-    required Bytes parentCoinInfo,
-    required Puzzlehash puzzlehash,
-    required int amount,
-  }) : super(
-          puzzlehash: puzzlehash,
-          amount: amount,
-          parentCoinInfo: parentCoinInfo,
-        );
-
-  factory Coin.fromChiaCoinRecordJson(Map<String, dynamic> json) {
-    final coinPrototype = CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>);
+    required super.parentCoinInfo,
+    required super.puzzlehash,
+    required super.amount,
+  });
+  factory Coin.fromJson(Map<String, dynamic> json) {
+    final coinPrototype = CoinPrototype.fromJson(json);
     return Coin(
       confirmedBlockIndex: json['confirmed_block_index'] as int,
       spentBlockIndex: json['spent_block_index'] as int,
@@ -86,8 +70,8 @@ class Coin extends CoinPrototype with ToBytesMixin {
     );
   }
 
-  factory Coin.fromJson(Map<String, dynamic> json) {
-    final coinPrototype = CoinPrototype.fromJson(json);
+  factory Coin.fromChiaCoinRecordJson(Map<String, dynamic> json) {
+    final coinPrototype = CoinPrototype.fromJson(json['coin'] as Map<String, dynamic>);
     return Coin(
       confirmedBlockIndex: json['confirmed_block_index'] as int,
       spentBlockIndex: json['spent_block_index'] as int,
@@ -98,9 +82,13 @@ class Coin extends CoinPrototype with ToBytesMixin {
       amount: coinPrototype.amount,
     );
   }
+  final int confirmedBlockIndex;
+  final int spentBlockIndex;
+  final bool coinbase;
+  final int timestamp;
 
   Map<String, dynamic> toFullJson() {
-    final json = super.toJson()
+    final json = toJson()
       ..addAll(<String, dynamic>{
         'confirmed_block_index': confirmedBlockIndex,
         'spent_block_index': spentBlockIndex,
@@ -110,6 +98,27 @@ class Coin extends CoinPrototype with ToBytesMixin {
     return json;
   }
 
+  @override
+  String toString() =>
+      'Coin(id: $id, parentCoinInfo: $parentCoinInfo puzzlehash: $puzzlehash, amount: $amount, confirmedBlockIndex: $confirmedBlockIndex), spentBlockIndex: $spentBlockIndex, coinbase: $coinbase, timestamp: $timestamp';
+}
+
+extension CoinFunctionality on Coin {
+  DateTime get dateConfirmed => DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
+
+  SpendSafety getSpendSafety(int currentBlockHeight) {
+    if (isSpent) {
+      return SpendSafety.unsafe;
+    }
+
+    return SpendSafety.fromBlockDepth(currentBlockHeight - confirmedBlockIndex);
+  }
+
+  bool get isSpent => spentBlockIndex != 0;
+  bool get isNotSpent => !isSpent;
+
+  double get amountXch => amount / mojosPerXch;
+
   CoinPrototype toCoinPrototype() => CoinPrototype(
         parentCoinInfo: parentCoinInfo,
         puzzlehash: puzzlehash,
@@ -117,7 +126,7 @@ class Coin extends CoinPrototype with ToBytesMixin {
       );
 
   Bytes toCoinBytes() {
-    final coinPrototypeBytes = super.toBytes();
+    final coinPrototypeBytes = toBytes();
     final coinPrototypeBytesLength = coinPrototypeBytes.length;
     return serializeList(<dynamic>[
           confirmedBlockIndex,
@@ -127,8 +136,24 @@ class Coin extends CoinPrototype with ToBytesMixin {
         ]) +
         [...intTo32Bits(coinPrototypeBytesLength), ...coinPrototypeBytes];
   }
+}
 
-  @override
-  String toString() =>
-      'Coin(id: $id, parentCoinInfo: $parentCoinInfo puzzlehash: $puzzlehash, amount: $amount, confirmedBlockIndex: $confirmedBlockIndex), spentBlockIndex: $spentBlockIndex, coinbase: $coinbase, timestamp: $timestamp';
+enum SpendSafety {
+  totallySafe,
+  safe,
+  unsafe;
+
+  factory SpendSafety.fromBlockDepth(int blockDepth) {
+    if (blockDepth > 32) {
+      return SpendSafety.totallySafe;
+    }
+    if (blockDepth > 6) {
+      return SpendSafety.safe;
+    }
+    return SpendSafety.unsafe;
+  }
+
+  bool get isSafe {
+    return this == totallySafe || this == safe;
+  }
 }

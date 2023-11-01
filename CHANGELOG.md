@@ -1,4 +1,23 @@
 # Changelog
+## 1.0.18
+
+- Fixes for pub.dev
+
+## 1.0.17
+
+- Chiaswap enhancements
+- Added support for CAT2
+- Added support for Notification
+- Extensive addition of tests and test cleanup
+- Bug fixing and code cleanup
+
+## 1.0.16
+
+- Added Chiaswap
+- Added support for Namesdao
+- Added missing Chialisp libraries and tests demonstrating compilation
+- CLI bindings and utilities for interactively swapping BTC Lightning to XCH using submarine swap
+- Bug fixing and code cleanup
 
 ## 1.0.15
 

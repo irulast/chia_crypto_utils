@@ -4,21 +4,7 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/standard/exceptions/invalid_condition_cast_exception.dart';
 
 class AggSigMeCondition implements Condition {
-  static int conditionCode = 50;
-
-  JacobianPoint publicKey;
-  Bytes message;
-
   AggSigMeCondition(this.publicKey, this.message);
-
-  @override
-  Program get program {
-    return Program.list([
-      Program.fromInt(conditionCode),
-      Program.fromBytes(publicKey.toBytes()),
-      Program.fromBytes(message),
-    ]);
-  }
 
   factory AggSigMeCondition.fromProgram(Program program) {
     final programList = program.toList();
@@ -29,6 +15,19 @@ class AggSigMeCondition implements Condition {
       JacobianPoint.fromBytesG1(programList[1].atom),
       Bytes(programList[2].atom),
     );
+  }
+  static int conditionCode = 50;
+
+  JacobianPoint publicKey;
+  Bytes message;
+
+  @override
+  Program toProgram() {
+    return Program.list([
+      Program.fromInt(conditionCode),
+      Program.fromBytes(publicKey.toBytes()),
+      Program.fromBytes(message),
+    ]);
   }
 
   static bool isThisCondition(Program condition) {

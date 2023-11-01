@@ -109,6 +109,18 @@ Program getPuzzleFromPk(JacobianPoint publicKey) {
   return getPuzzleFromPkAndHiddenPuzzle(publicKey, defaultHiddenPuzzleProgram);
 }
 
+Future<Program> getPuzzleForPkAsync(JacobianPoint publicKey) {
+  return spawnAndWaitForIsolate(
+    taskArgument: publicKey,
+    isolateTask: _getPuzzleFromPkTask,
+    handleTaskCompletion: (json) => Program.deserializeHex(json['puzzle'] as String),
+  );
+}
+
+Map<String, dynamic> _getPuzzleFromPkTask(JacobianPoint publicKey) {
+  return <String, dynamic>{'puzzle': getPuzzleFromPk(publicKey).serializeHex()};
+}
+
 Program getPuzzleFromPkAndHiddenPuzzle(JacobianPoint publicKey, Program hiddenPuzzleProgram) {
   final syntheticPubKey = calculateSyntheticPublicKeyProgram.run(
     Program.list(
@@ -122,6 +134,10 @@ Program getPuzzleFromPkAndHiddenPuzzle(JacobianPoint publicKey, Program hiddenPu
   final curried = p2DelegatedPuzzleOrHiddenPuzzleProgram.curry([syntheticPubKey.program]);
 
   return curried;
+}
+
+Program getP2PuzzleFromSyntheticPublicKey(JacobianPoint syntheticPublicKey) {
+  return p2DelegatedPuzzleOrHiddenPuzzleProgram.curry([syntheticPublicKey.toBytes()]);
 }
 
 final groupOrder = BigInt.parse(

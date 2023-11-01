@@ -4,6 +4,8 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/standard/exceptions/invalid_condition_cast_exception.dart';
 
 class AssertCoinAnnouncementCondition implements Condition {
+
+  AssertCoinAnnouncementCondition(this.coinId, this.message, {this.morphBytes});
   static int conditionCode = 61;
 
   Bytes coinId;
@@ -18,8 +20,6 @@ class AssertCoinAnnouncementCondition implements Condition {
     return (coinId + message).sha256Hash();
   }
 
-  AssertCoinAnnouncementCondition(this.coinId, this.message, {this.morphBytes});
-
   static Bytes getAnnouncementIdFromProgram(Program program) {
     final programList = program.toList();
     if (!isThisCondition(program)) {
@@ -29,7 +29,7 @@ class AssertCoinAnnouncementCondition implements Condition {
   }
 
   @override
-  Program get program {
+  Program toProgram() {
     return Program.list([
       Program.fromInt(conditionCode),
       Program.fromBytes(announcementId),

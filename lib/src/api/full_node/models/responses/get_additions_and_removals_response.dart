@@ -3,18 +3,12 @@ import 'package:meta/meta.dart';
 
 @immutable
 class GetAdditionsAndRemovalsResponse extends ChiaBaseResponse {
-  final List<Coin>? additions;
-  final List<Coin>? removals;
-
   const GetAdditionsAndRemovalsResponse({
     this.additions,
     this.removals,
-    required bool success,
-    required String? error,
-  }) : super(
-          success: success,
-          error: error,
-        );
+    required super.success,
+    required super.error,
+  });
 
   factory GetAdditionsAndRemovalsResponse.fromJson(Map<String, dynamic> json) {
     final chiaBaseResponse = ChiaBaseResponse.fromJson(json);
@@ -34,6 +28,8 @@ class GetAdditionsAndRemovalsResponse extends ChiaBaseResponse {
       );
     }
   }
+  final List<Coin>? additions;
+  final List<Coin>? removals;
 
   static List<Coin> _coinListFromJson(List<Map<String, dynamic>> json) {
     final coins = <Coin>[];

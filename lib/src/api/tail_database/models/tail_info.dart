@@ -1,6 +1,6 @@
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
-class TailInfo {
+class TailInfo with ToJsonMixin {
   TailInfo({
     required this.name,
     required this.assetId,
@@ -14,31 +14,54 @@ class TailInfo {
     required this.clsp,
     required this.hashgreenInfo,
   });
-
-  final String name;
+  TailInfo.fromJson(Map<String, dynamic> json)
+      : name = json['name'] as String?,
+        clsp = json['chialisp'] as String?,
+        assetId = json['hash'] == null ? null : Puzzlehash.fromHex(json['hash'] as String),
+        code = json['code'] as String?,
+        category = json['category'] as String?,
+        supply = json['supply'] as num?,
+        description = json['description'] as String?,
+        tailProgram =
+            json['tail_reveal'] == null ? null : Program.parse(json['tail_reveal'] as String),
+        hashgreenInfo = json['hashgreen'] == null
+            ? null
+            : HashgreenInfo.fromJson(json['hashgreen'] as Map<String, dynamic>),
+        logoUrl = json['nft_uri'] as String?,
+        websiteUrl = json['website_url'] as String?;
+        
+  final String? name;
   final String? clsp;
-  final Puzzlehash assetId;
-  final String code;
-  final String category;
-  final int? supply;
-  final String description;
+  final Puzzlehash? assetId;
+  final String? code;
+  final String? category;
+  final num? supply;
+  final String? description;
   final Program? tailProgram;
   final String? logoUrl;
   final String? websiteUrl;
-  final HashgreenInfo hashgreenInfo;
+  final HashgreenInfo? hashgreenInfo;
 
-  TailInfo.fromJson(Map<String, dynamic> json)
-      : name = json['name'] as String,
-        clsp = json['chialisp'] as String?,
-        assetId = Puzzlehash.fromHex(json['hash'] as String),
-        code = json['code'] as String,
-        category = json['category'] as String,
-        supply = json['supply'] as int?,
-        description = json['description'] as String,
-        tailProgram =(json['clvm'] != null) ?  Program.parse(json['clvm'] as String) : null,
-        hashgreenInfo = HashgreenInfo.fromJson(json['hashgreen'] as Map<String, dynamic>),
-        logoUrl = json['logo_url'] as String?,
-        websiteUrl = json['website_url'] as String?;
+  @override
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'name': name,
+        'chialisp': clsp,
+        'hash': assetId?.toHex(),
+        'code': code,
+        'category': category,
+        'supply': supply,
+        'description': description,
+        'tail_reveal': tailProgram?.toString(),
+        'hashgreen': hashgreenInfo?.toJson(),
+        'nft_uri': logoUrl,
+        'website_url': websiteUrl,
+      };
+
+  @override
+  String toString() => 'TailInfo(name: $name, clsp: $clsp, assetId: $assetId, '
+      'code: $code, category: $category, supply: $supply, '
+      'description: $description, tailProgram: $tailProgram, logoUrl: $logoUrl, '
+      'websiteUrl: $websiteUrl, hashgreenInfo: $hashgreenInfo)';
 }
 
 class HashgreenInfo {
@@ -51,4 +74,9 @@ class HashgreenInfo {
         marketcap = json['marketcap'] as num?;
   final double? price;
   final num? marketcap;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'price': price,
+        'marketcap': marketcap,
+      };
 }

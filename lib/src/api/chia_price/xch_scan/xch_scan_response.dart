@@ -4,14 +4,14 @@ class XchScanResponse implements ChiaPriceResponse {
   const XchScanResponse({
     required this.currencyPriceMap,
   });
+
+  XchScanResponse.fromJson(Map<String, dynamic> json)
+      : currencyPriceMap = Map<String, num>.from(json);
   @override
   num get priceUsd => currencyPriceMap['usd']!;
 
   @override
   num get priceBtc => currencyPriceMap['btc']!;
-
-  XchScanResponse.fromJson(Map<String, dynamic> json)
-      : currencyPriceMap = Map<String, num>.from(json);
 
   @override
   final Map<String, num> currencyPriceMap;
