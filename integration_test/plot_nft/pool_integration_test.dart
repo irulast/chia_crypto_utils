@@ -16,6 +16,8 @@ Future<void> main() async {
   final nathan = ChiaEnthusiast(fullNodeSimulator, walletSize: 3);
   await nathan.farmCoins();
 
+  const poolUrl = 'https://xch.spacefarmers.io';
+
   test('should create plot nft', () async {
     final genesisCoin = nathan.standardCoins[0];
     final singletonWalletVector = nathan.keychain
@@ -192,8 +194,9 @@ Future<void> main() async {
     expect(plotNfts.length, equals(4));
   });
 
-  test('should create and mutate plot nft', () async {
-    const poolUrl = 'https://xch-us-west.flexpool.io';
+  test(
+      'should create and mutate plot nft from state self pooling to joining a pool',
+      () async {
     final pool = PoolInterface.fromURL(poolUrl);
 
     final poolInfo = await pool.getPoolInfo();
@@ -275,9 +278,7 @@ Future<void> main() async {
     final singletonWalletVector = nathan.keychain
         .getNextSingletonWalletVector(nathan.keychainSecret.masterPrivateKey);
 
-    final poolInfo =
-        await PoolInterface.fromURL('https://xch-us-west.flexpool.io')
-            .getPoolInfo();
+    final poolInfo = await PoolInterface.fromURL(poolUrl).getPoolInfo();
     final initialTargetState = PoolState(
       poolSingletonState: PoolSingletonState.farmingToPool,
       targetPuzzlehash: poolInfo.targetPuzzlehash,
@@ -353,7 +354,7 @@ Future<void> main() async {
       targetPuzzlehash: poolInfo.targetPuzzlehash,
       ownerPublicKey: meeraSingletonWalletVector.singletonOwnerPublicKey,
       relativeLockHeight: poolInfo.relativeLockHeight,
-      poolUrl: 'https://xch-us-west.flexpool.io',
+      poolUrl: poolUrl,
     );
 
     final transferAndJoinPoolSpendBundle =
@@ -386,7 +387,7 @@ Future<void> main() async {
   });
 
   test(
-      'should create plot nft in selfPooling state and transfer ownership no  with treasure map spend',
+      'should create plot nft in selfPooling state and transfer ownership no with treasure map spend',
       () async {
     final genesisCoin = nathan.standardCoins[0];
     final singletonWalletVector = nathan.keychain
@@ -436,7 +437,6 @@ Future<void> main() async {
     final meeraSingletonWalletVector = meera.keychain
         .getNextSingletonWalletVector(meera.keychainSecret.masterPrivateKey);
 
-    const poolUrl = 'https://xch-us-west.flexpool.io';
     final poolInfo = await PoolInterface.fromURL(poolUrl).getPoolInfo();
 
     final transferTargetState = PoolState(
@@ -526,7 +526,6 @@ Future<void> main() async {
     final meeraSingletonWalletVector = meera.keychain
         .getNextSingletonWalletVector(meera.keychainSecret.masterPrivateKey);
 
-    const poolUrl = 'https://xch-us-west.flexpool.io';
     final poolInfo = await PoolInterface.fromURL(poolUrl).getPoolInfo();
 
     final transferTargetState = PoolState(

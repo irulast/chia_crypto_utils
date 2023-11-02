@@ -10,6 +10,7 @@ import 'package:chia_crypto_utils/src/command/core/nuke_keychain.dart';
 import 'package:chia_crypto_utils/src/command/exchange/cross_chain_offer_exchange.dart';
 import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
 import 'package:chia_crypto_utils/src/command/plot_nft/create_new_wallet_with_plotnft.dart';
+import 'package:chia_crypto_utils/src/command/plot_nft/get_coins_for_command.dart';
 import 'package:chia_crypto_utils/src/core/resources/bip_39_words.dart';
 
 late final ChiaFullNodeInterface fullNode;
@@ -503,7 +504,7 @@ class TransferPlotNFTCommand extends Command<Future<void>> {
       ..addOption('current-mnemonic', defaultsTo: '')
       ..addOption('new-owner-mnemonic', defaultsTo: '')
       ..addOption('new-owner-payout-address', defaultsTo: '')
-      ..addOption('pool-url', defaultsTo: 'https://xch-us-west.flexpool.io')
+      ..addOption('pool-url', defaultsTo: 'https://xch.spacefarmers.io')
       ..addOption(
         'certificate-bytes-path',
         defaultsTo: 'mozilla-ca/cacert.pem',
@@ -673,48 +674,14 @@ class TransferPlotNFTCommand extends Command<Future<void>> {
       currentKeychainSecret.masterPrivateKey,
     );
 
-    final coinAddress = Address.fromPuzzlehash(
-      currentKeychain.puzzlehashes.first,
-      ChiaNetworkContextWrapper().blockchainNetwork.addressPrefix,
+    final coins = await getCoinsForCommand(
+      faucetRequestURL: faucetRequestURL,
+      faucetRequestPayload: faucetRequestPayload,
+      puzzlehashes: currentKeychain.puzzlehashes,
+      fullNode: fullNode,
+      message:
+          'Please send at least 1 mojo and enough extra XCH to cover the fee to create the PlotNFT to',
     );
-
-    if (faucetRequestURL.isNotEmpty && faucetRequestPayload.isNotEmpty) {
-      final theFaucetRequestPayload = faucetRequestPayload.replaceAll(
-        RegExp('SEND_TO_ADDRESS'),
-        coinAddress.address,
-      );
-
-      final result = await Process.run('curl', [
-        '-s',
-        '-d',
-        theFaucetRequestPayload,
-        '-H',
-        'Content-Type: application/json',
-        '-X',
-        'POST',
-        faucetRequestURL,
-      ]);
-
-      stdout.write(result.stdout);
-      stderr.write(result.stderr);
-    } else {
-      print(
-        'Please send at least 1 mojo and enough extra XCH to cover the fee to create the PlotNFT to: ${coinAddress.address}\n',
-      );
-      print('Press any key when coin has been sent');
-      stdin.readLineSync();
-    }
-
-    var coins = <Coin>[];
-    do {
-      coins = await fullNode.getCoinsByPuzzleHashes(
-        currentKeychain.puzzlehashes,
-      );
-      if (coins.isEmpty) {
-        print('waiting for coins');
-        await Future<void>.delayed(const Duration(seconds: 3));
-      }
-    } while (coins.isEmpty);
 
     // final plotNftTransferSpendBundle = await plotNftWalletService.createTransferPlotNftSpendBundle(
     //   coins: coins,
@@ -844,6 +811,129 @@ class TransferPlotNFTCommand extends Command<Future<void>> {
     //   print('pool_url: $poolUrl');
     //   print('target_puzzle_hash: ${poolInfo.targetPuzzlehash}');
     // }
+  }
+}
+
+class MutatePlotNFTCommand extends Command<Future<void>> {
+  MutatePlotNFTCommand() {
+    argParser
+      ..addOption('mnemonic', defaultsTo: '')
+      ..addOption('pool-url', defaultsTo: 'https://xch.spacefarmers.io')
+      ..addOption(
+        'certificate-bytes-path',
+        defaultsTo: 'mozilla-ca/cacert.pem',
+      )
+      ..addOption('faucet-request-url', defaultsTo: '')
+      ..addOption('faucet-request-payload', defaultsTo: '');
+  }
+
+  @override
+  String get description => 'Mutate plot NFT to leave pool.';
+
+  @override
+  String get name => 'Mutate-PlotNFT';
+
+  @override
+  Future<void> run() async {
+    var mnemonicPhrase = argResults!['mnemonic'] as String;
+    var payoutAddressString = argResults!['payout-address'] as String;
+    final poolUrl = argResults!['pool-url'] as String;
+    final faucetRequestURL = argResults!['faucet-request-url'] as String;
+    final faucetRequestPayload =
+        argResults!['faucet-request-payload'] as String;
+
+    final plotNftWalletService = PlotNftWalletService();
+
+    try {
+      await PoolInterface.fromURL(poolUrl).getPoolInfo();
+    } catch (e) {
+      throw ArgumentError('Invalid pool-url.');
+    }
+
+    if (mnemonicPhrase.isEmpty) {
+      print(
+          '\nPlease enter the mnemonic with the plot NFT you would like to transfer:');
+      stdout.write('> ');
+      mnemonicPhrase = stdin.readLineSync()!;
+    }
+
+    final mnemonic = mnemonicPhrase.split(' ');
+
+    if (mnemonic.length != 12 && mnemonic.length != 24) {
+      throw ArgumentError(
+        '\nInvalid current mnemonic phrase. Must contain either 12 or 24 seed words',
+      );
+    }
+
+    final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
+    final keychain = WalletKeychain.fromCoreSecret(keychainSecret);
+
+    Puzzlehash? payoutPuzzlehash;
+    if (payoutAddressString.isEmpty) {
+      payoutPuzzlehash = keychain.puzzlehashes[1];
+      print(
+          '\nPayout Address: ${payoutPuzzlehash.toAddressWithContext().address}\n');
+    } else {
+      Address? payoutAddress;
+      while (payoutAddress == null) {
+        try {
+          payoutAddress = Address(payoutAddressString);
+        } catch (e) {
+          print(
+              '\nPlease enter a valid address for the new owner pool payout address:');
+          stdout.write('> ');
+          payoutAddressString = stdin.readLineSync()!;
+        }
+      }
+      payoutPuzzlehash = payoutAddress.toPuzzlehash();
+    }
+
+    final plotNfts = await fullNode.scroungeForPlotNfts(keychain.puzzlehashes);
+
+    if (plotNfts.isEmpty) {
+      throw ArgumentError('There are no plot NFTs on the current mnemonic.');
+    }
+
+    final coins = await getCoinsForCommand(
+      faucetRequestURL: faucetRequestURL,
+      faucetRequestPayload: faucetRequestPayload,
+      puzzlehashes: keychain.puzzlehashes,
+      fullNode: fullNode,
+      message: 'Please send 50 mojos to cover the fee to',
+    );
+
+    final plotNft = plotNfts[0];
+
+    print('Starting Pool State: ${plotNft.poolState}\n');
+
+    final ownerPublicKey = plotNft.poolState.ownerPublicKey;
+
+    keychain.addSingletonWalletVectorForSingletonOwnerPublicKey(
+      ownerPublicKey,
+      keychainSecret.masterPrivateKey,
+    );
+
+    final poolInfo = await PoolInterface.fromURL(poolUrl).getPoolInfo();
+
+    final targetState = PoolState(
+      poolSingletonState: PoolSingletonState.leavingPool,
+      targetPuzzlehash: poolInfo.targetPuzzlehash,
+      ownerPublicKey: ownerPublicKey,
+      relativeLockHeight: 0,
+    );
+
+    final plotNftMutationSpendBundle =
+        await plotNftWalletService.createPlotNftMutationSpendBundle(
+      plotNft: plotNft,
+      coinsForFee: coins,
+      fee: 49,
+      targetState: targetState,
+      keychain: keychain,
+    );
+
+    print('\npushing plot NFT mutation spend bundle');
+
+    await fullNode.pushTransaction(plotNftMutationSpendBundle);
   }
 }
 
