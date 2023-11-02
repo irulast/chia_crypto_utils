@@ -504,7 +504,8 @@ class MutatePlotNFTCommand extends Command<Future<void>> {
 
     if (mnemonicPhrase.isEmpty) {
       print(
-          '\nPlease enter the mnemonic with the plot NFT you would like to transfer:');
+        '\nPlease enter the mnemonic with the plot NFT you would like to transfer:',
+      );
       stdout.write('> ');
       mnemonicPhrase = stdin.readLineSync()!;
     }

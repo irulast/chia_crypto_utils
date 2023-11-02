@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:deep_pick/deep_pick.dart';
 import 'package:meta/meta.dart';
