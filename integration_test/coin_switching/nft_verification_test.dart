@@ -1,9 +1,12 @@
+@Skip('interacts with live full node')
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:test/test.dart';
 
 void main() async {
-  final mnemonic =
-      'sniff wrestle coin sign one expect seed spirit summer bracket choose lumber bottom risk hip jealous fold hotel baby account chest stock humor pudding'
-          .split(' ');
+  const url = 'FULL_NODE_URL';
+  const mnemonicString = 'MNEMONIC_STRING';
+
+  final mnemonic = mnemonicString.split(' ');
   final keychain = WalletKeychain.fromCoreSecret(
     KeychainCoreSecret.fromMnemonic(mnemonic),
     walletSize: 50,
@@ -11,8 +14,7 @@ void main() async {
   LoggingContext().setLogLevel(LogLevel.low);
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
 
-  final fullNode =
-      EnhancedChiaFullNodeInterface.fromUrl('https://chia.irulast-prod.com');
+  final fullNode = EnhancedChiaFullNodeInterface.fromUrl(url);
 
   final nfts = await fullNode.getNftRecordsByHints(keychain.puzzlehashes);
 
@@ -20,5 +22,9 @@ void main() async {
 
   final proofOfNft = nft.getProofOfNft(keychain);
 
-  print(await proofOfNft.verify(fullNode));
+  test('should verify nft', () async {
+    final verificationResult = await proofOfNft.verify(fullNode);
+
+    print(verificationResult);
+  });
 }
