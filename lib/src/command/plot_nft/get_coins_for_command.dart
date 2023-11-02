@@ -52,5 +52,9 @@ Future<List<Coin>> getCoinsForCommand({
     }
   } while (coins.isEmpty);
 
+  if (coins.isNotEmpty) {
+    print(coins);
+  }
+
   return coins;
 }

@@ -226,46 +226,14 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
       ChiaNetworkContextWrapper().blockchainNetwork.addressPrefix,
     );
 
-    if (faucetRequestURL.isNotEmpty && faucetRequestPayload.isNotEmpty) {
-      final theFaucetRequestPayload = faucetRequestPayload.replaceAll(
-        RegExp('SEND_TO_ADDRESS'),
-        coinAddress.address,
-      );
-
-      final result = await Process.run('curl', [
-        '-s',
-        '-d',
-        theFaucetRequestPayload,
-        '-H',
-        'Content-Type: application/json',
-        '-X',
-        'POST',
-        faucetRequestURL,
-      ]);
-
-      stdout.write(result.stdout);
-      stderr.write(result.stderr);
-    } else {
-      print(
-        'Please send at least 1 mojo and enough extra XCH to cover the fee to create the PlotNFT to: ${coinAddress.address}\n',
-      );
-      print('Press any key when coin has been sent');
-      stdin.readLineSync();
-    }
-
-    var coins = <Coin>[];
-    while (coins.isEmpty) {
-      print('waiting for coin...');
-      await Future<void>.delayed(const Duration(seconds: 3));
-      coins = await fullNode.getCoinsByPuzzleHashes(
-        keychain.puzzlehashes,
-        includeSpentCoins: true,
-      );
-
-      if (coins.isNotEmpty) {
-        print(coins);
-      }
-    }
+    await getCoinsForCommand(
+      faucetRequestURL: faucetRequestURL,
+      faucetRequestPayload: faucetRequestPayload,
+      puzzlehashes: keychain.puzzlehashes,
+      fullNode: fullNode,
+      message:
+          'Please send 1 mojo and enough XCH to cover the fee to create a Ploft NFT to',
+    );
 
     PoolService? poolService;
     if (poolUrl.isNotEmpty) {
@@ -306,7 +274,7 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
 class RegisterPlotNFTCommand extends Command<Future<void>> {
   RegisterPlotNFTCommand() {
     argParser
-      ..addOption('pool-url', defaultsTo: 'https://xch-us-west.flexpool.io')
+      ..addOption('pool-url', defaultsTo: 'https://xch.spacefarmers.io')
       ..addOption('mnemonic', defaultsTo: '')
       ..addOption('launcher-id')
       ..addOption('payout-address', defaultsTo: '')
@@ -317,7 +285,8 @@ class RegisterPlotNFTCommand extends Command<Future<void>> {
   }
 
   @override
-  String get description => 'Registers a plotNFT with a pool.';
+  String get description =>
+      'Registers a plotNFT with a pool. Should already be in farming to pool state.';
 
   @override
   String get name => 'Register-PlotNFT';

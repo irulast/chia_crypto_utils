@@ -60,7 +60,7 @@ dart bin/chia_crypto_utils.dart Mutate-PlotNFT --full-node-url <FULL_NODE_URL> -
 
 ## Register PlotNFT
 
-Use this command to register a PlotNFT with a pool.
+Use this command to register a PlotNFT with a pool. Should already be in farming to pool state.
 
 ```console
 dart bin/chia_crypto_utils.dart Register-PlotNFT --full-node-url <FULL_NODE_URL> --faucet-request-url <FAUCET_URL> --faucet-request-payload '{"address": "SEND_TO_ADDRESS", "amount": 0.0000000001}' --mnemonic "mnemonic seed" --launcher-id <PLOT_NFT_LAUNCHER_ID> --pool-url <POOL_URL>

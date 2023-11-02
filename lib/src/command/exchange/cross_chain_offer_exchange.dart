@@ -240,30 +240,30 @@ Future<void> makeCrossChainOffer(ChiaFullNodeInterface fullNodeFromUrl) async {
     completionMessage: 'Offer initialized!',
   );
 
-  print('\nSend serialized offer file to Dexie? Y/N');
+  // print('\nSend serialized offer file to Dexie? Y/N');
 
-  var confirmation = '';
-  while (!confirmation.startsWith('y') && !confirmation.startsWith('n')) {
-    stdout.write('> ');
-    confirmation = stdin.readLineSync()!.trim().toLowerCase();
-    if (confirmation.startsWith('y')) {
-      final response =
-          await DexieExchangeOfferApi().postOffer(serializedOfferFile);
-      if (response.success == true) {
-        print(
-          '\nOffer has been successfully added to Dexie. Your offer ID is:',
-        );
-        print(response.id);
-      } else {
-        print('Request failed. Please try again.');
-        exit(exitCode);
-      }
-    } else if (confirmation.startsWith('n')) {
-      continue;
-    } else {
-      print('\nNot a valid choice.');
-    }
-  }
+  // var confirmation = '';
+  // while (!confirmation.startsWith('y') && !confirmation.startsWith('n')) {
+  //   stdout.write('> ');
+  //   confirmation = stdin.readLineSync()!.trim().toLowerCase();
+  //   if (confirmation.startsWith('y')) {
+  //     final response =
+  //         await DexieExchangeOfferApi().postOffer(serializedOfferFile);
+  //     if (response.success == true) {
+  //       print(
+  //         '\nOffer has been successfully added to Dexie. Your offer ID is:',
+  //       );
+  //       print(response.id);
+  //     } else {
+  //       print('Request failed. Please try again.');
+  //       exit(exitCode);
+  //     }
+  //   } else if (confirmation.startsWith('n')) {
+  //     continue;
+  //   } else {
+  //     print('\nNot a valid choice.');
+  //   }
+  // }
 
   print(
     '\nPress any key to start waiting for a message coin with a taker offer',
@@ -931,7 +931,7 @@ Future<void> completeXchToBtcExchange({
   print(
     '\nOnce your counter party has paid the lightning invoice you may safely exit the',
   );
-  print('program. The exchange complete.');
+  print('program. The exchange is complete.');
 
   print(
     '\nIf your counter party does not pay the lightning invoice, you may claw back',

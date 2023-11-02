@@ -47,6 +47,7 @@ dev_dependencies:
   lints: ^1.0.0
   rps: ^0.6.3
   test: ^1.19.3
+  test_process: ^2.1.0
   very_good_analysis: ^3.1.0
 
 false_secrets:

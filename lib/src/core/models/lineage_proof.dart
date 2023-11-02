@@ -37,17 +37,10 @@ class LineageProof with ToBytesMixin, ToProgramMixin {
   }
 
   factory LineageProof.fromStream(Iterator<int> iterator) {
-    final parentCoinInfoBytes =
-        iterator.extractBytesAndAdvance(Puzzlehash.bytesLength);
-    final parentCoinInfo = Bytes(parentCoinInfoBytes);
+    final parentCoinInfo = Puzzlehash.maybeFromStream(iterator);
+    final innerPuzzlehash = Puzzlehash.maybeFromStream(iterator);
 
-    final innerPuzzlehashBytes =
-        iterator.extractBytesAndAdvance(Puzzlehash.bytesLength);
-    final innerPuzzlehash = Puzzlehash(innerPuzzlehashBytes);
-
-    // coin amount is encoded with 64 bits
-    final amountBytes = iterator.extractBytesAndAdvance(8);
-    final amount = bytesToInt(amountBytes, Endian.big);
+    final amount = maybeIntFrom64BitsStream(iterator);
 
     return LineageProof(
       parentCoinInfo: parentCoinInfo,
