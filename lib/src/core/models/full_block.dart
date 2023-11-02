@@ -7,8 +7,11 @@ class FullBlock extends Equatable with ToJsonMixin {
 
   factory FullBlock.fromJson(Map<String, dynamic> json) {
     return FullBlock(
-      pick(json, 'transactions_generator').letStringOrNull(Program.deserializeHex),
-      pick(json, 'transactions_generator_ref_list').asListOrNull((p0) => p0.asIntOrThrow()) ?? [],
+      pick(json, 'transactions_generator')
+          .letStringOrNull(Program.deserializeHex),
+      pick(json, 'transactions_generator_ref_list')
+              .asListOrNull((p0) => p0.asIntOrThrow()) ??
+          [],
     );
   }
 
@@ -16,7 +19,8 @@ class FullBlock extends Equatable with ToJsonMixin {
   final List<int> transactionGeneratorRefList;
 
   @override
-  List<Object?> get props => [transactionGenerator, transactionGeneratorRefList];
+  List<Object?> get props =>
+      [transactionGenerator, transactionGeneratorRefList];
 
   @override
   Map<String, dynamic> toJson() => {

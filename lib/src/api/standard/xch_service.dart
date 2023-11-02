@@ -32,7 +32,8 @@ class XchService {
     int fee = 0,
     Puzzlehash? changePuzzlehash,
   }) async {
-    final changePuzzlehashToUse = changePuzzlehash ?? keychain.puzzlehashes.first;
+    final changePuzzlehashToUse =
+        changePuzzlehash ?? keychain.puzzlehashes.first;
     final spendBundle = walletService.createSpendBundle(
       payments: payments,
       coinsInput: coins,
@@ -58,7 +59,8 @@ class XchService {
       throw InvalidNamesdaoName();
     } else {
       final puzzlehash = nameInfo.address.toPuzzlehash();
-      final response = await sendXch(coins: coins, amount: amount, puzzlehash: puzzlehash);
+      final response =
+          await sendXch(coins: coins, amount: amount, puzzlehash: puzzlehash);
       return response;
     }
   }

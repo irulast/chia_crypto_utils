@@ -31,7 +31,9 @@ extension StringToBytesX on String {
   Bytes toBytes() => Bytes(utf8.encode(this));
   Bytes hexToBytes() {
     if (startsWith(Bytes.bytesPrefix)) {
-      return Bytes(const HexDecoder().convert(replaceFirst(Bytes.bytesPrefix, '')));
+      return Bytes(
+        const HexDecoder().convert(replaceFirst(Bytes.bytesPrefix, '')),
+      );
     }
     return Bytes(const HexDecoder().convert(this));
   }

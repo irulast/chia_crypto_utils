@@ -9,8 +9,10 @@ class GetFarmerResponse {
   });
   factory GetFarmerResponse.fromJson(Map<String, dynamic> json) {
     return GetFarmerResponse(
-      authenticationPublicKey: JacobianPoint.fromHexG1(json['authentication_public_key'] as String),
-      payoutInstructions: Puzzlehash.fromHex(json['payout_instructions'] as String),
+      authenticationPublicKey:
+          JacobianPoint.fromHexG1(json['authentication_public_key'] as String),
+      payoutInstructions:
+          Puzzlehash.fromHex(json['payout_instructions'] as String),
       currentDifficulty: json['current_difficulty'] as int,
       currentPoints: json['current_points'] as int,
     );

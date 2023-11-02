@@ -12,7 +12,8 @@ class PlotNftExtraData with ToBytesMixin {
 
   factory PlotNftExtraData.fromStream(Iterator<int> iterator) {
     final poolState = PoolState.fromStream(iterator);
-    final delayTime = bytesToInt(iterator.extractBytesAndAdvance(4), Endian.big);
+    final delayTime =
+        bytesToInt(iterator.extractBytesAndAdvance(4), Endian.big);
     final delayPuzzlehash = Puzzlehash.fromStream(iterator);
 
     return PlotNftExtraData(poolState, delayTime, delayPuzzlehash);
@@ -32,7 +33,8 @@ class PlotNftExtraData with ToBytesMixin {
     final delayTime = delayTimePrograms.single.rest().toInt();
 
     final extraDataPrograms = extraDataProgramList.where(
-      (p) => String.fromCharCode(p.first().toInt()) == delayPuzzlehashIdentifier,
+      (p) =>
+          String.fromCharCode(p.first().toInt()) == delayPuzzlehashIdentifier,
     );
     if (extraDataPrograms.isEmpty || extraDataPrograms.length > 1) {
       throw InvalidPlotNftException();

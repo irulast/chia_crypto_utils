@@ -98,27 +98,38 @@ enum ChiaWalletType {
 
   const ChiaWalletType(this.chiaIndex);
   factory ChiaWalletType.fromString(String typeString) {
-    return ChiaWalletType.values.where((type) => typeString.split('_').first == type.name).single;
+    return ChiaWalletType.values
+        .where((type) => typeString.split('_').first == type.name)
+        .single;
   }
 
   factory ChiaWalletType.fromIndex(int index) {
-    return ChiaWalletType.values.where((type) => type.chiaIndex == index).single;
+    return ChiaWalletType.values
+        .where((type) => type.chiaIndex == index)
+        .single;
   }
 
   final int chiaIndex;
 }
 
 extension WalletsOfType on Map<int, ChiaWalletInfo> {
-  Map<int, T> _getWalletsOfType<T>(ChiaWalletType type, [List<int> walletIds = const []]) {
+  Map<int, T> _getWalletsOfType<T>(
+    ChiaWalletType type, [
+    List<int> walletIds = const [],
+  ]) {
     final filteredMap = Map<int, ChiaWalletInfo>.from(this)
       ..removeWhere(
-        (key, value) => value.type != type || (walletIds.isNotEmpty && !walletIds.contains(key)),
+        (key, value) =>
+            value.type != type ||
+            (walletIds.isNotEmpty && !walletIds.contains(key)),
       );
 
     return filteredMap.map((key, value) => MapEntry(key, value as T));
   }
 
-  Map<int, NftWalletInfoWithNftInfos> nftWallets([List<int> walletIds = const []]) =>
+  Map<int, NftWalletInfoWithNftInfos> nftWallets([
+    List<int> walletIds = const [],
+  ]) =>
       _getWalletsOfType(ChiaWalletType.nft, walletIds);
 
   Map<int, CatWalletInfo> catWallets([List<int> walletIds = const []]) =>
@@ -129,13 +140,15 @@ extension WalletsOfType on Map<int, ChiaWalletInfo> {
 }
 
 extension AssetIdsGetterX on Map<int, CatWalletInfo> {
-  Map<int, Puzzlehash> get assetIdMap => map((key, value) => MapEntry(key, value.assetId));
+  Map<int, Puzzlehash> get assetIdMap =>
+      map((key, value) => MapEntry(key, value.assetId));
 
   List<Puzzlehash> get assetIds => assetIdMap.values.toList();
 }
 
 extension NftInfosGetterX on Map<int, NftWalletInfoWithNftInfos> {
-  Map<int, List<NftInfo>> get nftInfosMap => map((key, value) => MapEntry(key, value.nftInfos));
+  Map<int, List<NftInfo>> get nftInfosMap =>
+      map((key, value) => MapEntry(key, value.nftInfos));
 
   List<NftInfo> get nftInfos {
     final nftInfos = <NftInfo>[];
@@ -148,7 +161,10 @@ extension NftInfosGetterX on Map<int, NftWalletInfoWithNftInfos> {
   }
 
   Map<int, List<Bytes>> get launcherIdsMap => map(
-        (key, value) => MapEntry(key, value.nftInfos.map((nftInfo) => nftInfo.launcherId).toList()),
+        (key, value) => MapEntry(
+          key,
+          value.nftInfos.map((nftInfo) => nftInfo.launcherId).toList(),
+        ),
       );
 }
 
@@ -162,11 +178,13 @@ extension NftInfosListGetterX on List<NftWalletInfoWithNftInfos> {
     return nftInfos;
   }
 
-  List<Bytes> get launcherIds => nftInfos.map((nftInfo) => nftInfo.launcherId).toList();
+  List<Bytes> get launcherIds =>
+      nftInfos.map((nftInfo) => nftInfo.launcherId).toList();
 }
 
 extension DIDs on Map<int, DIDWalletInfo> {
-  Map<int, Bytes> get didMap => map((key, value) => MapEntry(key, value.didInfoWithOriginCoin.did));
+  Map<int, Bytes> get didMap =>
+      map((key, value) => MapEntry(key, value.didInfoWithOriginCoin.did));
 
   List<Bytes> get dids => didMap.values.toList();
 }

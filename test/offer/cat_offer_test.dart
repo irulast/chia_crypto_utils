@@ -20,14 +20,17 @@ void main() {
   final catOffer = catOfferService.makeOffer(
     coinsForOffer: MixedCoins(standardCoins: nathan.standardCoins),
     offeredAmounts: const OfferedMixedAmounts(standard: 1000),
-    requestedPayments: RequestedMixedPayments(standard: [Payment(900, nathan.firstPuzzlehash)]),
+    requestedPayments: RequestedMixedPayments(
+      standard: [Payment(900, nathan.firstPuzzlehash)],
+    ),
     keychain: nathan.keychain,
     changePuzzlehash: nathan.firstPuzzlehash,
   );
 
   test('should validate signature of CAT2 offer spend bundle', () {
     expect(
-      () => walletService.validateSpendBundleSignature(catOffer.offeredSpendBundle),
+      () => walletService
+          .validateSpendBundleSignature(catOffer.offeredSpendBundle),
       returnsNormally,
     );
   });
@@ -41,24 +44,36 @@ void main() {
   });
 
   test('should parse CAT2 offer files', () {
-    final usdsAssetId =
-        Puzzlehash.fromHex('6d95dae356e32a71db5ddcb42224754a02524c615c5fc35f568c2af04774e589');
-    final spaceBucksAssetId =
-        Puzzlehash.fromHex('a628c1c2c6fcb74d53746157e438e108eab5c0bb3e5c80ff9b1910b3e4832913');
+    final usdsAssetId = Puzzlehash.fromHex(
+      '6d95dae356e32a71db5ddcb42224754a02524c615c5fc35f568c2af04774e589',
+    );
+    final spaceBucksAssetId = Puzzlehash.fromHex(
+      'a628c1c2c6fcb74d53746157e438e108eab5c0bb3e5c80ff9b1910b3e4832913',
+    );
 
     const offerPoolUsdsRequested =
         'offer1qqz83wcsltt6wcmqvpsxygqqt6eygz974zk0y99dt8zz4v8tnzldmryclq5mla6lhmclhmwv3m6gqf5c8fupxm95vgd6mkzx9wmdrzndk33phtwclc84p3gx98wp0x80lww0pt4469udhhxg4qymj3mzr8ts0xx0t5d33denkp4h0rdv2c24gk0w63dclsc7dv2aar4akdz5nfw53v5usfe3yml8qlzc3ltq0auj57wap2szt2mcmns4svc5sespa0dts7he2wgac8rxykfdy27rnsmnl20etpl8chmn4tfw0hx83s6elq22mmytargvndkmqar6lxe97nwhnm70m29s4t9wt2vrm7s32338h6ws4zszgmh3yg55syk8e72h38nlp0496uhjtf4c562qkw4xhl5krz9u46jm0xf8m4nvj6llyvrkmzuj93mng4hafml60xhd7a4yw4z7hz75u3upvh0w05emdlyelxqrdthgf226a4pkn2svu72kvcyrxaxwwm3nkauh0909lffm04td57uxaa6u475ahc7082f567v47h8fk0nx862cntfaw0866kaq79xk0y6jlgymp4sxfzd0a0mq6u3u0f8h00pl5wlh2jvmpn6cymv0kstzmm8vw0ej408jm2h68xlmlunl9dfs3acnscrtpckyngws5u6unl0sk795d9s74rear0ll49tl0u7dhmu2eh2wj9208mc9nln0vxfqekc8234lxl6pfmm8rasa88m6dke04cykf0ruwu5hl5ktczwhklkl3ew8lnfrern7c54q9tal7zl547753w4sa0puawmwx8gel9kydfjm28aa0tumtevwr54ey44j3rdt8qqrksjl4shpmr2fvycn7vty22z03vunfhamgf0cd20j3hqc78m6q7hlyl3slzhfha00qx8k85l70x45xya7hvcrht35e8vamlhgyrmuaaktf3r0xn38w482knyurk404au5a04ut4j067jw23ylaldvaulae433lr4k3s5spk3wsprst2myfh';
     final offerPoolUsdsOffer = Offer.fromBech32(offerPoolUsdsRequested);
     expect(offerPoolUsdsOffer.requestedAmounts.standard, equals(0));
-    expect(offerPoolUsdsOffer.requestedAmounts.cat[usdsAssetId], equals(0.42 * mojosPerCat));
+    expect(
+      offerPoolUsdsOffer.requestedAmounts.cat[usdsAssetId],
+      equals(0.42 * mojosPerCat),
+    );
 
-    expect(offerPoolUsdsOffer.offeredAmounts.standard, equals((0.01 * mojosPerXch).round()));
+    expect(
+      offerPoolUsdsOffer.offeredAmounts.standard,
+      equals((0.01 * mojosPerXch).round()),
+    );
     expect(offerPoolUsdsOffer.offeredAmounts.cat.isEmpty, true);
 
     const offerPoolSpacebucksOffered =
         'offer1qqz83wcsltt6wcmqvpsxygqqwc7hynr6hum6e0mnf72sn7uvvkpt68eyumkhelprk0adeg42nlelk2mpafs8tkhg2qa9qmxp3mp9hd0p40egtjc2t8lh9kldt70h3gatft30gztnle5ddrtp8wtnjqv43qkdaujr743dltdr67vx6ha0l3huslr8awq67r6wyntkln06xaw7uslmlum2vhd4aux33s8klqaq3nukvc7hamu5ln0wk239xhgnk0ykmh4e822jut6tl42stnl992lsqrhuxf4kll47yznx4q93kms3ljm8wqkh3f9tru5n0fw5680m9gwyzvfylpcrz0ykg6d3lg7d3lg7d3mg7d3mf7vpn60ydxclw34husq27uz7d7e7y77xkmf5mcmrwvn2gthfzkxx75q7vu7hqmrw6r8vmfwj8264q42mvn8ruzskxlaklvrfwfyx87ch3j83dt4crhtkcpkrjk6jvreexejdv959tq2ucyx7w4tyvzpnwmzstjnaz8z3kg6r93dzvttjn669sut6jmgsnhm5c7x3u784dzelwvuzdm5ulf5j7se8maqe6xlleg0jtm5z34qgyrrgsz6vhl30yr2vf77lqfhr5yzkpqedtehls2z93ud9em0uh8xaz58hvlyjdzvl5n67a0w6jwazhefxwtjfarrxmlsd23jl7l7phua7ce3jtumxet0nzesaz772t0n4q6q3e87r848cwead0cmhwedugg0fl8lc95mj4un3dwr942lam05va4l83w3dxa86m4e3ev3djxul4cjwtwrfkl74lu83cqvkznlnlla6u2v7ekwhtmynp9l6xx0rdnld2a52e2ektdgks4rlum7fkzc3z68chls9adkrwv8hth4a7xheueyaunekn7dd00626mn0w0lfff0eexfr040lq9kj84xsl2lcq5znpvf95r2yny6lmhhrwrhq0n7hrd9wulqh78td6gpv62eur0f4ytsnye6ksgtgwze8esk9q5pv0ek3g6796alwnkljxwym0haww8jntk9uwjmlalj5sw6g5jewfskk74ad64w0r4pv8lxl5mjpejn6austdsul8ed8katmxt038vu0lx0rnl6kkts5a5aduc23nxcgndthdkt03hlcx52m844h46gr2924hzlk5jkcxsq8kk0twyf29uts';
-    final offerPoolSpacebucksOffer = Offer.fromBech32(offerPoolSpacebucksOffered);
-    expect(offerPoolSpacebucksOffer.requestedAmounts.standard, equals((3.0 * mojosPerXch).round()));
+    final offerPoolSpacebucksOffer =
+        Offer.fromBech32(offerPoolSpacebucksOffered);
+    expect(
+      offerPoolSpacebucksOffer.requestedAmounts.standard,
+      equals((3.0 * mojosPerXch).round()),
+    );
     expect(offerPoolSpacebucksOffer.requestedAmounts.cat.isEmpty, true);
 
     expect(offerPoolSpacebucksOffer.offeredAmounts.standard, equals(0));
@@ -72,39 +87,47 @@ void main() {
     final offer = catOfferService.makeOffer(
       coinsForOffer: MixedCoins(cats: nathan.cat2Coins),
       offeredAmounts: OfferedMixedAmounts(cat: {nathanCatCoinAssetId: 1000}),
-      requestedPayments: RequestedMixedPayments(standard: [Payment(900, nathan.firstPuzzlehash)]),
+      requestedPayments: RequestedMixedPayments(
+        standard: [Payment(900, nathan.firstPuzzlehash)],
+      ),
       keychain: nathan.keychain,
       changePuzzlehash: nathan.firstPuzzlehash,
     );
 
     try {
-      final parsedOffer =
-          await OfferWalletService.parseOffer(offer, tailDatabaseApi: TailDatabaseApi());
+      final parsedOffer = await OfferWalletService.parseOffer(
+        offer,
+        tailDatabaseApi: TailDatabaseApi(),
+      );
       expect(parsedOffer.requestedAmounts.standard, 900);
     } on FormatException {
       //pass
     }
   });
 
-  test('should fail with null keychain but non-empty offering coins for CAT2', () async {
+  test('should fail with null keychain but non-empty offering coins for CAT2',
+      () async {
     expect(
       () => catOfferService.makeOffer(
         coinsForOffer: MixedCoins(cats: nathan.cat2Coins),
         changePuzzlehash: nathan.firstPuzzlehash,
-        requestedPayments:
-            RequestedMixedPayments(standard: [Payment(1000, nathan.firstPuzzlehash)]),
+        requestedPayments: RequestedMixedPayments(
+          standard: [Payment(1000, nathan.firstPuzzlehash)],
+        ),
       ),
       throwsA(isA<Exception>()),
     );
   });
 
-  test('should fail with null keychain but non-zero offered amount for CAT2', () async {
+  test('should fail with null keychain but non-zero offered amount for CAT2',
+      () async {
     expect(
       () => catOfferService.makeOffer(
         offeredAmounts: OfferedMixedAmounts(cat: {nathanCatCoinAssetId: 1000}),
         changePuzzlehash: nathan.firstPuzzlehash,
-        requestedPayments:
-            RequestedMixedPayments(standard: [Payment(1000, nathan.firstPuzzlehash)]),
+        requestedPayments: RequestedMixedPayments(
+          standard: [Payment(1000, nathan.firstPuzzlehash)],
+        ),
         keychain: nathan.keychain,
       ),
       throwsA(isA<Exception>()),
@@ -119,19 +142,23 @@ void main() {
         coinsForOffer: MixedCoins(cats: nathan.cat2Coins),
         offeredAmounts: OfferedMixedAmounts(cat: {nathanCatCoinAssetId: 1000}),
         changePuzzlehash: nathan.firstPuzzlehash,
-        requestedPayments:
-            RequestedMixedPayments(standard: [Payment(1000, nathan.firstPuzzlehash)]),
+        requestedPayments: RequestedMixedPayments(
+          standard: [Payment(1000, nathan.firstPuzzlehash)],
+        ),
       ),
       throwsA(isA<Exception>()),
     );
   });
 
-  test('should fail with null puzzlehash and non-zero offer amount for CAT2', () async {
+  test('should fail with null puzzlehash and non-zero offer amount for CAT2',
+      () async {
     final askOffer = catOfferService.makeOffer(
       coinsForOffer: MixedCoins(cats: nathan.cat2Coins),
       offeredAmounts: OfferedMixedAmounts(cat: {nathanCatCoinAssetId: 1000}),
       changePuzzlehash: nathan.firstPuzzlehash,
-      requestedPayments: RequestedMixedPayments(standard: [Payment(1000, nathan.firstPuzzlehash)]),
+      requestedPayments: RequestedMixedPayments(
+        standard: [Payment(1000, nathan.firstPuzzlehash)],
+      ),
       keychain: nathan.keychain,
     );
 
@@ -157,8 +184,9 @@ void main() {
         coinsForOffer: MixedCoins(cats: nathan.cat1Coins),
         offeredAmounts: OfferedMixedAmounts(cat: {nathanCat1CoinAssetId: 1000}),
         changePuzzlehash: nathan.firstPuzzlehash,
-        requestedPayments:
-            RequestedMixedPayments(standard: [Payment(1000, nathan.firstPuzzlehash)]),
+        requestedPayments: RequestedMixedPayments(
+          standard: [Payment(1000, nathan.firstPuzzlehash)],
+        ),
         keychain: nathan.keychain,
       ),
       throwsA(isA<InvalidCatException>()),
@@ -170,20 +198,25 @@ void main() {
       () => catOfferService.makeOffer(
         offeredAmounts: OfferedMixedAmounts(cat: {nathanCatCoinAssetId: 1000}),
         changePuzzlehash: nathan.firstPuzzlehash,
-        requestedPayments:
-            RequestedMixedPayments(standard: [Payment(1000, nathan.firstPuzzlehash)]),
+        requestedPayments: RequestedMixedPayments(
+          standard: [Payment(1000, nathan.firstPuzzlehash)],
+        ),
         keychain: nathan.keychain,
       ),
       throwsA(isA<Exception>()),
     );
   });
 
-  test('should fail when offered amounts exceeds offered coins amounts for CAT2', () async {
+  test(
+      'should fail when offered amounts exceeds offered coins amounts for CAT2',
+      () async {
     expect(
       () => catOfferService.makeOffer(
         coinsForOffer: MixedCoins(standardCoins: nathan.standardCoins),
         offeredAmounts: const OfferedMixedAmounts(standard: 10000),
-        requestedPayments: RequestedMixedPayments(standard: [Payment(900, nathan.firstPuzzlehash)]),
+        requestedPayments: RequestedMixedPayments(
+          standard: [Payment(900, nathan.firstPuzzlehash)],
+        ),
         keychain: nathan.keychain,
         changePuzzlehash: nathan.firstPuzzlehash,
       ),
@@ -196,8 +229,9 @@ void main() {
       () => catOfferService.makeOffer(
         offeredAmounts: OfferedMixedAmounts(cat: {nathanCatCoinAssetId: -1}),
         changePuzzlehash: nathan.firstPuzzlehash,
-        requestedPayments:
-            RequestedMixedPayments(standard: [Payment(1000, nathan.firstPuzzlehash)]),
+        requestedPayments: RequestedMixedPayments(
+          standard: [Payment(1000, nathan.firstPuzzlehash)],
+        ),
         keychain: nathan.keychain,
       ),
       throwsA(isA<Exception>()),
@@ -209,8 +243,9 @@ void main() {
       () => catOfferService.makeOffer(
         offeredAmounts: const OfferedMixedAmounts(standard: -1),
         changePuzzlehash: nathan.firstPuzzlehash,
-        requestedPayments:
-            RequestedMixedPayments(standard: [Payment(1000, nathan.firstPuzzlehash)]),
+        requestedPayments: RequestedMixedPayments(
+          standard: [Payment(1000, nathan.firstPuzzlehash)],
+        ),
         keychain: nathan.keychain,
       ),
       throwsA(isA<Exception>()),
@@ -232,7 +267,8 @@ void main() {
     expect(offer.offeredCoins.cats.length, 1);
   });
 
-  test('should create an offer from an offer file offering both CAT and NFT', () async {
+  test('should create an offer from an offer file offering both CAT and NFT',
+      () async {
     const offerFile =
         'offer1qqzh3wcuu2ryhmwu0v6ffhg7qlc8z2d00deqkhwlpp5usmg5hxzzfa6m5s5xdrp3p3nge339d9x8g425z3znmm4aeqj522y2gs22zgjzvk29f6zx5j0rxg66wht8h43uv7kaxw0089nlhqa4vmkmt8mdau7hk04luuanx2q5fg2vtcd8utvh4mxgxhnm3q6hcw6l3y4jck8gct3ct000lzdc4vun6l8zt3wdsm9mhltgflm87vrps65nzetn04aczrdlj6w3us5l0pv3dg96cjjkagmqn78r6n3ytdlxt33r2xg3er3whew8rg7e90x09hctgcls7znyew2ua8eakrte93j3ya4m87pxxa94j4x4r5uhtyfaexkkqgznrzgl3ezs3ww8dv7sj3arzdr4t9x9jt85kt53y608nttlgfmma3wz973y0d9egn9kytdky5035w5ete2te7rxw4zedgdyltxp5uwd9mfq7dlkgqwq9cssrrzzrlu9w8yt00gdahya2u9vae5hm5kmcsll0cnranrv4xedrec4hdxu546mkuvrju3vav267jaqs7r5p9y0p2flkj7hnjcyd2c77y00j8jzxj3lx6uf2apl8s935xwal8ajvwu0a00x8qg6ly6nnyd6qm20p3krqkv6mkfkn9mkl68lx9e6j8c0pugv9ly6p5qy9x8lm5gxv7krgwg02wghn2k48f5p68424n7kwnhgpltnv3etxu26qk04dka67ww23xtatmkgftc8lvzq0yafhf4x44ps94p2q4sspxplr38pk45czk9u5unez9yzcuf8esasvyssgmczj5tyau8kyjzdrlyzwj7gyzpp5y29tnaqzz7zwrd0r2qq743rl8aqfcygx3xc9zv9gcgvzmaakxyuup5n4kmwhddg4ejtyuucdws2j2u9vgt356hreylycldqz4gerjdasmrh3lphfq7mhmfs537kj7f6k76v5k57jv879p8f6cn4jffpc0luwq0ze828q54qxeyaxv6qywgggg2sl5pusxxdwp0klaslr5x5lrqkpk35854xvxcwfs8qgp9psn5nuruaxqph59wecamzdzhpkvfctg5dnknnslrp4v49l28wq8dtf56jm5tgt2ctwvg7svxhgddrsmgdj9lhsy0wr9z0hytcgyn9gsn8x8p56sjz75x0ejyk5ke4hq7eqmrcf35vze2k405eh0svjg8c4avmrtqtum6gpk0y2q057kg2trtzl2ea845x7hx6jrhpmkxhw2j29ajvftmt68aj8p7c6eclsncw85gflld5kaqhcphzxv8w8q2p0jr8f8078hcandan4uhx729vxqtjteaymqrntdqcxur2a7gc95tn552judqrtwxc4wuwykanm9e7emu2gcgy8qgcagh37s7pllnwyzxzr6taasm52ehecca9mgj0wk38ffqygae7tc0hk0zvee8nzw5r48e26xvravphk7850lcdf75ll4svsax8g5zs052ntmthc4mda099s7rka8wd2hpwkr4n9ktwnhwg4yhkflzhkfjnuduqtccesdvvrgg78snx23wlaj553llepuxy8pnum5k7ts6jk38g8eq8zgw36pessu5k8n0cclv5wnl8ta6vj7xtsjsk6qt3e7lx37zmj96e9hkqg7z909p4cgfrkfvj73zjpav9j375zyknyd3a7xv6rcc2kk5z8rw7jephu0vgs0f6gvvp9hhpktacsq92vhjw6e49fj7n0p9ec5umvu0jlhzd7wj67s7eg9g7kpdytrd39u7hh9c0f8ral8a3plap0egsvh6mlh9cn26r064yc8hvzsm5plru32x3kmpm3rn4xy7ddrjelj95e9sd3lphvh37d8n7yeza4hm2un8uvwtc4k8s7cz76qu3r5emwqme0md8ug93qkyj6jrvg93qkyjmjrv0uur7l35vghummp8plm5sfm2hhrlpnq5vm5j567klrl3hmkus4mt52ghasme0kul4gxd3dpjlsn9n6u9xtwl24nrhf44z04zem5x0wakwpe5aw0hnm62djq02c39wp5keu7dfqzly9e4t07ryzy5g3xesap3gd4wgx9ep8k96n4hul6p38vwtpfh33a225x0cst4c0n2vh2wk8hndk05959t78wpp5ksme2wjs78ytas848hg0r9j5my9mmlm3prktnptdfla0qdpd63u9xkljvjn8mjvmk3n06tfnhm8ema9540tf7v0em0z8gvwze5c5vqr24rgwgv83l8rcum2j3wz9n3m6yprtrrn3u87ucsxgc6kmkmz0dr02m5ydgn7kk5ulqzy88qqqhemp3lulmslecaeycjkwxkd6akajjrnlm9thcjrvhu4pk7nku3rmv80thdkvpqe9a4ln3zcz0q2jfuy5rahn0cr6qqaqqwsq8gqr5qp6r7hqlsq6r7nlq2wr7r25w4dv87z9h2dd2dh6kcyzu78q7h9hlp0taf970aat32ze87afpywtxpqn3mldz074v7u7qsed50ea64dqk6xh43puf0lfcrr26379l09g6qzr9n6qtuxev4gu5efnk8qv6ck77nujfdwasgg72rte8y977nh84lcdcpr09z8pcsgxrmdcsetnt5rstj7vk3de4gnnrpqr08wag3d42wdrwc8y4fjjcn8rwehzs33svfh04azwul2pysupwqpcqqvqqxqqrqqps9xrupsp7e7hycqpk8hfyzsp76nsp6mcvl3jm7neaatj8er2cn9feqn393ca7ug5hwkdymjacwscx9nuefsxss8m0m55tnwq4mlt4dn0y5r5z9892c5882and6hmhug5pzprrhgzl2cqzfjt4nru44s70j5a294qtjhz0s4rz53f2m20k3cpcawp640pr3twgvzzdrcqudngaw0va08zav5nrvyqx9k4hhcqehkjuw0h29s8ytnz2t63h42we98m7cfq8q836xnyu9208jq5sysqpsqqcqqvqqxqqrq8qqpsr7s4qqe9j69gu976g4dw2q7xdlvnf5x52vw5730wgqulv8lrw57plzwpd23syk3h023t9x76n6ursqqqhnnyzvj26g4jn04lte9ctdagd84fp66vyrx58utvzjzr7gyl4664d4946p2ay5hcvkrymktg3ttwax8mtyw9nhyd765us6yyajzzezuqyeewtue48uvfamn4u4h8wt7cw7fczw0kf7j8vnfevk9xjhw94r8d4uwl4v46n3asygpyyqvzqxpqrqspsgqcpsyqvz0k9gyt0rtfrtzl6m8zcn7j5jxjtwxusjewf87gvaujxzmr4q80jkm66eslpj2udh972mmnxavpt0mj4r5rz3mj70kech8r5h4d8na9dznhg6rtpkq2vmck6eqse4et8ycadzp4s3xnhvaf96ka77x9f28fzdk7rvmeklchfa7mf2uuxyw3ppvs679kvkh4z9a7swexkmw5q376mckcvr9f9zmjz53rntm07zfx7377q4jrpezu6cz8r6sgcjggqcyqvzqxpqrqspsrqgqcy8v2ugzcy2h62tt0hc0d0my28r45lss95ut8jepdr02h5m22eapwwpde6grgvr24mhdldt5drvth97a5v3q8fkd0xtl0fszelgyhm4kp8g577ga6d6eld3p0zmqeu8ar0mkv0e6k27d2lf6x2f5t3pjjl8u9f775h0n6sqjzcm57vp5gazzzezz5fv7ks5czcvdat9q6vkdp7a5mv24aur88plk8n0e777nc77vrcfgq2p0r5jeadr2wul2pysuz7qpcyqvzqxpqrqspsdxrupsf7e7hyczpk8hfyzsf76nsgys5ttljmues4a0jf53tew2nueedm8v77g4d38s9uumcu4f5kpyydsv556zlkhfupn6ftexta9r5zf05t92ys3jtjle4t4euvnhvd6endss5v6se5kgyh2djd9ynhptr5a3er47kum8fsx6hn9rrvkw8wmg57xh6avlv6dup53r5ufyrqhhhnrufl45krau9ytrua4lvf5739rq69tz2wrqyxujk5xgjtqv326m6wzzezry9u8208jqzqysspsgqcyqvzqxpqrq8qspst7s4qhfzhyrg7j9clks550gmpvhmdzs598q3wlmm352asep0sryzm62n5rcvnr968a05njpggp039rpnp70mvv8cmvxwftduthd08e76t9k6xactza6fr69xrlkph9u02kuxdgzn0g4fa96ku3fs3e0jlfkcmrjlpr9xrn8unxg73jyyajyze9j50fjm56fj3ev95a883ykd2k9p5v99z5rtdm727cvx5uvqkmmpnvahuwep0q6jflswe7yqvzqxpqrqspsgqcpsyqvzrk9wypv67n7n9nh5ysm8k86udswamw54ru5z4nz97pwmzky8wj9dfvuuk9gwgft5defx4zmw3fgp4y238tjjq08fzcuwh4y6ctwtx9hvmtnxh5er8pse8jpzmqcu2qtqlgjufmeml7z42dqx5ldwf3udw940f0qz2zmv40n4mwgcd20gazzwer0clnlehtzfqyzds56sryd5azan6caxuayhgfzmgkl8x98f09jj5nefyxrh9cpfd7rmz8punhafspcc0m9znk9pn3m7ndad4yz5wujw37e845jyk9xdr0zek2c82eq600a24uy59yaqvmsc8j2hwlmc4emtlf93qqekwh8hd2ct62glmxqrky692dpa8vl98tl6c5ddnph56mdck22n6nxg9lfjzmmdfazcc8g52hft26rzsspex4088gvtqy9v80f42eadm6jwra22rx5v2tl4ekpt0zkz8wfesym8kh8t7vfaf9a6h937p3j06dlarc7fstygnlywv0c29yxgjzmf8t5emmea7hyrwued95uah385hupzgdw4eenm36avnmeytsnflmgrpeetlny2wn70wuzmv4903p4lym4ukpj2vgsmq5jpz2yfgpyqgj3z2yf5c0sxfw37lyctll2ykg7s0k6xh8jh743p48wh34h8f23yu2rzyyls4lges4ehwzzp6677d5u0x5spa8c6al7nun5yxplc6uhxauuwk56kk5t76zmlj3wrs8dh29w8uh7l30w0z0jf3rdmwlj5c3wlkgjav9ful5zawt8arndv84maeewtd7l5faaq0h9nddev9my2d8wtdlduzvxfjwak97x3efjec8rgnvwa2lwtp808k8dv9fagyh3cg7sm7vc3m0fjynt9ylhufy6flzfvv48t532azll08v7t2lmryvulh2f7eqaedsefc9we55gqwsxpzqn59nxvq2pfuw020kazda3yckv95pxgn3knrw72h29wwg3ph2ndlafak45gmkgnzl2r5zmt26rw7fh46ulz80uzjlf2uyxn0qpdg0hhn656u9ykltexxhd8k2xsw7kuqxkq8tqr4sp6cqavqwklktm9tnytlcfdmxz0yssn5qe377lmgar8w4f5pd6l22naayaae6uc9j29wvhn2gq4naclvuw8n79yza00576qfapmfwj9gk66zw0559xvfqmtkw9g0cc8t5dwtym8trtu4x4erlktrjzytfr7kuvtwxks4vw89sj5kpldg5ujjahxdr82uqx94nemx9c7eyx4ldtvg3nwly90mffgeqk2lm00arxn4pr8msmpv0ggehaddfcqy9gvwq3d2t8t8rmgt8t556m37lxe9m0ef7tflgey9cupa3zh5lcyh5umuuxlhp7qltju9c49ekwf4aegny7mnttn9gwh42znx46gymsfv6aum9qwnh9f0ddrk5vhvuhda52gh83h3nyfjs6ka8pl9xetw66f56vkh4ujxtu89fym962dplsx4wkhnmsxu0k77';
     final offer = Offer.fromBech32(offerFile);

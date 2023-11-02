@@ -21,7 +21,9 @@ class DexieOffersApi {
       throw DexieApiErrorException(errorMessage: baseResponse.errorMessage);
     }
 
-    return DexieOffer.fromJson(pick(bodyJson, 'offer').letJsonOrThrow((json) => json));
+    return DexieOffer.fromJson(
+      pick(bodyJson, 'offer').letJsonOrThrow((json) => json),
+    );
   }
 }
 

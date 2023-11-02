@@ -22,8 +22,10 @@ class ChiaEnthusiastBase {
   List<Coin> standardCoins = [];
   List<CatCoin> catCoins = [];
 
-  List<CatCoin> get cat1Coins => catCoins.where((c) => c.catVersion == 1).toList();
-  List<CatCoin> get cat2Coins => catCoins.where((c) => c.catVersion == 2).toList();
+  List<CatCoin> get cat1Coins =>
+      catCoins.where((c) => c.catVersion == 1).toList();
+  List<CatCoin> get cat2Coins =>
+      catCoins.where((c) => c.catVersion == 2).toList();
 
   DidInfo? didInfo;
   late WalletKeychain keychain;
@@ -34,10 +36,12 @@ class ChiaEnthusiastBase {
 
   List<Puzzlehash> get outerPuzzlehashes => keychain.unhardenedMap.values.fold(
         <Puzzlehash>[],
-        (previousValue, wv) => previousValue + wv.assetIdtoOuterPuzzlehash.values.toList(),
+        (previousValue, wv) =>
+            previousValue + wv.assetIdtoOuterPuzzlehash.values.toList(),
       );
 
-  UnhardenedWalletVector get firstWalletVector => keychain.unhardenedMap.values.first;
+  UnhardenedWalletVector get firstWalletVector =>
+      keychain.unhardenedMap.values.first;
 
   Puzzlehash get firstPuzzlehash => firstWalletVector.puzzlehash;
 

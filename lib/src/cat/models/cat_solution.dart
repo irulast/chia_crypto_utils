@@ -40,7 +40,8 @@ class CatSolution with ToProgramMixin {
     try {
       return CatSolution.fromProgram(program);
     } catch (e) {
-      LoggingContext().error('Error parsing cat solution from program: $program');
+      LoggingContext()
+          .error('Error parsing cat solution from program: $program');
       return null;
     }
   }
@@ -69,7 +70,8 @@ class CatSolution with ToProgramMixin {
   CoinPrototype getChild(Puzzlehash assetId) {
     return CoinPrototype(
       parentCoinInfo: nextCoinProof.parentCoinInfo,
-      puzzlehash: WalletKeychain.makeOuterPuzzleHash(nextCoinProof.puzzlehash, assetId),
+      puzzlehash:
+          WalletKeychain.makeOuterPuzzleHash(nextCoinProof.puzzlehash, assetId),
       amount: nextCoinProof.amount,
     );
   }

@@ -9,6 +9,9 @@ void main() {
 
   test('should return the desired string form with message', () {
     const message = 'Invalid CAT exception message';
-    expect(InvalidCatException(message: message).toString(), 'Invalid CAT: $message');
+    expect(
+      InvalidCatException(message: message).toString(),
+      'Invalid CAT: $message',
+    );
   });
 }

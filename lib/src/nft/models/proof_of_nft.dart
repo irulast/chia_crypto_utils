@@ -5,11 +5,13 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 class ProofOfNft {
   factory ProofOfNft.fromNft(NftRecord nft, WalletKeychain keychain) {
     final walletVector = keychain.getWalletVectorOrThrow(nft.p2Puzzlehash);
-    final syntheticPrivateKey = calculateSyntheticPrivateKey(walletVector.childPrivateKey);
+    final syntheticPrivateKey =
+        calculateSyntheticPrivateKey(walletVector.childPrivateKey);
     final syntheticPublicKey = syntheticPrivateKey.getG1();
     final timestamp = DateTime.now();
     final timestampBytes = encodeInt(timestamp.millisecondsSinceEpoch);
-    final signature = AugSchemeMPL.sign(syntheticPrivateKey, nft.launcherId + timestampBytes);
+    final signature =
+        AugSchemeMPL.sign(syntheticPrivateKey, nft.launcherId + timestampBytes);
 
     return ProofOfNft._(
       launcherId: nft.launcherId,
@@ -87,7 +89,8 @@ class ProofOfNft {
       return nullResult;
     }
 
-    final p2PuzzleReveal = getP2PuzzleFromSyntheticPublicKey(syntheticPublicKey);
+    final p2PuzzleReveal =
+        getP2PuzzleFromSyntheticPublicKey(syntheticPublicKey);
     if (p2PuzzleReveal.hash() != nft.p2Puzzlehash) {
       return NftVerificationResult(
         nft: nft,

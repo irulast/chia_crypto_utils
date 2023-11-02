@@ -57,7 +57,8 @@ void main() async {
 
     await nathan.refreshCoins();
 
-    nftRecord = (await fullNodeSimulator.getNftRecordsByHint(targetPuzzleHash)).single;
+    nftRecord =
+        (await fullNodeSimulator.getNftRecordsByHint(targetPuzzleHash)).single;
   });
 
   test('should create and spend dependent fee coin', () async {
@@ -78,21 +79,25 @@ void main() async {
 
     final dependentCoin = dependentCoinsAndCreationBundle.dependentCoins.first;
 
-    await fullNodeSimulator.pushTransaction(dependentCoinsAndCreationBundle.creationBundle);
+    await fullNodeSimulator
+        .pushTransaction(dependentCoinsAndCreationBundle.creationBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final dependentCoinFromBlockchain = await fullNodeSimulator.getCoinById(dependentCoin.id);
+    final dependentCoinFromBlockchain =
+        await fullNodeSimulator.getCoinById(dependentCoin.id);
 
     expect(dependentCoin, dependentCoinFromBlockchain);
 
-    final dependentFeeBundle = dependentCoinWalletService.createFeeCoinSpendBundle(
+    final dependentFeeBundle =
+        dependentCoinWalletService.createFeeCoinSpendBundle(
       dependentCoin: dependentCoinsAndCreationBundle.dependentCoins.first,
     );
 
     await fullNodeSimulator.pushTransaction(nftSendBundle + dependentFeeBundle);
   });
 
-  test('should fail to spend dependent coin if condition is not satisfied', () async {
+  test('should fail to spend dependent coin if condition is not satisfied',
+      () async {
     final dependentCoinsAndCreationBundle =
         dependentCoinWalletService.createGenerateDependentCoinsSpendBundle(
       amountPerCoin: 50,
@@ -104,14 +109,17 @@ void main() async {
 
     final dependentCoin = dependentCoinsAndCreationBundle.dependentCoins.first;
 
-    await fullNodeSimulator.pushTransaction(dependentCoinsAndCreationBundle.creationBundle);
+    await fullNodeSimulator
+        .pushTransaction(dependentCoinsAndCreationBundle.creationBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final dependentCoinFromBlockchain = await fullNodeSimulator.getCoinById(dependentCoin.id);
+    final dependentCoinFromBlockchain =
+        await fullNodeSimulator.getCoinById(dependentCoin.id);
 
     expect(dependentCoin, dependentCoinFromBlockchain);
 
-    final dependentFeeBundle = dependentCoinWalletService.createFeeCoinSpendBundle(
+    final dependentFeeBundle =
+        dependentCoinWalletService.createFeeCoinSpendBundle(
       dependentCoin: dependentCoinsAndCreationBundle.dependentCoins.first,
     );
     // add pointless signature to avoid out of range full node bug
@@ -127,7 +135,8 @@ void main() async {
 
     expect(
       () async {
-        await fullNodeSimulator.pushTransaction(mockSignatureSpendBundle + dependentFeeBundle);
+        await fullNodeSimulator
+            .pushTransaction(mockSignatureSpendBundle + dependentFeeBundle);
       },
       throwsA(const TypeMatcher<AssertAnnouncementConsumeFailedException>()),
     );

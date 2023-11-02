@@ -65,7 +65,8 @@ class Client {
         }
       });
     }
-    request.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
+    request.headers.contentType =
+        ContentType('application', 'json', charset: 'utf-8');
 
     final response = await request.close().timeout(
           timeout,
@@ -100,7 +101,8 @@ class Client {
           request.headers.add(key, value);
         });
       }
-      request.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
+      request.headers.contentType =
+          ContentType('application', 'json', charset: 'utf-8');
       request.write(jsonEncode(requestBody));
 
       final response = await request.close().timeout(
@@ -117,7 +119,9 @@ class Client {
     } on HttpException catch (e) {
       LoggingContext().api(e.toString());
 
-      if (e.toString().contains('Connection closed before full header was received')) {
+      if (e
+          .toString()
+          .contains('Connection closed before full header was received')) {
         throw BadAuthenticationException();
       }
       rethrow;
@@ -186,7 +190,8 @@ class Client {
           : null,
       'certificate': response.certificate != null
           ? <String, dynamic>{
-              'end_validity': response.certificate!.endValidity.toIso8601String(),
+              'end_validity':
+                  response.certificate!.endValidity.toIso8601String(),
               'issuer': response.certificate!.issuer,
               'pem': response.certificate!.pem,
             }
@@ -219,5 +224,6 @@ class Response {
   int statusCode;
 
   @override
-  String toString() => 'Response(body: ${body.trim()}, statusCode: $statusCode)';
+  String toString() =>
+      'Response(body: ${body.trim()}, statusCode: $statusCode)';
 }

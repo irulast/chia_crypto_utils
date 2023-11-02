@@ -9,10 +9,16 @@ class SingletonWalletVector with ToBytesMixin {
     required this.derivationIndex,
   });
 
-  SingletonWalletVector.fromMasterPrivateKey(PrivateKey masterPrivateKey, this.derivationIndex)
-      : singletonOwnerPrivateKey = masterSkToSingletonOwnerSk(masterPrivateKey, derivationIndex),
-        poolingAuthenticationPrivateKey =
-            masterSkToPoolingAuthenticationSk(masterPrivateKey, derivationIndex, 0);
+  SingletonWalletVector.fromMasterPrivateKey(
+    PrivateKey masterPrivateKey,
+    this.derivationIndex,
+  )   : singletonOwnerPrivateKey =
+            masterSkToSingletonOwnerSk(masterPrivateKey, derivationIndex),
+        poolingAuthenticationPrivateKey = masterSkToPoolingAuthenticationSk(
+          masterPrivateKey,
+          derivationIndex,
+          0,
+        );
 
   factory SingletonWalletVector.fromStream(Iterator<int> iterator) {
     final singletonOwnerPrivateKey = PrivateKey.fromStream(iterator);
@@ -39,10 +45,12 @@ class SingletonWalletVector with ToBytesMixin {
   final int derivationIndex;
 
   JacobianPoint get singletonOwnerPublicKey => singletonOwnerPrivateKey.getG1();
-  JacobianPoint get poolingAuthenticationPublicKey => poolingAuthenticationPrivateKey.getG1();
+  JacobianPoint get poolingAuthenticationPublicKey =>
+      poolingAuthenticationPrivateKey.getG1();
   Puzzlehash get plotNftHint => makePlotNftHint(singletonOwnerPublicKey);
 
-  static Puzzlehash makePlotNftHint(JacobianPoint singletonOwnerPublicKey) => Puzzlehash(
+  static Puzzlehash makePlotNftHint(JacobianPoint singletonOwnerPublicKey) =>
+      Puzzlehash(
         singletonOwnerPublicKey.toBytes().sha256Hash(),
       );
 
@@ -66,7 +74,8 @@ class SingletonWalletVector with ToBytesMixin {
         other is SingletonWalletVector &&
             runtimeType == other.runtimeType &&
             singletonOwnerPrivateKey == other.singletonOwnerPrivateKey &&
-            poolingAuthenticationPrivateKey == other.poolingAuthenticationPrivateKey &&
+            poolingAuthenticationPrivateKey ==
+                other.poolingAuthenticationPrivateKey &&
             derivationIndex == other.derivationIndex;
   }
 }

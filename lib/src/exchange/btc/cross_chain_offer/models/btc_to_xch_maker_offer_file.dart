@@ -11,12 +11,17 @@ class BtcToXchMakerOfferFile implements MakerCrossChainOfferFile {
     required this.publicKey,
   });
 
-  factory BtcToXchMakerOfferFile._fromSerializedOfferFileTask(String serializedOfferFile) {
+  factory BtcToXchMakerOfferFile._fromSerializedOfferFileTask(
+    String serializedOfferFile,
+  ) {
     return BtcToXchMakerOfferFile.fromSerializedOfferFile(serializedOfferFile);
   }
 
-  factory BtcToXchMakerOfferFile.fromSerializedOfferFile(String serializedOfferFile) {
-    final deserializedOfferFile = maybeFromSerializedOfferFile(serializedOfferFile);
+  factory BtcToXchMakerOfferFile.fromSerializedOfferFile(
+    String serializedOfferFile,
+  ) {
+    final deserializedOfferFile =
+        maybeFromSerializedOfferFile(serializedOfferFile);
 
     if (deserializedOfferFile == null) {
       throw InvalidCrossChainOfferType(CrossChainOfferFileType.btcToXch.name);
@@ -26,11 +31,15 @@ class BtcToXchMakerOfferFile implements MakerCrossChainOfferFile {
 
   factory BtcToXchMakerOfferFile.fromJson(Map<String, dynamic> json) {
     return BtcToXchMakerOfferFile(
-      initializationCoinId: (json['initialization_coin_id'] as String).hexToBytes(),
-      offeredAmount: ExchangeAmount.fromJson(json['offered'] as Map<String, dynamic>),
-      requestedAmount: ExchangeAmount.fromJson(json['requested'] as Map<String, dynamic>),
-      messageAddress:
-          Address((json['message_address'] as Map<String, dynamic>)['address'] as String),
+      initializationCoinId:
+          (json['initialization_coin_id'] as String).hexToBytes(),
+      offeredAmount:
+          ExchangeAmount.fromJson(json['offered'] as Map<String, dynamic>),
+      requestedAmount:
+          ExchangeAmount.fromJson(json['requested'] as Map<String, dynamic>),
+      messageAddress: Address(
+        (json['message_address'] as Map<String, dynamic>)['address'] as String,
+      ),
       validityTime: json['validity_time'] as int,
       publicKey: JacobianPoint.fromHexG1(json['public_key'] as String),
     );
@@ -68,7 +77,9 @@ class BtcToXchMakerOfferFile implements MakerCrossChainOfferFile {
         'public_key': publicKey.toHex(),
       };
 
-  static BtcToXchMakerOfferFile? maybeFromSerializedOfferFile(String serializedOfferFile) {
+  static BtcToXchMakerOfferFile? maybeFromSerializedOfferFile(
+    String serializedOfferFile,
+  ) {
     try {
       final deserializedOfferFile =
           CrossChainOfferFile.fromSerializedOfferFile(serializedOfferFile);
@@ -84,8 +95,10 @@ class BtcToXchMakerOfferFile implements MakerCrossChainOfferFile {
   static Future<BtcToXchMakerOfferFile> fromSerializedOfferFileAsync(
     String serializedOfferFile,
   ) async {
-    final result =
-        await compute(BtcToXchMakerOfferFile._fromSerializedOfferFileTask, serializedOfferFile);
+    final result = await compute(
+      BtcToXchMakerOfferFile._fromSerializedOfferFileTask,
+      serializedOfferFile,
+    );
 
     return result;
   }

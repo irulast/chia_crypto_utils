@@ -13,7 +13,8 @@ Future<GetFarmerResponse> getFarmingStatus(
     keychainSecret.masterPrivateKey,
   );
   final farmerInfo = await poolService.getFarmerInfo(
-    authenticationPrivateKey: singletonWalletVector.poolingAuthenticationPrivateKey,
+    authenticationPrivateKey:
+        singletonWalletVector.poolingAuthenticationPrivateKey,
     launcherId: plotNft.launcherId,
   );
 

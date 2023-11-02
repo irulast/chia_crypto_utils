@@ -69,7 +69,9 @@ class Offer {
     );
   }
 
-  static Future<Offer> fromDummySpendBundleAsync(SpendBundle spendBundle) async {
+  static Future<Offer> fromDummySpendBundleAsync(
+    SpendBundle spendBundle,
+  ) async {
     return Offer(
       offeredSpendBundle: SpendBundle.withNullableSignatures(
         coinSpends: Offer.getLeftOverCoinSpends(spendBundle),
@@ -101,7 +103,8 @@ class Offer {
       }
 
       for (final addition in coinSpend.additions) {
-        final offeredCoin = puzzleDriver.makeOfferedCoinFromParentSpend(addition, coinSpend);
+        final offeredCoin =
+            puzzleDriver.makeOfferedCoinFromParentSpend(addition, coinSpend);
         if (offeredCoin != null) {
           offeredCoins.add(offeredCoin);
         }
@@ -114,27 +117,31 @@ class Offer {
 
     final removalIds = offeredSpendBundle.removals.map((e) => e.id).toSet();
 
-    return offeredCoins.where((element) => !removalIds.contains(element.coin.id)).toList();
+    return offeredCoins
+        .where((element) => !removalIds.contains(element.coin.id))
+        .toList();
   }
 
-  MixedCoins get offeredCoins => MixedCoins.fromOfferedCoins(generalOfferedCoins);
+  MixedCoins get offeredCoins =>
+      MixedCoins.fromOfferedCoins(generalOfferedCoins);
 
   MixedAmounts get offeredAmounts {
     final offeredCoins = this.offeredCoins;
 
     return MixedAmounts.fromMap({
       GeneralCoinType.standard: {null: offeredCoins.standardCoins.totalValue},
-      GeneralCoinType.cat:
-          offeredCoins.catMap.map((assetId, coins) => MapEntry(assetId, coins.totalValue)),
-      GeneralCoinType.nft:
-          offeredCoins.nftMap.map((launcherId, nft) => MapEntry(launcherId, nft.coin.amount)),
+      GeneralCoinType.cat: offeredCoins.catMap
+          .map((assetId, coins) => MapEntry(assetId, coins.totalValue)),
+      GeneralCoinType.nft: offeredCoins.nftMap
+          .map((launcherId, nft) => MapEntry(launcherId, nft.coin.amount)),
     });
   }
 
   MixedAmounts get requestedAmounts {
     return MixedAmounts.fromMap({
       for (final entry in requestedPayments.map.entries)
-        entry.key: entry.value.map((key, value) => MapEntry(key, value.totalValue)),
+        entry.key:
+            entry.value.map((key, value) => MapEntry(key, value.totalValue)),
     });
   }
 
@@ -156,7 +163,8 @@ class Offer {
 
   SpendBundle toSpendBundle([Puzzlehash? arbitragePuzzlehash]) {
     final arbitrageAmounts = arbitrage().toGeneralizedMap();
-    if (arbitrageAmounts.values.any((element) => element != 0) && arbitragePuzzlehash == null) {
+    if (arbitrageAmounts.values.any((element) => element != 0) &&
+        arbitragePuzzlehash == null) {
       throw ArgumentError(
         'If there are left over coins, and arbitrage puzzlehash must be specified: $arbitrageAmounts',
       );
@@ -171,10 +179,14 @@ class Offer {
       final allPayments = List<NotarizedPayment>.of(payments);
 
       final arbitrageAmountForThisAsset = arbitrageAmounts[assetId];
-      if (arbitrageAmountForThisAsset != null && arbitrageAmountForThisAsset > 0) {
+      if (arbitrageAmountForThisAsset != null &&
+          arbitrageAmountForThisAsset > 0) {
         // TODO(nvjoshi2): add hint for nft
         allPayments.add(
-          NotarizedPayment.withDefaultNonce(arbitrageAmountForThisAsset, arbitragePuzzlehash!),
+          NotarizedPayment.withDefaultNonce(
+            arbitrageAmountForThisAsset,
+            arbitragePuzzlehash!,
+          ),
         );
       }
 
@@ -190,12 +202,15 @@ class Offer {
     return SpendBundle(coinSpends: completionCoinSpends) + offeredSpendBundle;
   }
 
-  Future<SpendBundle> toSpendBundleAsync([Puzzlehash? arbitragePuzzlehash]) async {
+  Future<SpendBundle> toSpendBundleAsync([
+    Puzzlehash? arbitragePuzzlehash,
+  ]) async {
     return spawnAndWaitForIsolate(
       taskArgument: ToSpendBundleArgs(
         offer: this,
         arbitragePuzzlehash: arbitragePuzzlehash,
-        network: stringToNetwork(ChiaNetworkContextWrapper().blockchainNetwork.name),
+        network:
+            stringToNetwork(ChiaNetworkContextWrapper().blockchainNetwork.name),
       ),
       isolateTask: _toSpendBundleTask,
       handleTaskCompletion: SpendBundle.fromJson,
@@ -213,7 +228,8 @@ class Offer {
 
     requestedPayments.toGeneralizedMap().forEach((assetId, payments) {
       final driver = driverDict[assetId]!;
-      final puzzleReveal = driver.getNewFullPuzzleForP2Puzzle(defaultSettlementProgram);
+      final puzzleReveal =
+          driver.getNewFullPuzzleForP2Puzzle(defaultSettlementProgram);
       dummyCoinSpends.add(
         CoinSpend(
           coin: CoinPrototype(
@@ -251,13 +267,17 @@ class Offer {
     return innerSolutions;
   }
 
-  static List<NotarizedPayment> getPaymentsFromPrograms(List<Program> programs) {
+  static List<NotarizedPayment> getPaymentsFromPrograms(
+    List<Program> programs,
+  ) {
     final payments = <NotarizedPayment>[];
     for (final program in programs) {
       final programCons = program.cons;
       final nonce = programCons[0].atom;
       payments.addAll(
-        programCons[1].toList().map((p) => Payment.fromProgram(p).toNotarizedPayment(nonce)),
+        programCons[1]
+            .toList()
+            .map((p) => Payment.fromProgram(p).toNotarizedPayment(nonce)),
       );
     }
 
@@ -305,8 +325,9 @@ class Offer {
         case SpendType.did:
           break;
         case SpendType.standard:
-          requestedStandardPayments
-              .addAll(Offer.getPaymentsFromPrograms(coinSpend.solution.toList()));
+          requestedStandardPayments.addAll(
+            Offer.getPaymentsFromPrograms(coinSpend.solution.toList()),
+          );
           break;
         case SpendType.cat:
         case SpendType.cat1:
@@ -350,8 +371,9 @@ class Offer {
         case SpendType.did:
           break;
         case SpendType.standard:
-          requestedStandardPayments
-              .addAll(Offer.getPaymentsFromPrograms(coinSpend.solution.toList()));
+          requestedStandardPayments.addAll(
+            Offer.getPaymentsFromPrograms(coinSpend.solution.toList()),
+          );
           break;
         case SpendType.cat:
         case SpendType.cat1:
@@ -373,7 +395,8 @@ class Offer {
   }
 
   Program? get requestedPaymentsSettlementProgram {
-    final assertPuzzleAnnouncements = BaseWalletService.extractConditionsFromProgramList(
+    final assertPuzzleAnnouncements =
+        BaseWalletService.extractConditionsFromProgramList(
       offeredSpendBundle.outputConditions,
       AssertPuzzleAnnouncementCondition.isThisCondition,
       AssertPuzzleAnnouncementCondition.fromProgram,
@@ -388,7 +411,8 @@ class Offer {
       settlementPaymentsProgram,
       // settlementPaymentsProgram,
     ]) {
-      final settlementProgramAnnouncementHashes = OfferWalletService.calculateAnnouncements(
+      final settlementProgramAnnouncementHashes =
+          OfferWalletService.calculateAnnouncements(
         requestedPayments,
         driverDict,
         settlementProgram,
@@ -396,9 +420,12 @@ class Offer {
         (e) => e.announcementHash,
       );
 
-      if (bundleAnnouncementHashes.any(settlementProgramAnnouncementHashes.contains)) {
+      if (bundleAnnouncementHashes
+          .any(settlementProgramAnnouncementHashes.contains)) {
         if (matchingSettlementProgram != null) {
-          throw Exception('Multiple settlement programs used in announcement creation');
+          throw Exception(
+            'Multiple settlement programs used in announcement creation',
+          );
         }
         matchingSettlementProgram = settlementProgram;
       }
@@ -415,7 +442,8 @@ class Offer {
       final driver = PuzzleInfo.match(coinSpend.puzzleReveal);
       // overwrite with real assets, not dummy spends
       if (driver != null &&
-          (dictionary[driver.assetId] == null || coinSpend.coin.puzzlehash != Puzzlehash.zeros())) {
+          (dictionary[driver.assetId] == null ||
+              coinSpend.coin.puzzlehash != Puzzlehash.zeros())) {
         dictionary[driver.assetId] = driver;
       }
     }
@@ -453,8 +481,9 @@ class Offer {
   ) {
     final driverDict = <Bytes?, PuzzleInfo>{};
     for (final requestedNft in requestedNfts) {
-      driverDict[requestedNft.launcherId] =
-          PuzzleInfo.match(requestedNft.getFullPuzzleWithNewP2Puzzle(defaultSettlementProgram))!;
+      driverDict[requestedNft.launcherId] = PuzzleInfo.match(
+        requestedNft.getFullPuzzleWithNewP2Puzzle(defaultSettlementProgram),
+      )!;
     }
 
     for (final requestedAssetId in requestedPayments.cat.keys) {
@@ -469,7 +498,8 @@ class Offer {
     }
 
     for (final offeredCat in mixedCoins.cats) {
-      driverDict[offeredCat.assetId] = PuzzleInfo.match(offeredCat.parentCoinSpend.puzzleReveal)!;
+      driverDict[offeredCat.assetId] =
+          PuzzleInfo.match(offeredCat.parentCoinSpend.puzzleReveal)!;
     }
 
     for (final nft in mixedCoins.nfts) {
@@ -494,7 +524,8 @@ class Offer {
   }
 
   Future<bool> validateCoins(ChiaFullNodeInterface fullNode) async {
-    final hasSpentCoins = await fullNode.checkForSpentCoins(offeredSpendBundle.coins);
+    final hasSpentCoins =
+        await fullNode.checkForSpentCoins(offeredSpendBundle.coins);
 
     return !hasSpentCoins;
   }

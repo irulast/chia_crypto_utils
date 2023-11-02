@@ -8,7 +8,8 @@ class ExchangeOfferService {
 
   final ChiaFullNodeInterface fullNode;
   final StandardWalletService standardWalletService = StandardWalletService();
-  final ExchangeOfferWalletService exchangeOfferWalletService = ExchangeOfferWalletService();
+  final ExchangeOfferWalletService exchangeOfferWalletService =
+      ExchangeOfferWalletService();
 
   Future<ChiaBaseResponse> pushInitializationSpendBundle({
     required Puzzlehash messagePuzzlehash,
@@ -20,9 +21,11 @@ class ExchangeOfferService {
     Puzzlehash? changePuzzlehash,
     int fee = 0,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
   }) async {
-    final initializationSpendBundle = exchangeOfferWalletService.createInitializationSpendBundle(
+    final initializationSpendBundle =
+        exchangeOfferWalletService.createInitializationSpendBundle(
       messagePuzzlehash: messagePuzzlehash,
       coinsInput: coinsInput,
       keychain: keychain,
@@ -51,14 +54,20 @@ class ExchangeOfferService {
     int fee = 0,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
   }) async {
     final initializationCoin = await fullNode.getCoinById(initializationCoinId);
-    final cancelCoin = await getCancelCoin(initializationCoin!, messagePuzzlehash);
+    final cancelCoin =
+        await getCancelCoin(initializationCoin!, messagePuzzlehash);
 
-    final walletVector = await WalletVector.fromPrivateKeyAsync(masterPrivateKey, derivationIndex);
+    final walletVector = await WalletVector.fromPrivateKeyAsync(
+      masterPrivateKey,
+      derivationIndex,
+    );
 
-    final cancelationSpendBundle = exchangeOfferWalletService.createCancelationSpendBundle(
+    final cancelationSpendBundle =
+        exchangeOfferWalletService.createCancelationSpendBundle(
       initializationCoinId: initializationCoinId,
       targetPuzzlehash: targetPuzzlehash,
       cancelCoin: cancelCoin,
@@ -99,18 +108,24 @@ class ExchangeOfferService {
     Puzzlehash? changePuzzlehash,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
   }) async {
     // check whether offer is canceled
-    final cancelCoin =
-        (await fullNode.getCoinsByPuzzleHashes([messagePuzzlehash], includeSpentCoins: true))
-            .where((coin) => coin.parentCoinInfo == initializationCoinId && coin.amount == 3);
+    final cancelCoin = (await fullNode.getCoinsByPuzzleHashes(
+      [messagePuzzlehash],
+      includeSpentCoins: true,
+    ))
+        .where(
+      (coin) => coin.parentCoinInfo == initializationCoinId && coin.amount == 3,
+    );
 
     if (cancelCoin.isNotEmpty) {
       if (cancelCoin.first.isSpent) throw OfferCanceledException();
     }
 
-    final messageSpendBundle = exchangeOfferWalletService.createMessageSpendBundle(
+    final messageSpendBundle =
+        exchangeOfferWalletService.createMessageSpendBundle(
       messagePuzzlehash: messagePuzzlehash,
       coinsInput: coinsInput,
       keychain: keychain,
@@ -136,7 +151,8 @@ class ExchangeOfferService {
     List<Bytes> declinedMessageCoinIds = const <Bytes>[],
   }) async {
     // find valid message coin that hasn't been accepted or declined yet
-    final messageCoins = await fullNode.scroungeForReceivedNotificationCoins([messagePuzzlehash]);
+    final messageCoins = await fullNode
+        .scroungeForReceivedNotificationCoins([messagePuzzlehash]);
 
     for (final messageCoin in messageCoins) {
       if (declinedMessageCoinIds.contains(messageCoin.id)) {
@@ -174,17 +190,23 @@ class ExchangeOfferService {
     }
 
     try {
-      final serializedOfferAcceptFileMemo = decodeStringFromBytes(messageCoin.message.last);
-      final offerAcceptFile = await TakerCrossChainOfferFile.fromSerializedOfferFileAsync(
+      final serializedOfferAcceptFileMemo =
+          decodeStringFromBytes(messageCoin.message.last);
+      final offerAcceptFile =
+          await TakerCrossChainOfferFile.fromSerializedOfferFileAsync(
         serializedOfferAcceptFileMemo!,
       );
 
       switch (exchangeType) {
         case ExchangeType.xchToBtc:
-          if (offerAcceptFile.type != CrossChainOfferFileType.btcToXchAccept) return null;
+          if (offerAcceptFile.type != CrossChainOfferFileType.btcToXchAccept) {
+            return null;
+          }
           break;
         case ExchangeType.btcToXch:
-          if (offerAcceptFile.type != CrossChainOfferFileType.xchToBtcAccept) return null;
+          if (offerAcceptFile.type != CrossChainOfferFileType.xchToBtcAccept) {
+            return null;
+          }
           break;
       }
 
@@ -192,24 +214,32 @@ class ExchangeOfferService {
           Bytes.encodeFromString(serializedOfferFile).sha256Hash()) {
         LightningPaymentRequest? lightningPaymentRequest;
         if (offerAcceptFile.type == CrossChainOfferFileType.xchToBtcAccept) {
-          final xchToBtcOfferAcceptFile = offerAcceptFile as XchToBtcTakerOfferFile;
+          final xchToBtcOfferAcceptFile =
+              offerAcceptFile as XchToBtcTakerOfferFile;
 
-          lightningPaymentRequest = xchToBtcOfferAcceptFile.lightningPaymentRequest;
+          lightningPaymentRequest =
+              xchToBtcOfferAcceptFile.lightningPaymentRequest;
 
-          if (!validateLightningPaymentRequest(lightningPaymentRequest, satoshis!)) return null;
+          if (!validateLightningPaymentRequest(
+            lightningPaymentRequest,
+            satoshis!,
+          )) return null;
         }
 
-        final spentTime = await fullNode.getDateTimeFromBlockIndex(messageCoin.spentBlockIndex);
+        final spentTime = await fullNode
+            .getDateTimeFromBlockIndex(messageCoin.spentBlockIndex);
 
-        final messageCoinChild = await fullNode.getSingleChildCoinFromCoin(messageCoin);
+        final messageCoinChild =
+            await fullNode.getSingleChildCoinFromCoin(messageCoin);
 
         if (messageCoinChild == null) return null;
 
         if (messageCoinChild.isSpent) {
-          final messageCoinChildSpend = await fullNode.getCoinSpend(messageCoinChild);
+          final messageCoinChildSpend =
+              await fullNode.getCoinSpend(messageCoinChild);
           final spentMessageCoinChildMemos = await messageCoinChildSpend!.memos;
-          final messageCoinChildSpentTime =
-              await fullNode.getDateTimeFromBlockIndex(messageCoinChild.spentBlockIndex);
+          final messageCoinChildSpentTime = await fullNode
+              .getDateTimeFromBlockIndex(messageCoinChild.spentBlockIndex);
 
           if (spentMessageCoinChildMemos.contains(initializationCoinId)) {
             // message coin was accepted
@@ -264,17 +294,23 @@ class ExchangeOfferService {
     int fee = 0,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
   }) async {
-    final messageCoinChild = await fullNode.getSingleChildCoinFromCoin(messageCoin);
+    final messageCoinChild =
+        await fullNode.getSingleChildCoinFromCoin(messageCoin);
 
     if (messageCoinChild == null) {
       throw MissingMessageCoinChildException();
     }
 
-    final walletVector = await WalletVector.fromPrivateKeyAsync(masterPrivateKey, derivationIndex);
+    final walletVector = await WalletVector.fromPrivateKeyAsync(
+      masterPrivateKey,
+      derivationIndex,
+    );
 
-    final acceptanceSpendBundle = exchangeOfferWalletService.createMessageCoinAcceptanceSpendBundle(
+    final acceptanceSpendBundle =
+        exchangeOfferWalletService.createMessageCoinAcceptanceSpendBundle(
       initializationCoinId: initializationCoinId,
       messageCoinChild: messageCoinChild,
       targetPuzzlehash: targetPuzzlehash,
@@ -317,15 +353,20 @@ class ExchangeOfferService {
     int fee = 0,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
   }) async {
-    final messageCoinChild = await fullNode.getSingleChildCoinFromCoin(messageCoin);
+    final messageCoinChild =
+        await fullNode.getSingleChildCoinFromCoin(messageCoin);
 
     if (messageCoinChild == null) {
       throw MissingMessageCoinChildException();
     }
 
-    final walletVector = await WalletVector.fromPrivateKeyAsync(masterPrivateKey, derivationIndex);
+    final walletVector = await WalletVector.fromPrivateKeyAsync(
+      masterPrivateKey,
+      derivationIndex,
+    );
 
     final declinationSpendBundle =
         exchangeOfferWalletService.createMessageCoinDeclinationSpendBundle(
@@ -368,9 +409,11 @@ class ExchangeOfferService {
     int fee = 0,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
   }) async {
-    final escrowSpendBundle = exchangeOfferWalletService.createEscrowTransferSpendBundle(
+    final escrowSpendBundle =
+        exchangeOfferWalletService.createEscrowTransferSpendBundle(
       initializationCoinId: initializationCoinId,
       mojos: mojos,
       escrowPuzzlehash: escrowPuzzlehash,
@@ -403,9 +446,11 @@ class ExchangeOfferService {
     int fee = 0,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
   }) async {
-    final escrowCoins = await fullNode.getCoinsByPuzzleHashes([escrowPuzzlehash]);
+    final escrowCoins =
+        await fullNode.getCoinsByPuzzleHashes([escrowPuzzlehash]);
 
     final sweepSpendBundle = exchangeOfferWalletService.createSweepSpendBundle(
       initializationCoinId: initializationCoinId,
@@ -455,11 +500,14 @@ class ExchangeOfferService {
     int fee = 0,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
   }) async {
-    final escrowCoins = await fullNode.getCoinsByPuzzleHashes([escrowPuzzlehash]);
+    final escrowCoins =
+        await fullNode.getCoinsByPuzzleHashes([escrowPuzzlehash]);
 
-    final clawbackSpendBundle = exchangeOfferWalletService.createClawbackSpendBundle(
+    final clawbackSpendBundle =
+        exchangeOfferWalletService.createClawbackSpendBundle(
       initializationCoinId: initializationCoinId,
       escrowCoins: escrowCoins,
       requestorPuzzlehash: requestorPuzzlehash,
@@ -492,7 +540,8 @@ class ExchangeOfferService {
     return result;
   }
 
-  static int randomDerivationIndexForExchange() => Random.secure().nextInt(9000000) + 1000000;
+  static int randomDerivationIndexForExchange() =>
+      Random.secure().nextInt(9000000) + 1000000;
 
   bool validateLightningPaymentRequest(
     LightningPaymentRequest lightningPaymentRequest,
@@ -529,12 +578,18 @@ class ExchangeOfferService {
     return totalSpendBundle;
   }
 
-  Future<Coin> getCancelCoin(Coin initializationCoin, Puzzlehash messagePuzzlehash) async {
+  Future<Coin> getCancelCoin(
+    Coin initializationCoin,
+    Puzzlehash messagePuzzlehash,
+  ) async {
     try {
-      final initializationCoinSpend = await fullNode.getCoinSpend(initializationCoin);
+      final initializationCoinSpend =
+          await fullNode.getCoinSpend(initializationCoin);
       final additions = await initializationCoinSpend!.additionsAsync;
-      final cancelCoinId =
-          additions.where((addition) => addition.puzzlehash == messagePuzzlehash).single.id;
+      final cancelCoinId = additions
+          .where((addition) => addition.puzzlehash == messagePuzzlehash)
+          .single
+          .id;
       final cancelCoin = await fullNode.getCoinById(cancelCoinId);
       return cancelCoin!;
     } catch (e) {

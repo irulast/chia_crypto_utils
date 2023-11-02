@@ -60,7 +60,8 @@ abstract class CatCoin implements CoinPrototype {
 
   factory CatCoin.fromJson(Map<String, dynamic> json) {
     final coin = pick(json, 'coin').letJsonOrThrow(CoinPrototype.fromJson);
-    final parentSpend = pick(json, 'parent_spend').letJsonOrThrow(CoinSpend.fromJson);
+    final parentSpend =
+        pick(json, 'parent_spend').letJsonOrThrow(CoinSpend.fromJson);
 
     return CatCoin.fromParentSpend(
       parentCoinSpend: parentSpend,
@@ -72,7 +73,8 @@ abstract class CatCoin implements CoinPrototype {
     required CoinSpend parentCoinSpend,
     required CoinPrototype coin,
   }) async {
-    final uncurriedCatProgram = await parentCoinSpend.puzzleReveal.uncurryAsync();
+    final uncurriedCatProgram =
+        await parentCoinSpend.puzzleReveal.uncurryAsync();
     return _CatCoin._fromUncurriedPuzzle(
       parentCoinSpend: parentCoinSpend,
       uncurriedCatProgram: uncurriedCatProgram,
@@ -180,7 +182,9 @@ extension CatFunctionality on CatCoin {
   /// current p2Puzzlehash of [CatCoin] calculated by looking through [CreateCoinCondition]s of parent solution
   ///
   /// client can optionally pass in their standard puzzlehashes to make parsing more efficient in case of airdrop
-  Future<Puzzlehash> getP2Puzzlehash({Set<Puzzlehash> puzzlehashesToFilterBy = const {}}) async {
+  Future<Puzzlehash> getP2Puzzlehash({
+    Set<Puzzlehash> puzzlehashesToFilterBy = const {},
+  }) async {
     final result = await compute(
       _calculateCatP2PuzzleHashTask,
       _CalculateCatP2PuzzleHashArgument(this, puzzlehashesToFilterBy),
@@ -194,7 +198,9 @@ extension CatFunctionality on CatCoin {
   }
 
   /// see [getP2Puzzlehash] for documentation
-  Puzzlehash getP2PuzzlehashSync({Set<Puzzlehash> puzzlehashesToFilterBy = const {}}) {
+  Puzzlehash getP2PuzzlehashSync({
+    Set<Puzzlehash> puzzlehashesToFilterBy = const {},
+  }) {
     final result = _calculateCatP2PuzzleHashTask(
       _CalculateCatP2PuzzleHashArgument(this, puzzlehashesToFilterBy),
     );
@@ -211,9 +217,11 @@ String? _calculateCatP2PuzzleHashTask(_CalculateCatP2PuzzleHashArgument args) {
   final catCoin = args.coin;
   final puzzleHashesToCheck = args.puzzlehashesToFilterBy;
   final innerSolution = catCoin.parentCoinSpend.solution.toList()[0];
-  final innerPuzzle = catCoin.parentCoinSpend.puzzleReveal.uncurry().arguments[2];
+  final innerPuzzle =
+      catCoin.parentCoinSpend.puzzleReveal.uncurry().arguments[2];
 
-  final createCoinConditions = BaseWalletService.extractConditionsFromProgramList(
+  final createCoinConditions =
+      BaseWalletService.extractConditionsFromProgramList(
     innerPuzzle.run(innerSolution).program.toList(),
     CreateCoinCondition.isThisCondition,
     CreateCoinCondition.fromProgram,
@@ -232,7 +240,8 @@ String? _calculateCatP2PuzzleHashTask(_CalculateCatP2PuzzleHashArgument args) {
   for (final createCoinCondition in matchingAmountConditions) {
     final potentialP2PuzzleHash = createCoinCondition.destinationPuzzlehash;
     // optionally filter by client provided puzzle hashes
-    if (shouldCheckPuzzleHashes && !puzzleHashesToCheck.contains(potentialP2PuzzleHash)) {
+    if (shouldCheckPuzzleHashes &&
+        !puzzleHashesToCheck.contains(potentialP2PuzzleHash)) {
       continue;
     }
     final outerPuzzleHash = WalletKeychain.makeOuterPuzzleHashForCatProgram(

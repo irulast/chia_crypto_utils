@@ -18,7 +18,9 @@ class _NftStorageApi implements NftStorageApi {
     );
     final decodedBody = utf8.decode(response.bodyBytes, allowMalformed: true);
 
-    return NftData0007.fromJson(jsonDecode(decodedBody) as Map<String, dynamic>);
+    return NftData0007.fromJson(
+      jsonDecode(decodedBody) as Map<String, dynamic>,
+    );
   }
 }
 
@@ -35,7 +37,9 @@ extension GetNftRecordsWithData on Iterable<NftRecord> {
     }
 
     final records = await Future.wait(hydratedRecordFutures);
-    return List<HydratedNftRecord>.from(records.where((element) => element != null));
+    return List<HydratedNftRecord>.from(
+      records.where((element) => element != null),
+    );
   }
 
   Future<List<HydratedNftRecord>> hydrateAndFetchMintInfo(
@@ -50,6 +54,8 @@ extension GetNftRecordsWithData on Iterable<NftRecord> {
     }
 
     final records = await Future.wait(hydratedRecordFutures);
-    return List<HydratedNftRecord>.from(records.where((element) => element != null));
+    return List<HydratedNftRecord>.from(
+      records.where((element) => element != null),
+    );
   }
 }

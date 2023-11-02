@@ -6,7 +6,8 @@ import 'package:deep_pick/deep_pick.dart';
 abstract class PuzzleDriver {
   static PuzzleDriver? match(Program fullPuzzle) {
     final uncurried = fullPuzzle.uncurry();
-    final matchingDrivers = drivers.where((e) => e.doesMatchUncurried(uncurried, fullPuzzle));
+    final matchingDrivers =
+        drivers.where((e) => e.doesMatchUncurried(uncurried, fullPuzzle));
     if (matchingDrivers.isEmpty) {
       return null;
     }
@@ -18,8 +19,8 @@ abstract class PuzzleDriver {
     List<PuzzleDriver>? driversToCheck,
   }) async {
     final unCurried = await fullPuzzle.uncurryAsync();
-    final matchingDrivers =
-        (driversToCheck ?? drivers).where((e) => e.doesMatchUncurried(unCurried, fullPuzzle));
+    final matchingDrivers = (driversToCheck ?? drivers)
+        .where((e) => e.doesMatchUncurried(unCurried, fullPuzzle));
     if (matchingDrivers.isEmpty) {
       return null;
     }
@@ -27,7 +28,10 @@ abstract class PuzzleDriver {
   }
 
   bool doesMatch(Program fullPuzzle);
-  bool doesMatchUncurried(ModAndArguments uncurriedFullPuzzle, Program fullPuzzle);
+  bool doesMatchUncurried(
+    ModAndArguments uncurriedFullPuzzle,
+    Program fullPuzzle,
+  );
 
   Program getNewFullPuzzleForP2Puzzle(
     Program currentFullPuzzle,
@@ -35,7 +39,10 @@ abstract class PuzzleDriver {
   );
   Puzzlehash? getAssetId(Program fullPuzzle);
 
-  OfferedCoin makeOfferedCoinFromParentSpend(CoinPrototype coin, CoinSpend parentSpend);
+  OfferedCoin makeOfferedCoinFromParentSpend(
+    CoinPrototype coin,
+    CoinSpend parentSpend,
+  );
 
   SpendType get type;
 
@@ -64,7 +71,8 @@ extension PuzzlePayments on PuzzleDriver {
     final innerSolution = getP2Solution(coinSpend);
     final innerPuzzle = getP2Puzzle(coinSpend);
 
-    final createCoinConditions = BaseWalletService.extractConditionsFromProgramList(
+    final createCoinConditions =
+        BaseWalletService.extractConditionsFromProgramList(
       innerPuzzle.run(innerSolution).program.toList(),
       CreateCoinCondition.isThisCondition,
       CreateCoinCondition.fromProgram,
@@ -78,8 +86,9 @@ extension PuzzlePayments on PuzzleDriver {
       taskArgument: PuzzleDriverAndCoinSpend(coinSpend, this),
       isolateTask: _getP2PaymentsTask,
       handleTaskCompletion: (taskResultJson) {
-        return pick(taskResultJson, 'payments')
-            .letStringListOrThrow((string) => Payment.fromProgram(Program.deserializeHex(string)));
+        return pick(taskResultJson, 'payments').letStringListOrThrow(
+          (string) => Payment.fromProgram(Program.deserializeHex(string)),
+        );
       },
     );
     return result;
@@ -90,7 +99,9 @@ extension PuzzlePayments on PuzzleDriver {
       taskArgument: PuzzleDriverAndCoinSpend(coinSpend, this),
       isolateTask: _getP2PuzzleHashTask,
       handleTaskCompletion: (taskResultJson) {
-        return Puzzlehash.fromHex(pick(taskResultJson, 'p2_puzzle_hash').asStringOrThrow());
+        return Puzzlehash.fromHex(
+          pick(taskResultJson, 'p2_puzzle_hash').asStringOrThrow(),
+        );
       },
     );
     return result;
@@ -101,7 +112,9 @@ extension PuzzlePayments on PuzzleDriver {
       taskArgument: PuzzleDriverAndCoinSpend(coinSpend, this),
       isolateTask: _getP2PuzzleTask,
       handleTaskCompletion: (taskResultJson) {
-        return Program.deserializeHex(pick(taskResultJson, 'p2_puzzle').asStringOrThrow());
+        return Program.deserializeHex(
+          pick(taskResultJson, 'p2_puzzle').asStringOrThrow(),
+        );
       },
     );
     return result;
@@ -135,20 +148,29 @@ extension PuzzlePayments on PuzzleDriver {
 }
 
 Map<String, dynamic> _getP2PuzzleTask(PuzzleDriverAndCoinSpend arguments) {
-  return {'p2_puzzle': arguments.puzzleDriver.getP2Puzzle(arguments.coinSpend).toHex()};
+  return {
+    'p2_puzzle': arguments.puzzleDriver.getP2Puzzle(arguments.coinSpend).toHex()
+  };
 }
 
 Map<String, dynamic> _getP2PuzzleHashTask(PuzzleDriverAndCoinSpend arguments) {
-  return {'p2_puzzle_hash': arguments.puzzleDriver.getP2Puzzle(arguments.coinSpend).hash().toHex()};
+  return {
+    'p2_puzzle_hash':
+        arguments.puzzleDriver.getP2Puzzle(arguments.coinSpend).hash().toHex()
+  };
 }
 
-Map<String, dynamic> _getChildCoinForP2PaymentTask(PuzzleDriverCoinSpendAndPayment arguments) {
+Map<String, dynamic> _getChildCoinForP2PaymentTask(
+  PuzzleDriverCoinSpendAndPayment arguments,
+) {
   return arguments.puzzleDriver
       .getChildCoinForP2Payment(arguments.coinSpend, arguments.payment)
       .toJson();
 }
 
-Map<String, dynamic> _getChildCoinIdForP2PaymentTask(PuzzleDriverCoinSpendAndPayment arguments) {
+Map<String, dynamic> _getChildCoinIdForP2PaymentTask(
+  PuzzleDriverCoinSpendAndPayment arguments,
+) {
   return {
     'coin_id': arguments.puzzleDriver
         .getChildCoinForP2Payment(arguments.coinSpend, arguments.payment)
@@ -174,7 +196,11 @@ class PuzzleDriverAndCoinSpend {
 }
 
 class PuzzleDriverCoinSpendAndPayment extends PuzzleDriverAndCoinSpend {
-  PuzzleDriverCoinSpendAndPayment(super.coinSpend, super.puzzleDriver, this.payment);
+  PuzzleDriverCoinSpendAndPayment(
+    super.coinSpend,
+    super.puzzleDriver,
+    this.payment,
+  );
 
   final Payment payment;
 }

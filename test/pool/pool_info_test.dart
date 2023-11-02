@@ -41,7 +41,9 @@ void main() {
     );
     expect(
       poolInfo.targetPuzzlehash,
-      Puzzlehash.fromHex('0x6bde1e0c6f9d3b93dc5e7e878723257ede573deeed59e3b4a90f5c86de1a0bd3'),
+      Puzzlehash.fromHex(
+        '0x6bde1e0c6f9d3b93dc5e7e878723257ede573deeed59e3b4a90f5c86de1a0bd3',
+      ),
     );
     expect(
       poolInfo.authenticationTokenTimeout,

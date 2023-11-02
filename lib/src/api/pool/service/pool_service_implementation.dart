@@ -38,8 +38,9 @@ class PoolServiceImpl implements PoolService {
       poolUrl: pool.poolUrl,
     );
 
-    final genesisCoin =
-        (genesisCoinId != null) ? coins.singleWhere((c) => c.id == genesisCoinId) : coins[0];
+    final genesisCoin = (genesisCoinId != null)
+        ? coins.singleWhere((c) => c.id == genesisCoinId)
+        : coins[0];
 
     final plotNftSpendBundle = plotNftWalletService.createPoolNftSpendBundle(
       initialTargetState: initialTargetState,
@@ -62,7 +63,8 @@ class PoolServiceImpl implements PoolService {
     required SingletonWalletVector singletonWalletVector,
     required Puzzlehash payoutPuzzlehash,
   }) async {
-    if (singletonWalletVector.singletonOwnerPublicKey != plotNft.poolState.ownerPublicKey) {
+    if (singletonWalletVector.singletonOwnerPublicKey !=
+        plotNft.poolState.ownerPublicKey) {
       throw ArgumentError(
         'Provided SingletonWalletVector does not match plotNft owner public key',
       );
@@ -72,8 +74,10 @@ class PoolServiceImpl implements PoolService {
 
     return pool.addFarmer(
       launcherId: plotNft.launcherId,
-      authenticationToken: getCurrentAuthenticationToken(poolInfo.authenticationTokenTimeout),
-      authenticationPublicKey: singletonWalletVector.poolingAuthenticationPublicKey,
+      authenticationToken:
+          getCurrentAuthenticationToken(poolInfo.authenticationTokenTimeout),
+      authenticationPublicKey:
+          singletonWalletVector.poolingAuthenticationPublicKey,
       payoutPuzzlehash: payoutPuzzlehash,
       singletonOwnerPrivateKey: singletonWalletVector.singletonOwnerPrivateKey,
     );
@@ -86,7 +90,8 @@ class PoolServiceImpl implements PoolService {
   }) async {
     final poolInfo = await pool.getPoolInfo();
 
-    final authenticationToken = getCurrentAuthenticationToken(poolInfo.authenticationTokenTimeout);
+    final authenticationToken =
+        getCurrentAuthenticationToken(poolInfo.authenticationTokenTimeout);
 
     return pool.getFarmer(
       launcherId: launcherId,

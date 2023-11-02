@@ -5,16 +5,21 @@ import 'package:test/test.dart';
 Future<void> main() async {
   final dexieApi = DexieExchangeOfferApi();
 
-  final initializationCoinId =
-      Bytes.fromHex('5db0138082bf1aa2144b736d67bdbcaa7d2cd9b07bab3bba15c8cd3d97df7eb4');
+  final initializationCoinId = Bytes.fromHex(
+    '5db0138082bf1aa2144b736d67bdbcaa7d2cd9b07bab3bba15c8cd3d97df7eb4',
+  );
   final currentUnixTimeStamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
   final offerValidityTime = currentUnixTimeStamp + 3600;
-  const offeredAmount = ExchangeAmount(type: ExchangeAmountType.XCH, amount: 1000000000000);
-  const requestedAmount = ExchangeAmount(type: ExchangeAmountType.BTC, amount: 200000);
-  const messageAddress = Address('xch1m29jusdya59y5g3qhsqqd2tqwn0kgh2fg8ux7xt9x4vzs7927rmqmhsu02');
+  const offeredAmount =
+      ExchangeAmount(type: ExchangeAmountType.XCH, amount: 1000000000000);
+  const requestedAmount =
+      ExchangeAmount(type: ExchangeAmountType.BTC, amount: 200000);
+  const messageAddress =
+      Address('xch1m29jusdya59y5g3qhsqqd2tqwn0kgh2fg8ux7xt9x4vzs7927rmqmhsu02');
   const serializedLightningPaymentRequest =
       'lnbc2m1pjq55klpp5trkvjhdsplmnsg458yaesk7ejpe4e3a4zx4tqucaqcl8ekh6j9vqdqqcqzzgxqyz5vqrzjqwnvuc0u4txn35cafc7w94gxvq5p3cu9dd95f7hlrh0fvs46wpvhdertnqk95dh65cqqqqryqqqqthqqpyrzjqw8c7yfutqqy3kz8662fxutjvef7q2ujsxtt45csu0k688lkzu3ldertnqk95dh65cqqqqryqqqqthqqpysp5t9es5tal7dzrzu9t076w54qyr9h9eeguk0yw5efywn8898lg53gq9qypqsqr3c469cu5t6wd6zmsequvp33ccvg83aymgs2hj6ljrzkngk8y73knlj7zdtnt82jzths0mp87e9uenr2ejj05nwqsjcwc0s54gnnteqqlg9uls';
-  final lightningPaymentRequest = decodeLightningPaymentRequest(serializedLightningPaymentRequest);
+  final lightningPaymentRequest =
+      decodeLightningPaymentRequest(serializedLightningPaymentRequest);
 
   test(
     'should send post request to dexie',
@@ -23,8 +28,9 @@ Future<void> main() async {
       final publicKey = privateKey.getG1();
 
       final offerFile = XchToBtcMakerOfferFile(
-        initializationCoinId:
-            Bytes.fromHex('5db0138082bf1aa2144b736d67bdbcaa7d2cd9b07bab3bba15c8cd3d97df7eb4'),
+        initializationCoinId: Bytes.fromHex(
+          '5db0138082bf1aa2144b736d67bdbcaa7d2cd9b07bab3bba15c8cd3d97df7eb4',
+        ),
         offeredAmount: offeredAmount,
         requestedAmount: requestedAmount,
         messageAddress: messageAddress,
@@ -51,7 +57,8 @@ Future<void> main() async {
     expect(response.offerJson!['id'], equals(dexieId));
   });
 
-  test('inspect offer query should fail if offer has not been posted', () async {
+  test('inspect offer query should fail if offer has not been posted',
+      () async {
     final privateKey = PrivateKey.generate();
     final publicKey = privateKey.getG1();
 

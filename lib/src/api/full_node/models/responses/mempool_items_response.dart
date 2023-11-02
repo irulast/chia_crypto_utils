@@ -8,7 +8,9 @@ class MempoolItemsResponse {
     final mempoolItemsJson = json['mempool_items'] as Map<String, dynamic>;
     for (final mempoolItemJsonEntry in mempoolItemsJson.entries) {
       mempoolItemMap[Bytes.fromHex(mempoolItemJsonEntry.key)] =
-          MempoolItem.fromJson(mempoolItemJsonEntry.value as Map<String, dynamic>);
+          MempoolItem.fromJson(
+        mempoolItemJsonEntry.value as Map<String, dynamic>,
+      );
     }
 
     return MempoolItemsResponse(mempoolItemMap);

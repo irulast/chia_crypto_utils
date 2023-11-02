@@ -15,9 +15,12 @@ class GetAdditionsAndRemovalsResponse extends ChiaBaseResponse {
 
     if (chiaBaseResponse.success) {
       return GetAdditionsAndRemovalsResponse(
-        additions:
-            _coinListFromJson(List<Map<String, dynamic>>.from(json['additions'] as Iterable)),
-        removals: _coinListFromJson(List<Map<String, dynamic>>.from(json['removals'] as Iterable)),
+        additions: _coinListFromJson(
+          List<Map<String, dynamic>>.from(json['additions'] as Iterable),
+        ),
+        removals: _coinListFromJson(
+          List<Map<String, dynamic>>.from(json['removals'] as Iterable),
+        ),
         success: chiaBaseResponse.success,
         error: chiaBaseResponse.error,
       );

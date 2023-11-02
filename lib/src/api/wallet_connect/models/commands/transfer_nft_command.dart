@@ -13,7 +13,8 @@ class TransferNftCommand implements WalletConnectCommand {
     return TransferNftCommand(
       walletId: pick(params, 'walletId').asIntOrThrow(),
       targetAddress: Address(pick(params, 'targetAddress').asStringOrThrow()),
-      nftCoinIds: pick(params, 'nftCoinIds').letStringListOrThrow((string) => string.hexToBytes()),
+      nftCoinIds: pick(params, 'nftCoinIds')
+          .letStringListOrThrow((string) => string.hexToBytes()),
       fee: pick(params, 'fee').asIntOrThrow(),
     );
   }
@@ -45,7 +46,8 @@ class TransferNftResponse
   factory TransferNftResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
-    final transferNftData = pick(json, 'data').letJsonOrThrow(TransferNftData.fromJson);
+    final transferNftData =
+        pick(json, 'data').letJsonOrThrow(TransferNftData.fromJson);
     return TransferNftResponse(baseResponse, transferNftData);
   }
 

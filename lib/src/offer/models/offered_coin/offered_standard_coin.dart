@@ -5,7 +5,10 @@ class OfferedStandardCoin implements OfferedCoin {
   OfferedStandardCoin(this.coin, this.settlementProgram);
   factory OfferedStandardCoin.fromOfferBundleCoin(CoinPrototype coin) {
     final matchingSettlementProgram = () {
-      for (final settlementProgram in [settlementPaymentsProgram, settlementPaymentsProgramOld]) {
+      for (final settlementProgram in [
+        settlementPaymentsProgram,
+        settlementPaymentsProgramOld
+      ]) {
         if (settlementProgram.hash() == coin.puzzlehash) {
           return settlementProgram;
         }

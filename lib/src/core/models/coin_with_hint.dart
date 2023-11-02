@@ -30,8 +30,9 @@ class CoinWithHint extends Coin {
         hint: hint,
       );
     } on InvalidPuzzleHashException catch (e, st) {
-      LoggingContext()
-          .error('Invalid puzzle hash in CoinWithHint.fromChiaCoinRecordJson: $json \n$st');
+      LoggingContext().error(
+        'Invalid puzzle hash in CoinWithHint.fromChiaCoinRecordJson: $json \n$st',
+      );
       rethrow;
     }
   }
@@ -51,7 +52,8 @@ class CoinWithHint extends Coin {
         hint: hint,
       );
     } on InvalidPuzzleHashException catch (e, st) {
-      LoggingContext().error('Invalid puzzle hash in CoinWithHint.fromJson: $json \n$st');
+      LoggingContext()
+          .error('Invalid puzzle hash in CoinWithHint.fromJson: $json \n$st');
       rethrow;
     }
   }

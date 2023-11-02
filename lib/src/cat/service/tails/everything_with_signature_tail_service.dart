@@ -5,9 +5,11 @@ class EverythingWithSignatureTailService {
   EverythingWithSignatureTailService([this._catWalletService]);
 
   final CatWalletService? _catWalletService;
-  CatWalletService get catWalletService => _catWalletService ?? Cat2WalletService();
+  CatWalletService get catWalletService =>
+      _catWalletService ?? Cat2WalletService();
 
-  StandardWalletService get standardWalletService => catWalletService.standardWalletService;
+  StandardWalletService get standardWalletService =>
+      catWalletService.standardWalletService;
 
   static Program constructTail(PrivateKey privateKey) {
     final curriedTail = everythingWithSignatureProgram.curry(
@@ -109,7 +111,8 @@ class EverythingWithSignatureTailService {
       inputAmountToMelt: desiredAmountToMelt,
       catCoinToMelt: catCoinToMelt,
       puzzlehashToClaimXchTo: puzzlehashToClaimXchTo,
-      standardCoinsForXchClaimingSpendBundle: standardCoinsForXchClaimingSpendBundle,
+      standardCoinsForXchClaimingSpendBundle:
+          standardCoinsForXchClaimingSpendBundle,
       tailRunningInfo: TailRunningInfo(
         tail: curriedTail,
         signature: signature,

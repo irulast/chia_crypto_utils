@@ -29,7 +29,12 @@ class DidMetadata with ToProgramMixin {
 
     return Program.list(
       map.entries
-          .map((e) => Program.cons(Program.fromString(e.key), Program.fromString(e.value)))
+          .map(
+            (e) => Program.cons(
+              Program.fromString(e.key),
+              Program.fromString(e.value),
+            ),
+          )
           .toList(),
     );
   }

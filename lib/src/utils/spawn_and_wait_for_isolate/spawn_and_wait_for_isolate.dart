@@ -11,7 +11,8 @@ import 'package:chia_crypto_utils/src/utils/spawn_and_wait_for_isolate/models/re
 Future<T> spawnAndWaitForIsolate<T, R>({
   required R taskArgument,
   required FutureOr<Map<String, dynamic>> Function(R taskArgument) isolateTask,
-  required FutureOr<T> Function(Map<String, dynamic> taskResultJson) handleTaskCompletion,
+  required FutureOr<T> Function(Map<String, dynamic> taskResultJson)
+      handleTaskCompletion,
 }) {
   FutureOr<Map<String, dynamic>> task(
     R taskArgument,
@@ -36,8 +37,10 @@ Future<T> spawnAndWaitForIsolateWithProgressUpdates<T, R>({
   required FutureOr<Map<String, dynamic>> Function(
     R taskArgument,
     void Function(double progress) onProgressUpdate,
-  ) isolateTask,
-  required FutureOr<T> Function(Map<String, dynamic> taskResultJson) handleTaskCompletion,
+  )
+      isolateTask,
+  required FutureOr<T> Function(Map<String, dynamic> taskResultJson)
+      handleTaskCompletion,
 }) async {
   final receivePort = ReceivePort();
   final errorPort = ReceivePort();
@@ -52,7 +55,8 @@ Future<T> spawnAndWaitForIsolateWithProgressUpdates<T, R>({
 
       switch (messageType) {
         case IsolateMessageType.progressUpdate:
-          final progressUpdateMessage = ProgressUpdateMessage.fromJson(messageJson);
+          final progressUpdateMessage =
+              ProgressUpdateMessage.fromJson(messageJson);
           onProgressUpdate(progressUpdateMessage.progress);
           break;
         case IsolateMessageType.result:
@@ -74,12 +78,16 @@ Future<T> spawnAndWaitForIsolateWithProgressUpdates<T, R>({
     final errors = message as List<dynamic>;
     errorPort.close();
     if (!completer.isCompleted) {
-      completer.completeError(errors.first as Object, StackTrace.fromString(errors[1].toString()));
+      completer.completeError(
+        errors.first as Object,
+        StackTrace.fromString(errors[1].toString()),
+      );
     }
     receivePort.close();
   });
 
-  final taskArgumentAndSendPort = TaskArgumentAndSendPort(taskArgument, receivePort.sendPort);
+  final taskArgumentAndSendPort =
+      TaskArgumentAndSendPort(taskArgument, receivePort.sendPort);
 
   await Isolate.spawn(
     _makeActualTask(isolateTask),
@@ -97,17 +105,20 @@ Future<T> spawnAndWaitForIsolateWithProgressUpdates<T, R>({
 // and sendport as a single parameter and uses the sendport to
 // send the resulting message to the recieve port
 
-Future<void> Function(TaskArgumentAndSendPort<R> taskArgumentAndSendPort) _makeActualTask<R>(
+Future<void> Function(TaskArgumentAndSendPort<R> taskArgumentAndSendPort)
+    _makeActualTask<R>(
   FutureOr<Map<String, dynamic>> Function(
     R taskArgument,
     void Function(double progress) onProgressUpdate,
-  ) task,
+  )
+      task,
 ) {
   return (TaskArgumentAndSendPort<R> taskArgumentAndSendPort) async {
     final taskResultJson = await task(
       taskArgumentAndSendPort.taskArgument,
       (progress) {
-        taskArgumentAndSendPort.sendport.send(jsonEncode(ProgressUpdateMessage(progress).toJson()));
+        taskArgumentAndSendPort.sendport
+            .send(jsonEncode(ProgressUpdateMessage(progress).toJson()));
       },
     );
     taskArgumentAndSendPort.sendport.send(

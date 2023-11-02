@@ -3,7 +3,8 @@ import 'package:get_it/get_it.dart';
 class LoggingContext {
   GetIt get getIt => GetIt.I;
 
-  static const includencludeTimestampInstanceName = 'logging_context_include_timestamp';
+  static const includencludeTimestampInstanceName =
+      'logging_context_include_timestamp';
 
   void setLogger(LoggingFunction logger) {
     getIt
@@ -25,17 +26,21 @@ class LoggingContext {
   }) {
     final currentLogTypes = logTypes;
     final newLogTypes = <LogType>{};
-    if ((info != null && info) || (info == null && currentLogTypes.contains(LogType.info))) {
+    if ((info != null && info) ||
+        (info == null && currentLogTypes.contains(LogType.info))) {
       newLogTypes.add(LogType.info);
     }
-    if ((error != null && error) || (error == null && currentLogTypes.contains(LogType.error))) {
+    if ((error != null && error) ||
+        (error == null && currentLogTypes.contains(LogType.error))) {
       newLogTypes.add(LogType.error);
     }
-    if ((api != null && api) || (api == null && currentLogTypes.contains(LogType.api))) {
+    if ((api != null && api) ||
+        (api == null && currentLogTypes.contains(LogType.api))) {
       newLogTypes.add(LogType.api);
     }
 
-    if ((debug != null && debug) || (debug == null && currentLogTypes.contains(LogType.debug))) {
+    if ((debug != null && debug) ||
+        (debug == null && currentLogTypes.contains(LogType.debug))) {
       newLogTypes.add(LogType.debug);
     }
 
@@ -168,7 +173,9 @@ class LoggingContext {
   }
 
   bool get includeTimestamp {
-    if (!getIt.isRegistered<bool>(instanceName: includencludeTimestampInstanceName)) {
+    if (!getIt.isRegistered<bool>(
+      instanceName: includencludeTimestampInstanceName,
+    )) {
       return defaultIncludeTimestamp;
     }
     return getIt.get<bool>(instanceName: includencludeTimestampInstanceName);

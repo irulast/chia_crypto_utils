@@ -6,7 +6,12 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/api/full_node/simulator/responses/auto_farm_response.dart';
 
 class SimulatorHttpRpc extends FullNodeHttpRpc {
-  const SimulatorHttpRpc(super.baseUrl, {super.certBytes, super.keyBytes,super.timeout,});
+  const SimulatorHttpRpc(
+    super.baseUrl, {
+    super.certBytes,
+    super.keyBytes,
+    super.timeout,
+  });
 
   Future<ChiaBaseResponse> farmTransactionBlocks(
     Address address, {
@@ -15,7 +20,11 @@ class SimulatorHttpRpc extends FullNodeHttpRpc {
   }) async {
     final responseData = await client.post(
       Uri.parse('farm_block'),
-      {'address': address.address, 'blocks': blocks, 'guarantee_tx_block': transactionBlock},
+      {
+        'address': address.address,
+        'blocks': blocks,
+        'guarantee_tx_block': transactionBlock
+      },
     );
     FullNodeHttpRpc.mapResponseToError(responseData);
 
@@ -24,7 +33,9 @@ class SimulatorHttpRpc extends FullNodeHttpRpc {
     );
   }
 
-  Future<AutofarmResponse> updateAutofarmConfig({required bool shouldAutofarm}) async {
+  Future<AutofarmResponse> updateAutofarmConfig({
+    required bool shouldAutofarm,
+  }) async {
     final responseData = await client.post(
       Uri.parse('set_auto_farming'),
       {'auto_farm': shouldAutofarm},

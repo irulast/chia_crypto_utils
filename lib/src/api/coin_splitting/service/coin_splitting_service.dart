@@ -3,10 +3,13 @@ import 'dart:math';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 class CoinSplittingService {
-  CoinSplittingService(this.fullNode, {this.coinSearchWaitPeriod = _defaultCoinSearchWaitPeriod})
-      : blockchainUtils = BlockchainUtils(fullNode);
-  CoinSplittingService.fromContext({this.coinSearchWaitPeriod = _defaultCoinSearchWaitPeriod})
-      : fullNode = ChiaFullNodeInterface.fromContext(),
+  CoinSplittingService(
+    this.fullNode, {
+    this.coinSearchWaitPeriod = _defaultCoinSearchWaitPeriod,
+  }) : blockchainUtils = BlockchainUtils(fullNode);
+  CoinSplittingService.fromContext({
+    this.coinSearchWaitPeriod = _defaultCoinSearchWaitPeriod,
+  })  : fullNode = ChiaFullNodeInterface.fromContext(),
         blockchainUtils = BlockchainUtils.fromContext();
 
   final ChiaFullNodeInterface fullNode;
@@ -34,9 +37,12 @@ class CoinSplittingService {
 
     logger('number of $splitWidth width splits: $numberOfNWidthSplits');
 
-    final resultingCoinsFromNWidthSplits = pow(splitWidth, numberOfNWidthSplits).toInt();
-    final numberOfDecaSplits =
-        calculateNumberOfDecaSplitsRequired(resultingCoinsFromNWidthSplits, desiredNumberOfCoins);
+    final resultingCoinsFromNWidthSplits =
+        pow(splitWidth, numberOfNWidthSplits).toInt();
+    final numberOfDecaSplits = calculateNumberOfDecaSplitsRequired(
+      resultingCoinsFromNWidthSplits,
+      desiredNumberOfCoins,
+    );
 
     logger('number of 10 width splits: $numberOfDecaSplits');
 
@@ -74,13 +80,16 @@ class CoinSplittingService {
       logger('joined standard coins for fee');
 
       if (feeCoins.length != 1) {
-        throw Exception('should only be one standard coin after join. got ${feeCoins.length}');
+        throw Exception(
+          'should only be one standard coin after join. got ${feeCoins.length}',
+        );
       }
     }
 
     final relevantPuzzleHashes = keychain.puzzlehashes.sublist(0, splitWidth);
-    final relevantOuterPuzzleHashes =
-        keychain.getOuterPuzzleHashesForAssetId(catCoinToSplit.assetId).sublist(0, splitWidth);
+    final relevantOuterPuzzleHashes = keychain
+        .getOuterPuzzleHashesForAssetId(catCoinToSplit.assetId)
+        .sublist(0, splitWidth);
 
     var catCoins = [catCoinToSplit];
 
@@ -153,7 +162,9 @@ class CoinSplittingService {
       startHeight: earliestSpentBlockIndex,
     );
 
-    return catCoins.where((cc) => catParentCoinIds.contains(cc.parentCoinInfo)).toList();
+    return catCoins
+        .where((cc) => catParentCoinIds.contains(cc.parentCoinInfo))
+        .toList();
   }
 
   Future<List<Coin>> getChildCoinsByPuzzlehashes(
@@ -167,7 +178,9 @@ class CoinSplittingService {
       startHeight: earliestSpentBlockIndex,
     );
 
-    return standardCoins.where((c) => parentCoinIds.contains(c.parentCoinInfo)).toList();
+    return standardCoins
+        .where((c) => parentCoinIds.contains(c.parentCoinInfo))
+        .toList();
   }
 
   Future<int> createAndPushFinalSplittingTransactions({
@@ -256,7 +269,8 @@ class CoinSplittingService {
         keychain: keychain,
       );
 
-      final totalFeeAmount = splitWidth * feePerCoin * 2; // fee coin and cat coin
+      final totalFeeAmount =
+          splitWidth * feePerCoin * 2; // fee coin and cat coin
       final standardCoinValueMinusFee = standardCoin.amount - totalFeeAmount;
 
       final standardPayments = makeSplittingPayments(
@@ -273,7 +287,8 @@ class CoinSplittingService {
       );
 
       parentIdsToLookFor.add(catCoin.id);
-      transactionFutures.add(fullNode.pushTransaction(catSpendBundle + standardSpendBundle));
+      transactionFutures
+          .add(fullNode.pushTransaction(catSpendBundle + standardSpendBundle));
     }
     await Future.wait<void>(transactionFutures);
 
@@ -329,7 +344,9 @@ class CoinSplittingService {
     return waitForTransactionsAndGetFirstSpentIndex([coins.first.id]);
   }
 
-  Future<int> waitForTransactionsAndGetFirstSpentIndex(List<Bytes> parentIds) async {
+  Future<int> waitForTransactionsAndGetFirstSpentIndex(
+    List<Bytes> parentIds,
+  ) async {
     final spentCoins = await blockchainUtils.waitForTransactions(
       parentIds,
       coinSearchWaitPeriod: coinSearchWaitPeriod,
@@ -378,7 +395,8 @@ class CoinSplittingService {
     // pow(...) returns negative went out of bounds
     while (maxResultingCoins <= 0) {
       maxNWidthSplitIndex--;
-      maxResultingCoins = pow(initialSplitWidth, maxNWidthSplitIndex).powerOfTen;
+      maxResultingCoins =
+          pow(initialSplitWidth, maxNWidthSplitIndex).powerOfTen;
     }
 
     final maxResultingCoinsPowerOfTen = maxResultingCoins.powerOfTen;
@@ -392,14 +410,16 @@ class CoinSplittingService {
 
       final desiredNumberOfCoinsAdjusted =
           desiredNumberOfCoins.toNthPowerOfTen(maxResultingCoinsPowerOfTen);
-      final resultingCoinsAdjusted = resultingCoins.toNthPowerOfTen(maxResultingCoinsPowerOfTen);
+      final resultingCoinsAdjusted =
+          resultingCoins.toNthPowerOfTen(maxResultingCoinsPowerOfTen);
 
       var difference = desiredNumberOfCoinsAdjusted - resultingCoinsAdjusted;
       if (difference < 0) {
         final resultingCoinsDigitsMinusOneToCompare =
             resultingCoins.toNthPowerOfTen(maxResultingCoinsPowerOfTen - 1);
 
-        difference = desiredNumberOfCoinsAdjusted - resultingCoinsDigitsMinusOneToCompare;
+        difference = desiredNumberOfCoinsAdjusted -
+            resultingCoinsDigitsMinusOneToCompare;
       }
 
       if (difference < smallestDifference) {
@@ -416,7 +436,8 @@ class CoinSplittingService {
     int desiredNumberOfCoins,
   ) {
     var numberOfDecaSplits = 0;
-    while (resultingCoinsFromNWidthSplits * pow(10, numberOfDecaSplits) <= desiredNumberOfCoins) {
+    while (resultingCoinsFromNWidthSplits * pow(10, numberOfDecaSplits) <=
+        desiredNumberOfCoins) {
       numberOfDecaSplits++;
     }
     // want just under desired amount
@@ -448,7 +469,9 @@ class CoinSplittingService {
     }
 
     if (desiredCoinAmount > catCoinAmount) {
-      throw ArgumentError('Cat balance is not enough to meet desired splitting parameters');
+      throw ArgumentError(
+        'Cat balance is not enough to meet desired splitting parameters',
+      );
     }
 
     // check that fee coins don't get too small
@@ -470,7 +493,9 @@ class CoinSplittingService {
     }
 
     if (feePerCoin > feeCoinAmount) {
-      throw ArgumentError('Standard balance is not enough to meet desired splitting parameters');
+      throw ArgumentError(
+        'Standard balance is not enough to meet desired splitting parameters',
+      );
     }
   }
 }

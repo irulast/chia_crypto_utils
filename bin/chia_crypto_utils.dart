@@ -51,7 +51,8 @@ Future<void> main(List<String> args) async {
   }
 
   // Configure environment based on user selections
-  LoggingContext().setLogLevel(LogLevel.fromString(results['log-level'] as String));
+  LoggingContext()
+      .setLogLevel(LogLevel.fromString(results['log-level'] as String));
   LoggingContext().setLogger((text) {
     stderr.write('$text\n');
   });
@@ -62,15 +63,18 @@ Future<void> main(List<String> args) async {
 
   // construct the Chia full node interface
   var fullNodeUrl = results['full-node-url'] as String;
-  if (fullNodeUrl.endsWith('/')) fullNodeUrl = fullNodeUrl.substring(0, fullNodeUrl.length - 1);
+  if (fullNodeUrl.endsWith('/')) {
+    fullNodeUrl = fullNodeUrl.substring(0, fullNodeUrl.length - 1);
+  }
 
   final certBytesPath = results['cert-path'] as String;
   final keyBytesPath = results['key-path'] as String;
 
   if ((certBytesPath.isEmpty && keyBytesPath.isNotEmpty) ||
       (certBytesPath.isNotEmpty && keyBytesPath.isEmpty)) {
-    LoggingContext()
-        .info('\nTo use options cert-path and key-path both parameters must be provided.');
+    LoggingContext().info(
+      '\nTo use options cert-path and key-path both parameters must be provided.',
+    );
   } else if (certBytesPath.isNotEmpty && keyBytesPath.isNotEmpty) {
     try {
       fullNode = ChiaFullNodeInterface.fromURL(
@@ -82,7 +86,9 @@ Future<void> main(List<String> args) async {
       LoggingContext().error(
         '\nThere is a problem with the full node information you provided. Please try again.',
       );
-      LoggingContext().error('\nThe full node should be in the form https://<SERVER_NAME>.\n');
+      LoggingContext().error(
+        '\nThe full node should be in the form https://<SERVER_NAME>.\n',
+      );
       LoggingContext().error(
         '\nex: When using a locally synced full node you can specify https://localhost:8555',
       );
@@ -95,8 +101,9 @@ Future<void> main(List<String> args) async {
   try {
     await fullNode.getBlockchainState();
   } catch (e) {
-    LoggingContext()
-        .error("\nCouldn't verify full node running at URL you provided. Please try again.");
+    LoggingContext().error(
+      "\nCouldn't verify full node running at URL you provided. Please try again.",
+    );
     exit(126);
   }
 
@@ -121,7 +128,8 @@ class GetCoinRecords extends Command<Future<void>> {
   }
 
   @override
-  String get description => 'Gets coin records for a given address or puzzlehash';
+  String get description =>
+      'Gets coin records for a given address or puzzlehash';
 
   @override
   String get name => 'Get-CoinRecords';
@@ -192,7 +200,8 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
   @override
   Future<void> run() async {
     final faucetRequestURL = argResults!['faucet-request-url'] as String;
-    final faucetRequestPayload = argResults!['faucet-request-payload'] as String;
+    final faucetRequestPayload =
+        argResults!['faucet-request-payload'] as String;
 
     final outputConfigFile = argResults!['output-config'] as String;
 
@@ -207,7 +216,8 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
       keychainSecret,
     );
 
-    final farmerPublicKeyHex = masterSkToFarmerSk(keychainSecret.masterPrivateKey).getG1().toHex();
+    final farmerPublicKeyHex =
+        masterSkToFarmerSk(keychainSecret.masterPrivateKey).getG1().toHex();
     print('Farmer public key: $farmerPublicKeyHex');
 
     final coinAddress = Address.fromPuzzlehash(
@@ -216,8 +226,10 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
     );
 
     if (faucetRequestURL.isNotEmpty && faucetRequestPayload.isNotEmpty) {
-      final theFaucetRequestPayload =
-          faucetRequestPayload.replaceAll(RegExp('SEND_TO_ADDRESS'), coinAddress.address);
+      final theFaucetRequestPayload = faucetRequestPayload.replaceAll(
+        RegExp('SEND_TO_ADDRESS'),
+        coinAddress.address,
+      );
 
       final result = await Process.run('curl', [
         '-s',
@@ -324,7 +336,9 @@ class RegisterPlotNFTCommand extends Command<Future<void>> {
     }
 
     if (mnemonicPhrase.isEmpty) {
-      print('\nPlease enter the mnemonic with the plot NFT you would like to register:');
+      print(
+        '\nPlease enter the mnemonic with the plot NFT you would like to register:',
+      );
       stdout.write('> ');
       mnemonicPhrase = stdin.readLineSync()!;
     }
@@ -343,14 +357,18 @@ class RegisterPlotNFTCommand extends Command<Future<void>> {
     Puzzlehash? payoutPuzzlehash;
     if (payoutAddressString.isEmpty) {
       payoutPuzzlehash = keychain.puzzlehashes[1];
-      print('Payout Address: ${payoutPuzzlehash.toAddressWithContext().address}');
+      print(
+        'Payout Address: ${payoutPuzzlehash.toAddressWithContext().address}',
+      );
     } else {
       Address? payoutAddress;
       while (payoutAddress == null) {
         try {
           payoutAddress = Address(payoutAddressString);
         } catch (e) {
-          print('\nPlease enter a valid address for the new owner pool payout address:');
+          print(
+            '\nPlease enter a valid address for the new owner pool payout address:',
+          );
           stdout.write('> ');
           payoutAddressString = stdin.readLineSync()!;
         }
@@ -358,10 +376,12 @@ class RegisterPlotNFTCommand extends Command<Future<void>> {
       payoutPuzzlehash = payoutAddress.toPuzzlehash();
     }
 
-    final farmerPublicKeyHex = masterSkToFarmerSk(keychainSecret.masterPrivateKey).getG1().toHex();
+    final farmerPublicKeyHex =
+        masterSkToFarmerSk(keychainSecret.masterPrivateKey).getG1().toHex();
     print('Farmer public key: $farmerPublicKeyHex');
 
-    final plotNft = await fullNode.getPlotNftByLauncherId(launcherIdString.hexToBytes());
+    final plotNft =
+        await fullNode.getPlotNftByLauncherId(launcherIdString.hexToBytes());
 
     if (plotNft == null) {
       throw ArgumentError('Invalid launcher-id');
@@ -374,7 +394,8 @@ class RegisterPlotNFTCommand extends Command<Future<void>> {
       keychainSecret.masterPrivateKey,
     );
 
-    final singletonWalletVector = keychain.getSingletonWalletVector(ownerPublicKey);
+    final singletonWalletVector =
+        keychain.getSingletonWalletVector(ownerPublicKey);
 
     final poolService = _getPoolServiceImpl(
       poolUrl,
@@ -396,7 +417,8 @@ class RegisterPlotNFTCommand extends Command<Future<void>> {
         attempts = attempts + 1;
         await Future<void>.delayed(const Duration(seconds: 15));
         farmerInfo = await poolService.getFarmerInfo(
-          authenticationPrivateKey: singletonWalletVector.poolingAuthenticationPrivateKey,
+          authenticationPrivateKey:
+              singletonWalletVector.poolingAuthenticationPrivateKey,
           launcherId: plotNft.launcherId,
         );
       } on PoolResponseException catch (e) {
@@ -500,10 +522,12 @@ class TransferPlotNFTCommand extends Command<Future<void>> {
   Future<void> run() async {
     var currentMnemonicPhrase = argResults!['current-mnemonic'] as String;
     var newOwnerMnemonicPhrase = argResults!['new-owner-mnemonic'] as String;
-    var newOwnerPayoutAddressString = argResults!['new-owner-payout-address'] as String;
+    var newOwnerPayoutAddressString =
+        argResults!['new-owner-payout-address'] as String;
     final poolUrl = argResults!['pool-url'] as String;
     final faucetRequestURL = argResults!['faucet-request-url'] as String;
-    final faucetRequestPayload = argResults!['faucet-request-payload'] as String;
+    final faucetRequestPayload =
+        argResults!['faucet-request-payload'] as String;
 
     final plotNftWalletService = PlotNftWalletService();
 
@@ -514,7 +538,9 @@ class TransferPlotNFTCommand extends Command<Future<void>> {
     }
 
     if (currentMnemonicPhrase.isEmpty) {
-      print('\nPlease enter the mnemonic with the plot NFT you would like to transfer:');
+      print(
+        '\nPlease enter the mnemonic with the plot NFT you would like to transfer:',
+      );
       stdout.write('> ');
       currentMnemonicPhrase = stdin.readLineSync()!;
     }
@@ -528,7 +554,9 @@ class TransferPlotNFTCommand extends Command<Future<void>> {
     }
 
     if (newOwnerMnemonicPhrase.isEmpty) {
-      print('\nPlease enter the mnemonic you would like to transfer the plot NFT to:');
+      print(
+        '\nPlease enter the mnemonic you would like to transfer the plot NFT to:',
+      );
       stdout.write('> ');
       newOwnerMnemonicPhrase = stdin.readLineSync()!;
     }
@@ -541,14 +569,19 @@ class TransferPlotNFTCommand extends Command<Future<void>> {
       );
     }
 
-    final currentKeychainSecret = KeychainCoreSecret.fromMnemonic(currentMnemonic);
-    final currentKeychain = WalletKeychain.fromCoreSecret(currentKeychainSecret);
+    final currentKeychainSecret =
+        KeychainCoreSecret.fromMnemonic(currentMnemonic);
+    final currentKeychain =
+        WalletKeychain.fromCoreSecret(currentKeychainSecret);
 
-    final newOwnerKeychainSecret = KeychainCoreSecret.fromMnemonic(newOwnerMnemonic);
-    final newOwnerKeychain = WalletKeychain.fromCoreSecret(newOwnerKeychainSecret);
-    final newOwnerSingletonWalletVector =
-        newOwnerKeychain.getNextSingletonWalletVector(newOwnerKeychainSecret.masterPrivateKey);
-    final newOwnerPublicKey = newOwnerSingletonWalletVector.singletonOwnerPublicKey;
+    final newOwnerKeychainSecret =
+        KeychainCoreSecret.fromMnemonic(newOwnerMnemonic);
+    final newOwnerKeychain =
+        WalletKeychain.fromCoreSecret(newOwnerKeychainSecret);
+    final newOwnerSingletonWalletVector = newOwnerKeychain
+        .getNextSingletonWalletVector(newOwnerKeychainSecret.masterPrivateKey);
+    final newOwnerPublicKey =
+        newOwnerSingletonWalletVector.singletonOwnerPublicKey;
     newOwnerKeychain.addSingletonWalletVectorForSingletonOwnerPublicKey(
       newOwnerPublicKey,
       newOwnerKeychainSecret.masterPrivateKey,
@@ -559,14 +592,18 @@ class TransferPlotNFTCommand extends Command<Future<void>> {
     Puzzlehash? newOwnerPayoutPuzzlehash;
     if (newOwnerPayoutAddressString.isEmpty) {
       newOwnerPayoutPuzzlehash = newOwnerKeychain.puzzlehashes[1];
-      print('\nPayout Address: ${newOwnerPayoutPuzzlehash.toAddressWithContext().address}\n');
+      print(
+        '\nPayout Address: ${newOwnerPayoutPuzzlehash.toAddressWithContext().address}\n',
+      );
     } else {
       Address? newOwnerPayoutAddress;
       while (newOwnerPayoutAddress == null) {
         try {
           newOwnerPayoutAddress = Address(newOwnerPayoutAddressString);
         } catch (e) {
-          print('\nPlease enter a valid address for the new owner pool payout address:');
+          print(
+            '\nPlease enter a valid address for the new owner pool payout address:',
+          );
           stdout.write('> ');
           newOwnerPayoutAddressString = stdin.readLineSync()!;
         }
@@ -574,7 +611,8 @@ class TransferPlotNFTCommand extends Command<Future<void>> {
       newOwnerPayoutPuzzlehash = newOwnerPayoutAddress.toPuzzlehash();
     }
 
-    final plotNfts = await fullNode.scroungeForPlotNfts(currentKeychain.puzzlehashes);
+    final plotNfts =
+        await fullNode.scroungeForPlotNfts(currentKeychain.puzzlehashes);
 
     if (plotNfts.isEmpty) {
       throw ArgumentError('There are no plot NFTs on the current mnemonic.');
@@ -583,7 +621,9 @@ class TransferPlotNFTCommand extends Command<Future<void>> {
     PlotNft? plotNft;
 
     if (plotNfts.length > 1) {
-      print('\nPlease choose which plot NFT to send from the below list of launcher IDs.');
+      print(
+        '\nPlease choose which plot NFT to send from the below list of launcher IDs.',
+      );
       for (var i = 0; i < plotNfts.length; i++) {
         print('${i + 1}. ${plotNfts[i].launcherId}');
       }
@@ -596,7 +636,9 @@ class TransferPlotNFTCommand extends Command<Future<void>> {
           if (plotNfts.asMap().containsKey(plotNftIndex)) {
             if (plotNfts[plotNftIndex].poolState.poolSingletonState ==
                 PoolSingletonState.farmingToPool) {
-              print('The plot NFT to be transferred cannot start in state farmingToPool.');
+              print(
+                'The plot NFT to be transferred cannot start in state farmingToPool.',
+              );
               print('Please select a different plot NFT.');
             } else {
               plotNft = plotNfts[plotNftIndex];
@@ -605,14 +647,19 @@ class TransferPlotNFTCommand extends Command<Future<void>> {
             print('Not a valid choice.');
           }
         } catch (e) {
-          print('Please enter the number of the launcher ID of the plot NFT you');
+          print(
+            'Please enter the number of the launcher ID of the plot NFT you',
+          );
           print('would like to transfer.');
         }
       }
     } else {
       plotNft = plotNfts.single;
-      if (plotNft.poolState.poolSingletonState == PoolSingletonState.farmingToPool) {
-        throw ArgumentError('The plot NFT to be transferred cannot start in state farmingToPool.');
+      if (plotNft.poolState.poolSingletonState ==
+          PoolSingletonState.farmingToPool) {
+        throw ArgumentError(
+          'The plot NFT to be transferred cannot start in state farmingToPool.',
+        );
       }
     }
 
@@ -632,8 +679,10 @@ class TransferPlotNFTCommand extends Command<Future<void>> {
     );
 
     if (faucetRequestURL.isNotEmpty && faucetRequestPayload.isNotEmpty) {
-      final theFaucetRequestPayload =
-          faucetRequestPayload.replaceAll(RegExp('SEND_TO_ADDRESS'), coinAddress.address);
+      final theFaucetRequestPayload = faucetRequestPayload.replaceAll(
+        RegExp('SEND_TO_ADDRESS'),
+        coinAddress.address,
+      );
 
       final result = await Process.run('curl', [
         '-s',
@@ -694,7 +743,8 @@ class TransferPlotNFTCommand extends Command<Future<void>> {
     //   relativeLockHeight: 0,
     // );
 
-    final plotNftTransferSpendBundle = await plotNftWalletService.createPlotNftTransferSpendBundle(
+    final plotNftTransferSpendBundle =
+        await plotNftWalletService.createPlotNftTransferSpendBundle(
       plotNft: plotNft,
       coinsForTreasureMapCoin: coins,
       targetState: targetState,
@@ -707,7 +757,8 @@ class TransferPlotNFTCommand extends Command<Future<void>> {
 
     List<Coin>? coinsByMemo;
     do {
-      coinsByMemo = await fullNode.getCoinsByHint(newOwnerKeychain.puzzlehashes[3]);
+      coinsByMemo =
+          await fullNode.getCoinsByHint(newOwnerKeychain.puzzlehashes[3]);
       if (coinsByMemo.isEmpty) {
         print('waiting for plot NFT transfer to complete');
         await Future<void>.delayed(const Duration(seconds: 10));
@@ -716,7 +767,8 @@ class TransferPlotNFTCommand extends Command<Future<void>> {
 
     final siblingCoin = coinsByMemo.single;
 
-    final transferredPlotNft = await fullNode.getPlotNftByLauncherId(siblingCoin.puzzlehash);
+    final transferredPlotNft =
+        await fullNode.getPlotNftByLauncherId(siblingCoin.puzzlehash);
 
     final launcherId = transferredPlotNft!.launcherId;
     print('\nMemo / New Owner Puzzlehash: ${newOwnerKeychain.puzzlehashes[3]}');
@@ -814,14 +866,17 @@ class CrossChainOfferExchangeCommand extends Command<Future<void>> {
   CrossChainOfferExchangeCommand();
 
   @override
-  String get description => 'Initiates a cross chain offer exchange between XCH and BTC';
+  String get description =>
+      'Initiates a cross chain offer exchange between XCH and BTC';
 
   @override
   String get name => 'Make-CrossChainOfferExchange';
 
   @override
   Future<void> run() async {
-    print('\nAre you making a new cross chain offer or taking an existing offer?');
+    print(
+      '\nAre you making a new cross chain offer or taking an existing offer?',
+    );
     print('\n1. Making offer');
     print('2. Taking offer');
 
@@ -860,14 +915,16 @@ class NukeKeychain extends Command<Future<void>> {
   Future<void> run() async {
     final mnemonic = argResults!['mnemonic'] as String;
     final walletSize = parseArgument(argResults!['wallet-size'], int.parse)!;
-    final burnBundleSize = parseArgument(argResults!['burn-bundle-size'], int.parse)!;
+    final burnBundleSize =
+        parseArgument(argResults!['burn-bundle-size'], int.parse)!;
     final feePerCoin = parseArgument(argResults!['fee-per-coin'], int.parse)!;
 
     final keychain = WalletKeychain.fromCoreSecret(
       KeychainCoreSecret.fromMnemonicString(mnemonic),
       walletSize: walletSize,
     );
-    final enhancedFullNode = EnhancedChiaFullNodeInterface.fromUrl(fullNode.fullNode.baseURL);
+    final enhancedFullNode =
+        EnhancedChiaFullNodeInterface.fromUrl(fullNode.fullNode.baseURL);
     await nukeKeychain(
       keychain: keychain,
       fullNode: enhancedFullNode,
@@ -896,24 +953,28 @@ class BurnDid extends Command<Future<void>> {
   @override
   Future<void> run() async {
     final mnemonic = argResults!['mnemonic'] as String;
-    final did = parseArgument(argResults!['did'], DidInfo.parseDidFromEitherFormat)!;
+    final did =
+        parseArgument(argResults!['did'], DidInfo.parseDidFromEitherFormat)!;
     final walletSize = parseArgument(argResults!['wallet-size'], int.parse)!;
     final fee = parseArgument(argResults!['fee'], int.parse)!;
     final keychain = WalletKeychain.fromCoreSecret(
       KeychainCoreSecret.fromMnemonicString(mnemonic),
       walletSize: walletSize,
     );
-    final enhancedFullNode = EnhancedChiaFullNodeInterface.fromUrl(fullNode.fullNode.baseURL);
+    final enhancedFullNode =
+        EnhancedChiaFullNodeInterface.fromUrl(fullNode.fullNode.baseURL);
 
     final didWalletService = DIDWalletService();
     print('searching for DID');
-    final didInfos = await enhancedFullNode.getDidRecordsByHints(keychain.puzzlehashes);
+    final didInfos =
+        await enhancedFullNode.getDidRecordsByHints(keychain.puzzlehashes);
     final matchingDids = didInfos.where((element) => element.did == did);
     if (matchingDids.isEmpty) {
       print("couldn't find did by keychain hints");
       exit(1);
     }
-    final standardCoins = await enhancedFullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
+    final standardCoins =
+        await enhancedFullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
 
     final coinsForFee = selectCoinsForAmount(standardCoins, fee);
 
@@ -932,7 +993,8 @@ class BurnDid extends Command<Future<void>> {
 
     await enhancedFullNode.pushTransaction(combinedSpendBundle);
     print('pushed DID burn spend bundle');
-    await BlockchainUtils(enhancedFullNode, logger: print).waitForSpendBundle(combinedSpendBundle);
+    await BlockchainUtils(enhancedFullNode, logger: print)
+        .waitForSpendBundle(combinedSpendBundle);
     exit(0);
   }
 }
@@ -957,7 +1019,8 @@ class InspectDid extends Command<Future<void>> {
     final mnemonic = argResults!['mnemonic'] as String;
     final searchTypeName = argResults!['search-by'] as String;
 
-    final did = parseArgument(argResults!['did'], DidInfo.parseDidFromEitherFormat)!;
+    final did =
+        parseArgument(argResults!['did'], DidInfo.parseDidFromEitherFormat)!;
 
     final walletSize = parseArgument(argResults!['wallet-size'], int.parse)!;
 
@@ -967,12 +1030,14 @@ class InspectDid extends Command<Future<void>> {
     );
 
     final searchType = DidSearchType.fromName(searchTypeName);
-    final enhancedFullNode = EnhancedChiaFullNodeInterface.fromUrl(fullNode.fullNode.baseURL);
+    final enhancedFullNode =
+        EnhancedChiaFullNodeInterface.fromUrl(fullNode.fullNode.baseURL);
     print('searching for did');
     final didInfo = (await () async {
       switch (searchType) {
         case DidSearchType.hints:
-          final didInfos = await enhancedFullNode.getDidRecordsByHints(keychain.puzzlehashes);
+          final didInfos = await enhancedFullNode
+              .getDidRecordsByHints(keychain.puzzlehashes);
           final matchingDids = didInfos.where((element) => element.did == did);
           if (matchingDids.isEmpty) {
             return null;
@@ -993,7 +1058,9 @@ class InspectDid extends Command<Future<void>> {
     print('did: $did');
     print('p2_puzzle_hash: ${didInfo.p2Puzzle.hash()}');
 
-    final privateKey = keychain.getWalletVectorOrThrow(didInfo.p2Puzzle.hash()).childPrivateKey;
+    final privateKey = keychain
+        .getWalletVectorOrThrow(didInfo.p2Puzzle.hash())
+        .childPrivateKey;
 
     print('did_private_key: ${privateKey.toHex()}');
   }
@@ -1035,7 +1102,8 @@ class TransferDidCommand extends Command<Future<void>> {
     }
     final secret = KeychainCoreSecret.fromMnemonic(mnemonic);
     print('\nkeychain fingerprint: ${secret.fingerprint}');
-    final keychain = WalletKeychain.fromCoreSecret(secret, walletSize: walletSize);
+    final keychain =
+        WalletKeychain.fromCoreSecret(secret, walletSize: walletSize);
     final coins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
     final dids = currentDidAddress != null
         ? await fullNode.getDidRecordsFromHint(currentDidAddress.toPuzzlehash())
@@ -1049,7 +1117,9 @@ class TransferDidCommand extends Command<Future<void>> {
           minMojos: 20,
         );
       } on InsufficientBalanceException catch (e) {
-        print('Insufficient balance to cover fee of $fee mojos: ${e.currentBalance} mojos');
+        print(
+          'Insufficient balance to cover fee of $fee mojos: ${e.currentBalance} mojos',
+        );
         return null;
       }
     }();
@@ -1091,7 +1161,9 @@ class TransferDidCommand extends Command<Future<void>> {
     final spendableDid = didToTransfer.toDidInfo(keychain);
 
     if (spendableDid == null) {
-      print('Could not match inner puzzle for ${didToTransfer.did} with this keychain');
+      print(
+        'Could not match inner puzzle for ${didToTransfer.did} with this keychain',
+      );
       exit(exitCode);
     }
 
@@ -1119,7 +1191,9 @@ void printUsage(CommandRunner<dynamic> runner) {
 }
 
 void parseHelp(ArgResults results, CommandRunner<dynamic> runner) {
-  if (results.command == null || results.wasParsed('help') || results.command?.name == 'help') {
+  if (results.command == null ||
+      results.wasParsed('help') ||
+      results.command?.name == 'help') {
     if (results.arguments.isEmpty || results.command == null) {
       print('No command was provided.');
     }

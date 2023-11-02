@@ -17,7 +17,11 @@ class DIDWalletService extends BaseWalletService {
     Puzzlehash newInnerPuzzlehash,
   ) {
     final p2Solution = BaseWalletService.makeSolutionFromConditions([
-      CreateCoinCondition(newInnerPuzzlehash, didInfo.coin.amount, memos: [newInnerPuzzlehash]),
+      CreateCoinCondition(
+        newInnerPuzzlehash,
+        didInfo.coin.amount,
+        memos: [newInnerPuzzlehash],
+      ),
     ]);
 
     final innerSolution = makeRunInnerPuzzleModeInnerSolution(p2Solution);
@@ -27,10 +31,15 @@ class DIDWalletService extends BaseWalletService {
       Program.fromInt(didInfo.coin.amount),
       innerSolution,
     ]);
-    final coinSpend =
-        CoinSpend(coin: didInfo.coin, puzzleReveal: didInfo.fullPuzzle, solution: fullSolution);
+    final coinSpend = CoinSpend(
+      coin: didInfo.coin,
+      puzzleReveal: didInfo.fullPuzzle,
+      solution: fullSolution,
+    );
 
-    return SpendBundle(coinSpends: [coinSpend]).signWithPrivateKey(privateKey).signedBundle;
+    return SpendBundle(coinSpends: [coinSpend])
+        .signWithPrivateKey(privateKey)
+        .signedBundle;
   }
 
   SpendBundle createExitSpend(
@@ -60,7 +69,9 @@ class DIDWalletService extends BaseWalletService {
       solution: fullSolution,
     );
 
-    return SpendBundle(coinSpends: [coinSpend]).signWithPrivateKey(privateKey).signedBundle;
+    return SpendBundle(coinSpends: [coinSpend])
+        .signWithPrivateKey(privateKey)
+        .signedBundle;
   }
 
   SpendBundle createRecoverySpendBundle(
@@ -71,7 +82,8 @@ class DIDWalletService extends BaseWalletService {
     List<Bytes> recoveryIds,
     SpendBundle messageSpendBundle,
   ) {
-    final recoveringDidInfo = recoveringDidRecord.toDidInfoFromParentInfoOrThrow();
+    final recoveringDidInfo =
+        recoveringDidRecord.toDidInfoFromParentInfoOrThrow();
     final recoveringCoin = recoveringDidInfo.coin;
     final newPublicKey = newPrivateKey.getG1();
 
@@ -85,15 +97,23 @@ class DIDWalletService extends BaseWalletService {
     );
 
     final innerPuzzle = recoveringDidInfo.innerPuzzle;
-    final fullPuzzle = DIDWalletService.makeFullPuzzle(innerPuzzle, recoveringDidInfo.did);
+    final fullPuzzle =
+        DIDWalletService.makeFullPuzzle(innerPuzzle, recoveringDidInfo.did);
 
     final parentInfo = recoveringDidInfo.lineageProof;
     final fullSolution = Program.list(
-      [parentInfo.toProgram(), Program.fromInt(recoveringCoin.amount), innerSolution],
+      [
+        parentInfo.toProgram(),
+        Program.fromInt(recoveringCoin.amount),
+        innerSolution
+      ],
     );
 
-    final coinSpend =
-        CoinSpend(coin: recoveringCoin, puzzleReveal: fullPuzzle, solution: fullSolution);
+    final coinSpend = CoinSpend(
+      coin: recoveringCoin,
+      puzzleReveal: fullPuzzle,
+      solution: fullSolution,
+    );
 
     final message = newInnerPuzzlehash;
     final sigs = [AugSchemeMPL.sign(newPrivateKey, message)];
@@ -102,7 +122,8 @@ class DIDWalletService extends BaseWalletService {
     }
     final aggSigs = AugSchemeMPL.aggregate(sigs);
 
-    return SpendBundle(coinSpends: [coinSpend], signatures: {aggSigs}) + messageSpendBundle;
+    return SpendBundle(coinSpends: [coinSpend], signatures: {aggSigs}) +
+        messageSpendBundle;
   }
 
   SpendBundle createTransferSpendBundle({
@@ -133,10 +154,12 @@ class DIDWalletService extends BaseWalletService {
     List<Bytes> puzzlesToAnnounce = const [],
     List<CreateCoinAnnouncementCondition> createCoinAnnouncements = const [],
     List<AssertCoinAnnouncementCondition> assertCoinAnnouncements = const [],
-    List<AssertPuzzleAnnouncementCondition> assertPuzzleAnnouncements = const [],
+    List<AssertPuzzleAnnouncementCondition> assertPuzzleAnnouncements =
+        const [],
     required WalletKeychain keychain,
   }) {
-    final walletVector = keychain.getWalletVectorOrThrow(didInfo.p2Puzzle.hash());
+    final walletVector =
+        keychain.getWalletVectorOrThrow(didInfo.p2Puzzle.hash());
 
     return createSpendBundleFromPrivateKey(
       didInfo: didInfo,
@@ -159,7 +182,8 @@ class DIDWalletService extends BaseWalletService {
     List<Bytes> puzzlesToAnnounce = const [],
     List<CreateCoinAnnouncementCondition> createCoinAnnouncements = const [],
     List<AssertCoinAnnouncementCondition> assertCoinAnnouncements = const [],
-    List<AssertPuzzleAnnouncementCondition> assertPuzzleAnnouncements = const [],
+    List<AssertPuzzleAnnouncementCondition> assertPuzzleAnnouncements =
+        const [],
   }) {
     final spendBundle = createUnsignedSpendBundle(
       didInfo: didInfo,
@@ -185,18 +209,21 @@ class DIDWalletService extends BaseWalletService {
     List<Bytes> puzzlesToAnnounce = const [],
     List<CreateCoinAnnouncementCondition> createCoinAnnouncements = const [],
     List<AssertCoinAnnouncementCondition> assertCoinAnnouncements = const [],
-    List<AssertPuzzleAnnouncementCondition> assertPuzzleAnnouncements = const [],
+    List<AssertPuzzleAnnouncementCondition> assertPuzzleAnnouncements =
+        const [],
   }) {
     final newInnerPuzzleHash = () {
       if (newP2Puzzlehash == null) {
         return didInfo.innerPuzzle.hash();
       }
 
-      final uncurriedParent = UncurriedDidInnerPuzzle.fromProgram(didInfo.innerPuzzle);
+      final uncurriedParent =
+          UncurriedDidInnerPuzzle.fromProgram(didInfo.innerPuzzle);
       return calculateInnerPuzzleHash(
         p2Puzzlehash: newP2Puzzlehash,
         backupIdsHashProgram: uncurriedParent.backUpIdsHashProgram,
-        nVerificationsRequiredProgram: uncurriedParent.numberOfVerificationsRequiredProgram,
+        nVerificationsRequiredProgram:
+            uncurriedParent.numberOfVerificationsRequiredProgram,
         singletonStructure: uncurriedParent.singletonStructureProgram,
         metadataProgram: uncurriedParent.metadataProgram,
       );
@@ -251,20 +278,29 @@ class DIDWalletService extends BaseWalletService {
   }) {
     final recoveringCoinId = recoveringDidInfo.coin.id;
 
-    final messagePuzzle =
-        makeRecoveryMessagePuzzle(recoveringCoinId, newInnerPuzzlehash, newPublicKey);
+    final messagePuzzle = makeRecoveryMessagePuzzle(
+      recoveringCoinId,
+      newInnerPuzzlehash,
+      newPublicKey,
+    );
 
     final innerMessage = messagePuzzle.hash();
     final innerPuzzle = attestmentMakerDidInfo.innerPuzzle;
 
     final p2Solution = BaseWalletService.makeSolutionFromConditions([
-      CreateCoinCondition(innerPuzzle.hash(), attestmentMakerDidInfo.coin.amount),
+      CreateCoinCondition(
+        innerPuzzle.hash(),
+        attestmentMakerDidInfo.coin.amount,
+      ),
       CreateCoinCondition(innerMessage, 0),
     ]);
 
     final innerSolution = makeRunInnerPuzzleModeInnerSolution(p2Solution);
 
-    final fullPuzzle = DIDWalletService.makeFullPuzzle(innerPuzzle, attestmentMakerDidInfo.did);
+    final fullPuzzle = DIDWalletService.makeFullPuzzle(
+      innerPuzzle,
+      attestmentMakerDidInfo.did,
+    );
 
     final parentInfo = attestmentMakerDidInfo.lineageProof;
     final fullSolution = Program.list([
@@ -279,14 +315,18 @@ class DIDWalletService extends BaseWalletService {
       solution: fullSolution,
     );
 
-    final messageSpend = createSpendForMessage(attestmentMakerDidInfo.coin.id, messagePuzzle);
+    final messageSpend =
+        createSpendForMessage(attestmentMakerDidInfo.coin.id, messagePuzzle);
     final messageSpendBundle = SpendBundle(coinSpends: [messageSpend]);
 
     final spendBundle = SpendBundle(coinSpends: [coinSpend])
         .signWithPrivateKey(attestmentMakerPrivateKey)
         .signedBundle;
 
-    return Attestment(attestmentSpendBundle: spendBundle, messageSpendBundle: messageSpendBundle);
+    return Attestment(
+      attestmentSpendBundle: spendBundle,
+      messageSpendBundle: messageSpendBundle,
+    );
   }
 
   static Program makeRecoveryMessagePuzzle(
@@ -305,14 +345,21 @@ class DIDWalletService extends BaseWalletService {
     ]);
   }
 
-  static CoinSpend createSpendForMessage(Bytes attestmentMakerCoinId, Program messagePuzzle) {
+  static CoinSpend createSpendForMessage(
+    Bytes attestmentMakerCoinId,
+    Program messagePuzzle,
+  ) {
     final coin = CoinPrototype(
       parentCoinInfo: attestmentMakerCoinId,
       puzzlehash: messagePuzzle.hash(),
       amount: 0,
     );
     final solution = Program.list([]);
-    return CoinSpend(coin: coin, puzzleReveal: messagePuzzle, solution: solution);
+    return CoinSpend(
+      coin: coin,
+      puzzleReveal: messagePuzzle,
+      solution: solution,
+    );
   }
 
   SpendBundle createGenerateDIDSpendBundle({
@@ -342,7 +389,8 @@ class DIDWalletService extends BaseWalletService {
 
     final didInnerPuzzle = createInnerPuzzle(
       p2Puzzle: p2Puzzle,
-      backupIdsHash: Program.list(backupIds.map(Program.fromAtom).toList()).hash(),
+      backupIdsHash:
+          Program.list(backupIds.map(Program.fromAtom).toList()).hash(),
       launcherCoinId: launcherId,
       nVerificationsRequired: nVerificationsRequired ?? backupIds.length,
       metadataProgram: metadata?.toProgram(),
@@ -359,7 +407,9 @@ class DIDWalletService extends BaseWalletService {
 
     final announcementMessage = genesisLauncherSolution.hash();
 
-    final announcements = [AssertCoinAnnouncementCondition(launcherId, announcementMessage)];
+    final announcements = [
+      AssertCoinAnnouncementCondition(launcherId, announcementMessage)
+    ];
 
     final standardSpendBundle = standardWalletService.createSpendBundle(
       payments: [Payment(amount, singletonLauncherProgram.hash())],
@@ -445,10 +495,12 @@ class DIDWalletService extends BaseWalletService {
     WalletKeychain keychain,
   ) {
     for (final coinSpend in spendBundle.coinSpends) {
-      final unCurriedNftPuzzle = UncurriedDidPuzzle.maybeFromProgram(coinSpend.puzzleReveal);
+      final unCurriedNftPuzzle =
+          UncurriedDidPuzzle.maybeFromProgram(coinSpend.puzzleReveal);
       if (unCurriedNftPuzzle != null) {
         final p2Puzzlehash = unCurriedNftPuzzle.innerPuzzle.p2Puzzle.hash();
-        final privateKey = keychain.getWalletVector(p2Puzzlehash)!.childPrivateKey;
+        final privateKey =
+            keychain.getWalletVector(p2Puzzlehash)!.childPrivateKey;
         return spendBundle.signWithPrivateKey(privateKey).signedBundle;
       }
     }
@@ -462,7 +514,8 @@ class DIDWalletService extends BaseWalletService {
     required int nVerificationsRequired,
     required Program? metadataProgram,
   }) {
-    final singletonStructure = SingletonService.makeSingletonStructureProgram(launcherCoinId);
+    final singletonStructure =
+        SingletonService.makeSingletonStructureProgram(launcherCoinId);
 
     return constructInnerPuzzle(
       p2Puzzle: p2Puzzle,
@@ -526,9 +579,11 @@ class DIDWalletService extends BaseWalletService {
     Program didInnerPuzzle,
     Bytes launcherCoinId,
   ) {
-    final singletonStructure = SingletonService.makeSingletonStructureProgram(launcherCoinId);
+    final singletonStructure =
+        SingletonService.makeSingletonStructureProgram(launcherCoinId);
 
-    return singletonTopLayerV1Program.curry([singletonStructure, didInnerPuzzle]);
+    return singletonTopLayerV1Program
+        .curry([singletonStructure, didInnerPuzzle]);
   }
 
   static Program makeRecoveryModeInnerSolution({
@@ -562,7 +617,8 @@ class DIDWalletService extends BaseWalletService {
     ConditionChecker<T> conditionChecker,
     ConditionFromProgramConstructor<T> conditionFromProgramConstructor,
   ) {
-    if (SpendMode.fromCode(solution.toList()[0].toInt()) != SpendMode.runInnerPuzzle) {
+    if (SpendMode.fromCode(solution.toList()[0].toInt()) !=
+        SpendMode.runInnerPuzzle) {
       return [];
     }
     return BaseWalletService.extractConditionsFromSolution(

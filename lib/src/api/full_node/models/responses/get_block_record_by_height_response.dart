@@ -13,7 +13,8 @@ class GetBlockRecordByHeightResponse extends ChiaBaseResponse {
     final chiaBaseResponse = ChiaBaseResponse.fromJson(json);
 
     return GetBlockRecordByHeightResponse(
-      blockRecord: BlockRecord.fromJson(json['block_record'] as Map<String, dynamic>),
+      blockRecord:
+          BlockRecord.fromJson(json['block_record'] as Map<String, dynamic>),
       success: chiaBaseResponse.success,
       error: chiaBaseResponse.error,
     );

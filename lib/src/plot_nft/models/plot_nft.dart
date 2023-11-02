@@ -37,13 +37,21 @@ class PlotNft with ToBytesMixin {
   final Puzzlehash delayPuzzlehash;
   final LineageProof lineageProof;
 
-  Puzzlehash get p2Puzzlehash =>
-      PlotNftWalletService.launcherIdToP2Puzzlehash(launcherId, delayTime, delayPuzzlehash);
+  Puzzlehash get p2Puzzlehash => PlotNftWalletService.launcherIdToP2Puzzlehash(
+        launcherId,
+        delayTime,
+        delayPuzzlehash,
+      );
 
   Future<Puzzlehash> get p2PuzzlehashAsync =>
-      PlotNftWalletService.launcherIdToP2PuzzlehashAsync(launcherId, delayTime, delayPuzzlehash);
+      PlotNftWalletService.launcherIdToP2PuzzlehashAsync(
+        launcherId,
+        delayTime,
+        delayPuzzlehash,
+      );
 
-  Puzzlehash get contractPuzzlehash => PlotNftWalletService.launcherIdToP2Puzzlehash(
+  Puzzlehash get contractPuzzlehash =>
+      PlotNftWalletService.launcherIdToP2Puzzlehash(
         launcherId,
         delayTime,
         delayPuzzlehash,

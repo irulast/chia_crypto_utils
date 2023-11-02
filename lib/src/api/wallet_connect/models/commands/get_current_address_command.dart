@@ -6,11 +6,14 @@ class GetCurrentAddressCommand implements WalletConnectCommand {
     this.walletId = 1,
   });
   factory GetCurrentAddressCommand.fromParams(Map<String, dynamic> params) {
-    return GetCurrentAddressCommand(walletId: pick(params, 'walletId').asIntOrNull());
+    return GetCurrentAddressCommand(
+      walletId: pick(params, 'walletId').asIntOrNull(),
+    );
   }
 
   @override
-  WalletConnectCommandType get type => WalletConnectCommandType.getCurrentAddress;
+  WalletConnectCommandType get type =>
+      WalletConnectCommandType.getCurrentAddress;
 
   final int? walletId;
 

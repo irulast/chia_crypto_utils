@@ -31,7 +31,8 @@ class WalletConnectWalletClient {
   Future<void> init() async {
     await web3Wallet.init();
 
-    web3Wallet.onSessionProposal.subscribe((SessionProposalEvent? sessionProposal) async {
+    web3Wallet.onSessionProposal
+        .subscribe((SessionProposalEvent? sessionProposal) async {
       if (sessionProposal == null) {
         return;
       }
@@ -58,12 +59,17 @@ class WalletConnectWalletClient {
     final chiaNamespace = requiredNamespaces['chia'];
 
     if (chiaNamespace == null) {
-      await rejectSession(sessionProposal.id, Errors.getSdkError(Errors.NON_CONFORMING_NAMESPACES));
+      await rejectSession(
+        sessionProposal.id,
+        Errors.getSdkError(Errors.NON_CONFORMING_NAMESPACES),
+      );
       LoggingContext().info('rejecting due to chia namespace missing');
       return;
     }
 
-    final commands = chiaNamespace.methods.where((method) => method.startsWith('chia_')).toList();
+    final commands = chiaNamespace.methods
+        .where((method) => method.startsWith('chia_'))
+        .toList();
 
     if (handleProposal == null) {
       throw UnregisteredSessionProposalHandler();
@@ -72,11 +78,15 @@ class WalletConnectWalletClient {
     final fingerprints = await handleProposal!(sessionProposal);
 
     if (fingerprints != null) {
-      final approveResponse = await approveSession(sessionProposal.id, fingerprints, commands);
+      final approveResponse =
+          await approveSession(sessionProposal.id, fingerprints, commands);
 
       await handleSessionApproval?.call(approveResponse);
     } else {
-      await rejectSession(sessionProposal.id, Errors.getSdkError(Errors.USER_REJECTED));
+      await rejectSession(
+        sessionProposal.id,
+        Errors.getSdkError(Errors.USER_REJECTED),
+      );
     }
   }
 
@@ -99,7 +109,8 @@ class WalletConnectWalletClient {
       ),
     };
 
-    final response = await web3Wallet.approveSession(id: id, namespaces: namespaces);
+    final response =
+        await web3Wallet.approveSession(id: id, namespaces: namespaces);
 
     return response;
   }
@@ -140,11 +151,15 @@ class WalletConnectWalletClient {
     this.requestHandler = requestHandler;
   }
 
-  void registerProposalHandler(WalletConnectSessionProposalHandler proposalHandler) {
+  void registerProposalHandler(
+    WalletConnectSessionProposalHandler proposalHandler,
+  ) {
     handleProposal = proposalHandler;
   }
 
-  void registerSessionApprovalHandler(WalletConnectSessionApprovalHandler approvalHandler) {
+  void registerSessionApprovalHandler(
+    WalletConnectSessionApprovalHandler approvalHandler,
+  ) {
     handleSessionApproval = approvalHandler;
   }
 }

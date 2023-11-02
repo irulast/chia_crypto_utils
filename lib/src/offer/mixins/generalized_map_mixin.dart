@@ -12,9 +12,11 @@ mixin MixedTypeMixin<T, V> {
   /// prototype pattern
   V clone(Map<GeneralCoinType, Map<Puzzlehash?, T>> map);
   Map<Puzzlehash, T> get cat =>
-      map[GeneralCoinType.cat]?.map((key, value) => MapEntry(key!, value)) ?? {};
+      map[GeneralCoinType.cat]?.map((key, value) => MapEntry(key!, value)) ??
+      {};
   Map<Puzzlehash, T> get nft =>
-      map[GeneralCoinType.nft]?.map((key, value) => MapEntry(key!, value)) ?? {};
+      map[GeneralCoinType.nft]?.map((key, value) => MapEntry(key!, value)) ??
+      {};
 
   Map<Puzzlehash?, T> toGeneralizedMap() {
     final generalizedMap = <Puzzlehash?, T>{};

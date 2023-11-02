@@ -15,10 +15,11 @@ class NotificationWalletService {
     int fee = 0,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
   }) {
-    final notificationPuzzle =
-        notificationProgram.curry([Program.fromAtom(targetPuzzlehash), Program.fromInt(amount)]);
+    final notificationPuzzle = notificationProgram
+        .curry([Program.fromAtom(targetPuzzlehash), Program.fromInt(amount)]);
     final notificationPuzzlehash = notificationPuzzle.hash();
 
     final originCoin = originId != null
@@ -37,9 +38,11 @@ class NotificationWalletService {
       solution: Program.nil,
     );
 
-    final notificationSpendBundle = SpendBundle(coinSpends: [notificationCoinSpend]);
+    final notificationSpendBundle =
+        SpendBundle(coinSpends: [notificationCoinSpend]);
 
-    final messageCoinAnnouncement = AssertCoinAnnouncementCondition(notificationCoin.id, Bytes([]));
+    final messageCoinAnnouncement =
+        AssertCoinAnnouncementCondition(notificationCoin.id, Bytes([]));
 
     final standardSpendBundle = standardWalletService.createSpendBundle(
       payments: [
@@ -57,7 +60,10 @@ class NotificationWalletService {
       changePuzzlehash: changePuzzlehash,
       fee: fee,
       originId: originId,
-      coinAnnouncementsToAssert: [messageCoinAnnouncement, ...coinAnnouncementsToAssert],
+      coinAnnouncementsToAssert: [
+        messageCoinAnnouncement,
+        ...coinAnnouncementsToAssert
+      ],
       puzzleAnnouncementsToAssert: puzzleAnnouncementsToAssert,
     );
 

@@ -35,7 +35,10 @@ class PrivateKeyDidSigningService implements DidSigningService {
     SpendBundle didBundle,
   ) async {
     return didBundle
-        .signWithPrivateKey(didPrivateKey, filterCoinSpends: DidSigningService._isDidSpend)
+        .signWithPrivateKey(
+          didPrivateKey,
+          filterCoinSpends: DidSigningService._isDidSpend,
+        )
         .signedBundle
         .aggregatedSignature!;
   }
@@ -111,7 +114,8 @@ class WalletConnectDidSigningService implements DidSigningService {
         singletonStructure: didRecord.singletonStructure,
         backUpIdsHash: didRecord.backUpIdsHash,
         nVerificationsRequired: didRecord.nVerificationsRequired,
-        backupIds: chiaDidInfo.backupIds?.map(Puzzlehash.new).toList() ?? didRecord.backupIds,
+        backupIds: chiaDidInfo.backupIds?.map(Puzzlehash.new).toList() ??
+            didRecord.backupIds,
         hints: didRecord.hints,
         parentSpend: didRecord.parentSpend,
       ),
@@ -122,13 +126,17 @@ class WalletConnectDidSigningService implements DidSigningService {
   /// throws [MissingDidException] if the did is not found in any of the connected fingerprints
   @override
   Future<JacobianPoint> signDidBundle(SpendBundle didBundle) async {
-    final uncurriedDidPuzzle =
-        UncurriedDidPuzzle.fromProgram(didBundle.coinSpends.single.puzzleReveal);
-    final fingerprint = (await _getChiaDidInfoForDid(uncurriedDidPuzzle.did)).fingerprint;
+    final uncurriedDidPuzzle = UncurriedDidPuzzle.fromProgram(
+      didBundle.coinSpends.single.puzzleReveal,
+    );
+    final fingerprint =
+        (await _getChiaDidInfoForDid(uncurriedDidPuzzle.did)).fingerprint;
 
     return _withInitializedClient((client) async {
-      final response =
-          await client.signSpendBundle(fingerprint: fingerprint, spendBundle: didBundle);
+      final response = await client.signSpendBundle(
+        fingerprint: fingerprint,
+        spendBundle: didBundle,
+      );
 
       return response.signature;
     });
@@ -146,8 +154,9 @@ class WalletConnectDidSigningService implements DidSigningService {
         );
         for (final walletInfo in response.wallets) {
           try {
-            final didWalletInfo =
-                ChiaDidInfo.fromJson(jsonDecode(walletInfo.data) as Map<String, dynamic>);
+            final didWalletInfo = ChiaDidInfo.fromJson(
+              jsonDecode(walletInfo.data) as Map<String, dynamic>,
+            );
             if (didWalletInfo.did == did) {
               return ChiaDidInfoWithFingerprint(fingerprint, didWalletInfo);
             }

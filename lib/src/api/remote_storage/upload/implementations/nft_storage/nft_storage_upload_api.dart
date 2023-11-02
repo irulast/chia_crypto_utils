@@ -16,7 +16,10 @@ class NftStorageUploadApiI implements NftStorageUploadApi {
   final String _apiKey;
 
   @override
-  Future<NftStorageUploadResponse> uploadBytes(Bytes bytes, {ContentType? contentType}) async {
+  Future<NftStorageUploadResponse> uploadBytes(
+    Bytes bytes, {
+    ContentType? contentType,
+  }) async {
     final response = await http.post(
       _uri,
       body: bytes.byteList,
@@ -29,7 +32,8 @@ class NftStorageUploadApiI implements NftStorageUploadApi {
     final body = jsonDecode(response.body) as Map<String, dynamic>;
 
     _validateResponse(response.statusCode, body);
-    final result = NftStorageUploadResponse.fromJson(pick(body, 'value').asJsonOrThrow());
+    final result =
+        NftStorageUploadResponse.fromJson(pick(body, 'value').asJsonOrThrow());
 
     return result;
   }

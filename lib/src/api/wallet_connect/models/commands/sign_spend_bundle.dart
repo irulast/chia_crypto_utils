@@ -7,7 +7,8 @@ class SignSpendBundleCommand implements WalletConnectCommand {
   });
   factory SignSpendBundleCommand.fromParams(Map<String, dynamic> params) {
     return SignSpendBundleCommand(
-      spendBundle: pick(params, 'spendBundle').letJsonOrThrow(SpendBundle.fromJson),
+      spendBundle:
+          pick(params, 'spendBundle').letJsonOrThrow(SpendBundle.fromJson),
     );
   }
 
@@ -29,7 +30,8 @@ class SignSpendBundleResponse
   factory SignSpendBundleResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
-    final signature = pick(json, 'data').letStringOrThrow(JacobianPoint.fromHexG2);
+    final signature =
+        pick(json, 'data').letStringOrThrow(JacobianPoint.fromHexG2);
 
     return SignSpendBundleResponse(baseResponse, signature);
   }

@@ -52,12 +52,15 @@ mixin DidInfoDecoratorMixin implements DidInfo {
   Program get p2Puzzle => didInfo.p2Puzzle;
 
   @override
-  DidInfo toDidInfoForPk(JacobianPoint publicKey) => didInfo.toDidInfoForPk(publicKey);
+  DidInfo toDidInfoForPk(JacobianPoint publicKey) =>
+      didInfo.toDidInfoForPk(publicKey);
 
   @override
   DidInfo toDidInfoFromParentInfo() => didInfo.toDidInfoFromParentInfo();
 
   @override
-  Future<DidInfoWithOriginCoin?> fetchOriginCoin(ChiaFullNodeInterface fullNode) =>
+  Future<DidInfoWithOriginCoin?> fetchOriginCoin(
+    ChiaFullNodeInterface fullNode,
+  ) =>
       didInfo.fetchOriginCoin(fullNode);
 }

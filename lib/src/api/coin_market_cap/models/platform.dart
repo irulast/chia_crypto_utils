@@ -12,6 +12,7 @@ class Platform {
   final String tokenAddress;
 
   @override
-  String toString() => 'Platform(id: $id, name: $name, symbol: $symbol, slug: $slug, '
+  String toString() =>
+      'Platform(id: $id, name: $name, symbol: $symbol, slug: $slug, '
       'tokenAddress: $tokenAddress)';
 }

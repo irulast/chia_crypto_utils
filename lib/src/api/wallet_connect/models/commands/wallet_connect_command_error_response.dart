@@ -5,7 +5,9 @@ class WalletConnectCommandErrorResponse
     with ToJsonMixin, WalletConnectCommandResponseDecoratorMixin
     implements WalletConnectCommandBaseResponse {
   const WalletConnectCommandErrorResponse(this.delegate, this.error);
-  factory WalletConnectCommandErrorResponse.fromJson(Map<String, dynamic> json) {
+  factory WalletConnectCommandErrorResponse.fromJson(
+    Map<String, dynamic> json,
+  ) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
     final error = pick(json, 'error').letStringOrThrow((string) => string);

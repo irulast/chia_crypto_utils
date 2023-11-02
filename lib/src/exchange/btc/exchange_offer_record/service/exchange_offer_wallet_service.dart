@@ -19,7 +19,8 @@ class ExchangeOfferWalletService {
     Puzzlehash? changePuzzlehash,
     int fee = 0,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
   }) {
     final initializationSpendBundle = standardWalletService.createSpendBundle(
       payments: [
@@ -51,7 +52,8 @@ class ExchangeOfferWalletService {
     required WalletVector walletVector,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
   }) {
     final requestorPrivateKey = walletVector.childPrivateKey;
 
@@ -60,7 +62,8 @@ class ExchangeOfferWalletService {
       requestorPrivateKey: requestorPrivateKey,
     ).toMemos();
 
-    final messagePuzzlehashKeychain = makeKeychainFromWalletVector(walletVector);
+    final messagePuzzlehashKeychain =
+        makeKeychainFromWalletVector(walletVector);
 
     final cancelationSpendBundle = standardWalletService.createSpendBundle(
       payments: [
@@ -87,11 +90,13 @@ class ExchangeOfferWalletService {
     Puzzlehash? changePuzzlehash,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
   }) {
     final notificationService = NotificationWalletService();
 
-    final notificationSpendBundle = notificationService.createNotificationSpendBundle(
+    final notificationSpendBundle =
+        notificationService.createNotificationSpendBundle(
       targetPuzzlehash: messagePuzzlehash,
       message: <Memo>[
         Memo(initializationCoinId),
@@ -117,7 +122,8 @@ class ExchangeOfferWalletService {
     required WalletVector walletVector,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
   }) {
     final requestorPrivateKey = walletVector.childPrivateKey;
 
@@ -126,7 +132,8 @@ class ExchangeOfferWalletService {
       requestorPrivateKey: requestorPrivateKey,
     ).toMemos();
 
-    final messagePuzzlehashKeychain = makeKeychainFromWalletVector(walletVector);
+    final messagePuzzlehashKeychain =
+        makeKeychainFromWalletVector(walletVector);
 
     final acceptanceSpendBundle = standardWalletService.createSpendBundle(
       payments: [
@@ -152,9 +159,11 @@ class ExchangeOfferWalletService {
     required WalletVector walletVector,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
   }) {
-    final messagePuzzlehashKeychain = makeKeychainFromWalletVector(walletVector);
+    final messagePuzzlehashKeychain =
+        makeKeychainFromWalletVector(walletVector);
 
     final declinationSpendBundle = standardWalletService.createSpendBundle(
       payments: [
@@ -181,7 +190,8 @@ class ExchangeOfferWalletService {
     int fee = 0,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
   }) {
     final memos = ExchangeCoinMemos(
       initializationCoinId: initializationCoinId,
@@ -219,7 +229,8 @@ class ExchangeOfferWalletService {
     required JacobianPoint fulfillerPublicKey,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
   }) {
     final btcToXchService = BtcToXchService();
     final memos = ExchangeCoinMemos(
@@ -259,7 +270,8 @@ class ExchangeOfferWalletService {
     required JacobianPoint fulfillerPublicKey,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
   }) {
     final xchToBtcService = XchToBtcService();
     final memos = ExchangeCoinMemos(
@@ -268,7 +280,9 @@ class ExchangeOfferWalletService {
     ).toMemos();
 
     final clawbackSpendBundle = xchToBtcService.createClawbackSpendBundle(
-      payments: [Payment(escrowCoins.totalValue, requestorPuzzlehash, memos: memos)],
+      payments: [
+        Payment(escrowCoins.totalValue, requestorPuzzlehash, memos: memos)
+      ],
       coinsInput: escrowCoins,
       requestorPrivateKey: requestorPrivateKey,
       clawbackDelaySeconds: exchangeValidityTime,
@@ -282,7 +296,9 @@ class ExchangeOfferWalletService {
     return clawbackSpendBundle;
   }
 
-  static WalletKeychain makeKeychainFromWalletVector(WalletVector walletVector) {
+  static WalletKeychain makeKeychainFromWalletVector(
+    WalletVector walletVector,
+  ) {
     final hardenedMap = LinkedHashMap<Puzzlehash, WalletVector>();
     hardenedMap[walletVector.puzzlehash] = walletVector;
 
