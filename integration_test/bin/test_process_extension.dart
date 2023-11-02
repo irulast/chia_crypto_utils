@@ -5,7 +5,6 @@ extension ConvenienceMethods on TestProcess {
     String next;
     do {
       next = await this.stdout.next;
-      print(next);
     } while (!next.contains(stdout));
 
     return next;
@@ -16,7 +15,6 @@ extension ConvenienceMethods on TestProcess {
     bool hasNext;
     do {
       next = await stdout.next;
-      print(next);
 
       hasNext = await stdout.hasNext;
     } while (hasNext);
