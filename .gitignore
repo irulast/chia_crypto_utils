@@ -39,3 +39,6 @@ coverage/
 main.sym
 spend_bundle_hex.txt
 simulator_gen_path.json
+
+# Ignore logs from exchange commands
+exchange-log-*.txt
