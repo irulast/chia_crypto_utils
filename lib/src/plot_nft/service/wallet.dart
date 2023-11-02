@@ -432,6 +432,7 @@ class PlotNftWalletService extends BaseWalletService {
       coinsInput: coins,
       keychain: keychain,
       allowLeftOver: true,
+      changePuzzlehash: changePuzzlehash,
     );
   }
 
