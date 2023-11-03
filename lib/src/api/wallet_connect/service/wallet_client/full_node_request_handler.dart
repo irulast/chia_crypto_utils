@@ -149,10 +149,8 @@ class FullNodeWalletConnectRequestHandler
     final nftRecordsToAdd = nftRecords
         .where(
           (nftRecord) =>
-              !currentNftWallets.launcherIdsMap
-                  .containsValue(nftRecord.launcherId) ||
-              nftWalletsToRemove.launcherIdsMap
-                  .containsValue(nftRecord.launcherId) ||
+              !currentNftWallets.launcherIds.contains(nftRecord.launcherId) ||
+              nftWalletsToRemove.launcherIds.contains(nftRecord.launcherId) ||
               (nftWalletsWithNullDid.isNotEmpty &&
                   nftWalletsWithNullDid.nftInfos
                       .map((e) => e.launcherId)
