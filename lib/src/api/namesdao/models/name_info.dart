@@ -4,7 +4,8 @@ class NameInfo with ToJsonMixin {
   NameInfo({
     required this.address,
   });
-  NameInfo.fromJson(Map<String, dynamic> json) : address = Address(json['address'] as String);
+  NameInfo.fromJson(Map<String, dynamic> json)
+      : address = Address(json['address'] as String);
 
   final Address address;
 

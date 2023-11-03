@@ -69,7 +69,11 @@ void main() async {
         if (testCase.splitWidth > testCase.numberOfCoins) {
           expect(
             constructSpendBundle,
-            throwsA(predicate((p0) => p0 is InvalidCoinSplittingParametersException)),
+            throwsA(
+              predicate(
+                (p0) => p0 is InvalidCoinSplittingParametersException,
+              ),
+            ),
           );
           return;
         } else {
@@ -83,15 +87,18 @@ void main() async {
         await nathan.refreshCoins();
         final endingCoins = nathan.standardCoins;
 
-        final totalFee =
-            (testCase.numberOfCoins / testCase.splitWidth).ceil() * testCase.feePerCoin;
+        final totalFee = (testCase.numberOfCoins / testCase.splitWidth).ceil() *
+            testCase.feePerCoin;
 
         expect(
           endingCoins.totalValue,
           initialCoins.totalValue - totalFee,
         );
 
-        expect(endingCoins.length, initialCoins.length + testCase.numberOfCoins);
+        expect(
+          endingCoins.length,
+          initialCoins.length + testCase.numberOfCoins,
+        );
 
         var matchingCoinAmounts = 0;
 

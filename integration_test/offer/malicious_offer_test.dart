@@ -78,7 +78,8 @@ Future<void> main() async {
 
     expect(
       () async {
-        catOfferService.standardWalletService.validateSpendBundle(badSpendBundle);
+        catOfferService.standardWalletService
+            .validateSpendBundle(badSpendBundle);
       },
       throwsA(isA<FailedSignatureVerificationException>()),
     );
@@ -98,8 +99,10 @@ Future<void> main() async {
       ]),
     );
 
-    final negativeBundle =
-        SpendBundle(coinSpends: [negativeSpend], signatures: {JacobianPoint.generateG2()});
+    final negativeBundle = SpendBundle(
+      coinSpends: [negativeSpend],
+      signatures: {JacobianPoint.generateG2()},
+    );
     expect(
       () async {
         await fullNodeSimulator.pushTransaction(negativeBundle);
@@ -126,7 +129,10 @@ Future<void> main() async {
     expect(
       () async {
         await fullNodeSimulator.pushTransaction(
-          SpendBundle(coinSpends: [tooLargeSpend], signatures: {JacobianPoint.generateG2()}),
+          SpendBundle(
+            coinSpends: [tooLargeSpend],
+            signatures: {JacobianPoint.generateG2()},
+          ),
         );
       },
       throwsA(isA<BadRequestException>()),
@@ -181,7 +187,8 @@ Future<void> main() async {
     await fullNodeSimulator.moveToNextBlock();
   });
 
-  test('should fail on double spend with a duplicate coin recreation', () async {
+  test('should fail on double spend with a duplicate coin recreation',
+      () async {
     final doubleSpend = CoinSpend(
       coin: acsCoinParent,
       puzzleReveal: acs,

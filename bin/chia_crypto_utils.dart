@@ -10,6 +10,7 @@ import 'package:chia_crypto_utils/src/command/core/nuke_keychain.dart';
 import 'package:chia_crypto_utils/src/command/exchange/cross_chain_offer_exchange.dart';
 import 'package:chia_crypto_utils/src/command/exchange/exchange_btc.dart';
 import 'package:chia_crypto_utils/src/command/plot_nft/create_new_wallet_with_plotnft.dart';
+import 'package:chia_crypto_utils/src/command/plot_nft/get_coins_for_command.dart';
 import 'package:chia_crypto_utils/src/core/resources/bip_39_words.dart';
 
 late final ChiaFullNodeInterface fullNode;
@@ -29,8 +30,10 @@ Future<void> main(List<String> args) async {
     ..argParser.addOption('cert-path', defaultsTo: '')
     ..argParser.addOption('key-path', defaultsTo: '')
     ..addCommand(CreateWalletWithPlotNFTCommand())
+    ..addCommand(RegisterPlotNFTCommand())
     ..addCommand(GetFarmingStatusCommand())
     ..addCommand(GetCoinRecords())
+    ..addCommand(MutatePlotNFTCommand())
     ..addCommand(ExchangeBtcCommand())
     ..addCommand(CrossChainOfferExchangeCommand())
     ..addCommand(BurnDid())
@@ -49,7 +52,8 @@ Future<void> main(List<String> args) async {
   }
 
   // Configure environment based on user selections
-  LoggingContext().setLogLevel(LogLevel.fromString(results['log-level'] as String));
+  LoggingContext()
+      .setLogLevel(LogLevel.fromString(results['log-level'] as String));
   LoggingContext().setLogger((text) {
     stderr.write('$text\n');
   });
@@ -60,15 +64,18 @@ Future<void> main(List<String> args) async {
 
   // construct the Chia full node interface
   var fullNodeUrl = results['full-node-url'] as String;
-  if (fullNodeUrl.endsWith('/')) fullNodeUrl = fullNodeUrl.substring(0, fullNodeUrl.length - 1);
+  if (fullNodeUrl.endsWith('/')) {
+    fullNodeUrl = fullNodeUrl.substring(0, fullNodeUrl.length - 1);
+  }
 
   final certBytesPath = results['cert-path'] as String;
   final keyBytesPath = results['key-path'] as String;
 
   if ((certBytesPath.isEmpty && keyBytesPath.isNotEmpty) ||
       (certBytesPath.isNotEmpty && keyBytesPath.isEmpty)) {
-    LoggingContext()
-        .info('\nTo use options cert-path and key-path both parameters must be provided.');
+    LoggingContext().info(
+      '\nTo use options cert-path and key-path both parameters must be provided.',
+    );
   } else if (certBytesPath.isNotEmpty && keyBytesPath.isNotEmpty) {
     try {
       fullNode = ChiaFullNodeInterface.fromURL(
@@ -80,7 +87,9 @@ Future<void> main(List<String> args) async {
       LoggingContext().error(
         '\nThere is a problem with the full node information you provided. Please try again.',
       );
-      LoggingContext().error('\nThe full node should be in the form https://<SERVER_NAME>.\n');
+      LoggingContext().error(
+        '\nThe full node should be in the form https://<SERVER_NAME>.\n',
+      );
       LoggingContext().error(
         '\nex: When using a locally synced full node you can specify https://localhost:8555',
       );
@@ -93,8 +102,9 @@ Future<void> main(List<String> args) async {
   try {
     await fullNode.getBlockchainState();
   } catch (e) {
-    LoggingContext()
-        .error("\nCouldn't verify full node running at URL you provided. Please try again.");
+    LoggingContext().error(
+      "\nCouldn't verify full node running at URL you provided. Please try again.",
+    );
     exit(126);
   }
 
@@ -119,7 +129,8 @@ class GetCoinRecords extends Command<Future<void>> {
   }
 
   @override
-  String get description => 'Gets coin records for a given address or puzzlehash';
+  String get description =>
+      'Gets coin records for a given address or puzzlehash';
 
   @override
   String get name => 'Get-CoinRecords';
@@ -171,8 +182,8 @@ class GetCoinRecords extends Command<Future<void>> {
 class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
   CreateWalletWithPlotNFTCommand() {
     argParser
-      ..addOption('pool-url', defaultsTo: 'https://xch-us-west.flexpool.io')
-      ..addOption('faucet-request-url')
+      ..addOption('pool-url', defaultsTo: '')
+      ..addOption('faucet-request-url', defaultsTo: '')
       ..addOption('faucet-request-payload', defaultsTo: '')
       ..addOption('output-config', defaultsTo: '')
       ..addOption(
@@ -190,14 +201,13 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
   @override
   Future<void> run() async {
     final faucetRequestURL = argResults!['faucet-request-url'] as String;
-    final faucetRequestPayload = argResults!['faucet-request-payload'] as String;
+    final faucetRequestPayload =
+        argResults!['faucet-request-payload'] as String;
 
     final outputConfigFile = argResults!['output-config'] as String;
 
-    final poolService = _getPoolServiceImpl(
-      argResults!['pool-url'] as String,
-      argResults!['certificate-bytes-path'] as String,
-    );
+    final poolUrl = argResults!['pool-url'] as String;
+
     final mnemonicPhrase = generateMnemonic(strength: 256);
     final mnemonic = mnemonicPhrase.split(' ');
     print('Mnemonic Phrase: $mnemonicPhrase');
@@ -207,7 +217,8 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
       keychainSecret,
     );
 
-    final farmerPublicKeyHex = masterSkToFarmerSk(keychainSecret.masterPrivateKey).getG1().toHex();
+    final farmerPublicKeyHex =
+        masterSkToFarmerSk(keychainSecret.masterPrivateKey).getG1().toHex();
     print('Farmer public key: $farmerPublicKeyHex');
 
     final coinAddress = Address.fromPuzzlehash(
@@ -215,51 +226,29 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
       ChiaNetworkContextWrapper().blockchainNetwork.addressPrefix,
     );
 
-    if (faucetRequestURL.isNotEmpty && faucetRequestPayload.isNotEmpty) {
-      final theFaucetRequestPayload =
-          faucetRequestPayload.replaceAll(RegExp('SEND_TO_ADDRESS'), coinAddress.address);
+    await getCoinsForCommand(
+      faucetRequestURL: faucetRequestURL,
+      faucetRequestPayload: faucetRequestPayload,
+      puzzlehashes: keychain.puzzlehashes,
+      fullNode: fullNode,
+      message:
+          'Please send 1 mojo and enough XCH to cover the fee to create a Ploft NFT to',
+    );
 
-      final result = await Process.run('curl', [
-        '-s',
-        '-d',
-        theFaucetRequestPayload,
-        '-H',
-        'Content-Type: application/json',
-        '-X',
-        'POST',
-        faucetRequestURL,
-      ]);
-
-      stdout.write(result.stdout);
-      stderr.write(result.stderr);
-    } else {
-      print(
-        'Please send at least 1 mojo and enough extra XCH to cover the fee to create the PlotNFT to: ${coinAddress.address}\n',
+    PoolService? poolService;
+    if (poolUrl.isNotEmpty) {
+      poolService = _getPoolServiceImpl(
+        poolUrl,
+        argResults!['certificate-bytes-path'] as String,
       );
-      print('Press any key when coin has been sent');
-      stdin.readLineSync();
-    }
-
-    var coins = <Coin>[];
-    while (coins.isEmpty) {
-      print('waiting for coin...');
-      await Future<void>.delayed(const Duration(seconds: 3));
-      coins = await fullNode.getCoinsByPuzzleHashes(
-        keychain.puzzlehashes,
-        includeSpentCoins: true,
-      );
-
-      if (coins.isNotEmpty) {
-        print(coins);
-      }
     }
 
     try {
       final plotNFTDetails = await createNewWalletWithPlotNFT(
-        keychainSecret,
-        keychain,
-        poolService,
-        fullNode,
+        keychainSecret: keychainSecret,
+        keychain: keychain,
+        fullNode: fullNode,
+        poolService: poolService,
       );
 
       if (outputConfigFile.isNotEmpty) {
@@ -278,6 +267,142 @@ class CreateWalletWithPlotNFTCommand extends Command<Future<void>> {
       }
     } catch (e) {
       LoggingContext().error(e.toString());
+    }
+  }
+}
+
+class RegisterPlotNFTCommand extends Command<Future<void>> {
+  RegisterPlotNFTCommand() {
+    argParser
+      ..addOption('pool-url', defaultsTo: 'https://xch.spacefarmers.io')
+      ..addOption('mnemonic', defaultsTo: '')
+      ..addOption('launcher-id')
+      ..addOption('payout-address', defaultsTo: '')
+      ..addOption(
+        'certificate-bytes-path',
+        defaultsTo: 'mozilla-ca/cacert.pem',
+      );
+  }
+
+  @override
+  String get description =>
+      'Registers a plotNFT with a pool. Should already be in farming to pool state.';
+
+  @override
+  String get name => 'Register-PlotNFT';
+
+  @override
+  Future<void> run() async {
+    final poolUrl = argResults!['pool-url'] as String;
+    final launcherIdString = argResults!['launcher-id'] as String;
+    var payoutAddressString = argResults!['payout-address'] as String;
+
+    var mnemonicPhrase = argResults!['mnemonic'] as String;
+
+    try {
+      await PoolInterface.fromURL(poolUrl).getPoolInfo();
+    } catch (e) {
+      throw ArgumentError('Invalid pool-url.');
+    }
+
+    if (mnemonicPhrase.isEmpty) {
+      print(
+        '\nPlease enter the mnemonic with the plot NFT you would like to register:',
+      );
+      stdout.write('> ');
+      mnemonicPhrase = stdin.readLineSync()!;
+    }
+
+    final mnemonic = mnemonicPhrase.split(' ');
+
+    if (mnemonic.length != 12 && mnemonic.length != 24) {
+      throw ArgumentError(
+        '\nInvalid current mnemonic phrase. Must contain either 12 or 24 seed words',
+      );
+    }
+
+    final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
+    final keychain = WalletKeychain.fromCoreSecret(keychainSecret);
+
+    Puzzlehash? payoutPuzzlehash;
+    if (payoutAddressString.isEmpty) {
+      payoutPuzzlehash = keychain.puzzlehashes[1];
+      print(
+        'Payout Address: ${payoutPuzzlehash.toAddressWithContext().address}',
+      );
+    } else {
+      Address? payoutAddress;
+      while (payoutAddress == null) {
+        try {
+          payoutAddress = Address(payoutAddressString);
+        } catch (e) {
+          print(
+            '\nPlease enter a valid address for the new owner pool payout address:',
+          );
+          stdout.write('> ');
+          payoutAddressString = stdin.readLineSync()!;
+        }
+      }
+      payoutPuzzlehash = payoutAddress.toPuzzlehash();
+    }
+
+    final farmerPublicKeyHex =
+        masterSkToFarmerSk(keychainSecret.masterPrivateKey).getG1().toHex();
+    print('Farmer public key: $farmerPublicKeyHex');
+
+    final plotNft =
+        await fullNode.getPlotNftByLauncherId(launcherIdString.hexToBytes());
+
+    if (plotNft == null) {
+      throw ArgumentError('Invalid launcher-id');
+    }
+
+    final ownerPublicKey = plotNft.poolState.ownerPublicKey;
+
+    keychain.addSingletonWalletVectorForSingletonOwnerPublicKey(
+      ownerPublicKey,
+      keychainSecret.masterPrivateKey,
+    );
+
+    final singletonWalletVector =
+        keychain.getSingletonWalletVector(ownerPublicKey);
+
+    final poolService = _getPoolServiceImpl(
+      poolUrl,
+      argResults!['certificate-bytes-path'] as String,
+    );
+
+    final addFarmerResponse = await poolService.registerAsFarmerWithPool(
+      plotNft: plotNft,
+      singletonWalletVector: singletonWalletVector!,
+      payoutPuzzlehash: payoutPuzzlehash,
+    );
+    print('Pool welcome message: ${addFarmerResponse.welcomeMessage}');
+
+    GetFarmerResponse? farmerInfo;
+    var attempts = 0;
+    while (farmerInfo == null && attempts < 6) {
+      print('waiting for farmer information to become available...');
+      try {
+        attempts = attempts + 1;
+        await Future<void>.delayed(const Duration(seconds: 15));
+        farmerInfo = await poolService.getFarmerInfo(
+          authenticationPrivateKey:
+              singletonWalletVector.poolingAuthenticationPrivateKey,
+          launcherId: plotNft.launcherId,
+        );
+      } on PoolResponseException catch (e) {
+        if (e.poolErrorResponse.responseCode != PoolErrorState.farmerNotKnown) {
+          rethrow;
+        }
+        if (attempts == 5) {
+          print(e.poolErrorResponse.message);
+        }
+      }
+    }
+
+    if (farmerInfo != null) {
+      print(farmerInfo);
     }
   }
 }
@@ -342,6 +467,111 @@ class GetFarmingStatusCommand extends Command<Future<void>> {
   }
 }
 
+class MutatePlotNFTCommand extends Command<Future<void>> {
+  MutatePlotNFTCommand() {
+    argParser
+      ..addOption('mnemonic', defaultsTo: '')
+      ..addOption('pool-url', defaultsTo: 'https://xch.spacefarmers.io')
+      ..addOption(
+        'certificate-bytes-path',
+        defaultsTo: 'mozilla-ca/cacert.pem',
+      )
+      ..addOption('faucet-request-url', defaultsTo: '')
+      ..addOption('faucet-request-payload', defaultsTo: '');
+  }
+
+  @override
+  String get description => 'Mutate plot NFT to leave pool.';
+
+  @override
+  String get name => 'Mutate-PlotNFT';
+
+  @override
+  Future<void> run() async {
+    var mnemonicPhrase = argResults!['mnemonic'] as String;
+    final poolUrl = argResults!['pool-url'] as String;
+    final faucetRequestURL = argResults!['faucet-request-url'] as String;
+    final faucetRequestPayload =
+        argResults!['faucet-request-payload'] as String;
+
+    final plotNftWalletService = PlotNftWalletService();
+
+    try {
+      await PoolInterface.fromURL(poolUrl).getPoolInfo();
+    } catch (e) {
+      throw ArgumentError('Invalid pool-url.');
+    }
+
+    if (mnemonicPhrase.isEmpty) {
+      print(
+        '\nPlease enter the mnemonic with the plot NFT you would like to transfer:',
+      );
+      stdout.write('> ');
+      mnemonicPhrase = stdin.readLineSync()!;
+    }
+
+    final mnemonic = mnemonicPhrase.split(' ');
+
+    if (mnemonic.length != 12 && mnemonic.length != 24) {
+      throw ArgumentError(
+        '\nInvalid current mnemonic phrase. Must contain either 12 or 24 seed words',
+      );
+    }
+
+    final keychainSecret = KeychainCoreSecret.fromMnemonic(mnemonic);
+    final keychain = WalletKeychain.fromCoreSecret(keychainSecret);
+
+    final plotNfts = await fullNode.scroungeForPlotNfts(keychain.puzzlehashes);
+
+    if (plotNfts.isEmpty) {
+      throw ArgumentError('There are no plot NFTs on the current mnemonic.');
+    }
+
+    final coins = await getCoinsForCommand(
+      faucetRequestURL: faucetRequestURL,
+      faucetRequestPayload: faucetRequestPayload,
+      puzzlehashes: keychain.puzzlehashes,
+      fullNode: fullNode,
+      message: 'Please send 50 mojos to cover the fee to',
+    );
+
+    final plotNft = plotNfts[0];
+
+    print('\nStarting Pool State: ${plotNft.poolState}\n');
+
+    final singletonWalletVector =
+        keychain.getNextSingletonWalletVector(keychainSecret.masterPrivateKey);
+
+    final poolInfo = await PoolInterface.fromURL(poolUrl).getPoolInfo();
+
+    final targetState = PoolState(
+      poolSingletonState: PoolSingletonState.leavingPool,
+      targetPuzzlehash: poolInfo.targetPuzzlehash,
+      ownerPublicKey: singletonWalletVector.singletonOwnerPublicKey,
+      relativeLockHeight: 0,
+    );
+
+    final plotNftMutationSpendBundle =
+        await plotNftWalletService.createPlotNftMutationSpendBundle(
+      plotNft: plotNft,
+      coinsForFee: coins,
+      fee: 49,
+      targetState: targetState,
+      keychain: keychain,
+      changePuzzleHash: keychain.puzzlehashes.first,
+    );
+
+    print('Pushing plot NFT mutation spend bundle\n');
+
+    await fullNode.pushAndWaitForSpendBundle(plotNftMutationSpendBundle);
+
+    final mutatedPlotNft =
+        await fullNode.getPlotNftByLauncherId(plotNft.launcherId);
+
+    print('\nEnding Pool State: ${mutatedPlotNft!.poolState}');
+  }
+}
+
 class ExchangeBtcCommand extends Command<Future<void>> {
   ExchangeBtcCommand();
 
@@ -361,31 +591,29 @@ class CrossChainOfferExchangeCommand extends Command<Future<void>> {
   CrossChainOfferExchangeCommand();
 
   @override
-  String get description => 'Initiates a cross chain offer exchange between XCH and BTC';
+  String get description =>
+      'Initiates a cross chain offer exchange between XCH and BTC';
 
   @override
   String get name => 'Make-CrossChainOfferExchange';
 
   @override
   Future<void> run() async {
-    print('\nAre you making a new cross chain offer, accepting an existing one, or');
-    print('continuing an ongoing exchange?');
-    print('\n1. Making cross chain offer');
-    print('2. Accepting cross chain offer');
-    print('3. Continuing ongoing exchange');
+    print(
+      '\nAre you making a new cross chain offer or taking an existing offer?',
+    );
+    print('\n1. Making offer');
+    print('2. Taking offer');
 
     String? choice;
-
-    while (choice != '1' && choice != '2' && choice != '3') {
+    while (choice != '1' && choice != '2') {
       stdout.write('> ');
       choice = stdin.readLineSync()!.trim();
 
       if (choice == '1') {
         await makeCrossChainOffer(fullNode);
       } else if (choice == '2') {
-        await acceptCrossChainOffer(fullNode);
-      } else if (choice == '3') {
-        await resumeCrossChainOfferExchange(fullNode);
+        await takeCrossChainOffer(fullNode);
       } else {
         print('\nNot a valid choice.');
       }
@@ -412,14 +640,16 @@ class NukeKeychain extends Command<Future<void>> {
   Future<void> run() async {
     final mnemonic = argResults!['mnemonic'] as String;
     final walletSize = parseArgument(argResults!['wallet-size'], int.parse)!;
-    final burnBundleSize = parseArgument(argResults!['burn-bundle-size'], int.parse)!;
+    final burnBundleSize =
+        parseArgument(argResults!['burn-bundle-size'], int.parse)!;
     final feePerCoin = parseArgument(argResults!['fee-per-coin'], int.parse)!;
 
     final keychain = WalletKeychain.fromCoreSecret(
       KeychainCoreSecret.fromMnemonicString(mnemonic),
       walletSize: walletSize,
     );
-    final enhancedFullNode = EnhancedChiaFullNodeInterface.fromUrl(fullNode.fullNode.baseURL);
+    final enhancedFullNode =
+        EnhancedChiaFullNodeInterface.fromUrl(fullNode.fullNode.baseURL);
     await nukeKeychain(
       keychain: keychain,
       fullNode: enhancedFullNode,
@@ -448,24 +678,28 @@ class BurnDid extends Command<Future<void>> {
   @override
   Future<void> run() async {
     final mnemonic = argResults!['mnemonic'] as String;
-    final did = parseArgument(argResults!['did'], DidInfo.parseDidFromEitherFormat)!;
+    final did =
+        parseArgument(argResults!['did'], DidInfo.parseDidFromEitherFormat)!;
     final walletSize = parseArgument(argResults!['wallet-size'], int.parse)!;
     final fee = parseArgument(argResults!['fee'], int.parse)!;
     final keychain = WalletKeychain.fromCoreSecret(
       KeychainCoreSecret.fromMnemonicString(mnemonic),
       walletSize: walletSize,
     );
-    final enhancedFullNode = EnhancedChiaFullNodeInterface.fromUrl(fullNode.fullNode.baseURL);
+    final enhancedFullNode =
+        EnhancedChiaFullNodeInterface.fromUrl(fullNode.fullNode.baseURL);
 
     final didWalletService = DIDWalletService();
     print('searching for DID');
-    final didInfos = await enhancedFullNode.getDidRecordsByHints(keychain.puzzlehashes);
+    final didInfos =
+        await enhancedFullNode.getDidRecordsByHints(keychain.puzzlehashes);
     final matchingDids = didInfos.where((element) => element.did == did);
     if (matchingDids.isEmpty) {
       print("couldn't find did by keychain hints");
       exit(1);
     }
-    final standardCoins = await enhancedFullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
+    final standardCoins =
+        await enhancedFullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
 
     final coinsForFee = selectCoinsForAmount(standardCoins, fee);
 
@@ -484,7 +718,8 @@ class BurnDid extends Command<Future<void>> {
 
     await enhancedFullNode.pushTransaction(combinedSpendBundle);
     print('pushed DID burn spend bundle');
-    await BlockchainUtils(enhancedFullNode, logger: print).waitForSpendBundle(combinedSpendBundle);
+    await BlockchainUtils(enhancedFullNode, logger: print)
+        .waitForSpendBundle(combinedSpendBundle);
     exit(0);
   }
 }
@@ -509,7 +744,8 @@ class InspectDid extends Command<Future<void>> {
     final mnemonic = argResults!['mnemonic'] as String;
     final searchTypeName = argResults!['search-by'] as String;
 
-    final did = parseArgument(argResults!['did'], DidInfo.parseDidFromEitherFormat)!;
+    final did =
+        parseArgument(argResults!['did'], DidInfo.parseDidFromEitherFormat)!;
 
     final walletSize = parseArgument(argResults!['wallet-size'], int.parse)!;
 
@@ -519,12 +755,14 @@ class InspectDid extends Command<Future<void>> {
     );
 
     final searchType = DidSearchType.fromName(searchTypeName);
-    final enhancedFullNode = EnhancedChiaFullNodeInterface.fromUrl(fullNode.fullNode.baseURL);
+    final enhancedFullNode =
+        EnhancedChiaFullNodeInterface.fromUrl(fullNode.fullNode.baseURL);
     print('searching for did');
     final didInfo = (await () async {
       switch (searchType) {
         case DidSearchType.hints:
-          final didInfos = await enhancedFullNode.getDidRecordsByHints(keychain.puzzlehashes);
+          final didInfos = await enhancedFullNode
+              .getDidRecordsByHints(keychain.puzzlehashes);
           final matchingDids = didInfos.where((element) => element.did == did);
           if (matchingDids.isEmpty) {
             return null;
@@ -545,7 +783,9 @@ class InspectDid extends Command<Future<void>> {
     print('did: $did');
     print('p2_puzzle_hash: ${didInfo.p2Puzzle.hash()}');
 
-    final privateKey = keychain.getWalletVectorOrThrow(didInfo.p2Puzzle.hash()).childPrivateKey;
+    final privateKey = keychain
+        .getWalletVectorOrThrow(didInfo.p2Puzzle.hash())
+        .childPrivateKey;
 
     print('did_private_key: ${privateKey.toHex()}');
   }
@@ -587,7 +827,8 @@ class TransferDidCommand extends Command<Future<void>> {
     }
     final secret = KeychainCoreSecret.fromMnemonic(mnemonic);
     print('\nkeychain fingerprint: ${secret.fingerprint}');
-    final keychain = WalletKeychain.fromCoreSecret(secret, walletSize: walletSize);
+    final keychain =
+        WalletKeychain.fromCoreSecret(secret, walletSize: walletSize);
     final coins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
     final dids = currentDidAddress != null
         ? await fullNode.getDidRecordsFromHint(currentDidAddress.toPuzzlehash())
@@ -601,7 +842,9 @@ class TransferDidCommand extends Command<Future<void>> {
           minMojos: 20,
         );
       } on InsufficientBalanceException catch (e) {
-        print('Insufficient balance to cover fee of $fee mojos: ${e.currentBalance} mojos');
+        print(
+          'Insufficient balance to cover fee of $fee mojos: ${e.currentBalance} mojos',
+        );
         return null;
       }
     }();
@@ -643,7 +886,9 @@ class TransferDidCommand extends Command<Future<void>> {
     final spendableDid = didToTransfer.toDidInfo(keychain);
 
     if (spendableDid == null) {
-      print('Could not match inner puzzle for ${didToTransfer.did} with this keychain');
+      print(
+        'Could not match inner puzzle for ${didToTransfer.did} with this keychain',
+      );
       exit(exitCode);
     }
 
@@ -671,7 +916,9 @@ void printUsage(CommandRunner<dynamic> runner) {
 }
 
 void parseHelp(ArgResults results, CommandRunner<dynamic> runner) {
-  if (results.command == null || results.wasParsed('help') || results.command?.name == 'help') {
+  if (results.command == null ||
+      results.wasParsed('help') ||
+      results.command?.name == 'help') {
     if (results.arguments.isEmpty || results.command == null) {
       print('No command was provided.');
     }

@@ -117,7 +117,8 @@ Future<Program> getPuzzleForPkAsync(JacobianPoint publicKey) {
   return spawnAndWaitForIsolate(
     taskArgument: publicKey,
     isolateTask: _getPuzzleFromPkTask,
-    handleTaskCompletion: (json) => Program.deserializeHex(json['puzzle'] as String),
+    handleTaskCompletion: (json) =>
+        Program.deserializeHex(json['puzzle'] as String),
   );
 }
 
@@ -125,7 +126,10 @@ Map<String, dynamic> _getPuzzleFromPkTask(JacobianPoint publicKey) {
   return <String, dynamic>{'puzzle': getPuzzleFromPk(publicKey).toHex()};
 }
 
-Program getPuzzleFromPkAndHiddenPuzzle(JacobianPoint publicKey, Program hiddenPuzzleProgram) {
+Program getPuzzleFromPkAndHiddenPuzzle(
+  JacobianPoint publicKey,
+  Program hiddenPuzzleProgram,
+) {
   final syntheticPubKey = calculateSyntheticPublicKeyProgram.run(
     Program.list(
       [
@@ -135,13 +139,15 @@ Program getPuzzleFromPkAndHiddenPuzzle(JacobianPoint publicKey, Program hiddenPu
     ),
   );
 
-  final curried = p2DelegatedPuzzleOrHiddenPuzzleProgram.curry([syntheticPubKey.program]);
+  final curried =
+      p2DelegatedPuzzleOrHiddenPuzzleProgram.curry([syntheticPubKey.program]);
 
   return curried;
 }
 
 Program getP2PuzzleFromSyntheticPublicKey(JacobianPoint syntheticPublicKey) {
-  return p2DelegatedPuzzleOrHiddenPuzzleProgram.curry([syntheticPublicKey.toBytes()]);
+  return p2DelegatedPuzzleOrHiddenPuzzleProgram
+      .curry([syntheticPublicKey.toBytes()]);
 }
 
 final groupOrder = BigInt.parse(
@@ -149,7 +155,9 @@ final groupOrder = BigInt.parse(
 );
 
 BigInt calculateSyntheticOffset(JacobianPoint publicKey) {
-  final blob = sha256.convert(publicKey.toBytes() + defaultHiddenPuzzleProgram.hash()).bytes;
+  final blob = sha256
+      .convert(publicKey.toBytes() + defaultHiddenPuzzleProgram.hash())
+      .bytes;
 
   final offset = bytesToBigInt(blob, Endian.big, signed: true);
 
@@ -161,7 +169,8 @@ BigInt calculateSyntheticOffsetFromHiddenPuzzle(
   JacobianPoint publicKey,
   Program hiddenPuzzleProgram,
 ) {
-  final blob = sha256.convert(publicKey.toBytes() + hiddenPuzzleProgram.hash()).bytes;
+  final blob =
+      sha256.convert(publicKey.toBytes() + hiddenPuzzleProgram.hash()).bytes;
 
   final offset = bytesToBigInt(blob, Endian.big, signed: true);
 
@@ -176,7 +185,8 @@ PrivateKey calculateSyntheticPrivateKey(PrivateKey privateKey) {
 
   final syntheticOffset = calculateSyntheticOffset(publicKey);
 
-  final syntheticSecretExponent = (secretExponent + syntheticOffset) % groupOrder;
+  final syntheticSecretExponent =
+      (secretExponent + syntheticOffset) % groupOrder;
 
   final blob = bigIntToBytes(syntheticSecretExponent, 32, Endian.big);
   final syntheticPrivateKey = PrivateKey.fromBytes(blob);
@@ -190,10 +200,13 @@ PrivateKey calculateTotalPrivateKey(
   PrivateKey firstPrivateKey,
   PrivateKey secondPrivateKey,
 ) {
-  final syntheticOffset = calculateSyntheticOffsetFromHiddenPuzzle(totalPublicKey, hiddenPuzzle);
+  final syntheticOffset =
+      calculateSyntheticOffsetFromHiddenPuzzle(totalPublicKey, hiddenPuzzle);
 
-  final firstSecret = BigInt.parse(firstPrivateKey.toHex(), radix: 16) % groupOrder;
-  final secondSecret = BigInt.parse(secondPrivateKey.toHex(), radix: 16) % groupOrder;
+  final firstSecret =
+      BigInt.parse(firstPrivateKey.toHex(), radix: 16) % groupOrder;
+  final secondSecret =
+      BigInt.parse(secondPrivateKey.toHex(), radix: 16) % groupOrder;
 
   final totalSecret = firstSecret + secondSecret + syntheticOffset;
 

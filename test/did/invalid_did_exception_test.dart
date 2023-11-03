@@ -9,6 +9,9 @@ void main() {
 
   test('should return the desired string form with message', () {
     const message = 'Invalid DID exception message';
-    expect(InvalidDidException(message: message).toString(), 'Coin is not a DID: $message');
+    expect(
+      InvalidDidException(message: message).toString(),
+      'Coin is not a DID: $message',
+    );
   });
 }

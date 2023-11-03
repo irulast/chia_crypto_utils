@@ -73,7 +73,10 @@ abstract class NftRecord {
     );
 
     final nftOutputConditions = createCoinConditions.where(
-      (element) => element.amount == 1 && element.memos != null && element.memos!.isNotEmpty,
+      (element) =>
+          element.amount == 1 &&
+          element.memos != null &&
+          element.memos!.isNotEmpty,
     );
 
     if (nftOutputConditions.isEmpty) {
@@ -100,7 +103,9 @@ abstract class NftRecord {
     final currentOwnershipLayerInfo = uncurriedNft.ownershipLayerInfo;
 
     final ownershipLayerInfo = didMagicConditions.isNotEmpty
-        ? currentOwnershipLayerInfo?.copyWith(newDid: didMagicConditions.single.targetDidOwner)
+        ? currentOwnershipLayerInfo?.copyWith(
+            newDid: didMagicConditions.single.targetDidOwner,
+          )
         : currentOwnershipLayerInfo;
 
     if (ownershipLayerInfo != null) {
@@ -140,7 +145,8 @@ abstract class NftRecord {
     CoinPrototype singletonCoin, {
     int? latestHeight,
   }) async {
-    final uncurriedNft = await UncurriedNftPuzzle.fromProgram(parentSpend.puzzleReveal);
+    final uncurriedNft =
+        await UncurriedNftPuzzle.fromProgram(parentSpend.puzzleReveal);
     if (uncurriedNft == null) {
       return null;
     }
@@ -161,7 +167,8 @@ abstract class NftRecord {
     CoinPrototype singletonCoin, {
     int? latestHeight,
   }) {
-    final uncurriedNft = UncurriedNftPuzzle.fromProgramSync(parentSpend.puzzleReveal);
+    final uncurriedNft =
+        UncurriedNftPuzzle.fromProgramSync(parentSpend.puzzleReveal);
     if (uncurriedNft == null) {
       return null;
     }
@@ -204,7 +211,9 @@ abstract class NftRecord {
     Program innermostSolution,
   );
 
-  static Future<List<NftRecord>> nftRecordsFromSpendBundle(SpendBundle spendBundle) async {
+  static Future<List<NftRecord>> nftRecordsFromSpendBundle(
+    SpendBundle spendBundle,
+  ) async {
     final nftRecords = <NftRecord>[];
     for (final coinWithParentSpend in spendBundle.netAdditonWithParentSpends) {
       if (coinWithParentSpend.parentSpend != null) {
@@ -233,7 +242,9 @@ extension SharedFunctionality on NftRecord {
       innerPuzzle: innerPuzzle,
     );
     if (coin.puzzlehash != fullPuzzle.hash()) {
-      throw Exception('NFT coin puzzle hash does not match constructed full puzzle');
+      throw Exception(
+        'NFT coin puzzle hash does not match constructed full puzzle',
+      );
     }
     return Nft(
       delegate: this,
@@ -247,7 +258,9 @@ extension SharedFunctionality on NftRecord {
     Set<String> whitelistedAuthorities = const {},
   }) async {
     final recordMetadataUrls = metadata.metaUris;
-    if (recordMetadataUrls == null || recordMetadataUrls.isEmpty || metadata.dataUris.isEmpty) {
+    if (recordMetadataUrls == null ||
+        recordMetadataUrls.isEmpty ||
+        metadata.dataUris.isEmpty) {
       return null;
     }
 
@@ -269,7 +282,8 @@ extension SharedFunctionality on NftRecord {
     try {
       final data = await nftStorageApi.getNftData(metadataUrl);
       final collectionId = data.collection.id;
-      if (collectionOverrides != null && collectionOverrides.containsKey(collectionId)) {
+      if (collectionOverrides != null &&
+          collectionOverrides.containsKey(collectionId)) {
         return HydratedNftRecord(
           delegate: this,
           data: data.withCollectionOverride(collectionOverrides[collectionId]!),
@@ -283,8 +297,9 @@ extension SharedFunctionality on NftRecord {
         mintInfo: null,
       );
     } on PickException catch (e, st) {
-      LoggingContext()
-          .error('error fetching nft($launcherId}) data: $e, $st. meta uris: $recordMetadataUrls');
+      LoggingContext().error(
+        'error fetching nft($launcherId}) data: $e, $st. meta uris: $recordMetadataUrls',
+      );
       return null;
     } on FormatException catch (e, st) {
       LoggingContext().error('error fetching nft($launcherId}) data: $e, $st');
@@ -303,7 +318,8 @@ extension SharedFunctionality on NftRecord {
     if (mintInfo == null) {
       return null;
     }
-    if (whitelistedDIDs.isNotEmpty && !whitelistedDIDs.contains(mintInfo.minterDid)) {
+    if (whitelistedDIDs.isNotEmpty &&
+        !whitelistedDIDs.contains(mintInfo.minterDid)) {
       return null;
     }
 
@@ -323,7 +339,9 @@ extension SharedFunctionality on NftRecord {
     return hydrated.withMintInfo(mintInfo);
   }
 
-  Future<NftRecordWithMintInfo?> fetchMintInfo(ChiaFullNodeInterface fullNode) async {
+  Future<NftRecordWithMintInfo?> fetchMintInfo(
+    ChiaFullNodeInterface fullNode,
+  ) async {
     final mintInfo = await fullNode.getNftMintInfoForLauncherId(launcherId);
     if (mintInfo == null) {
       return null;
@@ -343,7 +361,8 @@ extension WhiteListValidation on Iterable<Uri> {
   bool validate(Set<String> whitelistedAuthorities) {
     for (final uriToValidate in this) {
       if (!whitelistedAuthorities.any(
-        (whiteListedAuthority) => uriToValidate.authority.endsWith(whiteListedAuthority),
+        (whiteListedAuthority) =>
+            uriToValidate.authority.endsWith(whiteListedAuthority),
       )) {
         return false;
       }

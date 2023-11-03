@@ -21,10 +21,12 @@ void main() async {
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
   final catWalletService = EverythingWithSignatureTailService();
 
-  final tailPrivateKey = nathan.keychain.unhardenedWalletVectors.first.childPrivateKey;
+  final tailPrivateKey =
+      nathan.keychain.unhardenedWalletVectors.first.childPrivateKey;
 
   test('should issue cat multiple times', () async {
-    final standardCoin = nathan.standardCoins.firstWhere((coin) => coin.amount >= 10000);
+    final standardCoin =
+        nathan.standardCoins.firstWhere((coin) => coin.amount >= 10000);
     final issuanceResult = catWalletService.makeIssuanceSpendBundle(
       standardCoins: [standardCoin],
       tailPrivateKey: tailPrivateKey,

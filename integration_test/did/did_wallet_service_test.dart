@@ -24,18 +24,21 @@ Future<void> main() async {
   final didWalletService = DIDWalletService();
 
   final puzzlehash = walletVector.puzzlehash;
-  final address =
-      Address.fromPuzzlehash(puzzlehash, didWalletService.blockchainNetwork.addressPrefix);
+  final address = Address.fromPuzzlehash(
+    puzzlehash,
+    didWalletService.blockchainNetwork.addressPrefix,
+  );
 
   await fullNodeSimulator.farmCoins(address);
   await fullNodeSimulator.farmCoins(address);
   await fullNodeSimulator.moveToNextBlock();
 
-  final standardCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([puzzlehash]);
+  final standardCoins =
+      await fullNodeSimulator.getCoinsByPuzzleHashes([puzzlehash]);
 
   test('should create and find DID', () async {
-    final didsBefore =
-        await fullNodeSimulator.getDidRecordsByPuzzleHashes([walletVector.puzzlehash]);
+    final didsBefore = await fullNodeSimulator
+        .getDidRecordsByPuzzleHashes([walletVector.puzzlehash]);
 
     final didSpendBundle = didWalletService.createGenerateDIDSpendBundle(
       standardCoins: [standardCoins[0]],
@@ -47,7 +50,8 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(didSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final didsAfter = await fullNodeSimulator.getDidRecordsFromHint(walletVector.puzzlehash);
+    final didsAfter =
+        await fullNodeSimulator.getDidRecordsFromHint(walletVector.puzzlehash);
     expect(didsAfter.length, equals(didsBefore.length + 1));
 
     final did = await fullNodeSimulator.getCoinById(didsAfter[0].did);
@@ -55,13 +59,14 @@ Future<void> main() async {
   });
 
   test('should create DID with backupIds', () async {
-    final didsBefore =
-        await fullNodeSimulator.getDidRecordsByPuzzleHashes([walletVector.puzzlehash]);
+    final didsBefore = await fullNodeSimulator
+        .getDidRecordsByPuzzleHashes([walletVector.puzzlehash]);
 
     final didSpendBundle = didWalletService.createGenerateDIDSpendBundle(
       standardCoins: [standardCoins[1]],
       targetPuzzleHash: walletVector.puzzlehash,
-      backupIds: keychain.unhardenedMap.values.map((wv) => wv.puzzlehash).toList(),
+      backupIds:
+          keychain.unhardenedMap.values.map((wv) => wv.puzzlehash).toList(),
       keychain: keychain,
       changePuzzlehash: puzzlehash,
     );
@@ -69,14 +74,14 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(didSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final didsAfter =
-        await fullNodeSimulator.getDidRecordsByPuzzleHashes([walletVector.puzzlehash]);
+    final didsAfter = await fullNodeSimulator
+        .getDidRecordsByPuzzleHashes([walletVector.puzzlehash]);
     expect(didsAfter.length, equals(didsBefore.length + 1));
   });
 
   test('should create DID with fee', () async {
-    final didsBefore =
-        await fullNodeSimulator.getDidRecordsByPuzzleHashes([walletVector.puzzlehash]);
+    final didsBefore = await fullNodeSimulator
+        .getDidRecordsByPuzzleHashes([walletVector.puzzlehash]);
 
     final didSpendBundle = didWalletService.createGenerateDIDSpendBundle(
       standardCoins: [standardCoins[2]],
@@ -89,8 +94,8 @@ Future<void> main() async {
     await fullNodeSimulator.pushTransaction(didSpendBundle);
     await fullNodeSimulator.moveToNextBlock();
 
-    final didsAfter =
-        await fullNodeSimulator.getDidRecordsByPuzzleHashes([walletVector.puzzlehash]);
+    final didsAfter = await fullNodeSimulator
+        .getDidRecordsByPuzzleHashes([walletVector.puzzlehash]);
     expect(didsAfter.length, equals(didsBefore.length + 1));
 
     final did = await fullNodeSimulator.getCoinById(didsAfter[0].did);

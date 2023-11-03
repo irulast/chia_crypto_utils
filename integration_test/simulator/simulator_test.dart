@@ -17,8 +17,9 @@ void main() async {
   test('should parse responses', () async {
     final isAutofarming = await fullNodeSimulator.getIsAutofarming();
 
-    final newIsAutofarming =
-        await fullNodeSimulator.setShouldAutofarm(shouldAutofarm: !isAutofarming);
+    final newIsAutofarming = await fullNodeSimulator.setShouldAutofarm(
+      shouldAutofarm: !isAutofarming,
+    );
 
     expect(newIsAutofarming, !isAutofarming);
   });

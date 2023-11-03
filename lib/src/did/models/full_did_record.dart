@@ -35,7 +35,8 @@ class FullDidRecord implements DidRecord {
   Program get singletonStructure => delegate.singletonStructure;
 
   @override
-  DidInfo? toDidInfoForPk(JacobianPoint publicKey) => delegate.toDidInfoForPk(publicKey);
+  DidInfo? toDidInfoForPk(JacobianPoint publicKey) =>
+      delegate.toDidInfoForPk(publicKey);
 
   @override
   DidInfo? toDidInfoFromParentInfo() => delegate.toDidInfoFromParentInfo();
@@ -50,8 +51,12 @@ class FullDidRecord implements DidRecord {
     return null;
   }
 
-  static Future<FullDidRecord?> fromParentCoinSpendAsync(CoinSpend parentSpend, Coin coin) async {
-    final didRecord = await DidRecord.fromParentCoinSpendAsync(parentSpend, coin);
+  static Future<FullDidRecord?> fromParentCoinSpendAsync(
+    CoinSpend parentSpend,
+    Coin coin,
+  ) async {
+    final didRecord =
+        await DidRecord.fromParentCoinSpendAsync(parentSpend, coin);
 
     if (didRecord != null) {
       return FullDidRecord(didRecord, coin);
@@ -60,11 +65,16 @@ class FullDidRecord implements DidRecord {
     return null;
   }
 
-  Future<FullDidRecordWithOriginCoin?> fetchOriginCoin(ChiaFullNodeInterface fullNode) async {
+  Future<FullDidRecordWithOriginCoin?> fetchOriginCoin(
+    ChiaFullNodeInterface fullNode,
+  ) async {
     final originCoin = await fullNode.getCoinById(did);
 
     if (originCoin != null) {
-      return FullDidRecordWithOriginCoin(didRecord: this, originCoin: originCoin);
+      return FullDidRecordWithOriginCoin(
+        didRecord: this,
+        originCoin: originCoin,
+      );
     }
 
     return null;

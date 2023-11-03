@@ -33,7 +33,8 @@ void main() async {
     await nathan.issueMultiIssuanceCat();
     await nathan.issueMultiIssuanceCat();
 
-    final nftBulkMintSpendBundle = NftWalletService().createDidNftBulkMintSpendBundle(
+    final nftBulkMintSpendBundle =
+        NftWalletService().createDidNftBulkMintSpendBundle(
       targetPuzzlehash: nathan.puzzlehashes.first,
       nftMintData: await NftMintingDataWithHashes.makeUniformBulkMintData(
         uriHashProvider: MockUriHashProvider(),
@@ -70,7 +71,9 @@ void main() async {
       await meera.issueMultiIssuanceCat();
       await fullNodeSimulator.pushTransaction(
         Cat2WalletService().createSpendBundle(
-          payments: [CatPayment(meera.catCoins.totalValue, nathan.puzzlehashes[i])],
+          payments: [
+            CatPayment(meera.catCoins.totalValue, nathan.puzzlehashes[i])
+          ],
           catCoinsInput: meera.catCoins,
           keychain: meera.keychain,
         ),
@@ -88,8 +91,10 @@ void main() async {
     final initialStandardCoins = nathan.standardCoins;
     expect(initialStandardCoins.length, 19);
 
-    final initialNfts = await fullNode.getNftRecordsByHints(nathan.puzzlehashes);
-    final initialDids = await fullNode.getDidRecordsByHints(nathan.puzzlehashes);
+    final initialNfts =
+        await fullNode.getNftRecordsByHints(nathan.puzzlehashes);
+    final initialDids =
+        await fullNode.getDidRecordsByHints(nathan.puzzlehashes);
     expect(initialNfts.length, 10);
     expect(initialDids.length, 6);
 

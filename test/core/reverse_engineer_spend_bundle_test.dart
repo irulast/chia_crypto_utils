@@ -4,8 +4,9 @@ import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
 void main() async {
-  final coinId =
-      Bytes.fromHex('0xc6bea28d7d6ccb64bdc6eef90743d2f7b9578224b35c98cec785447b6aabf004');
+  final coinId = Bytes.fromHex(
+    '0xc6bea28d7d6ccb64bdc6eef90743d2f7b9578224b35c98cec785447b6aabf004',
+  );
 
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
   final fullNode = EnhancedChiaFullNodeInterface.fromUrl('FULL_NODE_URL');
@@ -13,8 +14,9 @@ void main() async {
   test('should construct spend bundle for coin', () async {
     final spendBundle = await SpendBundle.ofCoin(coinId, fullNode);
 
-    final fetchedCoinSpends =
-        await fullNode.getCoinSpendsByIds(spendBundle!.coinSpends.map((e) => e.coin.id).toList());
+    final fetchedCoinSpends = await fullNode.getCoinSpendsByIds(
+      spendBundle!.coinSpends.map((e) => e.coin.id).toList(),
+    );
 
     for (final spendBundleCoinSpend in spendBundle.coinSpends) {
       expect(fetchedCoinSpends.containsValue(spendBundleCoinSpend), true);

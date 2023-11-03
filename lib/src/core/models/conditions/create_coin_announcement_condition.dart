@@ -20,5 +20,6 @@ class CreateCoinAnnouncementCondition implements Condition {
   }
 
   @override
-  String toString() => 'CreateCoinAnnouncementCondition(code: $conditionCode, message: $message)';
+  String toString() =>
+      'CreateCoinAnnouncementCondition(code: $conditionCode, message: $message)';
 }

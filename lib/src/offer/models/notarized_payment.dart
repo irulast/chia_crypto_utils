@@ -6,7 +6,11 @@ class NotarizedPayment implements Payment {
   NotarizedPayment.withDefaultNonce(
     int amount,
     Puzzlehash puzzlehash,
-  )   : payment = Payment.withRawMemos(amount, puzzlehash, [Memo(puzzlehash.byteList)]),
+  )   : payment = Payment.withRawMemos(
+          amount,
+          puzzlehash,
+          [Memo(puzzlehash.byteList)],
+        ),
         nonce = Puzzlehash.zeros();
   final Payment payment;
   final Bytes nonce;
@@ -30,7 +34,8 @@ class NotarizedPayment implements Payment {
   List<String> get memoStrings => payment.memoStrings;
 
   @override
-  CreateCoinCondition toCreateCoinCondition() => payment.toCreateCoinCondition();
+  CreateCoinCondition toCreateCoinCondition() =>
+      payment.toCreateCoinCondition();
 
   @override
   NotarizedPayment toNotarizedPayment(Bytes nonce) => this;

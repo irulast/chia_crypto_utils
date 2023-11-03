@@ -14,7 +14,8 @@ Future<SpendBundle?> constructSpendBundleOfCoin(
 
   final thisCoinName = coinId;
 
-  final blockWithReferences = await fullNode.getBlockWithReferenceBlocks(coin.spentBlockIndex);
+  final blockWithReferences =
+      await fullNode.getBlockWithReferenceBlocks(coin.spentBlockIndex);
 
   if (blockWithReferences == null) {
     return null;
@@ -22,8 +23,11 @@ Future<SpendBundle?> constructSpendBundleOfCoin(
 
   final outputProgram = await _parseBlock(blockWithReferences);
 
-  final blockSpends =
-      outputProgram.first().toList().map(CoinSpend.fromGeneratorCoinProgram).toList();
+  final blockSpends = outputProgram
+      .first()
+      .toList()
+      .map(CoinSpend.fromGeneratorCoinProgram)
+      .toList();
 
   final puzAnnoCreates = <CoinAnnouncementMessage>[];
   final puzAnnoAsserts = <CoinAnnouncementMessage>[];
@@ -42,24 +46,30 @@ Future<SpendBundle?> constructSpendBundleOfCoin(
     for (final condition in conditions) {
       switch (condition.code) {
         case CreateCoinAnnouncementCondition.conditionCode:
-          final message = (coin.id + condition.arguments.first.atom).sha256Hash();
+          final message =
+              (coin.id + condition.arguments.first.atom).sha256Hash();
 
-          coinAnnoCreates.add(CoinAnnouncementMessage(coinId: coinId, message: message));
+          coinAnnoCreates
+              .add(CoinAnnouncementMessage(coinId: coinId, message: message));
           break;
 
         case AssertCoinAnnouncementCondition.conditionCode:
           final message = condition.arguments.first.atom;
-          coinAnnoAsserts.add(CoinAnnouncementMessage(coinId: coinId, message: message));
+          coinAnnoAsserts
+              .add(CoinAnnouncementMessage(coinId: coinId, message: message));
           break;
 
         case CreatePuzzleAnnouncementCondition.conditionCode:
-          final message = (coin.puzzlehash + condition.arguments.first.atom).sha256Hash();
-          puzAnnoCreates.add(CoinAnnouncementMessage(coinId: coinId, message: message));
+          final message =
+              (coin.puzzlehash + condition.arguments.first.atom).sha256Hash();
+          puzAnnoCreates
+              .add(CoinAnnouncementMessage(coinId: coinId, message: message));
           break;
 
         case AssertPuzzleAnnouncementCondition.conditionCode:
           final message = condition.arguments.first.atom;
-          puzAnnoAsserts.add(CoinAnnouncementMessage(coinId: coinId, message: message));
+          puzAnnoAsserts
+              .add(CoinAnnouncementMessage(coinId: coinId, message: message));
           break;
 
         case CreateCoinCondition.conditionCode:
@@ -94,30 +104,34 @@ Future<SpendBundle?> constructSpendBundleOfCoin(
     final coin = coinsToDeal.removeAt(0);
     coinsDealed.add(coin);
 
-    for (final puzzleAnnoAssert in puzAnnoAsserts.where((element) => element.coinId == coin)) {
-      for (final puzzleAnnoCreate
-          in puzAnnoCreates.where((element) => element.message == puzzleAnnoAssert.message)) {
+    for (final puzzleAnnoAssert
+        in puzAnnoAsserts.where((element) => element.coinId == coin)) {
+      for (final puzzleAnnoCreate in puzAnnoCreates
+          .where((element) => element.message == puzzleAnnoAssert.message)) {
         addToCTD(puzzleAnnoCreate.coinId);
       }
     }
 
-    for (final puzzleAnnoCreate in puzAnnoCreates.where((element) => element.coinId == coin)) {
-      for (final puzzleAnnoAssert
-          in puzAnnoAsserts.where((element) => element.message == puzzleAnnoCreate.message)) {
+    for (final puzzleAnnoCreate
+        in puzAnnoCreates.where((element) => element.coinId == coin)) {
+      for (final puzzleAnnoAssert in puzAnnoAsserts
+          .where((element) => element.message == puzzleAnnoCreate.message)) {
         addToCTD(puzzleAnnoAssert.coinId);
       }
     }
 
-    for (final coinAnnoAssert in coinAnnoAsserts.where((element) => element.coinId == coin)) {
-      for (final coinAnnoCreate
-          in coinAnnoCreates.where((element) => element.message == coinAnnoAssert.message)) {
+    for (final coinAnnoAssert
+        in coinAnnoAsserts.where((element) => element.coinId == coin)) {
+      for (final coinAnnoCreate in coinAnnoCreates
+          .where((element) => element.message == coinAnnoAssert.message)) {
         addToCTD(coinAnnoCreate.coinId);
       }
     }
 
-    for (final coinAnnoCreate in coinAnnoCreates.where((element) => element.coinId == coin)) {
-      for (final coinAnnoAssert
-          in coinAnnoAsserts.where((element) => element.message == coinAnnoCreate.message)) {
+    for (final coinAnnoCreate
+        in coinAnnoCreates.where((element) => element.coinId == coin)) {
+      for (final coinAnnoAssert in coinAnnoAsserts
+          .where((element) => element.message == coinAnnoCreate.message)) {
         addToCTD(coinAnnoAssert.coinId);
       }
     }
@@ -128,7 +142,8 @@ Future<SpendBundle?> constructSpendBundleOfCoin(
     }
   }
 
-  final spendBundleSpends = blockSpends.where((element) => coinsDealed.contains(element.coin.id));
+  final spendBundleSpends =
+      blockSpends.where((element) => coinsDealed.contains(element.coin.id));
 
   return SpendBundle(
     coinSpends: spendBundleSpends.toList(),

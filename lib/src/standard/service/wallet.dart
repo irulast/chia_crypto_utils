@@ -17,8 +17,10 @@ class StandardWalletService extends BaseWalletService {
     int fee = 0,
     int surplus = 0,
     Bytes? originId,
+    bool allowLeftOver = false,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
     List<Condition> additionalConditions = const [],
     List<Bytes> coinIdsToAssert = const [],
     void Function(Bytes message)? useCoinMessage,
@@ -52,7 +54,8 @@ class StandardWalletService extends BaseWalletService {
     int surplus = 0,
     Bytes? originId,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
     List<Condition> additionalConditions = const [],
     List<Bytes> coinIdsToAssert = const [],
     void Function(Bytes message)? useCoinMessage,
@@ -83,7 +86,8 @@ class StandardWalletService extends BaseWalletService {
     required WalletKeychain keychain,
     required Puzzlehash? changePuzzlehash,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAsset = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
     List<Condition> additionalConditions = const [],
   }) {
     assert(
@@ -118,7 +122,8 @@ class StandardWalletService extends BaseWalletService {
     required WalletKeychain keychain,
     required Puzzlehash? changePuzzlehash,
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAsset = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
     List<Condition> additionalConditions = const [],
   }) {
     assert(
@@ -156,12 +161,15 @@ class StandardWalletService extends BaseWalletService {
     final coinsBeingSpent = <CoinPrototype>[];
     Bytes? originId;
     for (final spend in spendBundle.coinSpends) {
-      final outputConditions = spend.puzzleReveal.run(spend.solution).program.toList();
+      final outputConditions =
+          spend.puzzleReveal.run(spend.solution).program.toList();
 
       // look for assert coin announcement condition
-      final assertCoinAnnouncementPrograms =
-          outputConditions.where(AssertCoinAnnouncementCondition.isThisCondition).toList();
-      if (assertCoinAnnouncementPrograms.length == 1 && actualAssertCoinAnnouncementId == null) {
+      final assertCoinAnnouncementPrograms = outputConditions
+          .where(AssertCoinAnnouncementCondition.isThisCondition)
+          .toList();
+      if (assertCoinAnnouncementPrograms.length == 1 &&
+          actualAssertCoinAnnouncementId == null) {
         actualAssertCoinAnnouncementId =
             AssertCoinAnnouncementCondition.getAnnouncementIdFromProgram(
           assertCoinAnnouncementPrograms[0],

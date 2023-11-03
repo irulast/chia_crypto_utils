@@ -12,7 +12,9 @@ class BlockchainState {
   factory BlockchainState.fromJson(Map<String, dynamic> json) {
     return BlockchainState(
       difficulty: json['difficulty'] as int,
-      peak: json['peak'] != null ? Peak.fromJson(json['peak'] as Map<String, dynamic>) : null,
+      peak: json['peak'] != null
+          ? Peak.fromJson(json['peak'] as Map<String, dynamic>)
+          : null,
     );
   }
   final int difficulty;
@@ -29,7 +31,8 @@ class Peak {
 
   factory Peak.fromJson(Map<String, dynamic> json) {
     return Peak(
-      farmerPuzzlehash: Puzzlehash.fromHex(json['farmer_puzzle_hash'] as String),
+      farmerPuzzlehash:
+          Puzzlehash.fromHex(json['farmer_puzzle_hash'] as String),
       headerHash: Bytes.fromHex(json['header_hash'] as String),
       height: json['height'] as int,
       timestamp: json['timestamp'] as int?,
@@ -40,6 +43,7 @@ class Peak {
   int height;
   int? timestamp;
 
-  DateTime? get dateTime =>
-      (timestamp != null) ? DateTime.fromMillisecondsSinceEpoch(timestamp! * 1000) : null;
+  DateTime? get dateTime => (timestamp != null)
+      ? DateTime.fromMillisecondsSinceEpoch(timestamp! * 1000)
+      : null;
 }

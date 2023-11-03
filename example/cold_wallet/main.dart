@@ -5,6 +5,6 @@ import 'package:test/test.dart';
 
 void main() async {
   test('generate an offline cold wallet', () {
-   expect(createColdWallet, returnsNormally);
+    expect(createColdWallet, returnsNormally);
   });
 }

@@ -4,16 +4,26 @@ import 'package:chia_crypto_utils/src/offer/models/offered_coin/offered_coin.dar
 class OfferedCat1 implements OfferedCoin {
   OfferedCat1(this.coin, this.settlementProgram);
 
-  factory OfferedCat1.fromOfferBundleParentSpend(CoinPrototype coin, CoinSpend parentSpend) {
-    final deconstructedCatPuzzle = _catWalletService.matchCatPuzzle(parentSpend.puzzleReveal);
+  factory OfferedCat1.fromOfferBundleParentSpend(
+    CoinPrototype coin,
+    CoinSpend parentSpend,
+  ) {
+    final deconstructedCatPuzzle =
+        _catWalletService.matchCatPuzzle(parentSpend.puzzleReveal);
     if (deconstructedCatPuzzle == null) {
       throw InvalidCatException(message: 'invalid cat 1');
     }
 
     final matchingSettlementProgram = () {
-      for (final settlementProgram in [settlementPaymentsProgram, settlementPaymentsProgramOld]) {
+      for (final settlementProgram in [
+        settlementPaymentsProgram,
+        settlementPaymentsProgramOld
+      ]) {
         if (_catWalletService
-                .makeCatPuzzle(deconstructedCatPuzzle.assetId, settlementProgram)
+                .makeCatPuzzle(
+                  deconstructedCatPuzzle.assetId,
+                  settlementProgram,
+                )
                 .hash() ==
             coin.puzzlehash) {
           return settlementProgram;
@@ -49,7 +59,8 @@ class OfferedCat1 implements OfferedCoin {
 
     return CoinSpend(
       coin: coin,
-      puzzleReveal: _catWalletService.makeCatPuzzle(coin.assetId, settlementProgram),
+      puzzleReveal:
+          _catWalletService.makeCatPuzzle(coin.assetId, settlementProgram),
       solution: solution,
     );
   }
@@ -57,7 +68,8 @@ class OfferedCat1 implements OfferedCoin {
   @override
   SpendType get type => SpendType.cat1;
 
-  static CatWalletService get _catWalletService => CatWalletService.fromCatProgram(cat1Program);
+  static CatWalletService get _catWalletService =>
+      CatWalletService.fromCatProgram(cat1Program);
 
   @override
   Bytes get assetId => coin.assetId;

@@ -12,7 +12,8 @@ class CheckOfferValidityCommand implements WalletConnectCommand {
   }
 
   @override
-  WalletConnectCommandType get type => WalletConnectCommandType.checkOfferValidity;
+  WalletConnectCommandType get type =>
+      WalletConnectCommandType.checkOfferValidity;
 
   final Offer offer;
 
@@ -29,8 +30,9 @@ class CheckOfferValidityResponse
   factory CheckOfferValidityResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
-    final offerValidityData =
-        OfferValidityData.fromJson(pick(json, 'data').letJsonOrThrow((json) => json));
+    final offerValidityData = OfferValidityData.fromJson(
+      pick(json, 'data').letJsonOrThrow((json) => json),
+    );
 
     return CheckOfferValidityResponse(baseResponse, offerValidityData);
   }

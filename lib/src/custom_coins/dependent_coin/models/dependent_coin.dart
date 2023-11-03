@@ -12,8 +12,10 @@ class DependentCoin with CoinPrototypeDecoratorMixin {
     final delegate = CoinPrototype.fromJson(json);
     return DependentCoin(
       delegate: delegate,
-      primaryCoinId: pick(json, 'primary_coin_id').letStringOrThrow(Bytes.fromHex),
-      primaryCoinMessage: pick(json, 'primary_coin_message').letStringOrThrow(Bytes.fromHex),
+      primaryCoinId:
+          pick(json, 'primary_coin_id').letStringOrThrow(Bytes.fromHex),
+      primaryCoinMessage:
+          pick(json, 'primary_coin_message').letStringOrThrow(Bytes.fromHex),
     );
   }
 

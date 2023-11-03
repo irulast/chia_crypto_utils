@@ -96,7 +96,10 @@ class AffinePoint {
 
   @override
   bool operator ==(Object other) =>
-      other is AffinePoint && x == other.x && y == other.y && infinity == other.infinity;
+      other is AffinePoint &&
+      x == other.x &&
+      y == other.y &&
+      infinity == other.infinity;
 
   @override
   int get hashCode => hash3(x, y, infinity);

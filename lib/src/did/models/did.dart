@@ -43,7 +43,9 @@ class DidInfo implements DidRecord {
     return Bytes.fromHex(serializedDid);
   }
 
-  Future<DidInfoWithOriginCoin?> fetchOriginCoin(ChiaFullNodeInterface fullNode) async {
+  Future<DidInfoWithOriginCoin?> fetchOriginCoin(
+    ChiaFullNodeInterface fullNode,
+  ) async {
     final originCoin = await fullNode.getCoinById(did);
 
     if (originCoin != null) {

@@ -30,7 +30,8 @@ class OfferService {
 
     final intermediateCoinIdToAdditions = <Bytes, List<CoinPrototype>>{};
 
-    for (final additionWithParentSpend in takeOfferSpendBundle.netAdditonWithParentSpends) {
+    for (final additionWithParentSpend
+        in takeOfferSpendBundle.netAdditonWithParentSpends) {
       intermediateCoinIdToAdditions.update(
         additionWithParentSpend.parentSpend!.coin.id,
         (value) => [
@@ -52,9 +53,10 @@ class OfferService {
 
     final parentSpendIds = <Bytes>[];
 
-    for (final intermediateSpendWithAdditions in intermediateCoinSpendsWithAdditions) {
-      final originCoinSpend =
-          coinSpendMap[intermediateSpendWithAdditions.coinSpend.coin.parentCoinInfo];
+    for (final intermediateSpendWithAdditions
+        in intermediateCoinSpendsWithAdditions) {
+      final originCoinSpend = coinSpendMap[
+          intermediateSpendWithAdditions.coinSpend.coin.parentCoinInfo];
       if (originCoinSpend == null) {
         continue;
       }
@@ -63,9 +65,10 @@ class OfferService {
     }
     final parentSpends = await fullNode.getCoinSpendsByIds(parentSpendIds);
 
-    for (final intermediateSpendWithAdditions in intermediateCoinSpendsWithAdditions) {
-      final originCoinSpend =
-          coinSpendMap[intermediateSpendWithAdditions.coinSpend.coin.parentCoinInfo];
+    for (final intermediateSpendWithAdditions
+        in intermediateCoinSpendsWithAdditions) {
+      final originCoinSpend = coinSpendMap[
+          intermediateSpendWithAdditions.coinSpend.coin.parentCoinInfo];
 
       if (originCoinSpend == null) {
         continue;
@@ -84,7 +87,8 @@ class OfferService {
 
   final Wallet wallet;
   final OfferWalletService walletService;
-  int get catVersion => walletService.catWalletService.spendType == SpendType.cat ? 2 : 1;
+  int get catVersion =>
+      walletService.catWalletService.spendType == SpendType.cat ? 2 : 1;
 
   Future<Offer> createOffer({
     required MixedAmounts offeredAmounts,
@@ -94,8 +98,10 @@ class OfferService {
   }) async {
     final keychain = await wallet.getKeychain();
 
-    final offeredCoins =
-        await wallet.getMixedCoinsForAmounts(offeredAmounts, catVersion: catVersion);
+    final offeredCoins = await wallet.getMixedCoinsForAmounts(
+      offeredAmounts,
+      catVersion: catVersion,
+    );
 
     return walletService.makeOffer(
       offeredAmounts: OfferedMixedAmounts(
@@ -118,12 +124,15 @@ class OfferService {
   }) async {
     final keychain = await wallet.getKeychain();
 
-    final offeredCoins =
-        await wallet.getMixedCoinsForAmounts(offeredAmounts, catVersion: catVersion);
+    final offeredCoins = await wallet.getMixedCoinsForAmounts(
+      offeredAmounts,
+      catVersion: catVersion,
+    );
 
     final dummyBundle = await spawnAndWaitForIsolate(
       taskArgument: CreateOfferArgs(
-        network: stringToNetwork(ChiaNetworkContextWrapper().blockchainNetwork.name),
+        network:
+            stringToNetwork(ChiaNetworkContextWrapper().blockchainNetwork.name),
         offerWalletService: walletService,
         offeredAmounts: offeredAmounts,
         offeredCoins: offeredCoins,
@@ -139,7 +148,9 @@ class OfferService {
     return Offer.fromDummySpendBundleAsync(dummyBundle);
   }
 
-  static Map<String, dynamic> _createOfferDummySpendBundle(CreateOfferArgs args) {
+  static Map<String, dynamic> _createOfferDummySpendBundle(
+    CreateOfferArgs args,
+  ) {
     ChiaNetworkContextWrapper().registerNetworkContext(args.network);
     return args.offerWalletService
         .makeOffer(
@@ -149,7 +160,8 @@ class OfferService {
           ),
           requestedPayments: args.requestedPayments,
           coinsForOffer: args.offeredCoins,
-          changePuzzlehash: args.changePuzzlehash ?? args.keychain.puzzlehashes.random,
+          changePuzzlehash:
+              args.changePuzzlehash ?? args.keychain.puzzlehashes.random,
           keychain: args.keychain,
           fee: args.fee,
         )
@@ -199,7 +211,8 @@ class OfferService {
 
     final dummyBundle = await spawnAndWaitForIsolate(
       taskArgument: TakeOfferArgs(
-        network: stringToNetwork(ChiaNetworkContextWrapper().blockchainNetwork.name),
+        network:
+            stringToNetwork(ChiaNetworkContextWrapper().blockchainNetwork.name),
         offerWalletService: walletService,
         askOffer: offer,
         coinsForOffer: coinsForOffer,
@@ -285,16 +298,20 @@ class OfferedCoinLineage {
   void validate() {
     if (originalParentSpend != null &&
         originalParentSpend!.coin.id != originalCoinSpend.coin.parentCoinInfo) {
-      throw Exception('originalParentSpend.coin.id!= originalCoinSpend.coin.parentCoinInfo');
+      throw Exception(
+        'originalParentSpend.coin.id!= originalCoinSpend.coin.parentCoinInfo',
+      );
     }
-    if (originalCoinSpend.coin.id != intermediateSpendWithAdditions.coinSpend.coin.parentCoinInfo) {
+    if (originalCoinSpend.coin.id !=
+        intermediateSpendWithAdditions.coinSpend.coin.parentCoinInfo) {
       throw Exception(
         'originalCoinSpend.coin.id!= intermediateSpendWithAdditions.coinSpend.coin.parentCoinInfo',
       );
     }
 
     for (final addition in intermediateSpendWithAdditions.additions) {
-      if (addition.parentCoinInfo != intermediateSpendWithAdditions.coinSpend.coin.id) {
+      if (addition.parentCoinInfo !=
+          intermediateSpendWithAdditions.coinSpend.coin.id) {
         throw Exception('addition.parentCoinInfo != originalCoinSpend.coin.id');
       }
     }

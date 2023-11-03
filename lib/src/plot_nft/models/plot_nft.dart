@@ -7,7 +7,9 @@ class PlotNft with ToBytesMixin {
     required this.poolState,
     required this.delayTime,
     required this.delayPuzzlehash,
+    required this.lineageProof,
   });
+
   factory PlotNft.fromBytes(Bytes bytes) {
     final iterator = bytes.iterator;
 
@@ -16,6 +18,7 @@ class PlotNft with ToBytesMixin {
     final poolState = PoolState.fromStream(iterator);
     final delayTime = intFrom64BitsStream(iterator);
     final delayPuzzlehash = Puzzlehash.fromStream(iterator);
+    final lineageProof = LineageProof.fromStream(iterator);
 
     return PlotNft(
       launcherId: launcherId,
@@ -23,6 +26,7 @@ class PlotNft with ToBytesMixin {
       poolState: poolState,
       delayTime: delayTime,
       delayPuzzlehash: delayPuzzlehash,
+      lineageProof: lineageProof,
     );
   }
 
@@ -31,14 +35,23 @@ class PlotNft with ToBytesMixin {
   final PoolState poolState;
   final int delayTime;
   final Puzzlehash delayPuzzlehash;
+  final LineageProof lineageProof;
 
-  Puzzlehash get p2Puzzlehash =>
-      PlotNftWalletService.launcherIdToP2Puzzlehash(launcherId, delayTime, delayPuzzlehash);
+  Puzzlehash get p2Puzzlehash => PlotNftWalletService.launcherIdToP2Puzzlehash(
+        launcherId,
+        delayTime,
+        delayPuzzlehash,
+      );
 
   Future<Puzzlehash> get p2PuzzlehashAsync =>
-      PlotNftWalletService.launcherIdToP2PuzzlehashAsync(launcherId, delayTime, delayPuzzlehash);
+      PlotNftWalletService.launcherIdToP2PuzzlehashAsync(
+        launcherId,
+        delayTime,
+        delayPuzzlehash,
+      );
 
-  Puzzlehash get contractPuzzlehash => PlotNftWalletService.launcherIdToP2Puzzlehash(
+  Puzzlehash get contractPuzzlehash =>
+      PlotNftWalletService.launcherIdToP2Puzzlehash(
         launcherId,
         delayTime,
         delayPuzzlehash,
@@ -55,10 +68,11 @@ class PlotNft with ToBytesMixin {
         singletonCoin.toBytes() +
         poolState.toBytes() +
         intTo64Bits(delayTime) +
-        delayPuzzlehash;
+        delayPuzzlehash +
+        lineageProof.toBytes();
   }
 
   @override
   String toString() =>
-      'PlotNft(launcherId: $launcherId, singletonCoin: $singletonCoin, poolState: $poolState, delayTime: $delayTime, delayPuzzlehash: $delayPuzzlehash)';
+      'PlotNft(launcherId: $launcherId, singletonCoin: $singletonCoin, poolState: $poolState, delayTime: $delayTime, delayPuzzlehash: $delayPuzzlehash, lineagProof: $lineageProof';
 }

@@ -23,7 +23,8 @@ void main() async {
 
   test('should correctly serialize and deserialize a WalletKeychain', () {
     final walletKeychainSerialized = walletKeychain.toBytes();
-    final walletKeychainDeserialized = WalletKeychain.fromBytes(walletKeychainSerialized);
+    final walletKeychainDeserialized =
+        WalletKeychain.fromBytes(walletKeychainSerialized);
 
     expect(
       walletKeychainDeserialized.hardenedWalletVectors.length,
@@ -34,7 +35,9 @@ void main() async {
       equals(walletKeychain.hardenedWalletVectors.length),
     );
 
-    for (var i = 0; i < walletKeychainDeserialized.hardenedWalletVectors.length; i++) {
+    for (var i = 0;
+        i < walletKeychainDeserialized.hardenedWalletVectors.length;
+        i++) {
       expect(
         walletKeychainDeserialized.hardenedWalletVectors[i],
         equals(walletKeychain.hardenedWalletVectors[i]),
@@ -51,11 +54,15 @@ void main() async {
       equals(walletKeychain.unhardenedWalletVectors.length),
     );
 
-    final deserializeUnhardenedWalletVectors = walletKeychainDeserialized.unhardenedWalletVectors;
-    final originalUnhardenedWalletVectors = walletKeychain.unhardenedWalletVectors;
+    final deserializeUnhardenedWalletVectors =
+        walletKeychainDeserialized.unhardenedWalletVectors;
+    final originalUnhardenedWalletVectors =
+        walletKeychain.unhardenedWalletVectors;
 
-    deserializeUnhardenedWalletVectors.sort((a, b) => a.puzzlehash.compareTo(b.puzzlehash));
-    originalUnhardenedWalletVectors.sort((a, b) => a.puzzlehash.compareTo(b.puzzlehash));
+    deserializeUnhardenedWalletVectors
+        .sort((a, b) => a.puzzlehash.compareTo(b.puzzlehash));
+    originalUnhardenedWalletVectors
+        .sort((a, b) => a.puzzlehash.compareTo(b.puzzlehash));
 
     for (var i = 0; i < deserializeUnhardenedWalletVectors.length; i++) {
       expect(
@@ -74,7 +81,9 @@ void main() async {
       equals(walletKeychain.singletonWalletVectors.length),
     );
 
-    for (var i = 0; i < walletKeychainDeserialized.singletonWalletVectors.length; i++) {
+    for (var i = 0;
+        i < walletKeychainDeserialized.singletonWalletVectors.length;
+        i++) {
       expect(
         walletKeychainDeserialized.singletonWalletVectors[i],
         equals(walletKeychain.singletonWalletVectors[i]),

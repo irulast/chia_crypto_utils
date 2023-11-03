@@ -15,20 +15,24 @@ class BaseWalletService {
     required List<Payment> payments,
     required List<CoinPrototype> coinsInput,
     Puzzlehash? changePuzzlehash,
+    bool allowLeftOver = false,
     int fee = 0,
     int surplus = 0,
     Bytes? originId,
     List<Bytes> coinIdsToAssert = const [],
     List<AssertCoinAnnouncementCondition> coinAnnouncementsToAssert = const [],
-    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert = const [],
+    List<AssertPuzzleAnnouncementCondition> puzzleAnnouncementsToAssert =
+        const [],
     List<Condition> additionalConditions = const [],
-    required Program Function(Puzzlehash puzzlehash) makePuzzleRevealFromPuzzlehash,
+    required Program Function(Puzzlehash puzzlehash)
+        makePuzzleRevealFromPuzzlehash,
     Program Function(Program standardSolution)? transformStandardSolution,
     // required JacobianPoint Function(CoinSpend coinSpend) makeSignatureForCoinSpend,
     void Function(Bytes message)? useCoinMessage,
   }) {
     Program makeSolutionFromConditions(List<Condition> conditions) {
-      final standardSolution = BaseWalletService.makeSolutionFromConditions(conditions);
+      final standardSolution =
+          BaseWalletService.makeSolutionFromConditions(conditions);
       if (transformStandardSolution == null) {
         return standardSolution;
       }
@@ -37,7 +41,8 @@ class BaseWalletService {
 
     // copy coins input since coins list is modified in this function
     final coins = List<CoinPrototype>.from(coinsInput);
-    final totalCoinValue = coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
+    final totalCoinValue =
+        coins.fold(0, (int previousValue, coin) => previousValue + coin.amount);
 
     final totalPaymentAmount = payments.fold(
       0,
@@ -45,14 +50,15 @@ class BaseWalletService {
     );
     final change = totalCoinValue - totalPaymentAmount - fee - surplus;
 
-    if (changePuzzlehash == null && change > 0) {
+    if (changePuzzlehash == null && change > 0 && !allowLeftOver) {
       throw ChangePuzzlehashNeededException();
     }
 
     final spends = <CoinSpend>[];
 
     // returns -1 if originId is given but is not in coins
-    final originIndex = originId == null ? 0 : coins.indexWhere((coin) => coin.id == originId);
+    final originIndex =
+        originId == null ? 0 : coins.indexWhere((coin) => coin.id == originId);
 
     if (originIndex == -1) {
       throw OriginIdNotInCoinsException();
@@ -88,8 +94,8 @@ class BaseWalletService {
           );
         }
 
-        if (change > 0) {
-          conditions.add(CreateCoinCondition(changePuzzlehash!, change));
+        if (change > 0 && changePuzzlehash != null) {
+          conditions.add(CreateCoinCondition(changePuzzlehash, change));
           createdCoins.add(
             CoinPrototype(
               parentCoinInfo: coin.id,
@@ -119,16 +125,19 @@ class BaseWalletService {
           Bytes.empty,
           (Bytes previousValue, coin) => previousValue + coin.id,
         );
-        final message = (existingCoinsMessage + createdCoinsMessage).sha256Hash();
+        final message =
+            (existingCoinsMessage + createdCoinsMessage).sha256Hash();
 
         useCoinMessage?.call(message);
         conditions.add(CreateCoinAnnouncementCondition(message));
 
         for (final coinIdToAssert in coinIdsToAssert) {
-          conditions.add(AssertCoinAnnouncementCondition(coinIdToAssert, message));
+          conditions
+              .add(AssertCoinAnnouncementCondition(coinIdToAssert, message));
         }
 
-        primaryAssertCoinAnnouncement = AssertCoinAnnouncementCondition(coin.id, message);
+        primaryAssertCoinAnnouncement =
+            AssertCoinAnnouncementCondition(coin.id, message);
 
         solution = makeSolutionFromConditions(conditions);
       } else {
@@ -138,7 +147,8 @@ class BaseWalletService {
       }
 
       final puzzle = makePuzzleRevealFromPuzzlehash(coin.puzzlehash);
-      final coinSpend = CoinSpend(coin: coin, puzzleReveal: puzzle, solution: solution);
+      final coinSpend =
+          CoinSpend(coin: coin, puzzleReveal: puzzle, solution: solution);
       spends.add(coinSpend);
     }
 
@@ -196,26 +206,31 @@ class BaseWalletService {
 
   SpendBundleSignResult _signSpendBundle(
     SpendBundle spendBundle, {
-    required PrivateKey? Function(Puzzlehash puzzlehash) getPrivateKeyForPuzzlehash,
+    required PrivateKey? Function(Puzzlehash puzzlehash)
+        getPrivateKeyForPuzzlehash,
     bool Function(CoinSpend coinSpend)? filterCoinSpends,
   }) {
     PrivateKey? getPrivateKeyForPublicKey(JacobianPoint publicKey) {
-      final puzzlehashAssumingSyntheticPk = getPuzzleForSyntheticPk(publicKey).hash();
+      final puzzlehashAssumingSyntheticPk =
+          getPuzzleForSyntheticPk(publicKey).hash();
 
-      final privateKey = getPrivateKeyForPuzzlehash(puzzlehashAssumingSyntheticPk);
+      final privateKey =
+          getPrivateKeyForPuzzlehash(puzzlehashAssumingSyntheticPk);
 
       if (privateKey != null) {
         return calculateSyntheticPrivateKey(privateKey);
       }
 
-      final puzzlehashAssumingNonSyntheticPk = getPuzzleFromPk(publicKey).hash();
+      final puzzlehashAssumingNonSyntheticPk =
+          getPuzzleFromPk(publicKey).hash();
 
       return getPrivateKeyForPuzzlehash(puzzlehashAssumingNonSyntheticPk);
     }
 
     var totalSpendBundle = spendBundle;
 
-    final aggSigMeConditionsWithFullMessages = <AggSigMeConditionWithFullMessage>[];
+    final aggSigMeConditionsWithFullMessages =
+        <AggSigMeConditionWithFullMessage>[];
 
     final spendsToSign = filterCoinSpends != null
         ? spendBundle.coinSpends.where(filterCoinSpends)
@@ -230,12 +245,16 @@ class BaseWalletService {
       );
 
       for (final aggSigMeCondition in aggSigMeConditions) {
-        final fullMessage =
-            constructFullAggSigMeMessage(aggSigMeCondition.message, coinSpend.coin.id);
-        aggSigMeConditionsWithFullMessages
-            .add(AggSigMeConditionWithFullMessage(aggSigMeCondition, fullMessage));
+        final fullMessage = constructFullAggSigMeMessage(
+          aggSigMeCondition.message,
+          coinSpend.coin.id,
+        );
+        aggSigMeConditionsWithFullMessages.add(
+          AggSigMeConditionWithFullMessage(aggSigMeCondition, fullMessage),
+        );
 
-        final privateKey = getPrivateKeyForPublicKey(aggSigMeCondition.publicKey);
+        final privateKey =
+            getPrivateKeyForPublicKey(aggSigMeCondition.publicKey);
 
         if (privateKey == null) {
           continue;
@@ -312,7 +331,9 @@ class BaseWalletService {
     CoinSpend coinSpend, {
     bool useSyntheticOffset = true,
   }) {
-    final privateKey0 = useSyntheticOffset ? calculateSyntheticPrivateKey(privateKey) : privateKey;
+    final privateKey0 = useSyntheticOffset
+        ? calculateSyntheticPrivateKey(privateKey)
+        : privateKey;
 
     final messagesToSign = getAddSigMeMessage(coinSpend, privateKey0);
 
@@ -327,7 +348,9 @@ class BaseWalletService {
   }
 
   Bytes constructFullAggSigMeMessage(Bytes baseMessage, Bytes coinId) {
-    return baseMessage + coinId + Bytes.fromHex(blockchainNetwork.aggSigMeExtraData);
+    return baseMessage +
+        coinId +
+        Bytes.fromHex(blockchainNetwork.aggSigMeExtraData);
   }
 
   List<Bytes> getAddSigMeMessage(CoinSpend coinSpend, PrivateKey privateKey) {
@@ -336,11 +359,14 @@ class BaseWalletService {
 
     final aggSigMeConditions = result.toList().where((conditionProgram) {
       return AggSigMeCondition.isThisCondition(conditionProgram) &&
-          AggSigMeCondition.fromProgram(conditionProgram).publicKey == privateKey.getG1();
+          AggSigMeCondition.fromProgram(conditionProgram).publicKey ==
+              privateKey.getG1();
     }).map(AggSigMeCondition.fromProgram);
 
     if (aggSigMeConditions.length > 1) {
-      print('multiple agg sig me conditions: ${aggSigMeConditions.map((e) => e.toProgram())}');
+      print(
+        'multiple agg sig me conditions: ${aggSigMeConditions.map((e) => e.toProgram())}',
+      );
       return [
         constructFullAggSigMeMessage(aggSigMeConditions.last.message, coin.id),
       ];
@@ -405,7 +431,10 @@ class BaseWalletService {
     ConditionChecker<T> conditionChecker,
     ConditionFromProgramConstructor<T> conditionFromProgramConstructor,
   ) {
-    return result.where(conditionChecker).map((p) => conditionFromProgramConstructor(p)).toList();
+    return result
+        .where(conditionChecker)
+        .map((p) => conditionFromProgramConstructor(p))
+        .toList();
   }
 
   static Program makeSolutionFromProgram(Program program) {
@@ -420,10 +449,12 @@ class BaseWalletService {
     final publicKeys = <JacobianPoint>[];
     final messages = <List<int>>[];
     for (final spend in spendBundle.coinSpends) {
-      final outputConditions = spend.puzzleReveal.run(spend.solution).program.toList();
+      final outputConditions =
+          spend.puzzleReveal.run(spend.solution).program.toList();
 
       // look for assert agg sig me condition
-      final aggSigMeProgram = outputConditions.singleWhere(AggSigMeCondition.isThisCondition);
+      final aggSigMeProgram =
+          outputConditions.singleWhere(AggSigMeCondition.isThisCondition);
 
       final aggSigMeCondition = AggSigMeCondition.fromProgram(aggSigMeProgram);
       publicKeys.add(aggSigMeCondition.publicKey);

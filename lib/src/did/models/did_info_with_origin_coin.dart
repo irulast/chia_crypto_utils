@@ -2,7 +2,10 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:tuple/tuple.dart';
 
 class DidInfoWithOriginCoin with DidInfoDecoratorMixin, ToJsonMixin {
-  const DidInfoWithOriginCoin({required this.didInfo, required this.originCoin});
+  const DidInfoWithOriginCoin({
+    required this.didInfo,
+    required this.originCoin,
+  });
 
   @override
   final DidInfo didInfo;

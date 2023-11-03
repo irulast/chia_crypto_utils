@@ -4,6 +4,7 @@
 - Add NFT support
 - Add Offer support
 - Bug fixing and code cleanup
+- Plot NFT mutation spend
 
 ## 1.0.18
 

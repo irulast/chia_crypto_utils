@@ -4,13 +4,19 @@ import 'package:chia_crypto_utils/src/offer/models/offered_coin/offered_coin.dar
 class OfferedNft implements OfferedCoin {
   OfferedNft(this.nft, this.settlementProgram);
 
-  factory OfferedNft.fromOfferBundleParentSpend(CoinPrototype coin, CoinSpend parentSpend) {
+  factory OfferedNft.fromOfferBundleParentSpend(
+    CoinPrototype coin,
+    CoinSpend parentSpend,
+  ) {
     final nftRecord = NftRecord.fromParentCoinSpend(parentSpend, coin);
     if (nftRecord == null) {
       throw InvalidNftException();
     }
     final nftFullPuzzleAndSettlementProgram = () {
-      for (final settlementProgram in [settlementPaymentsProgram, settlementPaymentsProgramOld]) {
+      for (final settlementProgram in [
+        settlementPaymentsProgram,
+        settlementPaymentsProgramOld
+      ]) {
         final fullPuzzleWithOfferInnerPuzzle =
             nftRecord.getFullPuzzleWithNewP2Puzzle(settlementProgram);
         if (fullPuzzleWithOfferInnerPuzzle.hash() == coin.puzzlehash) {

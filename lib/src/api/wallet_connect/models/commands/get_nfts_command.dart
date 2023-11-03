@@ -9,7 +9,8 @@ class GetNftsCommand implements WalletConnectCommand {
   });
   factory GetNftsCommand.fromParams(Map<String, dynamic> params) {
     return GetNftsCommand(
-      walletIds: pick(params, 'walletIds').asListOrThrow<int>((json) => json.asIntOrThrow()),
+      walletIds: pick(params, 'walletIds')
+          .asListOrThrow<int>((json) => json.asIntOrThrow()),
       startIndex: pick(params, 'startIndex').asIntOrNull(),
       num: pick(params, 'num').asIntOrNull(),
     );
@@ -42,7 +43,12 @@ class GetNftsResponse
     final nfts = pick(json, 'data').asMapOrThrow<String, List<dynamic>>().map(
           (key, value) => MapEntry(
             int.parse(key),
-            value.map((nftJson) => NftInfo.fromJson(nftJson as Map<String, dynamic>)).toList(),
+            value
+                .map(
+                  (nftJson) =>
+                      NftInfo.fromJson(nftJson as Map<String, dynamic>),
+                )
+                .toList(),
           ),
         );
 
@@ -58,7 +64,10 @@ class GetNftsResponse
     return <String, dynamic>{
       ...delegate.toJson(),
       'data': nfts.map(
-        (key, value) => MapEntry(key.toString(), value.map((nftInfo) => nftInfo.toJson()).toList()),
+        (key, value) => MapEntry(
+          key.toString(),
+          value.map((nftInfo) => nftInfo.toJson()).toList(),
+        ),
       ),
     };
   }

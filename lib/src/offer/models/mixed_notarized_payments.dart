@@ -4,7 +4,8 @@ import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:meta/meta.dart';
 
 @immutable
-class MixedNotarizedPayments with MixedTypeMixin<List<NotarizedPayment>, MixedNotarizedPayments> {
+class MixedNotarizedPayments
+    with MixedTypeMixin<List<NotarizedPayment>, MixedNotarizedPayments> {
   const MixedNotarizedPayments(this.map);
 
   @override
@@ -20,7 +21,10 @@ class MixedNotarizedPayments with MixedTypeMixin<List<NotarizedPayment>, MixedNo
 
   void debug() {
     final catString = jsonEncode(
-      cat.map((key, value) => MapEntry(key.toString(), value.map((e) => e.toString()).toList())),
+      cat.map(
+        (key, value) =>
+            MapEntry(key.toString(), value.map((e) => e.toString()).toList()),
+      ),
     );
     print('{');
     print(' standard: $standard,');
@@ -29,17 +33,25 @@ class MixedNotarizedPayments with MixedTypeMixin<List<NotarizedPayment>, MixedNo
   }
 
   @override
-  List<NotarizedPayment> add(List<NotarizedPayment> first, List<NotarizedPayment> second) {
+  List<NotarizedPayment> add(
+    List<NotarizedPayment> first,
+    List<NotarizedPayment> second,
+  ) {
     return first + second;
   }
 
   @override
-  MixedNotarizedPayments clone(Map<GeneralCoinType, Map<Puzzlehash?, List<NotarizedPayment>>> map) {
+  MixedNotarizedPayments clone(
+    Map<GeneralCoinType, Map<Puzzlehash?, List<NotarizedPayment>>> map,
+  ) {
     return MixedNotarizedPayments(map);
   }
 
   @override
-  List<NotarizedPayment> subtract(List<NotarizedPayment> first, List<NotarizedPayment> second) {
+  List<NotarizedPayment> subtract(
+    List<NotarizedPayment> first,
+    List<NotarizedPayment> second,
+  ) {
     throw UnimplementedError();
   }
 }

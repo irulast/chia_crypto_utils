@@ -10,6 +10,9 @@ class Cat1OfferWalletService extends OfferWalletService {
     Offer offer, {
     TailDatabaseApi? tailDatabaseApi,
   }) async {
-    return OfferWalletService.parseOffer(offer, tailDatabaseApi: tailDatabaseApi);
+    return OfferWalletService.parseOffer(
+      offer,
+      tailDatabaseApi: tailDatabaseApi,
+    );
   }
 }

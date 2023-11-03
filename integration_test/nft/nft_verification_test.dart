@@ -53,7 +53,8 @@ void main() async {
 
     await nftHolder.refreshCoins();
 
-    final nftCoins = await fullNodeSimulator.getNftRecordsByHint(targetPuzzleHash);
+    final nftCoins =
+        await fullNodeSimulator.getNftRecordsByHint(targetPuzzleHash);
     expect(nftCoins.single.metadata, inputMetadata);
 
     final nft = nftCoins.single;

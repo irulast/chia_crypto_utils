@@ -20,7 +20,9 @@ class PoolContext {
   }
 
   Bytes? get certificateBytes {
-    if (!getIt.isRegistered<Bytes>(instanceName: certificateBytesInstanceName)) {
+    if (!getIt.isRegistered<Bytes>(
+      instanceName: certificateBytesInstanceName,
+    )) {
       return null;
     }
     return getIt.get<Bytes>(instanceName: certificateBytesInstanceName);
@@ -28,7 +30,10 @@ class PoolContext {
 
   void setCertificateBytes(Bytes certificateBytes) {
     getIt
-      ..registerSingleton<Bytes>(certificateBytes, instanceName: certificateBytesInstanceName)
+      ..registerSingleton<Bytes>(
+        certificateBytes,
+        instanceName: certificateBytesInstanceName,
+      )
       ..allowReassignment = true;
   }
 }

@@ -18,7 +18,8 @@ Future<void> main() async {
     SimulatorUtils.simulatorUrl,
   );
 
-  final enhancedFullNode = EnhancedChiaFullNodeInterface(enhancedFullNodeHttpRpc);
+  final enhancedFullNode =
+      EnhancedChiaFullNodeInterface(enhancedFullNodeHttpRpc);
 
   final fullNode = SimulatorFullNodeInterface.withDefaultUrl();
 
@@ -28,13 +29,15 @@ Future<void> main() async {
 
   final keychainSecret = KeychainCoreSecret.generate();
 
-  final keychain = WalletKeychain.fromCoreSecret(keychainSecret, walletSize: 100);
+  final keychain =
+      WalletKeychain.fromCoreSecret(keychainSecret, walletSize: 100);
 
   ChiaNetworkContextWrapper().registerNetworkContext(Network.mainnet);
 
   final senderPuzzlehash = keychain.unhardenedMap.values.toList()[0].puzzlehash;
   final senderAddress = Address.fromContext(senderPuzzlehash);
-  final receiverPuzzlehash = keychain.unhardenedMap.values.toList()[1].puzzlehash;
+  final receiverPuzzlehash =
+      keychain.unhardenedMap.values.toList()[1].puzzlehash;
 
   for (var i = 0; i < 4; i++) {
     await fullNode.farmCoins(senderAddress);
@@ -47,10 +50,12 @@ Future<void> main() async {
 
   test('should correctly get paginated coins ', () async {
     for (var i = 0; i < 25; i++) {
-      await fullNode.farmCoins(keychain.puzzlehashes.random.toAddressWithContext());
+      await fullNode
+          .farmCoins(keychain.puzzlehashes.random.toAddressWithContext());
       await fullNode.moveToNextBlock();
 
-      final coins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
+      final coins =
+          await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
 
       final spendBundle = standardWalletService.createSpendBundle(
         payments: [
@@ -95,7 +100,8 @@ Future<void> main() async {
       PaginatedCoins? paginatedResponse;
       Bytes? lastId;
       do {
-        paginatedResponse = await enhancedFullNode.getCoinsByPuzzleHashesPaginated(
+        paginatedResponse =
+            await enhancedFullNode.getCoinsByPuzzleHashesPaginated(
           puzzlehashes,
           5,
           includeSpentCoins: true,
@@ -111,7 +117,8 @@ Future<void> main() async {
     expectListEquality(
       expectedUnspentCoins,
       paginatedUnspentCoins,
-      (item) => item.toCoinBytes() + (item.parentSpend?.toBytes() ?? Bytes.empty),
+      (item) =>
+          item.toCoinBytes() + (item.parentSpend?.toBytes() ?? Bytes.empty),
     );
 
     expectListEquality(
@@ -125,14 +132,20 @@ Future<void> main() async {
     final hints = keychain.puzzlehashes;
 
     for (var i = 0; i < 20; i++) {
-      await fullNode.farmCoins(keychain.puzzlehashes.random.toAddressWithContext());
+      await fullNode
+          .farmCoins(keychain.puzzlehashes.random.toAddressWithContext());
       await fullNode.moveToNextBlock();
 
-      final coins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
+      final coins =
+          await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
 
       final spendBundle = standardWalletService.createSpendBundle(
         payments: [
-          Payment(coins[0].amount, receiverPuzzlehash, memos: <Bytes>[hints[i]]),
+          Payment(
+            coins[0].amount,
+            receiverPuzzlehash,
+            memos: <Bytes>[hints[i]],
+          ),
         ],
         coinsInput: [coins[0]],
         changePuzzlehash: senderPuzzlehash,
@@ -189,7 +202,8 @@ Future<void> main() async {
     expectListEquality(
       expectedUnspentCoins,
       paginatedUnspentCoins,
-      (item) => item.toCoinBytes() + (item.parentSpend?.toBytes() ?? Bytes.empty),
+      (item) =>
+          item.toCoinBytes() + (item.parentSpend?.toBytes() ?? Bytes.empty),
     );
 
     expectListEquality(
@@ -205,7 +219,10 @@ Future<void> main() async {
     );
 
     for (final spentCoin in expectedSpentCoins) {
-      expect(spentCoin.coinSpend.toBytes(), coinSpends[spentCoin.id]!.toBytes());
+      expect(
+        spentCoin.coinSpend.toBytes(),
+        coinSpends[spentCoin.id]!.toBytes(),
+      );
     }
   });
   group('Should additions with hints', () {
@@ -213,8 +230,8 @@ Future<void> main() async {
       test('at block height $blockHeight', () async {
         // print('testing block at height $blockHeight');
         final block = await fullNode.getBlockRecordByHeight(blockHeight);
-        final additionsAndRemovals =
-            await fullNode.getAdditionsAndRemovals(block.blockRecord!.headerHash);
+        final additionsAndRemovals = await fullNode
+            .getAdditionsAndRemovals(block.blockRecord!.headerHash);
 
         print('expected additions: ${additionsAndRemovals.additions.length}');
         print('expected removals: ${additionsAndRemovals.removals.length}');
@@ -223,12 +240,13 @@ Future<void> main() async {
           '$blockHeight: ${additionsAndRemovals.additions.length + additionsAndRemovals.removals.length}',
         );
 
-        final additionsAndRemovalsWithHints =
-            await enhancedFullNode.getAdditionsAndRemovalsWithHints(block.blockRecord!.headerHash);
+        final additionsAndRemovalsWithHints = await enhancedFullNode
+            .getAdditionsAndRemovalsWithHints(block.blockRecord!.headerHash);
         var progress = 0;
 
         for (final expectedItem in additionsAndRemovals.removals) {
-          final matchingItemWithHint = (additionsAndRemovalsWithHints.removals).singleWhere(
+          final matchingItemWithHint =
+              (additionsAndRemovalsWithHints.removals).singleWhere(
             (element) => element.id == expectedItem.id,
           );
           final hint = matchingItemWithHint.hint;
@@ -237,11 +255,13 @@ Future<void> main() async {
             if (spend == null) {
               continue;
             }
-            final hint = spend.memosSync
-                .firstWhereOrNull((element) => element.length == Puzzlehash.bytesLength);
+            final hint = spend.memosSync.firstWhereOrNull(
+              (element) => element.length == Puzzlehash.bytesLength,
+            );
 
             expect(
-              await fullNode.getCoinsByHints([if (hint != null) Puzzlehash(hint)]),
+              await fullNode
+                  .getCoinsByHints([if (hint != null) Puzzlehash(hint)]),
               isEmpty,
             );
           } else if (hint.length < Puzzlehash.bytesLength) {
@@ -278,11 +298,14 @@ Future<void> main() async {
 
   test('should correctly get coins by ids', () async {
     for (var i = 0; i < 20; i++) {
-      await fullNode.farmCoins(keychain.puzzlehashes.random.toAddressWithContext());
+      await fullNode
+          .farmCoins(keychain.puzzlehashes.random.toAddressWithContext());
     }
-    final coins =
-        (await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes, includeSpentCoins: true))
-            .toList();
+    final coins = (await fullNode.getCoinsByPuzzleHashes(
+      keychain.puzzlehashes,
+      includeSpentCoins: true,
+    ))
+        .toList();
 
     final then = DateTime.now();
 

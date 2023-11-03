@@ -41,6 +41,9 @@ jobs:
 
     - name: Get Flutter packages
       run: flutter pub get
+    
+    - name: Clone Mozilla's CA cert bundle module into root directory
+      run: git clone https://github.com/Chia-Network/mozilla-ca.git
 
     - name: Run simulator tests 
       run: bash ./integration_test/run_tests.sh

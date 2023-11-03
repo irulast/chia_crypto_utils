@@ -20,14 +20,17 @@ void main() {
   final cat1Offer = cat1OfferService.makeOffer(
     coinsForOffer: MixedCoins(standardCoins: nathan.standardCoins),
     offeredAmounts: const OfferedMixedAmounts(standard: 1000),
-    requestedPayments: RequestedMixedPayments(standard: [Payment(900, nathan.firstPuzzlehash)]),
+    requestedPayments: RequestedMixedPayments(
+      standard: [Payment(900, nathan.firstPuzzlehash)],
+    ),
     keychain: nathan.keychain,
     changePuzzlehash: nathan.firstPuzzlehash,
   );
 
   test('should validate signature of CAT1 offer spend bundle', () {
     expect(
-      () => walletService.validateSpendBundleSignature(cat1Offer.offeredSpendBundle),
+      () => walletService
+          .validateSpendBundleSignature(cat1Offer.offeredSpendBundle),
       returnsNormally,
     );
   });
@@ -41,35 +44,51 @@ void main() {
   });
 
   test('should parse CAT1 offer files', () {
-    final usdsAssetId =
-        Puzzlehash.fromHex('6d95dae356e32a71db5ddcb42224754a02524c615c5fc35f568c2af04774e589');
-    final sporkAssetId =
-        Puzzlehash.fromHex('e9afb5ce4f89074cf84a5f3b872055e479c397e5f0acc16e917903b9991479a2');
+    final usdsAssetId = Puzzlehash.fromHex(
+      '6d95dae356e32a71db5ddcb42224754a02524c615c5fc35f568c2af04774e589',
+    );
+    final sporkAssetId = Puzzlehash.fromHex(
+      'e9afb5ce4f89074cf84a5f3b872055e479c397e5f0acc16e917903b9991479a2',
+    );
 
     const offerBinOfferFile =
         'offer1qqp83w76wzru6cmqvpsxvgqq4c96al7mw0a8es5t4rp80gn8femj6mkjl8luv7wrldg87dhkq6ejylvc8fvtprkkww3lthrg85m44nud6eesxhw0sx9m6p297u8zfd0mtjumc6k85sz38536z6h884rxujw2zfe704surksmm4m7usy4u48tmafcajc4dc0dmqa4h9z5f27e3qnuzf37yr78sl6kslts9aua5zfdg3r7knncj78pzg4nyzmdxdhxa8y7cr6v80zcal6vn70e6l7jvefay2w3taxa40llr08mgtgx9fchmmhm52adh3ej7alls3y84503wzpj4ny24522mf20qehlchu38t4ult0kgdvrppjjqza44dhjuaeulerr3er7a0ttl2038f0uk89x97f8fux7h8ulzfjldmle8kwhxlx8kvpptmq4tlx2xnxc2amwra7l9edrwpsnmymnu4quz4dta6msx6m2e5tawwzs4047rh8nqcdmccw96sym94sn3u27cucw2gkmejvluu79mdd48ax2yd8ul5fvmphyn085mzkdr9e2llucket2g7tt30e7ccmq45xeqd8a0lq6u3uwf8hl0ph4wlh2jvnpn7c5ev8hs0zte8v00aj9d86m2n6hxlnluhl4v26nf5tcvp4svg3eukmedd0t0m9s64d7l3jlkp647ux4net2dpaxx73e2xawjune2hlcml9vr9qkq9fxeumlg8m8hyvwmqtey6hkekasgt47ek203cfu4wul0dts3dva8d4ajexgcjuq4tk07tec43dl0vtwk0x7eqc2van8e9edvf7039l4m09h80ell32a8h4fx337wams3zh9s7vqhxcaztl4jhlwemzs79x4cvckrq7g76vadajxd4m8k7mh3806jfe5kcc9gn88jwln07g8wrlwz7vnutfc89khn4ctmmyccqhhq02m4qffg0pxleu5jxtry94j2m8646p3vpxqc0mugf9lweqya79vun2uh40cgx5unxd2vd2d7y9pdk5uxsnlhlwyslna7z83v6kz5s62rxmvp99p7skddw52g4z0p6ezvcaevxdvn8hev2cx3d4t7ylejc78r3kj2haxq8e4e7hzllwe54clh5n3s9cdkqkkvvehunzfhs245v2dtmnvq8m74wczw0skq4lk0l9ew5uk3qlwr2930e5my4mt48npp0cg3n6ac54wpd8n09tfuyhne4usala7ww7vckqmr93tsn0xdxldl9hkceatard28vtr4940qcq9dld6hvm6l706';
     final offerBinOffer = Offer.fromBech32(offerBinOfferFile);
     expect(offerBinOffer.requestedAmounts.standard, equals(0));
-    expect(offerBinOffer.requestedAmounts.cat[usdsAssetId], equals(15 * mojosPerCat));
+    expect(
+      offerBinOffer.requestedAmounts.cat[usdsAssetId],
+      equals(15 * mojosPerCat),
+    );
 
-    expect(offerBinOffer.offeredAmounts.standard, equals((0.25 * mojosPerXch).round()));
+    expect(
+      offerBinOffer.offeredAmounts.standard,
+      equals((0.25 * mojosPerXch).round()),
+    );
     expect(offerBinOffer.offeredAmounts.cat.isEmpty, true);
 
     const offerPoolOfferFile =
         'offer1qqp83w76wzru6cmqvpsxygqqwc7hynr6hum6e0mnf72sn7uvvkpt68eyumkhelprk0adeg42nlelk2mpafrgx923m0l4lg84hc5wfcax4h0cxh9832t8ecfwt43p7gn6dp8534xegvt2ltd6tstq89fv80dtme9l7c8erqk2qkv42rtu4v333t7u7wlhnm0ah3wmyt02tc0c8l4hx277fw7tqzmwda73akfqvjgdxepdcvavnl6sv8at882x8ud7y4tahk692t3gzjq5uwe68h9he3mhf0dca0dv55z7k0jhu6h7t7j30w6046gnwcwj8uegkhcuzfznckmpjy6d5xzpf5q68rv368rvs6rrvj6rzq30p85avxqpzaashzhwr4yx4aaewfuatrjfpvn2gafvtnn63nwg89p57l86c2pt2da6alwgz2nmh9lwkw0lfemf786778tw6z4pfu4q7nmllfsumsdu3x2ucwm83f2zaqsk5tygtlrsae2gxrw7xrklmx7mtvppll2m2w3nzfe27j7haxrlhl9l820nj70heuwjf68l0a9yeseh8ald6mwt6ck6cl2nvhsm0j72rfg8mrgqvjxnunlsys4dnnl5msx2jwcr9yyexml3w795xd0rrr6m5dej36rx0rwkfyvm2cdpjz60ramha7tsv47mjrd0e9a2q2hmlu955dqvtgnw0w3h0mw4cahf9ht4r7ttw4dkltwc06zkwn7ecthn8u75x5sznullqghc29ef3wlvah8sv0astdvvhcwt8xyfdcrjahwalzyrwm793w6zhty8luhcsz3u8xqehudhem0g8rqt2atlv2tvf8xt955t83a7dm9zqdmg74yk9uzmn0hplupfknkm9wl342sw8slt6v9cl0med6692ummqkl9v45gvdeadwefgk4jzd5p0gvxcmlstpy6rggthzp3e8z0nxlk7km4w9atdp74umv3e76zq6203rryrjld0s24asfm8q0n985rnqzq4ppdhgdlgxmhu7erxfzl3nwllr0he68hf4jt80h7haug43sk0x8sv2rvahvrg2yh4kullad9r0xf20khs7qwud8eajwn5l9nmt5e8a37h88njw4kge6v03cdkjnmt7079fjex0hl4l9jv20m6dn5l7hv89vk3t4dkflunc8squav2m3sjn8m5r';
     final offerPoolOffer = Offer.fromBech32(offerPoolOfferFile);
-    expect(offerPoolOffer.requestedAmounts.standard, equals((0.0125 * mojosPerXch).round()));
+    expect(
+      offerPoolOffer.requestedAmounts.standard,
+      equals((0.0125 * mojosPerXch).round()),
+    );
     expect(offerPoolOffer.requestedAmounts.cat.isEmpty, true);
 
     expect(offerPoolOffer.offeredAmounts.standard, equals(0));
-    expect(offerPoolOffer.offeredAmounts.cat[sporkAssetId], (3.253 * mojosPerCat).round());
+    expect(
+      offerPoolOffer.offeredAmounts.cat[sporkAssetId],
+      (3.253 * mojosPerCat).round(),
+    );
   });
 
   test('should parse a CAT1 offer', () async {
     final offer = cat1OfferService.makeOffer(
       coinsForOffer: MixedCoins(cats: nathan.cat1Coins),
       offeredAmounts: OfferedMixedAmounts(cat: {nathanCat1CoinAssetId: 1000}),
-      requestedPayments: RequestedMixedPayments(standard: [Payment(900, nathan.firstPuzzlehash)]),
+      requestedPayments: RequestedMixedPayments(
+        standard: [Payment(900, nathan.firstPuzzlehash)],
+      ),
       keychain: nathan.keychain,
       changePuzzlehash: nathan.firstPuzzlehash,
     );
@@ -77,25 +96,29 @@ void main() {
     expect(parsedOffer.requestedAmounts.standard, 900);
   });
 
-  test('should fail with null keychain but non-empty offering coins for CAT1', () async {
+  test('should fail with null keychain but non-empty offering coins for CAT1',
+      () async {
     expect(
       () => cat1OfferService.makeOffer(
         coinsForOffer: MixedCoins(cats: nathan.cat1Coins),
         changePuzzlehash: nathan.firstPuzzlehash,
-        requestedPayments:
-            RequestedMixedPayments(standard: [Payment(1000, nathan.firstPuzzlehash)]),
+        requestedPayments: RequestedMixedPayments(
+          standard: [Payment(1000, nathan.firstPuzzlehash)],
+        ),
       ),
       throwsA(isA<Exception>()),
     );
   });
 
-  test('should fail with null keychain but non-zero offered amount for CAT1', () async {
+  test('should fail with null keychain but non-zero offered amount for CAT1',
+      () async {
     expect(
       () => cat1OfferService.makeOffer(
         offeredAmounts: OfferedMixedAmounts(cat: {nathanCat1CoinAssetId: 1000}),
         changePuzzlehash: nathan.firstPuzzlehash,
-        requestedPayments:
-            RequestedMixedPayments(standard: [Payment(1000, nathan.firstPuzzlehash)]),
+        requestedPayments: RequestedMixedPayments(
+          standard: [Payment(1000, nathan.firstPuzzlehash)],
+        ),
       ),
       throwsA(isA<Exception>()),
     );
@@ -109,19 +132,23 @@ void main() {
         coinsForOffer: MixedCoins(cats: nathan.cat1Coins),
         offeredAmounts: OfferedMixedAmounts(cat: {nathanCat1CoinAssetId: 1000}),
         changePuzzlehash: nathan.firstPuzzlehash,
-        requestedPayments:
-            RequestedMixedPayments(standard: [Payment(1000, nathan.firstPuzzlehash)]),
+        requestedPayments: RequestedMixedPayments(
+          standard: [Payment(1000, nathan.firstPuzzlehash)],
+        ),
       ),
       throwsA(isA<Exception>()),
     );
   });
 
-  test('should fail with null puzzlehash and non-zero offer amount for CAT1', () async {
+  test('should fail with null puzzlehash and non-zero offer amount for CAT1',
+      () async {
     final askOffer = cat1OfferService.makeOffer(
       coinsForOffer: MixedCoins(cats: nathan.cat1Coins),
       offeredAmounts: OfferedMixedAmounts(cat: {nathanCat1CoinAssetId: 1000}),
       changePuzzlehash: nathan.firstPuzzlehash,
-      requestedPayments: RequestedMixedPayments(standard: [Payment(1000, nathan.firstPuzzlehash)]),
+      requestedPayments: RequestedMixedPayments(
+        standard: [Payment(1000, nathan.firstPuzzlehash)],
+      ),
       keychain: nathan.keychain,
     );
 
@@ -144,20 +171,25 @@ void main() {
       () => cat1OfferService.makeOffer(
         offeredAmounts: OfferedMixedAmounts(cat: {nathanCat1CoinAssetId: 1000}),
         changePuzzlehash: nathan.firstPuzzlehash,
-        requestedPayments:
-            RequestedMixedPayments(standard: [Payment(1000, nathan.firstPuzzlehash)]),
+        requestedPayments: RequestedMixedPayments(
+          standard: [Payment(1000, nathan.firstPuzzlehash)],
+        ),
         keychain: nathan.keychain,
       ),
       throwsA(isA<Exception>()),
     );
   });
 
-  test('should fail when offered amounts exceeds offered coins amounts for CAT1', () async {
+  test(
+      'should fail when offered amounts exceeds offered coins amounts for CAT1',
+      () async {
     expect(
       () => cat1OfferService.makeOffer(
         coinsForOffer: MixedCoins(standardCoins: nathan.standardCoins),
         offeredAmounts: const OfferedMixedAmounts(standard: 10000),
-        requestedPayments: RequestedMixedPayments(standard: [Payment(900, nathan.firstPuzzlehash)]),
+        requestedPayments: RequestedMixedPayments(
+          standard: [Payment(900, nathan.firstPuzzlehash)],
+        ),
         keychain: nathan.keychain,
         changePuzzlehash: nathan.firstPuzzlehash,
       ),
@@ -170,8 +202,9 @@ void main() {
       () => cat1OfferService.makeOffer(
         offeredAmounts: OfferedMixedAmounts(cat: {nathanCat1CoinAssetId: -1}),
         changePuzzlehash: nathan.firstPuzzlehash,
-        requestedPayments:
-            RequestedMixedPayments(standard: [Payment(1000, nathan.firstPuzzlehash)]),
+        requestedPayments: RequestedMixedPayments(
+          standard: [Payment(1000, nathan.firstPuzzlehash)],
+        ),
         keychain: nathan.keychain,
       ),
       throwsA(isA<Exception>()),
@@ -183,8 +216,9 @@ void main() {
       () => cat1OfferService.makeOffer(
         offeredAmounts: const OfferedMixedAmounts(standard: -1),
         changePuzzlehash: nathan.firstPuzzlehash,
-        requestedPayments:
-            RequestedMixedPayments(standard: [Payment(1000, nathan.firstPuzzlehash)]),
+        requestedPayments: RequestedMixedPayments(
+          standard: [Payment(1000, nathan.firstPuzzlehash)],
+        ),
         keychain: nathan.keychain,
       ),
       throwsA(isA<Exception>()),

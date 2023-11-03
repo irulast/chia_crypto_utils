@@ -46,7 +46,8 @@ class SpendBundle with ToBytesMixin, ToJsonMixin {
     }
 
     final firstSignatureByte = iterator.current;
-    final restOfSignatureBytes = iterator.extractBytesAndAdvance(JacobianPoint.g2BytesLength - 1);
+    final restOfSignatureBytes =
+        iterator.extractBytesAndAdvance(JacobianPoint.g2BytesLength - 1);
 
     final signature = JacobianPoint.fromBytesG2(
       [firstSignatureByte, ...restOfSignatureBytes],
@@ -70,8 +71,8 @@ class SpendBundle with ToBytesMixin, ToJsonMixin {
         .map((dynamic e) => CoinSpend.fromJson(e as Map<String, dynamic>))
         .toList();
 
-    final aggregatedSignature =
-        pick(json, 'aggregated_signature').letStringOrNull(JacobianPoint.fromHexG2);
+    final aggregatedSignature = pick(json, 'aggregated_signature')
+        .letStringOrNull(JacobianPoint.fromHexG2);
 
     return SpendBundle(
       coinSpends: coinSpends,
@@ -82,12 +83,13 @@ class SpendBundle with ToBytesMixin, ToJsonMixin {
   }
 
   factory SpendBundle.fromCamelJson(Map<String, dynamic> json) {
-    final coinSpends = ((json['coinSpends'] ?? json['coinSolutions']) as Iterable)
+    final coinSpends = ((json['coinSpends'] ?? json['coinSolutions'])
+            as Iterable)
         .map((dynamic e) => CoinSpend.fromCamelJson(e as Map<String, dynamic>))
         .toList();
 
-    final aggregatedSignature =
-        pick(json, 'aggregatedSignature').letStringOrNull(JacobianPoint.fromHexG2);
+    final aggregatedSignature = pick(json, 'aggregatedSignature')
+        .letStringOrNull(JacobianPoint.fromHexG2);
 
     return SpendBundle.withNullableSignatures(
       coinSpends: coinSpends,
@@ -120,7 +122,10 @@ class SpendBundle with ToBytesMixin, ToJsonMixin {
 
   bool get isSigned => aggregatedSignature != null;
 
-  static Future<SpendBundle?> ofCoin(Bytes coinId, ChiaFullNodeInterface fullNode) {
+  static Future<SpendBundle?> ofCoin(
+    Bytes coinId,
+    ChiaFullNodeInterface fullNode,
+  ) {
     return constructSpendBundleOfCoin(coinId, fullNode);
   }
 
@@ -224,7 +229,8 @@ class SpendBundle with ToBytesMixin, ToJsonMixin {
     if (other.coinSpends.length != coinSpends.length) {
       return false;
     }
-    final otherHexCoinSpends = other.coinSpends.map((cs) => cs.toHex()).toList();
+    final otherHexCoinSpends =
+        other.coinSpends.map((cs) => cs.toHex()).toList();
     for (final coinSpend in coinSpends) {
       if (!otherHexCoinSpends.contains(coinSpend.toHex())) {
         return false;
@@ -283,7 +289,8 @@ class SpendBundle with ToBytesMixin, ToJsonMixin {
 
   @override
   Bytes toBytes() {
-    return serializeListChia(coinSpends) + Bytes(aggregatedSignature?.toBytes() ?? []);
+    return serializeListChia(coinSpends) +
+        Bytes(aggregatedSignature?.toBytes() ?? []);
   }
 
   void debug() {

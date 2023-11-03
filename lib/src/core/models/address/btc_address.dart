@@ -7,7 +7,8 @@ class BtcAddress extends Equatable implements CryptoAddress {
   const BtcAddress(this.address);
 
   static BtcAddress? tryParse(String address) {
-    if (_parseBipAddress(address) != null || _parseSegwitAddress(address) != null) {
+    if (_parseBipAddress(address) != null ||
+        _parseSegwitAddress(address) != null) {
       return BtcAddress(address);
     }
     return null;

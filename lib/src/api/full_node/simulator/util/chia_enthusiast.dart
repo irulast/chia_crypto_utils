@@ -16,7 +16,8 @@ class ChiaEnthusiast extends ChiaEnthusiastBase {
 
   Wallet get wallet => ColdWallet(fullNode: fullNode, keychain: keychain);
 
-  OfferService get offerService => OfferService(wallet, OfferWalletService(catWalletService));
+  OfferService get offerService =>
+      OfferService(wallet, OfferWalletService(catWalletService));
 
   EnhancedChiaFullNodeInterface get fullNode =>
       EnhancedChiaFullNodeInterface.fromUrl(fullNodeSimulator.fullNode.baseURL);
@@ -36,7 +37,8 @@ class ChiaEnthusiast extends ChiaEnthusiastBase {
   }
 
   Future<void> refreshCoins() async {
-    standardCoins = await fullNodeSimulator.getCoinsByPuzzleHashes(puzzlehashes);
+    standardCoins =
+        await fullNodeSimulator.getCoinsByPuzzleHashes(puzzlehashes);
 
     catCoins = (await fullNode.getCatCoinsByHints(puzzlehashes))
         .where((element) => element.type == catType)
@@ -55,17 +57,21 @@ class ChiaEnthusiast extends ChiaEnthusiastBase {
     await refreshCoins();
     final privateKeyForCat = privateKey ?? firstWalletVector.childPrivateKey;
 
-    final curriedTail =
-        delegatedTailProgram.curry([Program.fromAtom(privateKeyForCat.getG1().toBytes())]);
+    final curriedTail = delegatedTailProgram
+        .curry([Program.fromAtom(privateKeyForCat.getG1().toBytes())]);
     final assetId = Puzzlehash(curriedTail.hash());
 
     final originCoin = standardCoins[0];
 
     final curriedGenesisByCoinIdPuzzle =
         genesisByCoinIdProgram.curry([Program.fromAtom(originCoin.id)]);
-    final tailSolution = Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
+    final tailSolution =
+        Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
 
-    final signature = AugSchemeMPL.sign(privateKeyForCat, curriedGenesisByCoinIdPuzzle.hash());
+    final signature = AugSchemeMPL.sign(
+      privateKeyForCat,
+      curriedGenesisByCoinIdPuzzle.hash(),
+    );
 
     final spendBundle = catWalletService.makeIssuanceSpendbundle(
       tail: curriedTail,
@@ -87,7 +93,8 @@ class ChiaEnthusiast extends ChiaEnthusiastBase {
 
   Future<void> issueDid([List<Bytes> recoveryIds = const []]) async {
     await refreshCoins();
-    final didRecoverySpendBundle = didWalletService.createGenerateDIDSpendBundle(
+    final didRecoverySpendBundle =
+        didWalletService.createGenerateDIDSpendBundle(
       standardCoins: [standardCoins[0]],
       targetPuzzleHash: firstWalletVector.puzzlehash,
       keychain: keychain,
@@ -100,7 +107,8 @@ class ChiaEnthusiast extends ChiaEnthusiastBase {
 
     await fullNodeSimulator.moveToNextBlock();
 
-    final didInfos = await fullNodeSimulator.getDidRecordsFromHint(firstWalletVector.puzzlehash);
+    final didInfos = await fullNodeSimulator
+        .getDidRecordsFromHint(firstWalletVector.puzzlehash);
 
     if (didInfos.length > 1) {
       throw Exception('Chia enthusiast can only have one did');
@@ -114,10 +122,12 @@ class ChiaEnthusiast extends ChiaEnthusiastBase {
     if (didInfo == null) {
       throw Exception('Did must be issued before it can be refreshed');
     }
-    didInfo = (await fullNodeSimulator.getDidRecordForDid(didInfo!.did))?.toDidInfo(keychain);
+    didInfo = (await fullNodeSimulator.getDidRecordForDid(didInfo!.did))
+        ?.toDidInfo(keychain);
   }
 
   Future<void> recoverDid(Bytes did) async {
-    didInfo = (await fullNodeSimulator.getDidRecordForDid(did))?.toDidInfo(keychain);
+    didInfo =
+        (await fullNodeSimulator.getDidRecordForDid(did))?.toDidInfo(keychain);
   }
 }

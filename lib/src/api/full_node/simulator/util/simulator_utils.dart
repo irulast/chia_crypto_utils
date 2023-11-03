@@ -18,12 +18,16 @@ class SimulatorUtils {
       return null;
     }
 
-    final json = jsonDecode(genPathFile.readAsStringSync()) as Map<String, dynamic>;
+    final json =
+        jsonDecode(genPathFile.readAsStringSync()) as Map<String, dynamic>;
     return json['path'] as String;
   }
 
+  static String? simulatorGeneratedFilesPathOverride;
+
   // if you are using this class outside of chia-crypto-utils you must set FULL_NODE_SIMULATOR_GEN_PATH
-  static String simulatorGeneratedFilesPathVariableName = 'FULL_NODE_SIMULATOR_GEN_PATH';
+  static String simulatorGeneratedFilesPathVariableName =
+      'FULL_NODE_SIMULATOR_GEN_PATH';
   static String get defaultgeneratedFilesPath =>
       path.join(path.current, 'lib/src/api/full_node/simulator/run');
 

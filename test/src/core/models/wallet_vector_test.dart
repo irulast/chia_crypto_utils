@@ -53,7 +53,8 @@ void main() {
     'UnhardenedWalletWector serializarion and deserialization to bytes must work',
     () async {
       final keychainSecret = KeychainCoreSecret.fromMnemonic(testMnemonic);
-      final walletSet = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, 0);
+      final walletSet =
+          WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, 0);
       final keychain = WalletKeychain.fromWalletSets([walletSet])
         ..addOuterPuzzleHashesForAssetId(
           Puzzlehash.fromHex(
@@ -80,7 +81,8 @@ void main() {
     'SingletonWalletVector serializarion and deserialization to bytes must work',
     () async {
       final keychainSecret = KeychainCoreSecret.fromMnemonic(testMnemonic);
-      final walletSet = WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, 0);
+      final walletSet =
+          WalletSet.fromPrivateKey(keychainSecret.masterPrivateKey, 0);
       final keychain = WalletKeychain.fromWalletSets([walletSet])
         ..getNextSingletonWalletVector(keychainSecret.masterPrivateKey)
         ..getNextSingletonWalletVector(keychainSecret.masterPrivateKey);

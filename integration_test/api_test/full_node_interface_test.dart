@@ -60,17 +60,19 @@ Future<void> main() async {
   await fullNodeSimulator.farmCoins(address);
   await fullNodeSimulator.moveToNextBlock();
 
-  final standardCoins = await fullNodeSimulator.getCoinsByPuzzleHashes([puzzlehash]);
+  final standardCoins =
+      await fullNodeSimulator.getCoinsByPuzzleHashes([puzzlehash]);
   final originCoin = standardCoins[0];
 
   // issue cat
-  final curriedTail =
-      delegatedTailProgram.curry([Program.fromAtom(walletVector.childPublicKey.toBytes())]);
+  final curriedTail = delegatedTailProgram
+      .curry([Program.fromAtom(walletVector.childPublicKey.toBytes())]);
   final assetId = Puzzlehash(curriedTail.hash());
 
   final curriedGenesisByCoinIdPuzzle =
       genesisByCoinIdProgram.curry([Program.fromAtom(originCoin.id)]);
-  final tailSolution = Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
+  final tailSolution =
+      Program.list([curriedGenesisByCoinIdPuzzle, Program.nil]);
 
   final signature = AugSchemeMPL.sign(
     walletVector.childPrivateKey,
@@ -132,7 +134,8 @@ Future<void> main() async {
         returnsNormally,
       );
       expect(
-        () => coins.firstWhere((coin) => coin.puzzlehash == testCoin.puzzlehash),
+        () =>
+            coins.firstWhere((coin) => coin.puzzlehash == testCoin.puzzlehash),
         returnsNormally,
       );
     }
@@ -140,7 +143,8 @@ Future<void> main() async {
 
   test('should get standard coins by id', () async {
     //get coins by puzzlehash first because sometimes parent info comes back differently
-    final coinsGotByPuzzlehashes = await fullNodeSimulator.getCoinsByPuzzleHashes(
+    final coinsGotByPuzzlehashes =
+        await fullNodeSimulator.getCoinsByPuzzleHashes(
       testStandardCoins
           .map(
             (c) => c.puzzlehash,
@@ -159,7 +163,8 @@ Future<void> main() async {
     );
     for (final coinGotByPuzzlehash in coinsGotByPuzzlehashes) {
       expect(
-        () => coinsGotByIds.firstWhere((coin) => coin.id == coinGotByPuzzlehash.id),
+        () => coinsGotByIds
+            .firstWhere((coin) => coin.id == coinGotByPuzzlehash.id),
         returnsNormally,
       );
     }
@@ -167,7 +172,8 @@ Future<void> main() async {
 
   test('should get standard coins by parent id', () async {
     //get coins by puzzlehash first because sometimes parent info comes back differently
-    final coinsGotByPuzzlehashes = await fullNodeSimulator.getCoinsByPuzzleHashes(
+    final coinsGotByPuzzlehashes =
+        await fullNodeSimulator.getCoinsByPuzzleHashes(
       testStandardCoins
           .map(
             (c) => c.puzzlehash,
@@ -186,7 +192,8 @@ Future<void> main() async {
     );
     for (final coinGotByPuzzlehash in coinsGotByPuzzlehashes) {
       expect(
-        () => coinsGotByParentIds.firstWhere((coin) => coin.id == coinGotByPuzzlehash.id),
+        () => coinsGotByParentIds
+            .firstWhere((coin) => coin.id == coinGotByPuzzlehash.id),
         returnsNormally,
       );
     }
@@ -226,7 +233,8 @@ Future<void> main() async {
     for (final testCatCoin in testCatCoins) {
       // can't check for parentCoinInfo because it will change based on the coin used to mint the cat
       expect(
-        () => catCoins.firstWhere((catCoin) => catCoin.amount == testCatCoin.amount),
+        () => catCoins
+            .firstWhere((catCoin) => catCoin.amount == testCatCoin.amount),
         returnsNormally,
       );
       expect(
@@ -245,7 +253,8 @@ Future<void> main() async {
 
     for (final testCatCoin in testCatCoins) {
       expect(
-        () => catCoins.firstWhere((catCoin) => catCoin.amount == testCatCoin.amount),
+        () => catCoins
+            .firstWhere((catCoin) => catCoin.amount == testCatCoin.amount),
         returnsNormally,
       );
       expect(
@@ -257,8 +266,10 @@ Future<void> main() async {
     }
   });
 
-  test('should correctly check for spent coins when there are spent coins', () async {
-    final spentCoinsCheck = await fullNodeSimulator.checkForSpentCoins(standardCoins);
+  test('should correctly check for spent coins when there are spent coins',
+      () async {
+    final spentCoinsCheck =
+        await fullNodeSimulator.checkForSpentCoins(standardCoins);
 
     expect(
       spentCoinsCheck,
@@ -266,8 +277,10 @@ Future<void> main() async {
     );
   });
 
-  test('should correctly check for spent coins when coins have not been spent', () async {
-    final spentCoinsCheck = await fullNodeSimulator.checkForSpentCoins(testStandardCoins);
+  test('should correctly check for spent coins when coins have not been spent',
+      () async {
+    final spentCoinsCheck =
+        await fullNodeSimulator.checkForSpentCoins(testStandardCoins);
 
     expect(
       spentCoinsCheck,
@@ -302,22 +315,27 @@ Future<void> main() async {
     expect(headerHash, isNotNull);
 
     if (headerHash != null) {
-      final additionsAndRemovals = await fullNodeSimulator.getAdditionsAndRemovals(headerHash);
+      final additionsAndRemovals =
+          await fullNodeSimulator.getAdditionsAndRemovals(headerHash);
       final additions = additionsAndRemovals.additions;
       final removals = additionsAndRemovals.removals;
       final expectedAdditions = spendBundle.additions;
-      final expectedRemovals = [standardCoins.firstWhere((coin) => coin.amount >= 10000)];
+      final expectedRemovals = [
+        standardCoins.firstWhere((coin) => coin.amount >= 10000)
+      ];
 
       for (final expectedAddition in expectedAdditions) {
         expect(
-          () => additions.firstWhere((addition) => addition.id == expectedAddition.id),
+          () => additions
+              .firstWhere((addition) => addition.id == expectedAddition.id),
           returnsNormally,
         );
       }
 
       for (final expectedRemoval in expectedRemovals) {
         expect(
-          () => removals.firstWhere((removal) => removal.id == expectedRemoval.id),
+          () => removals
+              .firstWhere((removal) => removal.id == expectedRemoval.id),
           returnsNormally,
         );
       }

@@ -5,7 +5,9 @@ class SignMessageByIdCommand implements WalletConnectCommand {
   const SignMessageByIdCommand({required this.id, required this.message});
   factory SignMessageByIdCommand.fromParams(Map<String, dynamic> params) {
     return SignMessageByIdCommand(
-      id: DidInfo.parseDidFromEitherFormat(pick(params, 'id').asStringOrThrow()),
+      id: DidInfo.parseDidFromEitherFormat(
+        pick(params, 'id').asStringOrThrow(),
+      ),
       message: pick(params, 'message').asStringOrThrow(),
     );
   }
@@ -62,9 +64,12 @@ class SignMessageByIdData {
   factory SignMessageByIdData.fromJson(Map<String, dynamic> json) {
     return SignMessageByIdData(
       latestCoinId: pick(json, 'latestCoinId').asStringOrThrow().hexToBytes(),
-      publicKey: JacobianPoint.fromHexG1(pick(json, 'pubkey').asStringOrThrow()),
-      signature: JacobianPoint.fromHexG2(pick(json, 'signature').asStringOrThrow()),
-      signingMode: SigningMode.fromString(pick(json, 'signingMode').asStringOrThrow()),
+      publicKey:
+          JacobianPoint.fromHexG1(pick(json, 'pubkey').asStringOrThrow()),
+      signature:
+          JacobianPoint.fromHexG2(pick(json, 'signature').asStringOrThrow()),
+      signingMode:
+          SigningMode.fromString(pick(json, 'signingMode').asStringOrThrow()),
       success: pick(json, 'success').asBoolOrThrow(),
     );
   }

@@ -20,8 +20,9 @@ class GetSyncStatusResponse
   factory GetSyncStatusResponse.fromJson(Map<String, dynamic> json) {
     final baseResponse = WalletConnectCommandBaseResponseImp.fromJson(json);
 
-    final syncStatusData =
-        SyncStatusData.fromJson(pick(json, 'data').letJsonOrThrow((json) => json));
+    final syncStatusData = SyncStatusData.fromJson(
+      pick(json, 'data').letJsonOrThrow((json) => json),
+    );
 
     return GetSyncStatusResponse(baseResponse, syncStatusData);
   }
