@@ -1,6 +1,6 @@
 // ignore_for_file: lines_longer_than_80_chars
 
-import 'package:bech32m/bech32m.dart';
+import 'package:bech32m_i/bech32m_i.dart';
 import 'package:chia_crypto_utils/src/clvm/bytes.dart';
 import 'package:chia_crypto_utils/src/context/index.dart';
 import 'package:chia_crypto_utils/src/core/models/address/crypto_address.dart';

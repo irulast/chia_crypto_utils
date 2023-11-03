@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:walletconnect_flutter_v2/apis/sign_api/models/session_models.dart';
+import 'package:walletconnect_dart_v2_i/apis/sign_api/models/session_models.dart';
 
 /// Handles request received from apps, allowing user to approve or reject, and executing the requested
 /// command if approved.

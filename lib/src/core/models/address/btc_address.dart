@@ -1,4 +1,4 @@
-import 'package:bitcoin_base/bitcoin.dart';
+import 'package:bitcoin_base_i/bitcoin_base_i.dart';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:chia_crypto_utils/src/core/models/address/crypto_address.dart';
 import 'package:equatable/equatable.dart';
