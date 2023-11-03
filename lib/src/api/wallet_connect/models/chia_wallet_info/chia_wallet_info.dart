@@ -166,6 +166,8 @@ extension NftInfosGetterX on Map<int, NftWalletInfoWithNftInfos> {
           value.nftInfos.map((nftInfo) => nftInfo.launcherId).toList(),
         ),
       );
+
+  List<Bytes> get launcherIds => launcherIdsMap.values.toList().flatten();
 }
 
 extension NftInfosListGetterX on List<NftWalletInfoWithNftInfos> {

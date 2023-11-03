@@ -473,8 +473,7 @@ class OfferWalletService {
       CoinPrototype coin,
       CoinSpend parentSpend,
       Program innerRoyaltySolution,
-    )
-        makeSolutionFromInnerSolution,
+    ) makeSolutionFromInnerSolution,
   ) {
     var royaltyPayments =
         List<RoyaltyPaymentWithLauncherId>.from(royaltyPayments_);

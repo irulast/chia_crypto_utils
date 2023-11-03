@@ -37,8 +37,7 @@ Future<T> spawnAndWaitForIsolateWithProgressUpdates<T, R>({
   required FutureOr<Map<String, dynamic>> Function(
     R taskArgument,
     void Function(double progress) onProgressUpdate,
-  )
-      isolateTask,
+  ) isolateTask,
   required FutureOr<T> Function(Map<String, dynamic> taskResultJson)
       handleTaskCompletion,
 }) async {
@@ -110,8 +109,7 @@ Future<void> Function(TaskArgumentAndSendPort<R> taskArgumentAndSendPort)
   FutureOr<Map<String, dynamic>> Function(
     R taskArgument,
     void Function(double progress) onProgressUpdate,
-  )
-      task,
+  ) task,
 ) {
   return (TaskArgumentAndSendPort<R> taskArgumentAndSendPort) async {
     final taskResultJson = await task(
