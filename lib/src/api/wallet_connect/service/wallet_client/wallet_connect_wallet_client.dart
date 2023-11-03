@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
-import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
+import 'package:walletconnect_dart_v2_i/walletconnect_dart_v2_i.dart';
 // ignore_for_file: use_setters_to_change_properties
 
 typedef WalletConnectSessionProposalHandler = Future<List<int>?> Function(

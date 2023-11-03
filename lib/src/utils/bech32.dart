@@ -1,4 +1,4 @@
-import 'package:bech32m/bech32m.dart';
+import 'package:bech32m_i/bech32m_i.dart';
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 
 const maxLength = 4294967296;

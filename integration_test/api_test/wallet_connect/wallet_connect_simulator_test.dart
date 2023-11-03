@@ -4,10 +4,10 @@
 @Timeout(Duration(minutes: 5))
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
 import 'package:test/test.dart';
-import 'package:walletconnect_flutter_v2/apis/core/core.dart';
-import 'package:walletconnect_flutter_v2/apis/sign_api/models/session_models.dart';
-import 'package:walletconnect_flutter_v2/apis/web3app/web3app.dart';
-import 'package:walletconnect_flutter_v2/apis/web3wallet/web3wallet.dart';
+import 'package:walletconnect_dart_v2_i/apis/core/core.dart';
+import 'package:walletconnect_dart_v2_i/apis/sign_api/models/session_models.dart';
+import 'package:walletconnect_dart_v2_i/apis/web3app/web3app.dart';
+import 'package:walletconnect_dart_v2_i/apis/web3wallet/web3wallet.dart';
 
 // If one of these tests is taking a while or times out, try running it again. This could be an issue
 // with the relay.

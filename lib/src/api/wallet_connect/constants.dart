@@ -1,4 +1,4 @@
-import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
+import 'package:walletconnect_dart_v2_i/apis/core/pairing/utils/pairing_models.dart';
 
 const walletConnectProjectId = '62f5d210779aeace5864f685b29418ac';
 
