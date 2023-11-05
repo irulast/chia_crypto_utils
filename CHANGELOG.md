@@ -1,4 +1,9 @@
 # Changelog
+
+## 1.0.20
+
+- Fixes for pub.dev
+
 ## 1.0.19
 
 - Add NFT support
