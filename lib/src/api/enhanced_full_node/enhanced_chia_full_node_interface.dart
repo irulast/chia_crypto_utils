@@ -142,6 +142,7 @@ class EnhancedChiaFullNodeInterface extends ChiaFullNodeInterface {
     );
   }
 
+  @override
   Future<List<NftRecord>> getNftRecordsByHints(
     List<Puzzlehash> hints, {
     int? startHeight,
@@ -182,6 +183,7 @@ class EnhancedChiaFullNodeInterface extends ChiaFullNodeInterface {
     return nfts;
   }
 
+  @override
   Future<List<CatFullCoin>> getCatCoinsByHints(
     List<Puzzlehash> hints, {
     int? startHeight,
@@ -224,6 +226,7 @@ class EnhancedChiaFullNodeInterface extends ChiaFullNodeInterface {
     );
   }
 
+  @override
   Future<List<DidRecord>> getDidRecordsByHints(List<Puzzlehash> hints) async {
     final coins = await getCoinsByHints(hints);
     return getDidsFromCoins(coins);

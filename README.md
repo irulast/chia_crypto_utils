@@ -57,6 +57,39 @@ simulator_gen_path.json
 }
 ```
 
+## Example
+```dart
+ // Initialize keychain
+const mnemonic = 'abandon broom kind...';
+
+final keychainSecret = KeychainCoreSecret.fromMnemonicString(mnemonic);
+
+final keychain = WalletKeychain.fromCoreSecret(
+  keychainSecret,
+  walletSize: 50,
+);
+
+// Initialize full node
+final certBytes = File('CERT_PATH').readAsBytesSync();
+final keyBytes = File('KEY_PATH').readAsBytesSync();
+
+final fullNode = ChiaFullNodeInterface.fromURL(
+  'FULL_NODE_URL',
+  certBytes: Bytes(certBytes),
+  keyBytes: Bytes(keyBytes),
+);
+
+final wallet = ColdWallet(
+  fullNode: fullNode,
+  keychain: keychain,
+);
+
+await wallet.sendXch(
+  Address('RECEIVER_ADDRESS').toPuzzlehash(),
+  amount: 1000000000,
+);
+```
+
 ## Coverage 
 
 ### Dependencies

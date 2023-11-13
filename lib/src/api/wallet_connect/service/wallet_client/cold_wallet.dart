@@ -7,7 +7,7 @@ class ColdWallet implements Wallet {
   });
 
   @override
-  final EnhancedChiaFullNodeInterface fullNode;
+  final ChiaFullNodeInterface fullNode;
   final WalletKeychain keychain;
 
   @override

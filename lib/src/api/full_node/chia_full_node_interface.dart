@@ -171,6 +171,11 @@ class ChiaFullNodeInterface {
     return getNftRecordsFromCoins(coins);
   }
 
+  Future<List<NftRecord>> getNftRecordsByHints(List<Puzzlehash> hints) async {
+    final coins = await getCoinsByHints(hints);
+    return getNftRecordsFromCoins(coins);
+  }
+
   Future<List<NftRecord>> getNftRecordsFromCoins(List<Coin> coins) async {
     final nfts = <NftRecord>[];
 
@@ -201,7 +206,7 @@ class ChiaFullNodeInterface {
     return matches.single;
   }
 
-  Future<List<DidRecord>> getDidRecordsFromHints(List<Puzzlehash> hints) async {
+  Future<List<DidRecord>> getDidRecordsByHints(List<Puzzlehash> hints) async {
     final coins = await getCoinsByHints(hints);
     final didInfos = await getDidsFromCoins(coins);
     return didInfos;
@@ -369,6 +374,14 @@ class ChiaFullNodeInterface {
     mapResponseToError(coinSpendResponse);
 
     return coinSpendResponse.coinSpend;
+  }
+
+  Future<List<CatFullCoin>> getCatCoinsByHints(
+    List<Puzzlehash> hints,
+  ) async {
+    final coins = await getCoinsByHints(hints);
+
+    return hydrateCatCoins(coins);
   }
 
   Future<List<CatFullCoin>> getCatCoinsByHint(
