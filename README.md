@@ -34,10 +34,10 @@ First wallet address: txch1v8vergyvwugwv0tmxwnmeecuxh3tat5jaskkunnn79zjz0muds0ql
 01:02 +896 ~1: All tests passed!
 ```
 
-For integration tests, run the following command:
+For integration tests, execute the following script:
 
 ```console
-dart test integration_test/ --concurrency=1
+bash ./integration_test/run_tests.sh
 ```
 
 ```console
@@ -67,18 +67,23 @@ Install [Flutter](https://docs.flutter.dev/get-started/install) and add the flut
 
 ### Generate Coverage Report
 
-Run the following commands to generate the coverage report: 
-
+Run tests
 ```console
-flutter test ./integration_test test --coverage --concurrency=1
+bash ./integration_test/run_tests.sh
+flutter test test --coverage --coverage-path=coverage/test.info
 ```
 
+Merge coverage files
 ```console
-genhtml coverage/lcov.info -o coverage
+lcov --add-tracefile coverage/test.info --add-tracefile coverage/integration_test.info --output-file coverage/merged_coverage.info
 ```
 
-View the coverage report:
+Generate coverage report
+```console
+genhtml coverage/merged_coverage.info -o coverage
+```
 
+View the coverage report
 ```console
 open coverage/index.html
 ```
