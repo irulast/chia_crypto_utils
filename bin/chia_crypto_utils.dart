@@ -832,7 +832,7 @@ class TransferDidCommand extends Command<Future<void>> {
     final coins = await fullNode.getCoinsByPuzzleHashes(keychain.puzzlehashes);
     final dids = currentDidAddress != null
         ? await fullNode.getDidRecordsFromHint(currentDidAddress.toPuzzlehash())
-        : await fullNode.getDidRecordsFromHints(keychain.puzzlehashes);
+        : await fullNode.getDidRecordsByHints(keychain.puzzlehashes);
 
     final coinsForFee = () {
       try {
