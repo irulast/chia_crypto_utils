@@ -8,7 +8,9 @@ on:
 
 jobs:
   build:
-    runs-on: stuzenz/flutter-android-dev-image
+    runs-on: ubuntu-latest
+    container:
+      image: stuzenz/flutter-android-dev-image
 
     steps:
     - name: Clone the repository
