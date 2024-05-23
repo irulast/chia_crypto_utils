@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.21
+
+- Updated to latest version of Dart
+
 ## 1.0.20
 
 - Fixes for pub.dev
