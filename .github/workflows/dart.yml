@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: stuzenz/flutter-android-dev-image
+      image: irulast/flutter-android-sdk
 
     steps:
     - name: Clone the repository
