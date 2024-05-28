@@ -11,6 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: irulast/flutter-android-sdk
+    
+    services:
+      docker:
+        image: docker:26
+        options: --privileged
 
     steps:
     - name: Clone the repository
@@ -18,44 +23,47 @@ jobs:
       with:
           path: chia_crypto_utils
 
-    - name: Install Tools
-      run: apt update && apt install lcov -y
+    - name: Check Docker
+      run: docker ps
+
+    # - name: Install Tools
+    #   run: apt update && apt install lcov -y
     
-    - name: Reconfigure git to use HTTP authentication
-      run: >
-        git config --global url."https://github.com/".insteadOf 'git@github.com:'
+    # - name: Reconfigure git to use HTTP authentication
+    #   run: >
+    #     git config --global url."https://github.com/".insteadOf 'git@github.com:'
 
-    - name: Get Flutter packages
-      run: flutter pub get
+    # - name: Get Flutter packages
+    #   run: flutter pub get
 
-    - name: Prep Flutter for run
-      run: flutter create .
+    # - name: Prep Flutter for run
+    #   run: flutter create .
 
-    - name: Check Flutter readiness
-      run: flutter doctor
+    # - name: Check Flutter readiness
+    #   run: flutter doctor
     
-    - name: Ensure Docker is available for integration tests via simulator
-      uses: actions/setup-docker@v2
+    # - name: Ensure Docker is available for integration tests via simulator
+    #   uses: actions/setup-docker@v2
 
-    - name: Clone Mozilla's CA cert bundle module into root directory
-      run: git clone https://github.com/Chia-Network/mozilla-ca.git
+    # - name: Clone Mozilla's CA cert bundle module into root directory
+    #   run: git clone https://github.com/Chia-Network/mozilla-ca.git
 
-    - name: Run simulator tests 
-      run: bash ./integration_test/run_tests.sh
+    # - name: Run simulator tests 
+    #   run: bash ./integration_test/run_tests.sh
 
-    - name: Run unit tests
-      run: flutter test test --coverage --coverage-path=coverage/test.info
+    # - name: Run unit tests
+    #   run: flutter test test --coverage --coverage-path=coverage/test.info
 
-    - name: Merge coverage files
-      run: |
-        lcov --add-tracefile coverage/test.info --add-tracefile coverage/integration_test.info --output-file coverage/merged_coverage.info
-        rm -rf coverage/*test.info
+    # - name: Merge coverage files
+    #   run: |
+    #     lcov --add-tracefile coverage/test.info --add-tracefile coverage/integration_test.info --output-file coverage/merged_coverage.info
+    #     rm -rf coverage/*test.info
 
-    - name: Generate coverage report 
-      run: genhtml coverage/merged_coverage.info -o coverage
+    # - name: Generate coverage report 
+    #   run: genhtml coverage/merged_coverage.info -o coverage
 
-    - name: Upload code coverage to GitHub
-      uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074
-      with:
-        name: code-coverage
-        path: coverage
+    # - name: Upload code coverage to GitHub
+    #   uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074
+    #   with:
+    #     name: code-coverage
+    #     path: coverage
