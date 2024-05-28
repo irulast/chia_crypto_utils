@@ -9,25 +9,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: irulast/flutter-android-sdk
 
-    services:
-      docker:
-        image: docker:26
-        options: --privileged
-        
     steps:
     - name: Clone the repository
       uses: actions/checkout@v4
       with:
           path: chia_crypto_utils
-
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
 
     - name: Check Docker
       run: docker ps
