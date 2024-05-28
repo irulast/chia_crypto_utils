@@ -34,6 +34,9 @@ jobs:
     - name: Check Flutter readiness
       run: flutter doctor
     
+    - name: Ensure Docker is available for integration tests via simulator
+      uses: actions/setup-docker@v2
+
     - name: Clone Mozilla's CA cert bundle module into root directory
       run: git clone https://github.com/Chia-Network/mozilla-ca.git
 
