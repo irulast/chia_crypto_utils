@@ -25,24 +25,21 @@ jobs:
         channel: stable
         version: 3.19.6
   
-    # - name: Install Tools
-    #   run: apt update && apt install lcov -y
+    - name: Install Tools
+      run: apt update && apt install lcov -y
     
-    # - name: Reconfigure git to use HTTP authentication
-    #   run: >
-    #     git config --global url."https://github.com/".insteadOf 'git@github.com:'
+    - name: Reconfigure git to use HTTP authentication
+      run: >
+        git config --global url."https://github.com/".insteadOf 'git@github.com:'
 
-    # - name: Get Flutter packages
-    #   run: flutter pub get
+    - name: Get Flutter packages
+      run: flutter pub get
 
-    # - name: Prep Flutter for run
-    #   run: flutter create .
+    - name: Prep Flutter for run
+      run: flutter create .
 
-    # - name: Check Flutter readiness
-    #   run: flutter doctor
-    
-    # - name: Ensure Docker is available for integration tests via simulator
-    #   uses: actions/setup-docker@v2
+    - name: Check Flutter readiness
+      run: flutter doctor
 
     # - name: Clone Mozilla's CA cert bundle module into root directory
     #   run: git clone https://github.com/Chia-Network/mozilla-ca.git
