@@ -15,9 +15,8 @@ jobs:
     steps:
     - name: Clone the repository
       uses: actions/checkout@v1
-
-    - name: Fix pendantic naming convention
-      run: cd .. && mv chia-crypto-utils chia_crypto_utils && cd chia_crypto_utils
+      with:
+          path: chia_crypto_utils
 
     - name: Install Tools
       run: apt update && apt install lcov -y
