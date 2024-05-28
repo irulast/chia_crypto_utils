@@ -7,23 +7,13 @@ on:
     branches: [ main ]
 
 jobs:
-  checkout:
+  build:
     runs-on: ubuntu-latest
 
     steps:
     - name: Clone the repository
       uses: actions/checkout@v4
-      with:
-          path: chia_crypto_utils
 
-  build:
-    runs-on: ubuntu-latest
-    needs: checkout
-    defaults:
-      run:
-        working-directory: ./chia_crypto_utils
-
-    steps:
     - name: Install Tools
       run: sudo apt update && sudo apt install lcov -y
     
