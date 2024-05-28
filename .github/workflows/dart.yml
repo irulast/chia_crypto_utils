@@ -29,14 +29,17 @@ jobs:
         channel: stable
         version: 3.19.6
 
-    - name: Get Flutter packages
-      run: flutter pub get
+    - name: Debug
+      run: pwd && ls -la 
+      
+    # - name: Get Flutter packages
+    #   run: flutter pub get
 
-    - name: Prep Flutter for run
-      run: flutter create .
+    # - name: Prep Flutter for run
+    #   run: flutter create .
 
-    - name: Check Flutter readiness
-      run: flutter doctor
+    # - name: Check Flutter readiness
+    #   run: flutter doctor
 
     # - name: Clone Mozilla's CA cert bundle module into root directory
     #   run: git clone https://github.com/Chia-Network/mozilla-ca.git
