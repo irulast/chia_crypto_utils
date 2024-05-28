@@ -32,7 +32,7 @@ function test_subdirectories() {
 
           echo "running tests in $name"
 
-          flutter test -d linux ./$dir --coverage --coverage-path=coverage/${name}_lcov.info 
+          xvfb-run flutter test -d linux ./$dir --coverage --coverage-path=coverage/${name}_lcov.info 
 
           stop_simulator
         else
