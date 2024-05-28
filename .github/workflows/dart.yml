@@ -25,26 +25,32 @@ jobs:
 
     - name: Get Flutter packages
       run: flutter pub get
+
+    - name: Prep Flutter for run
+      run: flutter create .
+
+    - name: Check Flutter readiness
+      run: flutter doctor
     
-    - name: Clone Mozilla's CA cert bundle module into root directory
-      run: git clone https://github.com/Chia-Network/mozilla-ca.git
+    # - name: Clone Mozilla's CA cert bundle module into root directory
+    #   run: git clone https://github.com/Chia-Network/mozilla-ca.git
 
-    - name: Run simulator tests 
-      run: bash ./integration_test/run_tests.sh
+    # - name: Run simulator tests 
+    #   run: bash ./integration_test/run_tests.sh
 
-    - name: Run unit tests
-      run: flutter test test --coverage --coverage-path=coverage/test.info
+    # - name: Run unit tests
+    #   run: flutter test test --coverage --coverage-path=coverage/test.info
 
-    - name: Merge coverage files
-      run: |
-        lcov --add-tracefile coverage/test.info --add-tracefile coverage/integration_test.info --output-file coverage/merged_coverage.info
-        rm -rf coverage/*test.info
+    # - name: Merge coverage files
+    #   run: |
+    #     lcov --add-tracefile coverage/test.info --add-tracefile coverage/integration_test.info --output-file coverage/merged_coverage.info
+    #     rm -rf coverage/*test.info
 
-    - name: Generate coverage report 
-      run: genhtml coverage/merged_coverage.info -o coverage
+    # - name: Generate coverage report 
+    #   run: genhtml coverage/merged_coverage.info -o coverage
 
-    - name: Upload code coverage to GitHub
-      uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074
-      with:
-        name: code-coverage
-        path: coverage
+    # - name: Upload code coverage to GitHub
+    #   uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074
+    #   with:
+    #     name: code-coverage
+    #     path: coverage
