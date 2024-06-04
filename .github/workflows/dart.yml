@@ -11,13 +11,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Clone the repository
+    - name: Clone the Repository
       uses: actions/checkout@v4
 
     - name: Install Tools
       run: sudo apt update && sudo apt install lcov -y
     
-    - name: Reconfigure git to use HTTP authentication
+    - name: Reconfigure git to Use HTTP Authentication
       run: >
         git config --global url."https://github.com/".insteadOf 'git@github.com:'
 
@@ -27,10 +27,10 @@ jobs:
         channel: stable
         version: 3.19.6
 
-    - name: Check Flutter readiness
+    - name: Check Flutter Readiness
       run: flutter doctor
 
-    - name: Get Flutter packages
+    - name: Get Flutter Packages
       run: flutter pub get
 
     - name: Flutter Create
@@ -44,21 +44,25 @@ jobs:
         sudo apt install libgtk-3-dev libgtk-3-0 libblkid1 liblzma5 ninja-build -y
         sudo mkdir -p /usr/local/chia_crypto_utils && sudo chmod 777 /usr/local/chia_crypto_utils
 
-    - name: Configure Display
+    - name: Configure Virtual Display
       run: export DISPLAY=:99 && sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
 
-    - name: Run simulator tests
+    - name: Setup tmate session
+      if: success() || failure()
+      uses: mxschmitt/action-tmate@v3
+
+    - name: Run Simulator Tests
       run: bash ./integration_test/run_tests.sh
 
-    # - name: Run unit tests
+    # - name: Run Unit Tests
     #   run: flutter test test --coverage --coverage-path=coverage/test.info
 
-    # - name: Merge coverage files
+    # - name: Merge Coverage Files
     #   run: |
     #     lcov --add-tracefile coverage/test.info --add-tracefile coverage/integration_test.info --output-file coverage/merged_coverage.info
     #     rm -rf coverage/*test.info
 
-    # - name: Generate coverage report 
+    # - name: Generate Coverage Report 
     #   run: genhtml coverage/merged_coverage.info -o coverage
 
     # - name: Upload code coverage to GitHub
