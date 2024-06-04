@@ -36,8 +36,12 @@ jobs:
     - name: Flutter Create
       run: flutter create .
 
-    # - name: Clone Mozilla's CA cert bundle module into root directory
-    #   run: git clone https://github.com/Chia-Network/mozilla-ca.git
+    - name: Clone Mozilla's CA cert bundle module into root directory
+      run: git clone https://github.com/Chia-Network/mozilla-ca.git
+
+    - name: Setup tmate session
+      if: success() || failure()
+      uses: mxschmitt/action-tmate@v3
 
     - name: Run simulator tests
       run: bash ./integration_test/run_tests.sh
