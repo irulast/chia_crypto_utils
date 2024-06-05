@@ -55,26 +55,23 @@ jobs:
         sudo apt install network-manager
       shell: bash
 
-    - name: Setup tmate session
-      if: success() || failure()
-      uses: mxschmitt/action-tmate@v3
+    - name: Run Flutter Integration Tests
+      run: ./integration_test/run_tests.sh
+      shell: bash
 
-    # - name: Run Flutter Integration Tests
-    #   run: bash ./integration_test/run_tests.sh
+    - name: Run Unit Tests
+      run: flutter test test --coverage --coverage-path=coverage/test.info
 
-    # - name: Run Unit Tests
-    #   run: flutter test test --coverage --coverage-path=coverage/test.info
+    - name: Merge Coverage Files
+      run: |
+        lcov --add-tracefile coverage/test.info --add-tracefile coverage/integration_test.info --output-file coverage/merged_coverage.info
+        rm -rf coverage/*test.info
 
-    # - name: Merge Coverage Files
-    #   run: |
-    #     lcov --add-tracefile coverage/test.info --add-tracefile coverage/integration_test.info --output-file coverage/merged_coverage.info
-    #     rm -rf coverage/*test.info
+    - name: Generate Coverage Report 
+      run: genhtml coverage/merged_coverage.info -o coverage
 
-    # - name: Generate Coverage Report 
-    #   run: genhtml coverage/merged_coverage.info -o coverage
-
-    # - name: Upload code coverage to GitHub
-    #   uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074
-    #   with:
-    #     name: code-coverage
-    #     path: coverage
+    - name: Upload code coverage to GitHub
+      uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074
+      with:
+        name: code-coverage
+        path: coverage
