@@ -32,7 +32,11 @@ function test_subdirectories() {
 
           echo "running tests in $name"
 
-          flutter test -d linux ./$dir --coverage --coverage-path=coverage/${name}_lcov.info 
+          for file in "$dir"/*_test.dart; do
+            echo "running tests in $file"
+
+            flutter test -d linux $file --coverage --coverage-path=coverage/${name}_lcov.info
+          done
 
           stop_simulator
         else
