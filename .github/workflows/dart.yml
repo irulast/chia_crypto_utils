@@ -53,10 +53,7 @@ jobs:
         export DISPLAY=:99
         sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
         sudo apt install network-manager
-      shell: bash
-
-    - name: Run Flutter Integration Tests
-      run: ./integration_test/run_tests.sh
+        ./integration_test/run_tests.sh
       shell: bash
 
     - name: Run Unit Tests
