@@ -107,7 +107,7 @@ void main() async {
 
     expect(nathanNfts.single.metadata, inputMetadata);
   });
-  test('should melt a cat and  use result to mint an nft', () async {
+  test('should melt a cat and use result to mint an nft', () async {
     final user = ChiaEnthusiast(fullNodeSimulator, walletSize: 5);
     final nftFaucet = ChiaEnthusiast(fullNodeSimulator, walletSize: 5);
 
