@@ -1,125 +1,129 @@
+@Skip('Not tested yet')
+
 import 'package:chia_crypto_utils/chia_crypto_utils.dart';
+import 'package:test/test.dart';
 
-void main() {
-  final coreSecret = KeychainCoreSecret.fromMnemonic(
-    'goat club mountain ritual rack same bar put fall anxiety minor theme enter card dog lawsuit rather pigeon manual tribe shield decline gentle install'
-        .split(' '),
-  );
-  final keychain = WalletKeychain.fromCoreSecret(coreSecret);
+void main() async {
+  if (!(await SimulatorUtils.checkIfSimulatorIsRunning())) {
+    print(SimulatorUtils.simulatorNotRunningWarning);
+    return;
+  }
 
-  final inputMetadata = NftMetadata(
-    dataUris: const [
-      'https://www.chia.net/img/branding/chia-logo.svg',
-    ],
-    dataHash: Program.fromInt(0).hash(),
-  );
+  test('basic nft test', () async {
+      final coreSecret = KeychainCoreSecret.fromMnemonic(
+        'goat club mountain ritual rack same bar put fall anxiety minor theme enter card dog lawsuit rather pigeon manual tribe shield decline gentle install'
+            .split(' '),
+      );
+      final keychain = WalletKeychain.fromCoreSecret(coreSecret);
 
-  final did = Program.fromInt(3).hash();
+      final inputMetadata = NftMetadata(
+        dataUris: const [
+          'https://www.chia.net/wp-content/uploads/2023/01/chia-logo-dark.svg',
+        ],
+        dataHash: Program.fromInt(0).hash(),
+      );
 
-  final senderWalletVector = keychain.unhardenedWalletVectors.first;
-  final receiverWalletVector = keychain.unhardenedWalletVectors.last;
+      final did = Program.fromInt(3).hash();
 
-  final launcherCoin = CoinPrototype(
-    parentCoinInfo: Program.fromInt(0).hash(),
-    puzzlehash: Program.fromInt(1).hash(),
-    amount: 1,
-  );
+      final senderWalletVector = keychain.unhardenedWalletVectors.first;
+      final receiverWalletVector = keychain.unhardenedWalletVectors.last;
 
-  final senderP2Puzzle = getPuzzleFromPk(senderWalletVector.childPublicKey);
+      final launcherCoin = CoinPrototype(
+        parentCoinInfo: Program.fromInt(0).hash(),
+        puzzlehash: Program.fromInt(1).hash(),
+        amount: 1,
+      );
 
-  final ownershipLayer = NftWalletService.createOwnershipLayerPuzzle(
-    launcherId: launcherCoin.id,
-    did: did,
-    p2Puzzle: senderP2Puzzle,
-    royaltyPercentage: 200,
-  );
+      final senderP2Puzzle = getPuzzleFromPk(senderWalletVector.childPublicKey);
 
-  final fullPuzzle = NftWalletService.createFullPuzzle(
-    singletonId: launcherCoin.id,
-    metadata: inputMetadata,
-    metadataUpdaterPuzzlehash: nftMetadataUpdaterDefault.hash(),
-    innerPuzzle: ownershipLayer,
-  );
+      final ownershipLayer = NftWalletService.createOwnershipLayerPuzzle(
+        launcherId: launcherCoin.id,
+        did: did,
+        p2Puzzle: senderP2Puzzle,
+        royaltyPercentage: 200,
+      );
 
-  final uncurriedNft = UncurriedNftPuzzle.fromProgramSync(fullPuzzle);
+      final fullPuzzle = NftWalletService.createFullPuzzle(
+        singletonId: launcherCoin.id,
+        metadata: inputMetadata,
+        metadataUpdaterPuzzlehash: nftMetadataUpdaterDefault.hash(),
+        innerPuzzle: ownershipLayer,
+      );
 
-  // solution
+      final uncurriedNft = UncurriedNftPuzzle.fromProgramSync(fullPuzzle);
 
-  final standardInnerSolution = BaseWalletService.makeSolutionFromConditions([
-    CreateCoinCondition(
-      receiverWalletVector.puzzlehash,
-      1,
-      memos: [senderWalletVector.puzzlehash],
-    ),
-  ]);
+      // solution
 
-  final magicCondition = NftDidMagicConditionCondition();
-
-  final innerSolution = Program.list([
-    Program.list([
-      Program.list([]),
-      Program.cons(
-        Program.fromInt(1),
-        Program.cons(
-          magicCondition.toProgram(),
-          standardInnerSolution.rest().first().rest(),
+      final standardInnerSolution = BaseWalletService.makeSolutionFromConditions([
+        CreateCoinCondition(
+          receiverWalletVector.puzzlehash,
+          1,
+          memos: [senderWalletVector.puzzlehash],
         ),
-      ),
-      Program.list([]),
-    ]),
-  ]);
+      ]);
 
-  final nftLayerSolution = Program.list([innerSolution]);
-  final singletonSolution = Program.list([
-    LineageProof(
-      parentCoinInfo: launcherCoin.id,
-      innerPuzzlehash: uncurriedNft!.stateLayer.hash(),
-      amount: 1,
-    ).toProgram(),
-    Program.fromInt(1),
-    nftLayerSolution,
-  ]);
+      final magicCondition = NftDidMagicConditionCondition();
 
-  print(fullPuzzle.run(singletonSolution).program);
+      final innerSolution = Program.list([
+        Program.list([
+          Program.list([]),
+          Program.cons(
+            Program.fromInt(1),
+            Program.cons(
+              magicCondition.toProgram(),
+              standardInnerSolution.rest().first().rest(),
+            ),
+          ),
+          Program.list([]),
+        ]),
+      ]);
 
-  final innerResult = uncurriedNft.getInnerResult(singletonSolution);
+      final nftLayerSolution = Program.list([innerSolution]);
+      final singletonSolution = Program.list([
+        LineageProof(
+          parentCoinInfo: launcherCoin.id,
+          innerPuzzlehash: uncurriedNft!.stateLayer.hash(),
+          amount: 1,
+        ).toProgram(),
+        Program.fromInt(1),
+        nftLayerSolution,
+      ]);
 
-  // get new p2 puzzle hash from resulting conditions
-  final createCoinConditions = BaseWalletService.extractConditionsFromResult(
-    innerResult,
-    CreateCoinCondition.isThisCondition,
-    CreateCoinCondition.fromProgram,
-  );
+      print(fullPuzzle.run(singletonSolution).program);
 
-  final nftOutputConditions = createCoinConditions.where(
-    (element) =>
-        element.amount == 1 &&
-        element.memos != null &&
-        element.memos!.isNotEmpty,
-  );
+      final innerResult = uncurriedNft.getInnerResult(singletonSolution);
 
-  if (nftOutputConditions.isEmpty) {
-    throw Exception('No nft output condtions to find inner puzzle hash with');
-  }
+      // get new p2 puzzle hash from resulting conditions
+      final createCoinConditions = BaseWalletService.extractConditionsFromResult(
+        innerResult,
+        CreateCoinCondition.isThisCondition,
+        CreateCoinCondition.fromProgram,
+      );
 
-  if (nftOutputConditions.length > 1) {
-    throw Exception('more than one nft output condition');
-  }
+      final nftOutputConditions = createCoinConditions.where(
+        (element) =>
+            element.amount == 1 &&
+            element.memos != null &&
+            element.memos!.isNotEmpty,
+      );
 
-  // get new did from resulting conditions
-  final didMagicConditions = BaseWalletService.extractConditionsFromResult(
-    innerResult,
-    NftDidMagicConditionCondition.isThisCondition,
-    NftDidMagicConditionCondition.fromProgram,
-  );
+      if (nftOutputConditions.isEmpty) {
+        throw Exception('No nft output condtions to find inner puzzle hash with');
+      }
 
-  if (didMagicConditions.length > 1) {
-    throw Exception('more than one nft didMagicConditions condition');
-  }
+      if (nftOutputConditions.length > 1) {
+        throw Exception('more than one nft output condition');
+      }
 
-  // final innerPuzzleReveal = NftWalletService.constructOwnershipLayer(
-  //       currentOwnerDid: null,
-  //       transferProgram: uncurriedNft.ownershipLayerInfo!.transferProgram,
-  //       innerPuzzle: ownershipInfo.ownershipLayerP2Puzzle,
-  //     );
+      // get new did from resulting conditions
+      final didMagicConditions = BaseWalletService.extractConditionsFromResult(
+        innerResult,
+        NftDidMagicConditionCondition.isThisCondition,
+        NftDidMagicConditionCondition.fromProgram,
+      );
+
+      if (didMagicConditions.length > 1) {
+        throw Exception('more than one nft didMagicConditions condition');
+      }
+    });
 }

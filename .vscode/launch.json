@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "chia-crypto-utils",
+            "name": "chia_crypto_utils",
             "request": "launch",
             "type": "dart"
         },
