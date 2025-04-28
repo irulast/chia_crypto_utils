@@ -1,6 +1,6 @@
 # Chia Crypto Utils
 
-This repository provides an object model for working with Chia primitives serving as a basis for a Chia client.
+An SDK for interacting with Chia primitives serving as a basis for a Chia client.
 
 - Generating hardened and unhardened keys from a 24 word mnemonic seed
 - Standard transaction (XCH) coin spend
