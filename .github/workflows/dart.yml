@@ -22,7 +22,7 @@ jobs:
         git config --global url."https://github.com/".insteadOf 'git@github.com:'
 
     - name: Setup Flutter SDK
-      uses: flutter-actions/setup-flutter@v3
+      uses: flutter-actions/setup-flutter@v4
       with:
         channel: stable
         version: 3.19.6
@@ -68,7 +68,7 @@ jobs:
       run: genhtml coverage/merged_coverage.info -o coverage
 
     - name: Upload code coverage to GitHub
-      uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074
+      uses: actions/upload-artifact@v4
       with:
         name: code-coverage
         path: coverage
