@@ -1,4 +1,4 @@
-FROM python:3.9-slim-buster
+FROM python:3.10-slim-buster
 EXPOSE 80
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \

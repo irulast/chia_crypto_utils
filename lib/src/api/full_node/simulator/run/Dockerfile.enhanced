@@ -1,4 +1,4 @@
-FROM python:3.9-slim-buster
+FROM python:3.10-slim-buster
 EXPOSE 80
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
@@ -23,7 +23,7 @@ ENV PYTHONPATH=/chia-blockchain
 RUN python3 -m pip install --upgrade pip && \
     python3 -m pip install wheel && \
     python3 -m pip install --extra-index-url https://pypi.chia.net/simple/ miniupnpc==2.2.2 && \
-    python3 -m pip install -e ."[dev]" --extra-index-url https://pypi.chia.net/simple/
+    python3 -m pip install -e . --extra-index-url https://pypi.chia.net/simple/
 
 RUN chmod +x /opt/venv/bin/activate && \
     activate && \
